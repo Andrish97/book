@@ -599,7 +599,7 @@ test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszys
     p.strony[0].seria = 'se1';
     const tekst = (id, text, top, dodatki = {}) => ({ type: 'textbox', version: '5.3.0', left: 10, top, width: 40, text, styles: [], fontSize: 5, fontFamily: 'Inter', fill: '#000000', lineHeight: 1.2, id, ...dodatki });
     p.strony[0].obiekty = [
-      tekst('o_opis', '{opis}', 10, { ramka_h: 7 }),
+      tekst('o_opis', '{opis}', 10, { ramka_h: 7, spojniki: true, zasady_pl: true }),
       tekst('o_klamry', 'Wzór: f(x) = {x + 1} i {opis}', 30, { width: 120, bez_pol: true }),
       { type: 'image', version: '5.3.0', left: 50, top: 100, width: 40, height: 40, scaleX: 1, scaleY: 1, zasob: 'z_wzor', src: 'zasob:z_wzor', pole: { kolumna: 'plik', tryb: 'wypelnij' }, id: 'o_obraz' },
     ];
@@ -620,7 +620,7 @@ test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszys
       ostrzezenia: window.seriodruk.edytor.ostrzezenia.filter((o) => o.typ === 'nieznane_pole').length,
       // Ramka 40 × 40 mm od (50, 100). Obraz 4:1 wypełnia ją na wysokość: widać środkowy kwadrat, czerwony aż po rogi.
       obraz: [piksel(52, 102), piksel(88, 138), piksel(70, 120), piksel(48, 120), piksel(92, 120)],
-      uwagi: (await sprawdzWszystko(p, ciag)).map((u) => [u.rodzaj, u.strony, u.idStrony === p.strony[0].id, u.idObiektu, u.opis]),
+      uwagi: (await sprawdzWszystko(p, ciag)).filter((u) => u.rodzaj !== 'sklad_pl').map((u) => [u.rodzaj, u.strony, u.idStrony === p.strony[0].id, u.idObiektu, u.opis]),
     };
   });
   assert.deepEqual(w.klamry, ['Krótko', 'Wzór: f(x) = {x + 1} i {opis}'], 'tekst z przełącznikiem zostaje dosłowny');

@@ -83,7 +83,41 @@ function ileWierszy(ramka) {
     k = i + 1;
   }
   // Wdowy i sieroty (#131): akapit przecięty granicą ramek zostawia po obu stronach co najmniej `wdowy` wierszy.
-  return Math.max(1, poprawWdowy(ramka, k));
+  k = poprawWdowy(ramka, k);
+  // Polskie zasady (#323): tytuł (śródtytuł) nie zostaje sam na końcu ramki – przechodzi z następnym akapitem.
+  if (ramka.zasady_pl && k < ramka._textLines.length) k = tytulZNastepnym(ramka, k);
+  return Math.max(1, k);
+}
+
+// Akapit wygląda na tytuł: krótki (do 2 wierszy, bez kropki na końcu), cały większy niż tekst albo pogrubiony.
+export function akapitTytulem(ramka, nrAkapitu) {
+  const tekst = (ramka._unwrappedTextLines?.[nrAkapitu] || []).join('');
+  if (!tekst.trim() || tekst.length > 140 || /[.:;,]\s*$/.test(tekst)) return false;
+  const st = ramka.styles?.[nrAkapitu] || {};
+  let wiekszy = true; let gruby = true;
+  for (let i = 0; i < tekst.length; i += 1) {
+    if (/\s/.test(tekst[i])) continue;
+    const s = st[i] || {};
+    if (!((s.fontSize ?? ramka.fontSize) > ramka.fontSize * 1.08)) wiekszy = false;
+    const w = s.fontWeight ?? ramka.fontWeight;
+    if (!(w === 'bold' || Number(w) >= 600)) gruby = false;
+  }
+  return wiekszy || gruby;
+}
+
+// Granica ramki po wierszu k: gdy ostatni akapit w ramce to tytuł, a następny akapit już się nie zaczyna w tej
+// ramce – granica cofa się przed tytuł (o ile coś zostaje w ramce).
+export function tytulZNastepnym(ramka, k) {
+  const mapa = ramka._styleMap;
+  if (!mapa?.[k - 1] || !mapa[k]) return k;
+  const ostatni = mapa[k - 1].line;
+  if (mapa[k].line === ostatni) return k; // akapit przecięty – to sprawa wdów
+  if (!akapitTytulem(ramka, ostatni)) return k;
+  let p = k - 1;
+  while (p > 0 && mapa[p - 1].line === ostatni) p -= 1;
+  // kilka tytułów pod rząd (rozdział + podtytuł) – wszystkie idą dalej
+  while (p > 0 && akapitTytulem(ramka, mapa[p - 1].line)) { const l = mapa[p - 1].line; while (p > 0 && mapa[p - 1].line === l) p -= 1; }
+  return p > 0 ? p : k;
 }
 
 // Numer znaku w tekście, od którego zaczyna się wiersz k (po zawinięciu).

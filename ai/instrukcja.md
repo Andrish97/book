@@ -594,7 +594,7 @@ Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, 
 
 | Ustawienie | Co robi |
 |---|---|
-| **Polskie zasady składu** | Włączone w nowych tekstach. Wiersz nie łamie się po skrócie (np., tj., ul., dr…), po inicjale (J. Kowalski), między liczbą a jednostką, datą albo dalszymi cyframi (5 kg, 12 maja, 10 000), a myślnik nie zaczyna wiersza — jak w normach PN-83/P-55366 i PN-70/P-55036. Pod przełącznikiem są uwagi o miejscach niezgodnych z zasadami i przycisk **Popraw znaki**: cudzysłowy „…” zamiast prostych, półpauza (–) zamiast dywizu między spacjami, wielokropek (…) zamiast trzech kropek, bez podwójnych spacji i spacji przed przecinkiem — formatowanie fragmentów zostaje. |
+| **Polskie zasady składu** | Włączone w nowych tekstach. Wiersz nie łamie się po skrócie (np., tj., ul., dr…), po inicjale (J. Kowalski), między liczbą a jednostką, datą albo dalszymi cyframi (5 kg, 12 maja, 10 000), a myślnik nie zaczyna wiersza — jak w normach PN-83/P-55366 i PN-70/P-55036. Z **Dziel wyrazy**: najwyżej 3 dzielone wiersze pod rząd, co najmniej 2 litery przed łącznikiem i 3 po nim, bez dzielenia ostatniego wyrazu akapitu i wyrazów od wielkiej litery (wyraz dłuższy niż wiersz dzieli się zawsze). Przy justowaniu odstępy mogą się też lekko ścisnąć (do 20 %), więc wierszy z dziurami jest mniej. W tekście płynącym przez ramki tytuł (krótki akapit większym albo pogrubionym pismem) nie zostaje sam na końcu ramki — przechodzi z następnym akapitem. Pod przełącznikiem są uwagi o miejscach niezgodnych z zasadami i przycisk **Popraw znaki**: cudzysłowy „…” zamiast prostych, półpauza (–) zamiast dywizu między spacjami, wielokropek (…) zamiast trzech kropek, bez podwójnych spacji i spacji przed przecinkiem — formatowanie fragmentów zostaje. |
 | **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad — wyjustowany tekst nie ma wtedy dziur. Obok ustawisz najkrótszy dzielony wyraz i ile liter zostaje przed łącznikiem i po nim. |
 | **Spójniki na końcu wiersza** | Pojedyncze **a, i, o, u, w, z** (albo też dwuliterowe: do, na, że…) przechodzą do następnego wiersza razem ze słowem, jak w polskim składzie. |
 | **Wdowy i sieroty** | Tekst płynący przez kilka ramek (rozdział „5.7 Kolumny i tekst przez kilka ramek”) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. |
@@ -603,7 +603,7 @@ Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, 
 
 ![Skład akapitu we właściwościach tekstu](https://makietka.app/img/instrukcja/k-sklad-akapitu.png)
 
-**Ostrzeżenia o składzie.** Tekst niezgodny z polskimi zasadami (spójnik albo skrót na końcu wiersza, liczba oddzielona od jednostki, myślnik na początku wiersza, cudzysłów prosty, trzy kropki, podwójne spacje…) pojawia się w ostrzeżeniach edytora i w kontroli przed drukiem (rozdział „20.1 Lista uwag”) z przykładem miejsca. Ostrzeżenie dla celowego tekstu wyciszysz przyciskiem **Wycisz**.
+**Ostrzeżenia o składzie.** Tekst niezgodny z polskimi zasadami (spójnik albo skrót na końcu wiersza, liczba oddzielona od jednostki, myślnik na początku wiersza, więcej niż 3 dzielone wiersze pod rząd, podzielony ostatni wyraz akapitu, bardzo krótki ostatni wiersz akapitu, rozstrzelony wiersz, cudzysłów prosty, trzy kropki, podwójne spacje…) pojawia się w ostrzeżeniach edytora i w kontroli przed drukiem (rozdział „20.1 Lista uwag”) z przykładem miejsca. Ostrzeżenie dla celowego tekstu wyciszysz przyciskiem **Wycisz**.
 
 ### 5.10 Inicjał
 

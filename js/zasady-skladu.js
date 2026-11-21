@@ -46,6 +46,10 @@ export const OPIS_POWODU = {
   inicjal: 'inicjał oddzielony od nazwiska',
   liczba: 'liczba oddzielona od jednostki, daty albo dalszych cyfr',
   myslnik: 'myślnik na początku wiersza',
+  laczniki: 'więcej niż 3 dzielone wiersze pod rząd',
+  ostatni_dzielony: 'podzielony ostatni wyraz akapitu',
+  krotki_wiersz: 'bardzo krótki ostatni wiersz akapitu (jeden krótki wyraz)',
+  luzny: 'rozstrzelony wiersz (bardzo duże odstępy przy justowaniu – włącz dzielenie wyrazów)',
 };
 
 // ---------- Kontrola składu (#323): miejsca niezgodne z zasadami ----------
@@ -75,16 +79,28 @@ export function uwagiLamania(o) {
   const linie = o?._textLines;
   if (!Array.isArray(linie) || linie.length < 2) return [];
   const wynik = new Map();
+  const dodaj = (powod, przyklad) => { const w = wynik.get(powod) || { kod: 'lamanie', powod, opis: OPIS_POWODU[powod], ile: 0, przyklad }; w.ile += 1; wynik.set(powod, w); };
+  const koniecAkapitu = (i) => typeof o.isEndOfWrapping === 'function' && o.isEndOfWrapping(i);
+  let pod = 0;
+  for (let i = 0; i < linie.length; i += 1) {
+    pod = linie[i].lacznik ? pod + 1 : 0;
+    if (linie[i].luzny) dodaj('luzny', linie[i].join('').trim().split(/\s+/).slice(0, 3).join(' ') + '…');
+    if (pod === 4) dodaj('laczniki', '');
+    // zawieszka: ostatni wiersz wielowierszowego akapitu to jeden wyraz krótszy niż 4 litery
+    if (koniecAkapitu(i) && i > 0 && !koniecAkapitu(i - 1)) {
+      const sl = linie[i].join('').trim().split(/\s+/);
+      if (sl.length === 1 && sl[0].replace(/[^\p{L}\d]/gu, '').length > 0 && sl[0].replace(/[^\p{L}\d]/gu, '').length < 4) dodaj('krotki_wiersz', sl[0]);
+    }
+    if (linie[i].lacznik && i + 1 < linie.length && koniecAkapitu(i + 1) && linie[i + 1].join('').trim().split(/\s+/).length === 1) dodaj('ostatni_dzielony', `${linie[i].join('').trim().split(/\s+/).at(-1)}-`);
+  }
   for (let i = 0; i < linie.length - 1; i += 1) {
-    if (typeof o.isEndOfWrapping === 'function' && o.isEndOfWrapping(i)) continue; // koniec akapitu
+    if (koniecAkapitu(i)) continue; // koniec akapitu
     if (linie[i].lacznik) continue; // wyraz dzielony – to nie granica wyrazów
     const a = linie[i].join('').trim().split(/\s+/);
     const b = linie[i + 1].join('').trim().split(/\s+/);
     const powod = powodWiazania(a.at(-1), b[0], { jednoliterowe: true });
     if (!powod || a.length < 2) continue; // jeden wyraz w wierszu – złamania nie da się uniknąć
-    const w = wynik.get(powod) || { kod: 'lamanie', powod, opis: OPIS_POWODU[powod], ile: 0, przyklad: `${a.at(-1)} | ${b[0]}` };
-    w.ile += 1;
-    wynik.set(powod, w);
+    dodaj(powod, `${a.at(-1)} | ${b[0]}`);
   }
   return [...wynik.values()];
 }

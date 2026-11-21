@@ -215,6 +215,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `kod` | kod QR albo kod kreskowy EAN-13 / ISBN (niżej, „Kody”) |
 | `bez_pol` | `true` – klamry w tym tekście to zwykły tekst |
 | `dziel_wyrazy` | `true` – dzielenie wyrazów po polsku (łącznik na końcu wiersza tylko w wyglądzie, treść bez zmian); `dziel_min` (najkrótszy dzielony wyraz, 5), `dziel_przed` / `dziel_po` (najmniej liter przed i po łączniku, 2) |
+| `zasady_pl` | `true` – polskie zasady składu (PN-83/P-55366): wiersz nie łamie się po skrótach (np., tj., ul., dr…), inicjałach, między liczbą a jednostką/datą/dalszymi cyframi ani przed myślnikiem; z `dziel_wyrazy` – najwyżej 3 dzielone wiersze pod rząd, bez dzielenia ostatniego wyrazu akapitu i wyrazów od wielkiej litery; przy `textAlign: "justify"` odstępy mogą się ścisnąć o 20 %; tytuł nie zostaje sam na końcu ramki wątku. Nowe teksty mają `true` |
 | `spojniki` | `true` – jednoliterowe spójniki i przyimki (a, i, o, u, w, z) nie zostają na końcu wiersza; `"dwuliterowe"` – także do, na, od, po, we, za, ze, że… Nowe teksty mają `true` |
 | `wdowy` | najmniej wierszy akapitu na końcu i początku ramki przy tekście płynącym przez ramki (2 albo 3; brak – bez pilnowania). Nowe teksty mają 2 |
 | `inicjal` | 2–5 – pierwsza litera pierwszego akapitu jako inicjał na tyle wierszy; `inicjal_czcionka`, `inicjal_kolor` (domyślnie jak tekst) |
@@ -235,7 +236,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
   "fontStyle": "normal", "underline": false, "linethrough": false, "lineHeight": 1.1, "charSpacing": 0, "fill": "#1a1a1a", "textAlign": "left" }
 ```
 
-Styl może zawierać też ustawienia składu (`dziel_wyrazy`, `spojniki`, `wdowy`, `do_siatki`, `inicjal`, `tabulatory`…) – `null` znaczy „wyłączone”.
+Styl może zawierać też ustawienia składu (`dziel_wyrazy`, `spojniki`, `zasady_pl`, `wdowy`, `do_siatki`, `inicjal`, `tabulatory`…) – `null` znaczy „wyłączone”.
 
 **Style znakowe** (`style_znakowe` w projekcie): `{ "id": "sz_wyr", "nazwa": "Wyróżnienie", "fontWeight": "bold", "fill": "#c8102e" }` – pola jak we fragmencie tekstu (`fontFamily`, `fontSize`, `fontWeight`, `fontStyle`, `underline`, `linethrough`, `fill`). Fragment wskazuje styl polem `styl_znakowy` w swoim `style` i ma te same wartości.
 
@@ -407,7 +408,7 @@ Okno „Makieta 3D” pokazuje projekt jako wydrukowaną rzecz. Ujęcia zapisane
 |---|---|---|
 | `id` | tekst | niepowtarzalny w projekcie |
 | `nazwa` | tekst (do 80 znaków) | pokazywana na liście „Zapisane ujęcia” |
-| `model` | `"ksiazka_miekka"` \| `"ksiazka_twarda"` \| `"notes"` \| `"kalendarz_scienny"` \| `"kalendarz_biurkowy"` \| `"kartka"` \| `"ulotka"` \| `"koperta"` \| `"pudelko"` \| `"trojdzielny"` \| `"skladanka"` | rodzaj makiety; ostatnie pięć tylko z sekcją takiego typu (`skladanka` – sekcja składanki: części na arkuszach, złożone i sklejony model) (ulotka, wykrojnik koperta / pudełko, trójdzielny) |
+| `model` | `"ksiazka_miekka"` \| `"ksiazka_zeszytowa"` (broszura zeszytowa – zszywki w zgięciu) \| `"ksiazka_twarda"` \| `"notes"` \| `"kalendarz_scienny"` \| `"kalendarz_biurkowy"` \| `"kartka"` \| `"ulotka"` \| `"koperta"` \| `"pudelko"` \| `"trojdzielny"` \| `"skladanka"` | rodzaj makiety; ostatnie pięć tylko z sekcją takiego typu (`skladanka` – sekcja składanki: części na arkuszach, złożone i sklejony model) (ulotka, wykrojnik koperta / pudełko, trójdzielny) |
 | `u` | liczba ≥ 0 | położenie kartkowania: 0 – okładka (zamknięta), 1, 2… – kolejne przewrócone kartki; ulotka: 0 złożona, 1 rozłożona (środek), 2 odwrócona; koperta: 0 przód, 1 tył, 2 otwarta klapa; pudełko: 0 wykrojnik, 1 złożone |
 | `ulozenie` | `"lezy"` \| `"stoi"` | książka i notes mogą stać |
 | `kamera` | `{ obrotY, obrotX, zoom, fov }` | `obrotY`, `obrotX` – obrót wokół pionu i pochylenie w radianach (`obrotX` 1,5 – z góry, 0 – z boku), `zoom` 1 – cała rzecz w kadrze, `fov` – kąt widzenia w stopniach (12–60; mały – teleobiektyw, duży – szeroki kąt) |

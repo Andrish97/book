@@ -138,7 +138,7 @@ test('z danych: widoczność i obrót elementu; podwójne klamry jako zwykłe kl
       zDanych: p.strony[0].obiekty.slice(0, 4).map((o) => polaZDanych(o)),
       samaKlamra: podstawWTekscie('a }} b {{ c', [], () => undefined).text,
       piksele,
-      ostrzezenia: window.seriodruk.edytor.ostrzezenia.length,
+      ostrzezenia: window.seriodruk.edytor.ostrzezenia.filter((o) => o.typ !== 'sklad_pl').length,
     };
   });
   // Strona 1: święto „Nowy Rok”, strona 2: puste, strona 3: „tak”.

@@ -296,3 +296,96 @@ test('polskie zasady składu: „Popraw znaki” i ostrzeżenia o niezgodnościa
   assert.equal(wynik.po, 0, 'po poprawce bez ostrzeżeń');
   assert.deepEqual(bledy, []);
 });
+
+// #323 etap B: dzielenie wyrazów według polskich zasad – najwyżej 3 dzielone wiersze pod rząd, bez dzielenia
+// ostatniego wyrazu akapitu i wyrazów od wielkiej litery, co najmniej 3 litery przeniesione.
+test('polskie zasady składu: dzielenie wyrazów z ograniczeniami', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Dzielenie');
+  const TEKST = 'Niezapominajkowe przedsiębiorstwa telekomunikacyjne Rzeczpospolitej przygotowywały nadzwyczajnie skomplikowane konstantynopolitańczykowianeczki oraz niebezpieczeństwa.';
+  const uklady = await strona.evaluate(async (tekstAkapitu) => {
+    const { edytor } = window.seriodruk;
+    await (await import('./js/dzielenie.js')).zaladujDzielenie();
+    const wynik = [];
+    // szerokości, w których najdłuższy wyraz mieści się w wierszu (wyraz dłuższy niż wiersz dzieli się zawsze)
+    for (let w = 62; w <= 100; w += 2) {
+      const o = edytor.dodajTekst(tekstAkapitu);
+      o.set({ width: w, fontSize: 3, dziel_wyrazy: true, zasady_pl: true, textAlign: 'justify' });
+      o.initDimensions();
+      wynik.push(o._textLines.map((l) => ({ t: l.join(''), l: Boolean(l.lacznik) })));
+      edytor.canvas.remove(o);
+    }
+    return wynik;
+  }, TEKST);
+  for (const linie of uklady) {
+    let pod = 0;
+    for (let i = 0; i < linie.length; i += 1) {
+      pod = linie[i].l ? pod + 1 : 0;
+      assert.ok(pod <= 3, `najwyżej 3 dzielone wiersze pod rząd: ${linie.map((x) => x.t).join(' / ')}`);
+      if (linie[i].l) {
+        const ostatni = linie[i].t.trim().split(/\s+/).at(-1);
+        assert.ok(!/^\p{Lu}/u.test(ostatni) || ostatni.length > 25, `bez dzielenia nazw własnych: ${ostatni}`);
+        const dalej = linie[i + 1].t.trim().split(/\s+/)[0].replace(/[.,]$/, '');
+        assert.ok(dalej.length >= 3, `co najmniej 3 litery przeniesione: ${dalej}`);
+      }
+    }
+    assert.ok(!linie.at(-2).l || linie.at(-1).t.trim().split(/\s+/).length > 1, 'ostatni wyraz akapitu niedzielony');
+  }
+  assert.ok(uklady.some((linie) => linie.some((x) => x.l)), 'dzielenie w ogóle działa');
+  assert.deepEqual(bledy, []);
+});
+
+// #323 etap C: tytuł nie zostaje sam na końcu ramki; krótki ostatni wiersz akapitu w uwagach.
+test('polskie zasady składu: tytuł przechodzi z następnym akapitem, zawieszka w uwagach', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Tytuły');
+  const wynik = await strona.evaluate(async () => {
+    const { tytulZNastepnym, akapitTytulem } = await import('./js/watki.js');
+    const { uwagiLamania } = await import('./js/zasady-skladu.js');
+    const { edytor } = window.seriodruk;
+    const tekst = `Pierwszy akapit z kilkoma słowami treści.\nRozdział drugi\n${'Treść rozdziału drugiego płynie dalej. '.repeat(3)}`;
+    const o = edytor.dodajTekst(tekst);
+    o.set({ width: 60, fontSize: 3, zasady_pl: true });
+    const start = tekst.indexOf('Rozdział');
+    o.setSelectionStyles({ fontWeight: 'bold', fontSize: 4.5 }, start, start + 'Rozdział drugi'.length);
+    o.initDimensions();
+    const akapit = (i) => o._styleMap[i].line;
+    const poTytule = o._textLines.findIndex((_, i) => akapit(i) === 2); // pierwszy wiersz treści
+    const tytulOd = o._textLines.findIndex((_, i) => akapit(i) === 1);
+    const z = edytor.dodajTekst('Akapit, który kończy się bardzo krótkim wyrazem na samym końcu akapitu w.\nDrugi.');
+    z.set({ width: 40, fontSize: 3, spojniki: undefined, zasady_pl: undefined });
+    z.initDimensions();
+    return { tytul: akapitTytulem(o, 1), zwykly: akapitTytulem(o, 0), granica: tytulZNastepnym(o, poTytule), tytulOd, poTytule, uwagi: uwagiLamania(z).map((u) => u.powod) };
+  });
+  assert.equal(wynik.tytul, true);
+  assert.equal(wynik.zwykly, false);
+  assert.equal(wynik.granica, wynik.tytulOd, 'granica ramki cofa się przed tytuł');
+  assert.deepEqual(bledy, []);
+});
+
+// #323 etap D: justowanie z polskimi zasadami – odstępy mogą się lekko ścisnąć (mniej luźnych wierszy), nic nie wystaje.
+test('polskie zasady składu: justowanie ściska odstępy do 20%, wiersze nie wystają', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Justowanie');
+  const w = await strona.evaluate(async () => {
+    const { edytor } = window.seriodruk;
+    const tekst = 'Polskie zasady składu pozwalają lekko ścisnąć odstępy między wyrazami w justowanym akapicie, dzięki czemu wiersze są równiejsze i nie ma w nich wielkich dziur. '.repeat(3);
+    const wyniki = [];
+    for (const zasady of [false, true]) {
+      const o = edytor.dodajTekst(tekst);
+      o.set({ width: 55, fontSize: 3, textAlign: 'justify', zasady_pl: zasady || undefined, spojniki: true });
+      o.initDimensions();
+      const szer = o._textLines.map((_, i) => o.getLineWidth(i));
+      const maxSzer = Math.max(...o._textLines.map((l, i) => (o.isEndOfWrapping(i) ? 0 : szer[i])));
+      const ostatnie = o._textLines.map((_, i) => i).filter((i) => o.isEndOfWrapping(i)).map((i) => szer[i]);
+      wyniki.push({ wiersze: o._textLines.length, maxSzer, ostatnie, w: o.width });
+      edytor.canvas.remove(o);
+    }
+    return wyniki;
+  });
+  const [bez, z] = w;
+  assert.ok(z.wiersze <= bez.wiersze, `ściskanie nie dodaje wierszy (${z.wiersze} / ${bez.wiersze})`);
+  for (const ost of z.ostatnie) assert.ok(ost <= z.w + 0.01, 'ostatni wiersz akapitu nie wystaje');
+  assert.ok(z.maxSzer <= z.w + 0.05, `justowane wiersze mają szerokość ramki (${z.maxSzer.toFixed(2)} / ${z.w})`);
+  assert.deepEqual(bledy, []);
+});

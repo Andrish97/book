@@ -14,14 +14,18 @@ test('makieta: grzbiet zaokrąglony wychodzi łukiem, prosty jest płaski', asyn
   const { normalizujOkladke } = await modul('js/okladka.js');
   assert.equal(normalizujOkladke({ oprawa: 'twarda' }).grzbiet, 'okragly');
   assert.equal(normalizujOkladke({ oprawa: 'twarda', grzbiet: 'prosty' }).grzbiet, 'prosty');
-  const glebokosc = (g) => {
+  // Wybrzuszenie grzbietu okładki (21.11: grzbiet ma szerokość bloku i dwóch tektur): środek grzbietu względem jego
+  // końców przy tekturach – zaokrąglony wychodzi łukiem, prosty jest płaski.
+  const luk = (g) => {
     const k = M.kartkiModelu('ksiazka_twarda', { strony: 200, format: { w: 148, h: 210 }, okladka: { w: 151, h: 216, tektura: 2.5, grzbiet: g }, kartka_mm: 0.1 });
-    const q = M.scena('ksiazka_twarda', k, 0, {}).filter((x) => x.tex === 'okl:grzbiet');
-    return -Math.min(...q.flatMap((x) => x.p.map((p) => p[0])));
+    const pkt = M.scena('ksiazka_twarda', k, 0, {}).filter((x) => x.tex === 'okl:grzbiet').flatMap((x) => x.p);
+    const ys = pkt.map((p) => p[1]); const y0 = Math.min(...ys); const y1 = Math.max(...ys);
+    const xPrzy = (f) => Math.min(...pkt.filter((p) => f(p[1])).map((p) => p[0]));
+    return xPrzy((y) => y > y1 - 2.5 || y < y0 + 2.5) - xPrzy((y) => Math.abs(y - (y0 + y1) / 2) < 1);
   };
-  const okragly = glebokosc('okragly');
-  const prosty = glebokosc('prosty');
-  assert.ok(okragly - prosty > 1.5, `łuk grzbietu: zaokrąglony ${okragly.toFixed(1)} mm, prosty ${prosty.toFixed(1)} mm`);
+  const okragly = luk('okragly');
+  const prosty = luk('prosty');
+  assert.ok(okragly > 0.4 && prosty < 0.2, `łuk grzbietu: zaokrąglony ${okragly.toFixed(2)} mm, prosty ${prosty.toFixed(2)} mm`);
 });
 
 test('ustawienia okładki: pole Grzbiet zapisuje kształt', async (t) => {

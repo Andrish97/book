@@ -178,7 +178,12 @@ function sklad(o, linieTekstu, szerokoscRamki) {
   const wciecie = wciecieListy(o);
   const baza = szerokoscRamki - wciecie;
   const wynik = [];
-  const dziel = o.dziel_wyrazy ? { min: o.dziel_min || 5, przed: o.dziel_przed || 2, po: o.dziel_po || 2 } : null;
+  // Polskie zasady (#323): nie mniej niż 2 litery przed łącznikiem i 3 po nim, najwyżej 3 dzielone wiersze pod rząd,
+  // bez dzielenia ostatniego wyrazu akapitu i wyrazów od wielkiej litery (nazwy własne, skróty).
+  const pl = Boolean(o.zasady_pl);
+  const dziel = o.dziel_wyrazy ? { min: o.dziel_min || 5, przed: Math.max(pl ? 2 : 1, o.dziel_przed || 2), po: Math.max(pl ? 3 : 1, o.dziel_po || 2) } : null;
+  const MAX_LACZNIKOW = 3;
+  let laczniki = 0; // dzielone wiersze pod rząd
   const inicjal = inicjalAktywny(o) ? geometriaInicjalu(o, linieTekstu[0]) : null;
   o._inicjal = inicjal;
   o._odstepGory = 0;
@@ -188,6 +193,7 @@ function sklad(o, linieTekstu, szerokoscRamki) {
 
   for (let p = 0; p < linieTekstu.length; p += 1) {
     const zn = o.graphemeSplit(linieTekstu[p]);
+    laczniki = 0;
     const szer = (od, doZnaku) => (doZnaku > od ? o._measureWord(zn.slice(od, doZnaku), p, od) : 0);
     // Słowa: [od, do) i znak po nich (spacja, tabulator albo koniec akapitu).
     const slowa = [];
@@ -198,6 +204,7 @@ function sklad(o, linieTekstu, szerokoscRamki) {
     let start = 0; // początek bieżącego wiersza (znak akapitu)
     let x = 0; // szerokość bieżącego wiersza
     let slowWWierszu = 0;
+    let spacjeWWierszu = 0; // suma szerokości spacji w bieżącym wierszu (ściskanie przy justowaniu)
     let miejsce = null;
     const geometria = () => {
       let pr = { x: 0, w: baza };
@@ -222,6 +229,7 @@ function sklad(o, linieTekstu, szerokoscRamki) {
     const zamknij = (doZnaku, lacznik, nastepny) => {
       const linia = zn.slice(start, doZnaku);
       linia.lacznik = lacznik;
+      laczniki = lacznik ? laczniki + 1 : 0;
       linia.odstepPo = 0;
       if (miejsce.x !== 0 || miejsce.w !== baza) { linia.x0 = miejsce.x; linia.w = miejsce.w; }
       wynik.push(linia);
@@ -230,6 +238,7 @@ function sklad(o, linieTekstu, szerokoscRamki) {
       start = nastepny;
       x = 0;
       slowWWierszu = 0;
+      spacjeWWierszu = 0;
       miejsce = geometria();
     };
     miejsce = geometria();
@@ -252,19 +261,26 @@ function sklad(o, linieTekstu, szerokoscRamki) {
       for (let proba = 0; proba < 500; proba += 1) {
         const wSlowa = szer(od, s.do);
         const przerwa = odstep(wSlowa);
-        if (!slowWWierszu || x + przerwa + wSlowa <= miejsce.w + 0.001) {
+        // Justowanie z polskimi zasadami (#323): odstępy mogą się ścisnąć o 20% – w wierszu, który nie jest ostatnim
+        // wierszem akapitu (ostatni nie jest justowany, więc nie może wystawać).
+        const scisk = pl && o.textAlign === 'justify' && k < slowa.length - 1 && sepPrzed === ' ' ? 0.2 * (spacjeWWierszu + przerwa) : 0;
+        if (!slowWWierszu || x + przerwa + wSlowa <= miejsce.w + scisk + 0.001) {
           // Mieści się (albo wiersz jest pusty – wtedy próbujemy dzielić słowo za długie na cały wiersz).
           if (slowWWierszu || wSlowa <= miejsce.w + 0.001 || !dziel) {
             if (!slowWWierszu && wSlowa > miejsce.w) niepodzielne = Math.max(niepodzielne, wSlowa);
             x += przerwa + wSlowa;
+            if (slowWWierszu && sepPrzed === ' ') spacjeWWierszu += przerwa;
             slowWWierszu += 1;
             break;
           }
         }
         // Nie mieści się: dzielenie słowa.
         let podzial = -1;
-        if (dziel) {
-          const tekst = zn.slice(od, s.do).join('');
+        const tekstDz = zn.slice(od, s.do).join('');
+        // (wyraz dłuższy niż cały wiersz dzieli się zawsze – inaczej wystawałby poza ramkę)
+        const wolnoDzielic = dziel && (!pl || szer(od, s.do) > miejsce.w || (laczniki < MAX_LACZNIKOW && k < slowa.length - 1 && !/^[„"(]?\p{Lu}/u.test(tekstDz)));
+        if (wolnoDzielic) {
+          const tekst = tekstDz;
           if (tekst.length === s.do - od) {
             const miejsca = miejscaPodzialu(tekst, dziel);
             if (miejsca.length) {
@@ -430,8 +446,12 @@ export function zalatajSklad() {
       const szer = linia.w ?? this.width;
       const teraz = this.getLineWidth(i);
       const spacje = linia.reduce((s, z) => s + (z === ' ' ? 1 : 0), 0);
-      if (!(teraz < szer) || !spacje) continue;
+      // Także ściśnięcie (wiersz dłuższy o ścisk odstępów – polskie zasady, #323).
+      if (Math.abs(szer - teraz) < 0.001 || !spacje) continue;
       const dodatek = (szer - teraz) / spacje;
+      // Luźny wiersz: odstępy ponad dwa razy szersze niż zwykle – do uwag o składzie.
+      const zwykla = this.__charBounds[i]?.[linia.indexOf(' ')]?.width || 0;
+      linia.luzny = zwykla > 0 && dodatek > zwykla * 1.0;
       let narastajaco = 0;
       for (let j = 0; j <= linia.length; j += 1) {
         const g = this.__charBounds[i][j];
