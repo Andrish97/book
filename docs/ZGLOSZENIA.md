@@ -30,12 +30,12 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 
 | Krok | Stan |
 |---|---|
-| Cloudflare → makietka-api → Settings → Variables and Secrets → sekret `SUPABASE_SERVICE_ROLE_KEY` (secret key z Supabase → Project Settings → API Keys) – po wdrożeniu #106 | 👤 |
-| Email Routing: kontakt@, noreply@, no-reply@ → Send to a Worker → makietka-api (catch-all zostaje) | 👤 |
+| Cloudflare → makietka-api → Settings → Variables and Secrets → sekret `SUPABASE_SERVICE_ROLE_KEY` (secret key z Supabase → Project Settings → API Keys) – po wdrożeniu #106 | ✅ zrobione (potwierdzone 21.11) |
+| Email Routing: kontakt@, noreply@, no-reply@ → Send to a Worker → makietka-api (catch-all zostaje) | ✅ zrobione (potwierdzone 21.11) |
 | Zoho: weryfikacja domeny makietka.app (support), potem włączenie ZeptoMail w panelu | ✅ zrobione (ZeptoMail działa) |
 | Supabase → Storage: w bucketach `zasoby` i `podglady` zaznacz wszystko → Delete, potem ⋯ → Delete bucket | ✅ zrobione |
-| Link z hasłem: otwórz okno Udostępnij i opublikuj link ponownie (stary link bez sekretu jest nieaktywny) | 👤 |
-| Wyczyścić dane strony andrish97.github.io na swoich urządzeniach (stary moduł offline nie przekierowuje) | 👤 |
+| Link z hasłem: otwórz okno Udostępnij i opublikuj link ponownie (stary link bez sekretu jest nieaktywny) | ✅ zrobione (potwierdzone 21.11) |
+| Wyczyścić dane strony andrish97.github.io na swoich urządzeniach (stary moduł offline nie przekierowuje) | ✅ zrobione (potwierdzone 21.11) |
 
 ## Zrobione
 
@@ -271,3 +271,4 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 - 21.11.2026: skład – opcja „Łam cały akapit naraz” (jak kompozytor akapitu w programach DTP, metoda Knutha–Plassa), domyślnie w nowych tekstach: wiersze akapitu dobierane razem – najmniejsza suma kar za rozciągnięte albo ściśnięte odstępy (kwadrat rozciągnięcia), dzielone wyrazy (2500, kolejny pod rząd drugie tyle) i krótki ostatni wiersz; zasady (spójniki, skróty, myślnik, limity dzielenia) twarde; akapit z oblewaniem, inicjałem albo tabulatorami i akapit bez rozwiązania łamią się dalej wiersz po wierszu. Test: tests/sklad.test.cjs („łamanie całego akapitu”) (#326).
 - 21.11.2026: skład – wyrównanie łamów (z polskimi zasadami składu): dwie kolejne ramki wątku na lewej i prawej stronie rozkładówki, o tej samej wysokości, z tekstem płynącym dalej, kończą się na tej samej wysokości tekstu – gdy wdowy albo tytuł z następnym akapitem skróciły jedną, druga dostaje ten sam limit (przelewanie powtarzane, najwyżej 4 razy). Bok ramki z `bok_ukladu` strony: w edytorze, w ramkach z innych stron i przy składaniu do podglądu i PDF. Test: tests/sklad.test.cjs („wyrównanie łamów”) (#327).
 - 21.11.2026: wersje aplikacji – nowa wersja włącza się od razu także w otwartym projekcie (najpierw zapis, potem przeładowanie; w trakcie pisania tekstu czeka do 20 s), bez internetu zostaje wersja z pamięci urządzenia; numer wersji w Ustawieniach pod listą działów (z nazwy pamięci service workera). Zgłoszenie: „muszę zawsze dostawać świeżą wersję, niezależnie od tego, co mam wczytane”. Test: tests/nowa-wersja.test.cjs (#328).
+- 21.11.2026: okno Udostępnij na telefonie – część „Makieta 3D w linku” mieści się w oknie (ramka `fieldset` zwęża się do okna, lista z długą nazwą rodzaju ucina tekst). Test: tests/makieta-link.test.cjs („na telefonie”) (#329).

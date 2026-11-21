@@ -178,3 +178,26 @@ test('makieta 3D w linku: wybór rodzaju, ujęcia i wyłączenie w oknie Udostę
   assert.equal(okno.wl, true);
   assert.deepEqual(bledy, []);
 });
+
+// Telefon (zgłoszenie 21.11): długa nazwa rodzaju („Jak w makiecie projektu (Książka – twarda oprawa)”) nie rozpycha
+// części „Makieta 3D w linku” poza ekran – ramka zwęża się do okna, lista ucina tekst.
+test('makieta 3D w linku na telefonie: część mieści się w oknie Udostępnij', async (t) => {
+  const { strona, bledy } = await otworz(t, { telefon: true });
+  await nowyProjekt(strona, 'Wąski ekran');
+  await strona.evaluate(async () => (await import('./js/app/podglad-ekran.js')).otworzUdostepnianie());
+  await strona.waitForSelector('#dlg-udostepnij[open]');
+  const w = await strona.evaluate(() => {
+    const f = document.querySelector('#udostepnij-makieta');
+    f.hidden = false;
+    const s = document.querySelector('#udostepnij-makieta-model');
+    const o = document.createElement('option');
+    o.textContent = 'Jak w makiecie projektu (Książka – twarda oprawa) – bardzo długa nazwa rodzaju makiety';
+    s.prepend(o); s.value = o.value;
+    const okno = document.querySelector('#dlg-udostepnij').getBoundingClientRect();
+    const r = f.getBoundingClientRect();
+    return { prawa: r.right, okno: okno.right, lista: s.getBoundingClientRect().right, ekran: window.innerWidth };
+  });
+  assert.ok(w.prawa <= Math.min(w.okno, w.ekran) + 0.5, `ramka w oknie (${w.prawa} / ${w.okno}, ekran ${w.ekran})`);
+  assert.ok(w.lista <= w.prawa + 0.5, `lista w ramce (${w.lista} / ${w.prawa})`);
+  assert.deepEqual(bledy, []);
+});
