@@ -41,4 +41,4 @@ Trasy `makietka.app/*` i `www.makietka.app/*` wpisuje samo wdrożenie; w DNS są
 (import: `cloudflare/aplikacja/dns-makietka-app.txt`). GitHub Pages wyłączone 21.11.2026 (#349).
 
 W panelu workera „book” (Settings → Build) potrzebne jest tylko: Root directory `/cloudflare`, Build command puste,
-Deploy command `npx wrangler deploy` (ustawione 21.11.2026).
+Deploy command `npx wrangler deploy`, gałąź produkcyjna (Production branch) `main` – inne gałęzie to tylko podglądy (ustawione 21.11.2026).
