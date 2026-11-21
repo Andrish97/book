@@ -2,7 +2,7 @@
 
 import { modeleProjektu, domyslnyModel, bazaMakiety } from '../makieta-opis.js';
 import { MODELE } from '../makieta-3d.js';
-import { skrot, odciskTresci, odciskStrony, ZNAK_DOMYSLNY, KRYCIE_ZNAKU, kryciaZnaku, rysujZnak, zeZnakiemWodnym, przygotujPublikacje } from '../publikacja-linku.js';
+import { skrot, odciskTresci, odciskStrony, pamiecOdciskowDla, skrotCzesci, ZNAK_DOMYSLNY, KRYCIE_ZNAKU, kryciaZnaku, rysujZnak, zeZnakiemWodnym, przygotujPublikacje } from '../publikacja-linku.js';
 import { postep as pasekPostepu } from '../postep.js';
 import * as chmura from '../chmura.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
@@ -63,9 +63,17 @@ export { pokazUdostepniony } from './udostepnione.js';
 // (ramki tego samego wątku) – zmiana gdziekolwiek w wątku może przesunąć tekst na tej stronie.
 function odciskPodgladu(egz, ciag) {
   const p = stan.projekt;
+  const pam = pamiecOdciskowDla(p, ciag);
   const watki = new Set(egz.strona.obiekty.map((o) => o.watek).filter(Boolean));
-  const watek = watki.size ? p.strony.flatMap((s) => s.obiekty.filter((o) => watki.has(o.watek))) : [];
-  return skrot(JSON.stringify([odciskStrony(p, egz, ciag), p.style, watek]));
+  // Tekst wątku: obiekty ramek tych wątków ze wszystkich stron – skrót raz na zestaw wątków (#343).
+  let watek = null;
+  if (watki.size) {
+    const kl = [...watki].sort().join('|');
+    pam.watki ||= new Map();
+    if (!pam.watki.has(kl)) pam.watki.set(kl, skrot(JSON.stringify(p.strony.flatMap((s) => s.obiekty.filter((o) => watki.has(o.watek))))));
+    watek = pam.watki.get(kl);
+  }
+  return skrot(JSON.stringify([odciskStrony(p, egz, ciag), skrotCzesci(pam, p.style), watek]));
 }
 
 function linkUdostepnienia(p) {

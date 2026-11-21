@@ -18,12 +18,37 @@ export const odciskTresci = (projekt) => skrot(JSON.stringify(['m1', projekt.naz
 
 // Skrót wszystkiego, od czego zależy wygląd jednej strony wydruku. Strona o tym samym
 // skrócie co przy poprzedniej aktualizacji linku nie jest rysowana ani wysyłana.
+// Części wspólne wielu stron (wzorce, sekcja, treść strony powielanej serią, nazwy stron…) liczone raz na jedno
+// rozwinięcie projektu (ciag) – wcześniej każda z setek stron przepisywała je od nowa i przy dużym projekcie
+// każdy zapis zatrzymywał edytor na ułamek sekundy (zgłoszenie 21.11: „bardzo dużo rzeczy się zacina”, #343).
+const pamiecOdciskow = new WeakMap(); // ciag → { wspolny, obiekt: WeakMap(obiekt → skrót) }
+function skrotObiektu(pam, o) {
+  if (o === undefined || o === null) return null;
+  if (typeof o !== 'object') return o;
+  let w = pam.obiekt.get(o);
+  if (w === undefined) { w = skrot(JSON.stringify(o)); pam.obiekt.set(o, w); }
+  return w;
+}
+function pamiecDla(projekt, ciag) {
+  let pam = pamiecOdciskow.get(ciag);
+  if (!pam || pam.projekt !== projekt) {
+    pam = { projekt, obiekt: new WeakMap() };
+    pam.wspolny = skrot(JSON.stringify([projekt.nazwa, ciag.liczbaStron, ciag.egzemplarze.length, projekt.czcionki,
+      projekt.sekcje.map((s) => s.nazwa), projekt.strony.map((s) => s.nazwa), projekt.znak_wodny || null]));
+    pamiecOdciskow.set(ciag, pam);
+  }
+  return pam;
+}
+export function pamiecOdciskowDla(projekt, ciag) { return pamiecDla(projekt, ciag); }
+export const skrotCzesci = (pam, o) => skrotObiektu(pam, o);
+
 export function odciskStrony(projekt, egz, ciag) {
-  const wzorce = wzorceStrony(projekt, egz.strona).map((w) => [w.obiekty, w.tlo, w.lustro]);
+  const pam = pamiecDla(projekt, ciag);
+  const h = (o) => skrotObiektu(pam, o);
+  const wzorce = wzorceStrony(projekt, egz.strona).map((w) => [h(w.obiekty), w.tlo, w.lustro]);
   return skrot(JSON.stringify([
-    egz.strona.obiekty, egz.strona.tlo, egz.sasiad?.strona.obiekty, egz.sasiad?.wiersz, wzorce, egz.sekcja.wydruk, egz.sekcja.nazwa, projekt.nazwa,
-    egz.wiersz, egz.dodatkowe.map((d) => d.wiersz), egz.nr, egz.indeks, egz.nrWSekcji, egz.nrEgz, egz.ileEgz, egz.bok, ciag.liczbaStron, ciag.egzemplarze.length,
-    projekt.czcionki, projekt.sekcje.map((s) => s.nazwa), projekt.strony.map((s) => s.nazwa), projekt.znak_wodny || null,
+    h(egz.strona.obiekty), egz.strona.tlo, h(egz.sasiad?.strona.obiekty), egz.sasiad?.wiersz, wzorce, h(egz.sekcja.wydruk), egz.sekcja.nazwa,
+    egz.wiersz, egz.dodatkowe.map((d) => d.wiersz), egz.nr, egz.indeks, egz.nrWSekcji, egz.nrEgz, egz.ileEgz, egz.bok, pam.wspolny,
   ]));
 }
 
