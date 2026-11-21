@@ -1,0 +1,17 @@
+// Aplikacja makietka.app na Cloudflare (#345) – sam worker z plikami (static assets), bez kodu serwera.
+// Workers Builds (integracja z GitHubem): katalog główny „/”, polecenie budowania „bash scripts/buduj-strone.sh”,
+// polecenie wdrożenia „npx wrangler deploy -c cloudflare/aplikacja/wrangler.jsonc”. Kroki w panelu:
+// cloudflare/README.md, „Aplikacja na Cloudflare”.
+// Najpierw działa tylko adres testowy *.workers.dev; domenę makietka.app przepina się po sprawdzeniu
+// (wtedy dopisujemy tu „routes” z custom_domain i wyłączamy GitHub Pages).
+{
+  "name": "makietka-app",
+  "compatibility_date": "2025-10-01",
+  "workers_dev": true,
+  "assets": {
+    "directory": "../../_site",
+    // Krótkie linki podglądu (makietka.app/<kod>) i adresy bez pliku – 404.html, czyli ta sama aplikacja.
+    "not_found_handling": "404-page"
+  },
+  "observability": { "enabled": true }
+}

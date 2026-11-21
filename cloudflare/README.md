@@ -30,3 +30,21 @@ Zabezpieczenia: tylko własny folder linku, tylko pliki projektu z dostępem zle
 do plików aplikacji, dzienny limit 5000 stron na konto. Wymaga planu Workers Paid (Browser Rendering: 10 godzin
 miesięcznie w cenie). Bez przeglądarki albo przy błędzie aplikacja rysuje link jak dawniej, na urządzeniu.
 Testy: `tests/rysowanie-worker.test.cjs`, `tests/rysowanie-serwer.test.cjs`.
+
+## Aplikacja na Cloudflare (decyzja #345)
+
+Pliki aplikacji podaje osobny worker `makietka-app` (sam worker z plikami – static assets, bez kodu serwera),
+budowany z GitHuba po każdym pushu na `main`, tak jak `makietka-api`. Przepis na pliki: `scripts/buduj-strone.sh`
+(ten sam dla GitHub Pages), konfiguracja: `cloudflare/aplikacja/wrangler.jsonc`, nagłówki: `_headers` w zbudowanej stronie.
+
+Podłączenie (raz):
+1. Workers & Pages → Create → Import a repository → `Andrish97/book`.
+2. Nazwa: `makietka-app`. Root directory: puste (katalog główny repozytorium).
+   Build command: `bash scripts/buduj-strone.sh`. Deploy command: `npx wrangler deploy -c cloudflare/aplikacja/wrangler.jsonc`.
+   Production branch: `main`.
+3. Po wdrożeniu aplikacja działa pod adresem testowym `https://makietka-app.<konto>.workers.dev` – sprawdzić
+   logowanie, otwarcie projektu, podgląd z linku i makietę.
+4. Przepięcie domeny: w GitHubie (Settings → Pages) usunąć własną domenę `makietka.app`, w Cloudflare usunąć
+   rekordy DNS GitHub Pages dla `makietka.app` i `www`, potem w `cloudflare/aplikacja/wrangler.jsonc` dopisać
+   `"routes": [{ "pattern": "makietka.app", "custom_domain": true }]` (zrobi to Claude) – po wdrożeniu domena
+   wskazuje na Cloudflare. Na koniec wyłączyć GitHub Pages i workflow `pages.yml`.

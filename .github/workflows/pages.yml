@@ -31,17 +31,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Przygotuj pliki strony
-        run: |
-          mkdir -p _site
-          cp -r index.html rysuj.html manifest.webmanifest sw.js css js img ai llms.txt _site/
-          touch _site/.nojekyll
-          # Numer wersji i lista plików kodu dla service workera (pamięć jednej wersji naraz).
-          python3 scripts/wersja-sw.py _site "${GITHUB_SHA::12}"
-          # Krótkie linki podglądu (#195): makietka.app/<kod> nie ma pliku – GitHub Pages podaje 404.html,
-          # czyli tę samą aplikację; ta czyta kod z adresu.
-          cp _site/index.html _site/404.html
-          # Rozszerzenie Claude Desktop (.mcpb) z łącznikiem – pobierane z okna „Dostęp dla AI”.
-          python3 scripts/rozszerzenie-mcpb.py _site/ai/mcp/makietka.mcpb
+        # Ten sam przepis co wdrożenie na Cloudflare (#345): scripts/buduj-strone.sh.
+        run: bash scripts/buduj-strone.sh _site "${GITHUB_SHA::12}"
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

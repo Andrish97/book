@@ -8,3 +8,6 @@ package-lock.json
 tests/.pomiary-pdf.txt
 __pycache__/
 zrzuty-robocze/
+
+# Zbudowana strona (scripts/buduj-strone.sh)
+_site/
