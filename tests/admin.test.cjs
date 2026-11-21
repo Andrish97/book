@@ -145,6 +145,8 @@ test('panel administratora: tylko dla administratora; skrzynka – rozmowy, odpo
   // Statystyki: kafelki i trzy wykresy; konto testowe (example.com) się nie liczy.
   await strona.click('[data-admin="statystyki"]');
   await strona.waitForSelector('#admin-kafelki .admin-kafelek');
+  // #340: zużycie przeglądarki serwera – kafelek z godzinami w miesiącu.
+  await strona.waitForFunction(() => [...document.querySelectorAll('#admin-kafelki .admin-kafelek span')].some((e) => e.textContent === 'Serwer rysowania'));
   assert.ok(await strona.locator('#admin-kafelki .admin-kafelek').count() >= 8);
   assert.equal(await strona.textContent('#admin-kafelki .admin-kafelek:first-child strong'), '1', 'konto testowe nie liczy się do kont');
   assert.equal(await strona.locator('#admin-wykresy svg').count(), 3);

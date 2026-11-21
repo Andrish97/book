@@ -502,8 +502,8 @@ export class Podglad {
     }
     this._przesunPrezentacje(0, 0);
     this._pokazZoomPrezentacji();
-    // Sąsiednie kroki rysują się zawczasu – przewracanie stron nie czeka.
-    for (const o of [1, -1]) {
+    // Sąsiednie kroki rysują się zawczasu – przewracanie stron nie czeka (dwa do przodu, jeden wstecz).
+    for (const o of [1, 2, -1]) {
       const k = p.kroki[p.i + o];
       if (k) for (const s of k.strony) if (s) this._obrazPrezentacji(s, szer);
     }
@@ -615,7 +615,12 @@ export class Podglad {
     if (!wpis) {
       if (this._pamiecPrezentacji.size > 40) this._pamiecPrezentacji.delete(this._pamiecPrezentacji.keys().next().value);
       wpis = { url: null };
-      wpis.obietnica = Promise.resolve(this.zrodlo.obraz(s, szer)).then((url) => { wpis.url = url; return url; }, () => {
+      wpis.obietnica = Promise.resolve(this.zrodlo.obraz(s, szer)).then((url) => {
+        wpis.url = url;
+        // Obraz z sieci (link do podglądu): pobrany i zdekodowany od razu – przewrócona strona pokazuje się bez czekania.
+        if (url && /^https?:/.test(url)) { const im = new Image(); im.decoding = 'async'; im.src = url; im.decode?.().catch(() => {}); wpis.wstepny = im; }
+        return url;
+      }, () => {
         this._pamiecPrezentacji.delete(klucz); // nieudane rysowanie – następnym razem od nowa
         return null;
       });

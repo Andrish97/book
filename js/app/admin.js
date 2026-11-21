@@ -4,7 +4,7 @@
 // Wszystko przez funkcje bazy admin_* (security definer, tylko konta z tabeli administratorzy). Miejsce całej
 // aplikacji (pliki R2, baza i jej największe tabele) – tylko tu: rozmiary_tabel() i GET /pliki/_miejsce Workera.
 
-import { supabase, komunikatBledu, r2 } from '../chmura.js';
+import { supabase, komunikatBledu, r2, zuzycieSerwera } from '../chmura.js';
 import { $, $$, powiadom, kiedy } from '../ui.js';
 import { stan, trasa } from './kontekst.js';
 import { rysujSkrzynke, sledzSkrzynke, przestanSledzic, przebiegKolejki } from './skrzynka.js';
@@ -266,11 +266,13 @@ function wykres(tytul, seria) {
 
 async function rysujStatystyki() {
   // Pliki liczy Worker (cały bucket R2, z załącznikami poczty); błąd przekaźnika pokazujemy w kafelku, reszta działa.
-  const [s, rozmiary, pliki] = await Promise.all([
+  const [s, rozmiary, pliki, serwer] = await Promise.all([
     rpc('admin_statystyki', { p_dni: 30 }),
     rpc('rozmiary_tabel'),
     r2.miejsce().catch((e) => ({ blad: komunikatBledu(e) })),
+    zuzycieSerwera().then((w) => (w?.miesiac && Array.isArray(w.dni) ? w : { blad: 'brak danych' })).catch((e) => ({ blad: komunikatBledu(e) })), // przeglądarka serwera (#340)
   ]);
+  const godz = (ms) => `${(ms / 3600000).toFixed(ms < 360000 ? 2 : 1).replace('.', ',')} h`;
   const kafel = (opis, wartosc, dopisek = '') => `<div class="admin-kafelek"><span>${esc(opis)}</span><strong>${esc(wartosc)}</strong>${dopisek ? `<small>${esc(dopisek)}</small>` : ''}</div>`;
   $('#admin-kafelki').innerHTML = [
     kafel('Konta', s.konta.razem, `nowe w 7 dni: ${s.konta.nowe_7}`),
@@ -285,12 +287,16 @@ async function rysujStatystyki() {
       ? kafel('Pliki (R2)', '–', `nie udało się odczytać: ${pliki.blad}`)
       : kafel('Pliki (R2)', mb(pliki.pliki_razem), `z ${mb(pliki.limit_plikow)} puli (${Math.round((pliki.pliki_razem / pliki.limit_plikow) * 100)}%)`),
     kafel('Baza', mb(rozmiary.baza), `z 500 MB (${Math.round((rozmiary.baza / (500 * 1024 ** 2)) * 100)}%)`),
+    serwer.blad
+      ? kafel('Serwer rysowania', '–', `nie udało się odczytać: ${serwer.blad}`)
+      : kafel('Serwer rysowania', godz(serwer.miesiac.ms), `w tym miesiącu z ${serwer.planGodzin} h w planie (${Math.round((serwer.miesiac.ms / (serwer.planGodzin * 3600000)) * 100)}%) · stron: ${serwer.miesiac.stron} · zleceń: ${serwer.miesiac.zlecen}`),
   ].join('');
   const tabele = (rozmiary.tabele || []).slice(0, 12);
   $('#admin-tabele').innerHTML = tabele.length
     ? `<table class="admin-tabela"><thead><tr><th>Tabela</th><th>Rozmiar</th><th>Wiersze (szac.)</th></tr></thead><tbody>${tabele.map((x) => `<tr><td>${esc(x.tabela)}</td><td>${esc(mb(x.bajty))}</td><td>${esc(Math.max(0, x.wiersze).toLocaleString('pl-PL'))}</td></tr>`).join('')}</tbody></table>`
     : '<p class="ciche">Żadna tabela nie przekracza 256 kB.</p>';
-  $('#admin-wykresy').innerHTML = [wykres('Nowe konta', s.serie.konta), wykres('Nowe projekty', s.serie.projekty), wykres('Wysłane maile', s.serie.maile)].join('');
+  const wykresSerwera = serwer.blad ? '' : wykres('Strony narysowane na serwerze', serwer.dni.map((d) => ({ dzien: d.dzien, ile: d.stron })));
+  $('#admin-wykresy').innerHTML = [wykres('Nowe konta', s.serie.konta), wykres('Nowe projekty', s.serie.projekty), wykres('Wysłane maile', s.serie.maile), wykresSerwera].join('');
 }
 
 // ---------- Zdarzenia ----------

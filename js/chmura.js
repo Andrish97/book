@@ -837,6 +837,14 @@ export async function odbierzPlikSerwera(plik) {
   return blob;
 }
 
+// Zużycie przeglądarki serwera (#340, panel administratora): { dni: [{ dzien, ms, stron, zlecen, rodzaje }], miesiac, planGodzin }.
+export async function zuzycieSerwera() {
+  const odp = await fetch(`${SUPABASE_URL}/rysuj/zuzycie`, { headers: { authorization: `Bearer ${await tokenSesji()}` }, cache: 'no-store', signal: AbortSignal.timeout(8000) });
+  const dane = await odp.json().catch(() => ({}));
+  if (!odp.ok) throw new Error(dane.blad || `Zużycie serwera niedostępne (${odp.status}).`);
+  return dane;
+}
+
 // Stan rysowania: { stan: 'w_kolejce' | 'rysuje' | 'gotowe' | 'blad' | 'limit' | 'brak', gotowe, wszystkie, wyslane, koniec, blad }.
 // rodzaj: 'link' albo 'pdf' (#338).
 export async function stanRysowaniaLinku(projektId, rodzaj = 'link') {

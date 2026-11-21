@@ -9,8 +9,14 @@ on:
 
 jobs:
   testy:
+    # Cztery równoległe części (#341) – cały zestaw w jednym zadaniu nie mieścił się w limicie czasu.
+    strategy:
+      fail-fast: false
+      matrix:
+        czesc: [1, 2, 3, 4]
+    name: testy (${{ matrix.czesc }}/4)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -31,10 +37,11 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends ghostscript qpdf poppler-utils
 
       - name: Sprawdzenie kodu (nazwy bez definicji, nieużywane importy)
+        if: matrix.czesc == 1
         run: npm run lint
 
       - name: Testy przeglądarkowe
-        run: npm test
+        run: node scripts/testy-czesc.cjs ${{ matrix.czesc }} 4
 
       - name: Pomiary testów PDF (zgodność obrazu z aplikacją)
         if: always()

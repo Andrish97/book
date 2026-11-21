@@ -58,6 +58,12 @@ export async function obsluzRysowanie(zapytanie, env, u, pomoc) {
   const uid = await pomoc.uzytkownik(env, token);
   if (!uid) return pomoc.json(401, { blad: 'Zaloguj się ponownie.' }, cors);
 
+  // Zużycie przeglądarki serwera (panel administratora): ostatnie 31 dni i bieżący miesiąc.
+  if (u.pathname === '/rysuj/zuzycie' && zapytanie.method === 'GET') {
+    if (await pomoc.rpc(env, token, 'czy_administrator', {}).catch(() => false) !== true) return pomoc.json(403, { blad: 'Tylko dla administratora.' }, cors);
+    const odp = await env.RYSOWANIE.get(env.RYSOWANIE.idFromName('statystyki')).fetch('https://kolejka/zuzycie');
+    return pomoc.json(200, await odp.json(), cors);
+  }
   if (u.pathname === '/rysuj/stan' && zapytanie.method === 'GET') {
     const id = u.searchParams.get('projekt') || '';
     if (!ID.test(id)) return pomoc.json(400, { blad: 'Nieprawidłowy projekt.' }, cors);
@@ -103,6 +109,9 @@ export async function obsluzRysowanie(zapytanie, env, u, pomoc) {
 }
 
 const dzis = () => new Date().toISOString().slice(0, 10);
+// Zapis zużycia przeglądarki (czas i strony) – do podglądu w panelu administratora.
+const zapiszZuzycie = (env, dane) => env.RYSOWANIE.get(env.RYSOWANIE.idFromName('statystyki'))
+  .fetch('https://kolejka/zapisz', { method: 'POST', body: JSON.stringify(dane) }).catch(() => {});
 
 // Kolejka rysowania jednego linku (Durable Object, jeden na projekt): jedno rysowanie naraz; nowe zlecenie w trakcie
 // czeka i zastępuje poprzednie czekające (rysuje się zawsze najnowszy stan projektu).
@@ -133,6 +142,27 @@ export class Rysowanie {
       await s.put('eksport', await zapytanie.json());
       await s.setAlarm(Date.now());
       return Response.json({ stan: 'w_kolejce' });
+    }
+    if (u.pathname === '/zapisz' && zapytanie.method === 'POST') {
+      // Zużycie (obiekt „statystyki”): dzień → { zlecen, stron, ms, rodzaje }.
+      const { ms = 0, stron = 0, rodzaj = 'link' } = await zapytanie.json();
+      const k = `d:${dzis()}`;
+      const d = await s.get(k) || { zlecen: 0, stron: 0, ms: 0, rodzaje: {} };
+      d.zlecen += 1; d.stron += Number(stron) || 0; d.ms += Math.max(0, Number(ms) || 0);
+      d.rodzaje[rodzaj] = (d.rodzaje[rodzaj] || 0) + 1;
+      await s.put(k, d);
+      return Response.json({ ok: true });
+    }
+    if (u.pathname === '/zuzycie') {
+      const dni = [];
+      for (let i = 30; i >= 0; i -= 1) {
+        const dzien = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+        dni.push({ dzien, ...(await s.get(`d:${dzien}`) || { zlecen: 0, stron: 0, ms: 0, rodzaje: {} }) });
+      }
+      const miesiac = dzis().slice(0, 7);
+      const wMiesiacu = dni.filter((d) => d.dzien.startsWith(miesiac));
+      const suma = (pole) => wMiesiacu.reduce((a, d) => a + d[pole], 0);
+      return Response.json({ dni, miesiac: { ms: suma('ms'), stron: suma('stron'), zlecen: suma('zlecen') }, planGodzin: 10 });
     }
     if (u.pathname === '/licznik' && zapytanie.method === 'POST') {
       // Licznik stron konta na dziś (ten sam typ obiektu, nazwa „konto:<uid>”).
@@ -177,10 +207,12 @@ export class Rysowanie {
     };
     try {
       const w = z.rodzaj === 'pdf' ? await rysujPdf(this.env, z.klucz, postep) : await rysujLink(this.env, z.klucz, postep);
+      await zapiszZuzycie(this.env, { ms: Date.now() - od, stron: z.rodzaj === 'pdf' ? w.strony : w.wyslane, rodzaj: z.rodzaj || 'link' });
       const st = await s.get('stan');
       await s.put('stan', { stan: 'gotowe', id: z.id, od, koniec: Date.now(), ...w });
       if (st?.czeka || await s.get('zlecenie')) await s.setAlarm(Date.now());
     } catch (e) {
+      await zapiszZuzycie(this.env, { ms: Date.now() - od, stron: 0, rodzaj: z.rodzaj || 'link' });
       await s.put('stan', { stan: 'blad', id: z.id, od, koniec: Date.now(), blad: String(e?.message || e).slice(0, 300) });
       if (await s.get('zlecenie')) await s.setAlarm(Date.now());
     }
@@ -280,6 +312,12 @@ export async function przebiegEksportow(env) {
 }
 
 export async function wykonajEksport(env, z) {
+  const od = Date.now();
+  let stron = 0;
+  try { await eksportWPrzegladarce(env, z, (n) => { stron = n; }); } finally { await zapiszZuzycie(env, { ms: Date.now() - od, stron, rodzaj: 'ai' }); }
+}
+
+async function eksportWPrzegladarce(env, z, policz) {
   const zakoncz = (w) => rpcSerwisowe(env, 'serwer_zakoncz_eksport', { p_id: z.id, p_plik: null, p_nazwa: null, p_typ: null, p_rozmiar: null, p_strony: null, p_uwagi: [], p_blad: null, ...w });
   try {
     const projekt = await rpcSerwisowe(env, 'serwer_projekt', { p_projekt: z.projekt_id });
@@ -294,6 +332,7 @@ export async function wykonajEksport(env, z) {
     const plik = `${z.wlasciciel}/_eksporty/${z.id}.${z.rodzaj === 'png' ? 'png' : 'pdf'}`;
     const bajty = zBase64(w.b64);
     await env.PLIKI.put(`zasoby/${plik}`, bajty, { httpMetadata: { contentType: w.typ, cacheControl: 'private, max-age=3600' } });
+    policz(w.strony || 0);
     await zakoncz({ p_plik: plik, p_nazwa: w.nazwa, p_typ: w.typ, p_rozmiar: bajty.length, p_strony: w.strony, p_uwagi: (w.uwagi || []).slice(0, 40) });
   } catch (e) {
     await zakoncz({ p_blad: String(e?.message || e).slice(0, 900) }).catch(() => {});

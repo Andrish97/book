@@ -229,3 +229,20 @@ test('PDF dużego projektu na serwerze: zlecenie, kolejka, plik na koncie zlecaj
   assert.equal(Buffer.from(plik.dane).subarray(0, 5).toString(), '%PDF-');
   assert.ok(!env.PLIKI.m.has(`zadania/${UID}/p1.pdf.json`), 'zlecenie usunięte');
 });
+
+// #340: zużycie przeglądarki serwera – zapis po każdym zleceniu, odczyt tylko dla administratora.
+test('zużycie serwera: zapis czasu i stron, podgląd tylko dla administratora', async () => {
+  const R = await import(MODUL);
+  const env = { PLIKI: r2(), PRZEGLADARKA: {} };
+  env.RYSOWANIE = kolejki(env, R.Rysowanie);
+  const stat = env.RYSOWANIE.get('statystyki');
+  await stat.fetch('https://kolejka/zapisz', { method: 'POST', body: JSON.stringify({ ms: 90000, stron: 120, rodzaj: 'link' }) });
+  await stat.fetch('https://kolejka/zapisz', { method: 'POST', body: JSON.stringify({ ms: 30000, stron: 10, rodzaj: 'pdf' }) });
+  const zapytaj = (admin) => R.obsluzRysowanie(new Request('https://api.makietka.app/rysuj/zuzycie', { headers: { authorization: 'Bearer dobry' } }), env, new URL('https://api.makietka.app/rysuj/zuzycie'), { ...pomoc(), rpc: async (e, tok, f) => (f === 'czy_administrator' ? admin : null) });
+  assert.equal((await zapytaj(false)).status, 403, 'zwykłe konto nie widzi zużycia');
+  const w = await (await zapytaj(true)).json();
+  assert.equal(w.dni.length, 31);
+  assert.deepEqual([w.miesiac.ms, w.miesiac.stron, w.miesiac.zlecen], [120000, 130, 2]);
+  assert.equal(w.planGodzin, 10);
+  assert.deepEqual(w.dni.at(-1).rodzaje, { link: 1, pdf: 1 });
+});

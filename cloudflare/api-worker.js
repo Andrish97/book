@@ -467,7 +467,7 @@ export default {
     // Rysowanie stron linku na serwerze (#335, cloudflare/rysowanie.js).
     if (u.pathname.startsWith('/rysuj/')) {
       try {
-        return await obsluzRysowanie(zapytanie, env, u, { json, naglowkiCors, tokenZZapytania, uzytkownik, dostep, linkChronionyWazny });
+        return await obsluzRysowanie(zapytanie, env, u, { json, naglowkiCors, tokenZZapytania, uzytkownik, dostep, linkChronionyWazny, rpc });
       } catch (e) {
         return json(500, { blad: `Błąd rysowania: ${e.message}` }, naglowkiCors(zapytanie, false));
       }
