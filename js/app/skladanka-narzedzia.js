@@ -382,7 +382,7 @@ export function umiescZaznaczoneNaCzesci() {
   const lista = a && (a.type === 'activeselection' || a.type === 'activeSelection') ? a.getObjects() : a ? [a] : [];
   const ile = umiescNaCzesciach(lista);
   if (!ile) powiadom(tt('skladankaNarzedzia.zaznaczElementTekstObraz'), true);
-  else powiadom(tt('skladankaNarzedzia.terazNaScianieCzesci', { x: ile === 1 ? tt('skladankaNarzedzia.elementJest') : tt('skladankaNarzedzia.elementySa', { ile }), x2: ile === 1 ? '' : 'ją' }));
+  else powiadom(tt('skladankaNarzedzia.naScianieCzesci', { ile }));
   return ile;
 }
 
@@ -654,7 +654,7 @@ export function panelCzesci(panel, g0) {
   // Treść ścian (#284).
   const tr = trescCzesci(g);
   const ts = panel.sekcja(tt('skladankaNarzedzia.naScianach'));
-  ts.append(panel.wskazowka(tr.length ? tt('skladankaNarzedzia.tekstObrazOzdobnikNa', { trIle: tr.length, x: tr.length === 1 ? tt('skladankaNarzedzia.element') : tr.length < 5 ? tt('skladankaNarzedzia.elementy') : tt('skladankaNarzedzia.elementow'), x2: tr.length === 1 ? '' : 'ją' }) : tt('skladankaNarzedzia.polozNaCzesciTekst')));
+  ts.append(panel.wskazowka(tr.length ? tt('skladankaNarzedzia.naScianachOpis', { ile: tr.length }) : tt('skladankaNarzedzia.polozNaCzesciTekst')));
   if (tr.length) ts.append(panel.akcje([['rozgrupuj', 'Wyjmij z części (do edycji)', () => { const w = wyjmijZCzesci(g); if (w?.obiekty?.length) { edytor.canvas.setActiveObject(w.obiekty.length === 1 ? w.obiekty[0] : new fabric.ActiveSelection(w.obiekty, { canvas: edytor.canvas })); edytor.canvas.requestRenderAll(); } }]]));
   const k = panel.sekcja(tt('skladankaNarzedzia.krawedzie'));
   c().krawedzie.forEach((kr, i) => {
@@ -813,7 +813,7 @@ export async function rozlozCzesci() {
   zaplanujZapis();
   const ile = czesci.length - za_duze.length;
   if (przypiete) powiadom(tt('skladankaNarzedzia.naIchScianyI', { przypiete, x: przypiete === 1 ? tt('skladankaNarzedzia.elementLezacyNaCzesci') : tt('skladankaNarzedzia.elementyLezaceNaCzesciach') }));
-  powiadom(tt('skladankaNarzedzia.rozlozonoNa', { ile, x: ile === 1 ? tt('skladankaNarzedzia.czesc2') : ile < 5 ? tt('skladankaNarzedzia.czesci') : tt('skladankaNarzedzia.czesci'), arkuszeIle: arkusze.length, x2: arkusze.length === 1 ? 'arkuszu' : 'arkuszach', x3: za_duze.length ? tt('skladankaNarzedzia.nieMiesciSieNa', { za_duzeIle: za_duze.length }) : '' }), Boolean(za_duze.length));
+  powiadom(tt('skladankaNarzedzia.rozlozono', { ile, ark: arkusze.length, x3: za_duze.length ? tt('skladankaNarzedzia.nieMiesciSieNa', { za_duzeIle: za_duze.length }) : '' }), Boolean(za_duze.length));
   return { arkuszy: arkusze.length, za_duze };
 }
 

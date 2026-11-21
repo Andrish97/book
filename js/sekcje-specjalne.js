@@ -806,7 +806,7 @@ export function opisSpecjalnej(sekcja) {
   if (!p) return '';
   if (p.rodzaj === 'kalendarz') {
     const ile = wierszeKalendarza(p).length;
-    return tt('sekcjeSpecjalne.rokWDanych', { rok: p.rok, ile, x: p.jednostka === 'dzien' ? 'dni' : p.jednostka === 'tydzien' ? 'tygodni' : tt('sekcjeSpecjalne.miesiecy'), x2: p.swieta === 'pl' ? tt('sekcjeSpecjalne.zeSwietami') : '' });
+    return tt(p.jednostka === 'dzien' ? 'sekcjeSpecjalne.rokDni' : p.jednostka === 'tydzien' ? 'sekcjeSpecjalne.rokTygodni' : 'sekcjeSpecjalne.rokMiesiecy', { rok: p.rok, ile, x2: p.swieta === 'pl' ? tt('sekcjeSpecjalne.zeSwietami') : '' });
   }
   const w = p.wynik;
   if (!w) return '';

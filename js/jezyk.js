@@ -75,6 +75,11 @@ let wlasneZmiany = false;
 const norm = (t) => t.replace(/\s+/g, ' ').trim();
 
 export function wybranyJezyk() {
+  // Poza przeglądarką (Node: testy, budowanie instrukcji) – zawsze polski, niezależnie od języka systemu.
+  if (typeof document === 'undefined') return 'pl';
+  // Strona z ustalonym językiem (rysuj.html – rysowanie na serwerze): <html data-jezyk="pl">.
+  const staly = document.documentElement?.dataset?.jezyk;
+  if (JEZYKI[staly]) return staly;
   let z = null;
   try { z = localStorage.getItem(KLUCZ); } catch { z = null; }
   if (JEZYKI[z]) return z;

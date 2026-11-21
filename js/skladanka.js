@@ -957,7 +957,8 @@ export function instrukcjaMontazu(strony, sp = {}) {
   if (!lista.length) return { kroki, czesci: 0, par: 0 };
   const nazwa = (x) => `${x.c.nr}${x.c.opis ? ` (${x.c.opis})` : ''}`;
   const ark = strony.length;
-  kroki.push(tt('skladanka.wydrukuj', { x: ark === 1 ? 'arkusz' : `${ark} arkusze`, x2: sp.material ? ` na ${sp.material === 'karton' ? 'kartonie' : sp.material === 'tektura' ? 'tekturze' : 'papierze'}${sp.gramatura && ['papier', 'karton'].includes(sp.material) ? ` ${sp.gramatura} g/m²` : ''}` : '', x3: sp.druga_strona === 'druk' ? ' dwustronnie' : '' }));
+  const material = sp.material ? tt(`skladanka.material_${['karton', 'tektura'].includes(sp.material) ? sp.material : 'papier'}`) : '';
+  kroki.push(tt('skladanka.wydrukujArkusze', { ark, material, gramatura: sp.material && sp.gramatura && ['papier', 'karton'].includes(sp.material) ? ` ${sp.gramatura} g/m²` : '', dwustronnie: sp.druga_strona === 'druk' ? tt('skladanka.dwustronnie') : '' }));
   kroki.push(sp.druk === 'drukarnia'
     ? tt('skladanka.czesciWycinaPloterLinia', { join: lista.map(nazwa).join(', ') })
     : tt('skladanka.wytnijCzesciPoCiaglej', { join: lista.map((x) => `${nazwa(x)}${ark > 1 ? tt('skladanka.arkusz', { arkusz: x.arkusz }) : ''}`).join(', '), x: lista.some((x) => x.c.szczeliny.some((z) => z.naciecie)) ? tt('skladanka.nacieciaTakzeSkosneI') : tt('skladanka.szczelinyNatnijNozykiem') }));
