@@ -194,10 +194,20 @@ function pilnujZamkniecia(tak) {
   if (tak && trwajace === 1) window.addEventListener('beforeunload', ostrzezenieZamkniecia);
   if (!tak && trwajace === 0) window.removeEventListener('beforeunload', ostrzezenieZamkniecia);
 }
+let aktywnyPasek = null; // pasek linku w tle – rysowanie na serwerze zmienia jego opis (#335)
 async function linkWTle(praca) {
   const pasek = pasekPostepu('Aktualizuję podgląd z linku – nie zamykaj Makietki', { opoznienie: 0 });
   pilnujZamkniecia(true);
-  try { return await praca((i, n) => pasek.krok(i, n)); } finally { pasek.koniec(); pilnujZamkniecia(false); }
+  let pilnuje = true;
+  const ten = { pasek, zwolnij: () => { if (pilnuje) { pilnuje = false; pilnujZamkniecia(false); } } };
+  aktywnyPasek = ten;
+  try { return await praca((i, n) => pasek.krok(i, n)); } finally { pasek.koniec(); ten.zwolnij(); if (aktywnyPasek === ten) aktywnyPasek = null; }
+}
+// Rysowanie przejął serwer: Makietkę można zamknąć – link dokończy się sam.
+function rysujeSerwer() {
+  if (!aktywnyPasek) return;
+  aktywnyPasek.pasek.opis('Podgląd z linku rysuje się na serwerze – możesz zamknąć Makietkę');
+  aktywnyPasek.zwolnij();
 }
 export const trwaAktualizacjaLinku = () => trwajace > 0;
 
@@ -432,13 +442,64 @@ async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } 
     await zapewnijKrotki(p);
     await naLink(p);
   });
-  const wynik = ochrona
-    ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie, naLink: linkGotowy })
-    : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie, naLink: linkGotowy });
+  // Dużo stron do narysowania (#335) – rysuje serwer; drobne zmiany i każdy kłopot z serwerem – urządzenie.
+  const wynik = await naSerwerze(p, { kod, ochrona: Boolean(ochrona), strony, odciski, rozszerzenie, pelna, postep, naLink: linkGotowy })
+    || (ochrona
+      ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie, naLink: linkGotowy })
+      : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie, naLink: linkGotowy }));
   const krotki = p.udostepnienie?.kod === kod ? p.udostepnienie.krotki : null;
   p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}), ...(krotki ? { krotki } : {}) };
   await zapewnijKrotki(p);
   return wynik;
+}
+
+// ---------- Rysowanie linku na serwerze (#335) ----------
+// Tylko ciężkie zlecenia: od PROG_SERWERA stron do narysowania. Przeglądarka serwera rysuje te same obrazy
+// (rysuj.html, wspólne moduły), a aplikacja tylko pokazuje postęp – można ją zamknąć, link dokończy się sam.
+// null – rysuje urządzenie (mało stron, brak sieci, serwer wyłączony albo zajęty limitem, błąd).
+export const PROG_SERWERA = 40;
+let serwerWylaczony = false;
+const czekaj = (ms) => new Promise((ok) => { setTimeout(ok, ms); });
+// Projekt do zlecenia: bez treści obrazów, które są już na koncie (serwer bierze je z magazynu).
+const doZlecenia = (p) => {
+  const kopia = JSON.parse(JSON.stringify(p));
+  for (const z of Object.values(kopia.zasoby || {})) if (z?.sciezka && !String(z.sciezka).startsWith('ai:')) delete z.dataUrl;
+  return kopia;
+};
+
+async function naSerwerze(p, { kod, ochrona, strony, odciski, rozszerzenie, pelna, postep, naLink }) {
+  if (serwerWylaczony || !stan.uzytkownik || !navigator.onLine || globalThis.__bezSerwera) return null;
+  try {
+    const { konto, folder, nowy } = await chmura.folderLinku(p.id, kod, ochrona);
+    const odNowa = pelna || nowy;
+    let doRysowania = strony.length;
+    if (!odNowa) {
+      const m = await chmura.opisLinku(folder).catch(() => null);
+      const tresci = m && (m.rozszerzenie || 'jpg') === rozszerzenie ? (m.tresci || {}) : {};
+      doRysowania = strony.filter((s) => tresci[s.id] !== odciski[s.id]).length;
+    }
+    if (doRysowania < (globalThis.__progSerwera ?? PROG_SERWERA)) return null;
+    const { id } = await chmura.zlecRysowanieLinku(doZlecenia(p), folder, odNowa);
+    rysujeSerwer();
+    let linkGotowy = !naLink;
+    for (let proba = 0; ; proba += 1) {
+      await czekaj(proba ? 2000 : 800);
+      const st = await chmura.stanRysowaniaLinku(p.id);
+      if (st.id && id && st.id !== id) continue; // serwer kończy wcześniejsze rysowanie tego projektu – nasze czeka
+      // Link działa, gdy serwer zapisał pierwszy opis (zaraz po starcie rysowania).
+      if (!linkGotowy && ['rysuje', 'gotowe'].includes(st.stan)) { linkGotowy = true; await naLink({ konto }); }
+      if (st.stan === 'rysuje' && st.wszystkie) postep(st.gotowe || 0, st.wszystkie);
+      if (st.stan === 'gotowe') {
+        postep(st.wszystkie || strony.length, st.wszystkie || strony.length);
+        return { konto, zaktualizowano: st.zaktualizowano || new Date(st.koniec || Date.now()).toISOString(), wyslane: st.wyslane || 0, wszystkie: st.wszystkie || strony.length, naSerwerze: true };
+      }
+      if (st.stan === 'blad' || st.stan === 'limit' || st.stan === 'brak') return null;
+      if (proba > 1800) return null; // ponad godzinę – coś nie tak, rysuje urządzenie
+    }
+  } catch (e) {
+    if (e?.status === 503) serwerWylaczony = true; // ta sesja – bez pytania serwera
+    return null;
+  }
 }
 
 // Krótki kod linku (#195): przy pierwszej publikacji i dla linków sprzed tej zmiany (przy otwarciu okna).

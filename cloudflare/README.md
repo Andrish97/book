@@ -19,3 +19,14 @@ Ten sam Worker obsługuje pliki aplikacji w Cloudflare R2 (binding `PLIKI` → b
 `/podglady/…` (obrazy stron linków – odczyt publiczny), `GET /pliki/_miejsce`, `GET /pliki/_lista`,
 `POST /pliki/_usun`, `GET /pliki/_osierocone`. Limity plików: `LIMITY` w `api-worker.js`.
 Test: `tests/worker-pliki.test.cjs`. Bucket tworzy się raz w panelu (docs/KONFIGURACJA-DOMENY.md, 3a).
+
+## Rysowanie stron linku na serwerze (decyzja #335)
+
+Ciężkie zlecenia (od 40 stron linku do narysowania naraz) rysuje przeglądarka Cloudflare zamiast urządzenia
+użytkownika: `POST /rysuj/link` (sesja właściciela, projekt w treści, folder linku), `GET /rysuj/stan?projekt=…`.
+Kod: `rysowanie.js` – kolejka na projekt (Durable Object `RYSOWANIE`, klasa `Rysowanie`), przeglądarka
+(binding `PRZEGLADARKA`, biblioteka `@cloudflare/puppeteer` z `package.json`), strona `https://makietka.app/rysuj.html`.
+Zabezpieczenia: tylko własny folder linku, tylko pliki projektu z dostępem zlecającego, ruch przeglądarki ograniczony
+do plików aplikacji, dzienny limit 5000 stron na konto. Wymaga planu Workers Paid (Browser Rendering: 10 godzin
+miesięcznie w cenie). Bez przeglądarki albo przy błędzie aplikacja rysuje link jak dawniej, na urządzeniu.
+Testy: `tests/rysowanie-worker.test.cjs`, `tests/rysowanie-serwer.test.cjs`.

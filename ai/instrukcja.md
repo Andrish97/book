@@ -2102,6 +2102,8 @@ Link aktualizuje się sam: kilka sekund po Twoich zmianach aplikacja wysyła obr
 
 Obrazy stron przygotowuje aplikacja, więc link nadąża za zmianami, gdy projekt jest otwarty — w edytorze albo w podglądzie, na dowolnym urządzeniu. W trakcie na ekranie widać pasek **Aktualizuję podgląd z linku – nie zamykaj Makietki** z licznikiem stron. Okno Udostępnij możesz zamknąć — strony tworzą się dalej, a pasek zostaje na ekranie. Nie zamykaj tylko karty z Makietką: przeglądarka zapyta, czy na pewno. Gdy karta jednak się zamknie, link dokończy się sam przy następnym otwarciu projektu.
 
+Gdy do narysowania jest dużo stron naraz (od 40, np. pierwszy link do grubej książki albo zmiana znaku wodnego), obrazy rysuje serwer Makietki, a nie Twoje urządzenie. Pasek zmienia się wtedy na **Podgląd z linku rysuje się na serwerze – możesz zamknąć Makietkę**: link dokończy się sam, także po zamknięciu aplikacji. Serwer rysuje te same obrazy co aplikacja. Drobne zmiany (kilka stron) rysuje dalej urządzenie, bo to chwila.
+
 ### 23.3 Ochrona linku
 
 Część **Ochrona linku**:

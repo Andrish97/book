@@ -72,3 +72,48 @@ test('rysowanie na serwerze: rysuj.html rysuje strony linku tak samo jak aplikac
   assert.deepEqual(bledyRys, []);
   assert.deepEqual(bledy, []);
 });
+
+// #335: aplikacja zleca rysowanie serwerowi, gdy stron do narysowania jest dużo – pokazuje postęp i niczego nie
+// rysuje sama; serwer wyłączony (503) – rysuje urządzenie, jak dotąd.
+test('link: dużo stron – rysuje serwer, postęp w aplikacji; serwer wyłączony – rysuje urządzenie', async (t) => {
+  const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
+  await nowyProjekt(strona, 'Duży link');
+  for (let i = 0; i < 3; i += 1) await strona.click('[data-akcja="strona-dodaj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 4);
+  // Próg obniżony do 2 stron – żeby nie budować w teście setek stron.
+  await strona.evaluate(() => { globalThis.__progSerwera = 2; });
+  // Serwer (worker) – atrapa: przyjmuje zlecenie, potem „rysuje” i kończy.
+  let zlecenie = null;
+  let stanow = 0;
+  let wylaczony = false;
+  await strona.route((u) => u.pathname.startsWith('/rysuj/'), async (r) => {
+    const u = new URL(r.request().url());
+    if (wylaczony) return r.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ blad: 'wyłączone', kod: 'brak_rysowania' }) });
+    if (u.pathname === '/rysuj/link') { zlecenie = JSON.parse(r.request().postData()); return r.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ stan: 'w_kolejce', id: 'z1' }) }); }
+    stanow += 1;
+    const st = stanow < 2 ? { stan: 'rysuje', id: 'z1', gotowe: 1, wszystkie: 4 } : { stan: 'gotowe', id: 'z1', wyslane: 4, wszystkie: 4, koniec: Date.now(), zaktualizowano: new Date().toISOString() };
+    return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(st) });
+  });
+  const obrazyStron = () => baza.wyslania.filter((k) => k.startsWith('podglady/') && /\.(webp|jpg)$/.test(k)).length;
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  assert.ok(zlecenie, 'zlecenie poszło do serwera');
+  assert.equal(zlecenie.projekt.id, await strona.evaluate(() => window.seriodruk.stan.projekt.id));
+  assert.match(zlecenie.folder, /^[0-9a-f-]+\/[^/]+\/[0-9a-f]+$/, 'własny folder linku');
+  assert.equal(obrazyStron(), 0, 'urządzenie nie rysowało stron');
+  assert.ok(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie?.zaktualizowano), 'link oznaczony jako aktualny');
+  // Serwer wyłączony – ta sama zmiana rysuje się na urządzeniu.
+  wylaczony = true;
+  const przed = obrazyStron();
+  await strona.evaluate(async () => { await (await import('./js/app/podglad-ekran.js')).opublikujUdostepnienie(); });
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  assert.ok(obrazyStron() > przed, 'strony narysowało urządzenie');
+  assert.deepEqual(bledy, []);
+});

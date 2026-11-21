@@ -110,16 +110,16 @@ export class Rysowanie {
     const s = this.state.storage;
     if (u.pathname === '/stan') return Response.json(await s.get('stan') || { stan: 'brak' });
     if (u.pathname === '/start' && zapytanie.method === 'POST') {
-      const z = await zapytanie.json();
+      const z = { ...await zapytanie.json(), id: crypto.randomUUID() };
       await s.put('zlecenie', z);
       const stan = await s.get('stan');
       if (stan?.stan === 'rysuje' && Date.now() - (stan.od || 0) < 20 * 60 * 1000) {
         await s.put('stan', { ...stan, czeka: true });
-        return Response.json({ stan: 'w_kolejce' });
+        return Response.json({ stan: 'w_kolejce', id: z.id });
       }
-      await s.put('stan', { stan: 'w_kolejce', od: Date.now() });
+      await s.put('stan', { stan: 'w_kolejce', od: Date.now(), id: z.id });
       await s.setAlarm(Date.now());
-      return Response.json({ stan: 'w_kolejce' });
+      return Response.json({ stan: 'w_kolejce', id: z.id });
     }
     if (u.pathname === '/licznik' && zapytanie.method === 'POST') {
       // Licznik stron konta na dziś (ten sam typ obiektu, nazwa „konto:<uid>”).
@@ -143,12 +143,12 @@ export class Rysowanie {
     const konto = this.env.RYSOWANIE.get(this.env.RYSOWANIE.idFromName(`konto:${z.uid}`));
     const limit = await (await konto.fetch('https://kolejka/licznik', { method: 'POST', body: JSON.stringify({ stron: z.stron || 0 }) })).json();
     if (!limit.ok) {
-      await s.put('stan', { stan: 'limit', koniec: Date.now(), blad: 'Dzienny limit rysowania na serwerze – link narysuje się na Twoim urządzeniu.' });
+      await s.put('stan', { stan: 'limit', id: z.id, koniec: Date.now(), blad: 'Dzienny limit rysowania na serwerze – link narysuje się na Twoim urządzeniu.' });
       await this.env.PLIKI.delete(z.klucz).catch(() => {});
       return;
     }
     const od = Date.now();
-    await s.put('stan', { stan: 'rysuje', od, gotowe: 0, wszystkie: 0 });
+    await s.put('stan', { stan: 'rysuje', id: z.id, od, gotowe: 0, wszystkie: 0 });
     let ostatnio = 0;
     const postep = async (gotowe, wszystkie) => {
       if (Date.now() - ostatnio < 1500 && gotowe < wszystkie) return;
@@ -159,10 +159,10 @@ export class Rysowanie {
     try {
       const w = await rysujLink(this.env, z.klucz, postep);
       const st = await s.get('stan');
-      await s.put('stan', { stan: 'gotowe', od, koniec: Date.now(), ...w });
+      await s.put('stan', { stan: 'gotowe', id: z.id, od, koniec: Date.now(), ...w });
       if (st?.czeka || await s.get('zlecenie')) await s.setAlarm(Date.now());
     } catch (e) {
-      await s.put('stan', { stan: 'blad', od, koniec: Date.now(), blad: String(e?.message || e).slice(0, 300) });
+      await s.put('stan', { stan: 'blad', id: z.id, od, koniec: Date.now(), blad: String(e?.message || e).slice(0, 300) });
       if (await s.get('zlecenie')) await s.setAlarm(Date.now());
     }
   }

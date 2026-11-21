@@ -792,6 +792,40 @@ export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, o
   return { konto: uzytkownik.id, ...wynik };
 }
 
+// ---------- Rysowanie linku na serwerze (#335, cloudflare/rysowanie.js) ----------
+
+// Folder linku właściciela: zwykły <konto>/<projekt>/<kod> albo z ochroną <konto>/<projekt>/<kod>.<sekret>.
+// nowy: sekret dopiero powstał (strony trzeba narysować od nowa).
+export async function folderLinku(projektId, kod, chroniony) {
+  const uzytkownik = await biezacyUzytkownik();
+  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  if (!chroniony) return { konto: uzytkownik.id, folder: `${uzytkownik.id}/${projektId}/${kod}`, nowy: false };
+  const w = await wywolajPodgladChroniony(await supabase(), uzytkownik.id, projektId, kod, null);
+  return { konto: uzytkownik.id, folder: `${uzytkownik.id}/${projektId}/${w.folder}`, nowy: Boolean(w.nowy) };
+}
+
+// Opis (manifest) linku w folderze – null, gdy go jeszcze nie ma.
+export const opisLinku = (folder) => magazynR2.czytajOpis(folder);
+
+// Zlecenie rysowania linku na serwerze. Błąd z polem status (503 – rysowanie na serwerze wyłączone).
+export async function zlecRysowanieLinku(projekt, folder, pelna = false) {
+  const odp = await fetch(`${SUPABASE_URL}/rysuj/link`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${await tokenSesji()}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ projekt, folder, pelna }),
+  });
+  const dane = await odp.json().catch(() => ({}));
+  if (!odp.ok) { const e = new Error(dane.blad || `Rysowanie na serwerze niedostępne (${odp.status}).`); e.status = odp.status; throw e; }
+  return dane;
+}
+
+// Stan rysowania: { stan: 'w_kolejce' | 'rysuje' | 'gotowe' | 'blad' | 'limit' | 'brak', gotowe, wszystkie, wyslane, koniec, blad }.
+export async function stanRysowaniaLinku(projektId) {
+  const odp = await fetch(`${SUPABASE_URL}/rysuj/stan?projekt=${encodeURIComponent(projektId)}`, { headers: { authorization: `Bearer ${await tokenSesji()}` }, cache: 'no-store' });
+  if (!odp.ok) { const e = new Error(`Stan rysowania niedostępny (${odp.status}).`); e.status = odp.status; throw e; }
+  return odp.json();
+}
+
 // Oglądający: stan chronionego linku bez hasła. Rzuca błąd z polem stanLinku ('brak', 'wygasl',
 // 'haslo', 'blokada'); dla linku z samą datą ważności zwraca { stan: 'ok', folder }.
 export async function sprawdzLinkChroniony(konto, projektId, kod) {

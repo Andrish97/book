@@ -75,7 +75,9 @@ test('rysowanie na serwerze: zabezpieczenia zlecenia i kolejka', async () => {
   assert.equal((await zlec({ projekt, folder: `${UID}/p1/${KOD}` }, 'dobry', pomoc(false))).status, 403, 'brak dostępu do plików projektu');
   const ok = await zlec({ projekt, folder: `${UID}/p1/${KOD}` });
   assert.equal(ok.status, 202);
-  assert.deepEqual(await ok.json(), { stan: 'w_kolejce' });
+  const przyjete = await ok.json();
+  assert.equal(przyjete.stan, 'w_kolejce');
+  assert.match(przyjete.id, /^[0-9a-f-]{36}$/, 'numer zlecenia');
   assert.ok(env.PLIKI.m.has(`zadania/${UID}/p1.json`), 'zlecenie czeka w R2');
   const stan = await R.obsluzRysowanie(new Request('https://api.makietka.app/rysuj/stan?projekt=p1', { headers: { authorization: 'Bearer dobry' } }), env, new URL('https://api.makietka.app/rysuj/stan?projekt=p1'), pomoc());
   assert.equal((await stan.json()).stan, 'w_kolejce');
