@@ -65,3 +65,9 @@ test('nowa wersja: od razu na liście i w otwartym projekcie, numer w ustawienia
   assert.ok((await strona.evaluate(() => caches.keys())).includes('seriodruk-kod-v3'));
   assert.deepEqual(bledy, []);
 });
+
+// #353: otwarta karta sprawdza nową wersję co 2 minuty (plus powrót do karty, odzyskanie sieci).
+test('nowa wersja: otwarta karta sprawdza wersję co 2 minuty', () => {
+  const kod = fs.readFileSync(path.join(__dirname, '..', 'js', 'aplikacja.js'), 'utf8');
+  assert.match(kod, /setInterval\(\(\) => \{ ostatnio = 0; sprawdz\(\); \}, 2 \* 60 \* 1000\)/);
+});

@@ -115,7 +115,7 @@ next time you open the project.
 You can have the same project open on several devices or in several tabs. A change made
 on one appears on the other after a moment, without refreshing.
 
-A new version of Makietka switches on by itself, right away, when there's internet – also in an open project: your changes are saved
+A new version of Makietka switches on by itself, right away, when there's internet (in an open tab within about 2 minutes) – also in an open project: your changes are saved
 first, and then the project reopens in the same place (with the undo history). While you're typing text,
 it waits until you finish (at most 20 seconds). Without internet, the version saved on the device works. The version number
 is shown in **Settings**, below the list of sections.

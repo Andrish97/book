@@ -115,7 +115,7 @@ następnym otwarciu projektu.
 Ten sam projekt możesz mieć otwarty na kilku urządzeniach albo w kilku kartach. Zmiana zrobiona
 na jednym pojawia się na drugim po chwili, bez odświeżania.
 
-Nowa wersja Makietki włącza się sama i od razu, gdy jest internet – także w otwartym projekcie: zmiany zapisują
+Nowa wersja Makietki włącza się sama i od razu, gdy jest internet (w otwartej karcie najpóźniej po ok. 2 minutach) – także w otwartym projekcie: zmiany zapisują
 się najpierw, a projekt otwiera się potem w tym samym miejscu (z historią cofania). W trakcie pisania tekstu
 czeka, aż skończysz (najwyżej 20 sekund). Bez internetu działa wersja zapisana na urządzeniu. Numer wersji
 widać w **Ustawieniach**, pod listą działów.

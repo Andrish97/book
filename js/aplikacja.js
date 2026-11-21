@@ -328,7 +328,7 @@ function pilnujNowejWersji(rejestracja) {
   });
   window.addEventListener('focus', sprawdz);
   window.addEventListener('online', sprawdz);
-  setInterval(() => { ostatnio = 0; sprawdz(); }, 10 * 60 * 1000);
+  setInterval(() => { ostatnio = 0; sprawdz(); }, 2 * 60 * 1000); // otwarta karta – nowa wersja najpóźniej po ok. 2 min (#353)
   // Powrót do listy projektów (projekt zamknięty) – czekająca wersja włącza się od razu.
   setInterval(() => { if (czeka && !stan.projekt) wlacz(); }, 2000);
 }
