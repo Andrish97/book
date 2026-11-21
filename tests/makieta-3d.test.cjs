@@ -611,3 +611,23 @@ test('makieta 3D: kartkowanie 160 stron – w pamięci grafiki najwyżej limit s
   assert.ok(maks > 0, 'strony się wczytywały');
   assert.deepEqual(bledy, []);
 });
+
+// #322: broszura zeszytowa – kartki z jednego zgięcia, równa przednia krawędź, otwiera się prawie płasko, zszywki.
+test('makieta 3D: broszura zeszytowa – jedno zgięcie, równa krawędź, prawie płasko, zszywki', async () => {
+  const { kartkiModelu, scena, obwiednia, MODELE } = await modul('js/makieta-3d.js');
+  assert.equal(MODELE.ksiazka_zeszytowa, 'Broszura zeszytowa');
+  const k = kartkiModelu('ksiazka_zeszytowa', { strony: 32, format: { w: 148, h: 210 }, okladka: { w: 148, h: 210 } });
+  // Zamknięta: wszystkie kartki zaczynają się w jednym miejscu (bez grzbietu) i kończą na tej samej krawędzi.
+  let q = scena('ksiazka_zeszytowa', k, 0);
+  const papier = q.filter((x) => x.mat === 'papier' || x.mat === 'okladka');
+  const o = obwiednia(papier);
+  assert.ok(o.max[0] - o.min[0] < 148 + 1, `szerokość zamkniętej ${(o.max[0] - o.min[0]).toFixed(1)}`);
+  assert.ok(o.max[1] - o.min[1] < 2.5, 'cienka – bez grzbietu');
+  assert.ok(q.some((x) => x.mat === 'drut'), 'zszywki');
+  // Otwarta w środku: prawie płasko – rozpiętość ok. dwóch stron, wysokość niewielka.
+  q = scena('ksiazka_zeszytowa', k, k.length / 2);
+  const ot = obwiednia(q.filter((x) => x.mat === 'papier'));
+  assert.ok(ot.max[0] - ot.min[0] > 2 * 148 - 4, `rozłożona szeroko ${(ot.max[0] - ot.min[0]).toFixed(1)}`);
+  assert.ok(ot.max[1] - ot.min[1] < 15, `prawie płasko (${(ot.max[1] - ot.min[1]).toFixed(1)} mm)`);
+  assert.ok(obwiednia(q).min[1] > -0.01, 'nic pod stołem');
+});

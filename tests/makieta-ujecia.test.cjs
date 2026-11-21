@@ -269,7 +269,7 @@ test('makieta 3D (#181) w przeglądarce: ujęcia ustawiają kamerę, PNG w zadan
   // Lista „Rodzaj” (#215): tylko rodzaj pasujący do projektu (twarda okładka – książka w twardej oprawie); reszta
   // ogólnych w grupie „Nie pasuje do projektu”.
   assert.deepEqual((await M('stanMakiety')).modele, ['ksiazka_twarda']);
-  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('#makieta-model optgroup option')].map((o) => o.value)), ['ksiazka_miekka', 'notes', 'kalendarz_scienny', 'kalendarz_biurkowy', 'kartka']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('#makieta-model optgroup option')].map((o) => o.value)), ['ksiazka_miekka', 'ksiazka_zeszytowa', 'notes', 'kalendarz_scienny', 'kalendarz_biurkowy', 'kartka']);
   // Kafelki ujęć: kliknięcie ustawia kamerę i zaznacza kafelek.
   await strona.click('.makieta-ujecie[data-ujecie="zGory"]');
   let s = await M('stanMakiety');

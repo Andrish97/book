@@ -459,7 +459,7 @@ function listaStron(model) {
   const egz = st.strony.filter((e) => typ(e) !== 'obwoluta' && rolaTypu(typ(e)) !== 'osobny' && (ksiazka || (!e.pusta && !wyklejka(e))));
   const { format, wpisy } = ukladStron(egz.map((e) => ({ w: e.sekcja?.wydruk?.szerokosc_mm || st.format.w, h: e.sekcja?.wydruk?.wysokosc_mm || st.format.h, pusta: e.pusta })));
   let lista = wpisy.map((x) => ({ ...x, egz: egz[x.zrodlo], typ: typ(egz[x.zrodlo]) }));
-  const zOkladka = ksiazka && (Boolean(st.okladka) || model !== 'ksiazka_miekka');
+  const zOkladka = ksiazka && (Boolean(st.okladka) || (model !== 'ksiazka_miekka' && model !== 'ksiazka_zeszytowa'));
   let wnetrze = { przod: false, tyl: false };
   if (zOkladka) {
     const pusta = () => ({ egz: { pusta: true, sekcja: null }, polowa: null, w: format.w, h: format.h, pusta: true, typ: 'wyklejka' });

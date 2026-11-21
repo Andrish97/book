@@ -21,6 +21,7 @@ export { normalizujOpcje, DOMYSLNE_OPCJE };
 
 export const MODELE = {
   ksiazka_miekka: 'Książka – miękka oprawa',
+  ksiazka_zeszytowa: 'Broszura zeszytowa',
   ksiazka_twarda: 'Książka – twarda oprawa',
   notes: 'Notes na spirali',
   kalendarz_scienny: 'Kalendarz ścienny',
@@ -494,6 +495,82 @@ function wyklejkaNaTekturze(quady, kar, krzywa, strona) {
 const ZAWIJANIE_MIEKKIEJ = 1.45; // łączny obrót kartki od grzbietu do brzegu w otwartej książce (rad, < π/2)
 const zawiniecie = (t) => 1 - (1 - t) ** 3; // krzywizna największa przy grzbiecie, przy brzegu prawie zero
 // otwarcie – suwak „Kąt otwarcia” (rad): kąt między końcami połów; bez niego – ZAWIJANIE_MIEKKIEJ.
+// Broszura zeszytowa (21.11): arkusze złożone na pół, włożone jeden w drugi i zszyte zszywkami w zgięciu – bez
+// grzbietu, wszystkie kartki wychodzą z jednego miejsca (zgięcia) i dopiero przy nim rozchodzą się na swoją
+// wysokość w stosie; przednia krawędź równo przycięta (wszystkie kończą się w tym samym miejscu). Otwiera się prawie
+// całkiem płasko.
+const ZWIJ_ZESZYTOWEJ = 0.035; // ile brakuje do całkiem płaskiego otwarcia (na połowę, rad)
+function ksiazkaZeszytowa(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy = true } = {}) {
+  const n = kartki.length;
+  const k = Math.floor(u + 1e-9);
+  const ulamek = u - k;
+  const s = ulamek > 1e-6 ? gladko(Math.min(1, ulamek)) : 0;
+  const obr = ulamek > 1e-6 && k < n ? k : null;
+  const wach = [];
+  if (wachlarz > 0 && obr === null && k > 0) for (let j = k; j < n && wach.length < wachlarz; j += 1) if (!kartki[j].okladka) wach.push(j);
+  const srodek = kartki.find((x) => !x.okladka) || kartki[0];
+  const { w, h } = srodek;
+  const otw = u <= 0 || u >= n ? 0 : u < 1 ? s : u > n - 1 ? 1 - s : 1;
+  const T = kartki.reduce((a, x) => a + x.d, 0);
+  // Kierunki połów od zgięcia: zamknięta – obie w prawo (jedna na drugiej), otwarta – prawie płasko w obie strony.
+  const Amax = Number.isFinite(otwarcie) ? Math.min(Math.PI / 2 - ZWIJ_ZESZYTOWEJ, otwarcie / 2) : Math.PI / 2 - ZWIJ_ZESZYTOWEJ;
+  const a0 = (Math.PI / 2) * otw; // oś symetrii (zamknięta – w prawo, otwarta – w górę)
+  const kat = (strona) => a0 - strona * Amax * otw;
+  const wDo = (fi, strona) => (strona > 0 ? [-Math.sin(fi), Math.cos(fi)] : [Math.sin(fi), -Math.cos(fi)]); // do środka otwarcia
+  const lewe = []; const prawe = [];
+  for (let j = 0; j < n; j += 1) if (j !== obr && !wach.includes(j)) (j < k ? lewe : prawe).push(j);
+  // Wysokość kartki w stosie swojej połowy (od zewnątrz – od okładki); w zamkniętej zgięcie w połowie grubości.
+  const poziomy = new Map();
+  const ustaw = (lista, strona) => {
+    const kol = strona > 0 ? [...lista].reverse() : [...lista];
+    let off = 0;
+    for (const j of kol) { poziomy.set(j, off + kartki[j].d / 2 - 0.5 * T * (1 - otw)); off += kartki[j].d; }
+    return off;
+  };
+  const TR = ustaw(prawe, 1); const TL = ustaw(lewe, -1);
+  // Kartka z jednego punktu: wzdłuż kierunku połowy, odsunięta na swój poziom łagodnie przy zgięciu.
+  const F = [0, 0];
+  const krzywa = (fiF, poziom, strona, zwij = () => 0) => {
+    const Lb = 2.5 + 1.6 * Math.abs(poziom);
+    const kr = krzywaZKata(F, w, (t) => fiF + zwij(t), 48);
+    const c = kr.c.map((p, i) => { const sg = kr.sigma[i]; const nn = wDo(kr.fi[i], strona); return plus2(p, nn, poziom * gladko(Math.min(1, sg / Lb))); });
+    const fi = c.map((p, i) => { const a = c[Math.max(0, i - 1)]; const b = c[Math.min(c.length - 1, i + 1)]; return Math.atan2(b[1] - a[1], b[0] - a[0]); });
+    const sigma = [0]; for (let i = 1; i < c.length; i += 1) sigma.push(sigma[i - 1] + dl2(c[i - 1], c[i]));
+    // równa przednia krawędź: koniec dokładnie w odległości w od zgięcia wzdłuż połowy (przycięta)
+    return { c, fi, sigma };
+  };
+  const rysuj = [];
+  for (const [lista, strona] of [[prawe, 1], [lewe, -1]]) for (const j of lista) rysuj.push({ j, kr: krzywa(kat(strona), poziomy.get(j), strona) });
+  const przewroc = (j, sk) => {
+    const poz = lerp(TR + kartki[j].d / 2, TL + kartki[j].d / 2, sk) - 0.5 * T * (1 - otw);
+    const opor = kartki[j].okladka ? 0.08 : 0.3;
+    const kr = krzywa(lerp(kat(1), kat(-1), sk), poz, sk < 0.5 ? 1 : -1, (t) => -(sk > 0 && sk < 1 ? opor * Math.sin(Math.PI * sk) * t : 0));
+    rysuj.push({ j, kr, sk });
+  };
+  if (obr !== null) przewroc(obr, s);
+  wach.forEach((j, i2) => przewroc(j, lerp(0.56, 0.07, wach.length > 1 ? i2 / (wach.length - 1) : 0)));
+  // Leżąca: najniższy punkt na stole.
+  let minZ = Infinity; for (const { kr, j } of rysuj) for (const p of kr.c) minZ = Math.min(minZ, p[1] - kartki[j].d / 2);
+  const dz = lezy ? -minZ : 0;
+  for (const { j, kr, sk } of rysuj) {
+    const kr2 = { ...kr, c: kr.c.map((p) => [p[0], p[1] + dz]) };
+    const od = quady.length;
+    lisc(quady, kartki[j], kr2, kartki[j].okladka ? 'okladka' : 'papier');
+    if (sk !== undefined) for (let q = od; q < quady.length; q += 1) quady[q] = { ...quady[q], przewrot: sk };
+  }
+  // Zszywki: dwie, w zgięciu (od środka rozkładówki i na zewnątrz grzbietu), ok. ¼ wysokości od głowy i stopy.
+  const Fz = [F[0], F[1] + dz];
+  const nOs = [Math.cos(a0), Math.sin(a0)]; // od zgięcia w stronę środka otwarcia
+  const dl = Math.min(12, h / 6);
+  for (const y0 of [h / 4, -h / 4]) {
+    // od środka – zawsze; na zewnątrz grzbietu – tylko gdy zgięcie nie leży na stole (zamknięta, stojąca)
+    for (const [o, r] of [[0.5 * T * (1 - otw) + 0.12, 0.22], ...(otw < 0.3 || !lezy ? [[-(0.5 * T * (1 - otw) + 0.12), 0.22]] : [])]) {
+      const p = plus2(Fz, nOs, o);
+      rura(quady, [naStol([p[0], y0 - dl / 2, p[1]]), naStol([p[0], y0 + dl / 2, p[1]])], r);
+    }
+  }
+}
+
 function ksiazkaMiekka(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy = true } = {}) {
   const n = kartki.length;
   const k = Math.floor(u + 1e-9);
@@ -1688,6 +1765,7 @@ function ksiazka(quady, model, kartki, u, { wachlarz = 0, otwarcie = null, otwar
   const matOkl = twarda ? 'twarda' : 'okladka';
 
   if (model === 'notes') { notesSpirala(quady, kartki, { s, obr, lewe, prawe, T, h }); return; }
+  if (model === 'ksiazka_zeszytowa') { ksiazkaZeszytowa(quady, kartki, u, { wachlarz, otwarcie: otwarcieSuwak ?? otwarcie, lezy }); return; }
   if (model === 'ksiazka_miekka' && kartki[0].okladka && kartki[n - 1].okladka) { ksiazkaMiekka(quady, kartki, u, { wachlarz, otwarcie: otwarcieSuwak, lezy }); return; }
   if (twarda && kartki[0].okladka && kartki[n - 1].okladka && kartki.some((x) => !x.okladka)) { ksiazkaTwarda(quady, kartki, u, { wachlarz, otwarcie, lezy }); return; }
 
