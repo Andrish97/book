@@ -839,7 +839,7 @@ export async function odbierzPlikSerwera(plik) {
 
 // Zużycie przeglądarki serwera (#340, panel administratora): { dni: [{ dzien, ms, stron, zlecen, rodzaje }], miesiac, planGodzin }.
 export async function zuzycieSerwera() {
-  const odp = await fetch(`${SUPABASE_URL}/rysuj/zuzycie`, { headers: { authorization: `Bearer ${await tokenSesji()}` }, cache: 'no-store', signal: AbortSignal.timeout(8000) });
+  const odp = await fetch(`${SUPABASE_URL}/rysuj/zuzycie`, { headers: { authorization: `Bearer ${await tokenSesji()}` }, cache: 'no-store', signal: globalThis.AbortSignal.timeout(8000) });
   const dane = await odp.json().catch(() => ({}));
   if (!odp.ok) throw new Error(dane.blad || `Zużycie serwera niedostępne (${odp.status}).`);
   return dane;
