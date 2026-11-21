@@ -631,3 +631,17 @@ test('makieta 3D: broszura zeszytowa – jedno zgięcie, równa krawędź, prawi
   assert.ok(ot.max[1] - ot.min[1] < 15, `prawie płasko (${(ot.max[1] - ot.min[1]).toFixed(1)} mm)`);
   assert.ok(obwiednia(q).min[1] > -0.01, 'nic pod stołem');
 });
+
+// Zgłoszenie 21.11: w zaokrąglonym grzbiecie główka i stopka bloku (krawędź kartek) dochodzą do samego łuku
+// grzbietu i kapitałki – bez dziury w sierpie między łukiem a ramionami bloku.
+test('makieta 3D: twarda oprawa – krawędź kartek w główce dochodzi do łuku grzbietu', async () => {
+  const { kartkiModelu, scena, KRAWEDZ_KARTEK, SKLADKI } = await modul('js/makieta-3d.js');
+  const k = kartkiModelu('ksiazka_twarda', { strony: 300, format: { w: 148, h: 210 }, okladka: { w: 151, h: 216, tektura: 2.5, big: 7 }, wnetrze: { przod: true, tyl: true } });
+  const q = scena('ksiazka_twarda', k, 0);
+  const pkt = (tex) => q.filter((x) => x.tex === tex).flatMap((x) => x.p);
+  const grzbiet = pkt(SKLADKI);
+  const krawedz = pkt(KRAWEDZ_KARTEK);
+  const minX = (l) => Math.min(...l.map((p) => p[0]));
+  // grzbiet bloku leży po stronie najmniejszego x – krawędź kartek ma sięgać tam, gdzie łuk grzbietu
+  assert.ok(minX(krawedz) - minX(grzbiet) < 0.3, `krawędź kartek przy łuku grzbietu (${minX(krawedz).toFixed(2)} / ${minX(grzbiet).toFixed(2)})`);
+});

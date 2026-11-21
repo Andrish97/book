@@ -1182,6 +1182,19 @@ function ksiazkaTwarda(quady, kartki, u, { wachlarz = 0, otwarcie = null, lezy =
       const [x, z, a] = pk(i, 0.02); const y = lerp(h / 2, -h / 2, j / 4);
       return { p: naStol([x, y, z]), n: naStol([Math.cos(a), 0, Math.sin(a)]), uv: [(Tb * i) / M / 6.4, (h / 2 - y) / 24], ao: 0.82 };
     }, SKLADKI, 'krawedz');
+    // Główka i stopka bloku w łuku grzbietu (sierp między łukiem a cięciwą przy ramionach bloku): kartki dochodzą
+    // do samego grzbietu i kapitałki – bez tego w zaokrąglonym grzbiecie była tam dziura (zgłoszenie 21.11).
+    {
+      const a = pk(0); const b = pk(M); const c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      for (const sg of [1, -1]) {
+        const y = sg * h / 2;
+        for (let i = 0; i < M; i += 1) {
+          const p0 = pk(i); const p1 = pk(i + 1);
+          const w = [naStol([c[0], y, c[1]]), naStol([p0[0], y, p0[1]]), naStol([p1[0], y, p1[1]]), naStol([c[0], y, c[1]])];
+          quad(quady, sg > 0 ? w : [w[3], w[2], w[1], w[0]], [[0.5, 0.5], [(Tb * i) / M / 40, 0], [(Tb * (i + 1)) / M / 40, 0], [0.5, 0.5]], KRAWEDZ_KARTEK, 'krawedz', { n: naStol([0, sg, 0]) });
+        }
+      }
+    }
     for (const sg of [1, -1]) {
       const pts = [];
       for (let i = 0; i <= M; i += 1) { const [x, z] = pk(i, 0.15); pts.push(naStol([x, sg * (h / 2 - 0.3), z])); }
