@@ -273,11 +273,10 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
 // Pliki aplikacji przychodzą z pamięci urządzenia (sw.js) – szybki start bez czekania na sieć. Nowa wersja
 // po wdrożeniu włącza się sama, bez ręcznego odświeżania (#197, jak w Familiadzie: zawsze aktualna):
 // * sprawdzamy ją przy uruchomieniu, przy każdym powrocie do karty/okna, po odzyskaniu sieci i co 10 minut;
-// * bez otwartego projektu (lista, logowanie, podgląd z linku) włącza się od razu – strona przeładowuje się
-//   w ułamku sekundy, bo pliki są już pobrane;
-// * w otwartym projekcie – w bezpiecznej chwili: gdy wrócisz do listy projektów albo gdy karta schowa się
-//   w tle (zmiany zapisują się najpierw; po przeładowaniu projekt i strona otwierają się z adresu, a historia
-//   cofania wraca z pamięci). Do tego czasu jest też przycisk „Odśwież” w powiadomieniu.
+// * zawsze od razu, gdy jest internet (zgłoszenie 21.11: „muszę zawsze dostawać świeżą wersję, niezależnie od
+//   tego, co mam wczytane”) – także w otwartym projekcie: zmiany zapisują się najpierw, a po przeładowaniu projekt
+//   i strona otwierają się z adresu, historia cofania wraca z pamięci. Tylko w trakcie pisania tekstu czeka, aż
+//   pisanie się skończy (najwyżej 20 s). Bez internetu zostaje wersja z pamięci urządzenia.
 function pilnujNowejWersji(rejestracja) {
   // Pierwsze uruchomienie: service worker dopiero przejmuje stronę (to jeszcze nie nowa wersja) – bez
   // przeładowania; kolejne wersje w tej samej sesji już tak.
@@ -301,9 +300,16 @@ function pilnujNowejWersji(rejestracja) {
     if (!navigator.serviceWorker.controller) return; // pierwsza instalacja – włączy się sama
     czeka = sw;
     if (!stan.projekt) { wlacz(); return; }
-    powiadom('Jest nowa wersja aplikacji – włączy się sama, gdy wrócisz do listy projektów.', false, { etykieta: 'Odśwież teraz', fn: wlacz });
+    powiadom('Wczytuję nową wersję aplikacji – zmiany są zapisane.', false);
+    const start = Date.now();
+    const kiedyMozna = () => {
+      const pisze = window.seriodruk?.edytor?.canvas?.getActiveObject?.()?.isEditing;
+      if (!pisze || Date.now() - start > 20000) wlacz(); else setTimeout(kiedyMozna, 1000);
+    };
+    kiedyMozna();
   };
   if (rejestracja.waiting) zaproponuj(rejestracja.waiting);
+  pokazWersje();
   rejestracja.addEventListener('updatefound', () => {
     const nowy = rejestracja.installing;
     nowy?.addEventListener('statechange', () => { if (nowy.state === 'installed') zaproponuj(nowy); });
@@ -323,6 +329,17 @@ function pilnujNowejWersji(rejestracja) {
   setInterval(() => { ostatnio = 0; sprawdz(); }, 10 * 60 * 1000);
   // Powrót do listy projektów (projekt zamknięty) – czekająca wersja włącza się od razu.
   setInterval(() => { if (czeka && !stan.projekt) wlacz(); }, 2000);
+}
+
+// Numer wersji (wdrożenia) w ustawieniach: z nazwy pamięci kodu service workera (seriodruk-kod-<wersja>).
+async function pokazWersje() {
+  const el = document.getElementById('wersja-aplikacji');
+  if (!el || !('caches' in window)) return;
+  try {
+    const kod = (await caches.keys()).filter((k) => k.startsWith('seriodruk-kod-')).map((k) => k.slice(14));
+    const w = kod.find((x) => x !== 'rozwoj') || kod[0];
+    if (w) el.textContent = `Wersja aplikacji: ${w === 'rozwoj' ? 'robocza' : w.slice(0, 7)}`;
+  } catch { /* bez pamięci – bez numeru */ }
 }
 
 if ('launchQueue' in window) {

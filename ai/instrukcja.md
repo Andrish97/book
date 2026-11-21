@@ -133,7 +133,7 @@ Nie ma przycisku „Zapisz” — każda zmiana zapisuje się sama, najpierw na 
 
 Ten sam projekt możesz mieć otwarty na kilku urządzeniach albo w kilku kartach. Zmiana zrobiona na jednym pojawia się na drugim po chwili, bez odświeżania.
 
-Nowa wersja Makietki też włącza się sama, bez odświeżania strony: na liście projektów od razu, a w otwartym projekcie wtedy, gdy wrócisz do listy albo przełączysz się na inną kartę czy aplikację (zmiany zapisują się najpierw, projekt otwiera się potem w tym samym miejscu). Od razu włączysz ją przyciskiem **Odśwież teraz** w powiadomieniu „Jest nowa wersja aplikacji”.
+Nowa wersja Makietki włącza się sama i od razu, gdy jest internet – także w otwartym projekcie: zmiany zapisują się najpierw, a projekt otwiera się potem w tym samym miejscu (z historią cofania). W trakcie pisania tekstu czeka, aż skończysz (najwyżej 20 sekund). Bez internetu działa wersja zapisana na urządzeniu. Numer wersji widać w **Ustawieniach**, pod listą działów.
 
 Gdy projekt zmieniono w dwóch miejscach naraz, aplikacja **łączy zmiany element po elemencie**: gdy na jednym urządzeniu przesuniesz zdjęcie, a na drugim poprawisz tytuł, zostaną obie zmiany. Pyta tylko wtedy, gdy ten sam element zmieniono w obu miejscach: okno „To samo zmieniono na dwóch urządzeniach” pokazuje każdy taki element z wyborem **Z tego urządzenia** albo **Z konta** (zaznaczona jest wersja z konta). **Wszędzie wersja z konta** wybiera ją dla wszystkich, **Zastosuj** zatwierdza.
 

@@ -1,6 +1,6 @@
-// Nowa wersja aplikacji bez ręcznego odświeżania (#197): service worker z wersją (jak po wdrożeniu) –
-// na liście projektów nowa wersja włącza się sama, w otwartym projekcie – gdy karta schowa się w tle
-// (projekt otwiera się potem z adresu), a do tego czasu jest „Odśwież teraz”.
+// Nowa wersja aplikacji bez ręcznego odświeżania (#197, #328): service worker z wersją (jak po wdrożeniu) –
+// włącza się sama od razu, także w otwartym projekcie (zmiany zapisane, projekt otwiera się z adresu);
+// w trakcie pisania tekstu czeka, aż pisanie się skończy. Numer wersji widać w ustawieniach.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -12,7 +12,7 @@ const { podlaczAtrape, zaloguj, nowyProjekt } = require('./pomoc.cjs');
 const KORZEN = path.join(__dirname, '..');
 const TYPY = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
-test('nowa wersja: sama na liście projektów, w projekcie po schowaniu karty', async (t) => {
+test('nowa wersja: od razu na liście i w otwartym projekcie, numer w ustawieniach', async (t) => {
   let wersja = 'v1';
   const sw = () => fs.readFileSync(path.join(KORZEN, 'sw.js'), 'utf8').replace("const WERSJA = 'rozwoj';", `const WERSJA = '${wersja}';`);
   const serwer = http.createServer((req, res) => {
@@ -53,17 +53,13 @@ test('nowa wersja: sama na liście projektów, w projekcie po schowaniu karty', 
   assert.ok(klucze.includes('seriodruk-kod-v2') && !klucze.includes('seriodruk-kod-v1'), `pamięć nowej wersji: ${klucze}`);
   assert.equal(await strona.evaluate(() => window.__przed), undefined, 'strona przeładowała się sama');
 
-  // 2. Otwarty projekt: nowa wersja czeka (powiadomienie), włącza się po schowaniu karty.
+  assert.match(await strona.evaluate(() => document.getElementById('wersja-aplikacji').textContent), /Wersja aplikacji: v2/);
+
+  // 2. Otwarty projekt: nowa wersja włącza się sama (bez pytania), projekt otwiera się z powrotem.
   await nowyProjekt(strona, 'W trakcie pracy');
   const idProjektu = await strona.evaluate(() => window.seriodruk.stan.projekt.id);
   wersja = 'v3';
   await strona.evaluate(async () => { window.__przed = true; await (await navigator.serviceWorker.getRegistration()).update(); });
-  await strona.waitForFunction(() => /Jest nowa wersja aplikacji/.test(document.body.textContent), null, { timeout: 30000 });
-  assert.equal(await strona.evaluate(() => window.__przed), true, 'w projekcie nie przeładowuje się bez pytania');
-  await strona.evaluate(() => {
-    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
-    document.dispatchEvent(new Event('visibilitychange'));
-  });
   await strona.waitForFunction(() => !window.__przed && window.seriodruk?.stan?.projekt, null, { timeout: 30000 });
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.id), idProjektu, 'po przeładowaniu ten sam projekt');
   assert.ok((await strona.evaluate(() => caches.keys())).includes('seriodruk-kod-v3'));

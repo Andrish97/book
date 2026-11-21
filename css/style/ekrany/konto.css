@@ -58,7 +58,7 @@
   display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; align-items: center; gap: 10px;
   min-height: 46px; padding: 8px 12px; border-radius: 0; border-bottom: 1px solid var(--linia);
 }
-#ekran-konta .konto-lista a:last-child { border-bottom: 0; }
+#ekran-konta .konto-lista a:last-of-type { border-bottom: 0; }
 #ekran-konta .konto-lista a .ikona-wiersza { display: inline-flex; color: var(--cichy); }
 #ekran-konta .konto-lista a .tytul { white-space: nowrap; }
 #ekran-konta .konto-lista a .wartosc {
@@ -213,3 +213,7 @@
 .powiadomienia-rodzaje legend { float: left; width: 100%; margin: 0 0 2px; padding: 0; font-size: 13px; font-weight: 600; color: var(--tusz-2); }
 /* Pole nazwy użytkownika w wierszu ustawień (#295 – dawniej styl wpisany w HTML). */
 #konto-nazwa { width: 200px; }
+
+/* Numer wersji aplikacji pod listą działów (#328). */
+.konto-lista .wersja-aplikacji { margin: 0; padding: var(--odstep-2, 8px) 12px; font-size: 12px; }
+.konto-lista .wersja-aplikacji:empty { display: none; }
