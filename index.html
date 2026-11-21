@@ -1471,6 +1471,18 @@
         <div class="rzad-przyciskow"><button type="button" class="przycisk" id="udostepnij-znak-zapisz" data-akcja="udostepnij-znak">Zapisz znak wodny</button></div>
       </fieldset>
 
+      <!-- Makieta 3D w linku (#325): czy oglądający ją widzi, w jakim rodzaju i ujęciu. -->
+      <fieldset class="ochrona-linku" id="udostepnij-makieta" hidden>
+        <legend>Makieta 3D w linku</legend>
+        <label class="przelacznik"><input type="checkbox" id="udostepnij-makieta-wl"><span>Oglądający może obejrzeć makietę 3D</span></label>
+        <div id="udostepnij-makieta-pola">
+          <label class="pole"><span>Rodzaj</span><select id="udostepnij-makieta-model"></select></label>
+          <label class="pole"><span>Ujęcie</span><select id="udostepnij-makieta-ujecie"></select></label>
+        </div>
+        <p class="podpowiedz" id="udostepnij-makieta-stan"></p>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="udostepnij-makieta-zapisz" data-akcja="udostepnij-makieta">Zapisz makietę w linku</button></div>
+      </fieldset>
+
       <p class="komunikat" id="udostepnij-komunikat" role="status"></p>
       <div class="przyciski-dialogu">
         <button type="button" class="przycisk niebezpieczny" id="udostepnij-wylacz" data-akcja="udostepnij-wylacz" hidden>Unieważnij link</button>

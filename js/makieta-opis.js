@@ -136,10 +136,19 @@ const czytajSesje = (klucz) => { try { return sessionStorage.getItem(klucz); } c
 // Wariant pokazywany z linku (#188): pierwsze zapisane ujęcie projektu, a bez ujęć – rodzaj, ułożenie i światło
 // z tego urządzenia (tak jak właściciel widzi makietę), inaczej domyślne.
 function wariantLinku(projekt, baza) {
-  const uj = projekt.makieta?.ujecia?.[0];
+  // Wybór właściciela w oknie Udostępnij (#325): zapisane ujęcie albo rodzaj; bez wyboru – jak dotąd.
+  const ml = projekt.makieta_linku || {};
+  const dozwolone = [...baza.modele, ...(modeleProjektu(projekt).inne || [])];
+  const wybrane = ml.ujecie ? projekt.makieta?.ujecia?.find((u) => u.id === ml.ujecie) : null;
+  const uj = wybrane || (ml.model ? null : projekt.makieta?.ujecia?.[0]);
   if (uj) {
     const n = normalizujUjecie(uj);
-    if (!n.model || baza.modele.includes(n.model)) return { ...n, model: n.model || baza.modele[0] };
+    if (!n.model || dozwolone.includes(n.model)) return { ...n, model: n.model || baza.modele[0] };
+  }
+  if (ml.model && dozwolone.includes(ml.model)) {
+    let opcje0 = DOMYSLNE_OPCJE;
+    try { opcje0 = JSON.parse(czytaj(`makieta-opcje:${projekt.id}`) || 'null') || DOMYSLNE_OPCJE; } catch { opcje0 = DOMYSLNE_OPCJE; }
+    return { model: ml.model, ulozenie: czytaj(`makieta-ulozenie:${projekt.id}`) === 'stoi' ? 'stoi' : 'lezy', opcje: normalizujOpcje(opcje0), kamera: null };
   }
   const zapamietany = czytajSesje(`makieta:${projekt.id}`);
   const dm = domyslnyModel(projekt, baza.strony.length, baza.okladka);
@@ -157,6 +166,7 @@ const sekcjaOpisu = (s) => ({
 
 // Opis makiety do manifestu linku: czyste dane JSON, strony jako klucze egzemplarzy (= id obrazów linku).
 export function opisMakiety(projekt, ciag = rozwin(projekt)) {
+  if (projekt.makieta_linku?.pokaz === false) return null; // właściciel wyłączył makietę w linku (#325)
   const b = bazaMakiety(projekt, ciag);
   const wariant = wariantLinku(projekt, b);
   const uzyte = new Map();

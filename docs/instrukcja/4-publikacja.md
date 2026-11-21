@@ -500,7 +500,19 @@ odznaczenie i zapis usuwa znak. To samo dotyczy zmiany ochrony linku. Znak wodny
 
 ![Znak wodny: tekst, suwak Krycie i podgląd](k-znak-wodny.png)
 
-## 23.5 Unieważnienie linku
+## 23.5 Makieta 3D w linku
+
+Część **Makieta 3D w linku** w oknie Udostępnij decyduje, co oglądający zobaczy po stuknięciu **Makieta 3D** w podglądzie z linku:
+
+| Ustawienie | Co robi |
+|---|---|
+| **Oglądający może obejrzeć makietę 3D** | Odznaczone — w linku są tylko strony, bez makiety. |
+| **Rodzaj** | **Jak w makiecie projektu** (rodzaj dobrany do projektu) albo wybrany rodzaj, np. notes zamiast książki. Rodzaje spoza pasujących są niżej, w grupie **Nie pasuje do projektu**. |
+| **Ujęcie** | Pierwsze zapisane ujęcie albo wybrane z listy zapisanych (→ 19.4): rodzaj, kamera, światło, tło i położenie kartek z tego ujęcia. |
+
+**Zapisz makietę w linku** zapisuje wybór w projekcie; istniejący link aktualizuje się w tle. Działa też z listy projektów.
+
+## 23.6 Unieważnienie linku
 
 [Unieważnij link] usuwa udostępnione strony — stary adres od razu przestaje działać. Ponowne
 udostępnienie daje nowy adres.

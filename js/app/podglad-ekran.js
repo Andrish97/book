@@ -1,6 +1,7 @@
 // Ekran podglądu bez edycji i udostępnianie podglądu linkiem.
 
-import { opisMakiety } from '../makieta-opis.js';
+import { opisMakiety, modeleProjektu, domyslnyModel, bazaMakiety } from '../makieta-opis.js';
+import { MODELE } from '../makieta-3d.js';
 import { renderujCel } from '../zlozenie.js';
 import { postep as pasekPostepu } from '../postep.js';
 import { rozwin } from '../serie.js';
@@ -69,7 +70,7 @@ function skrot(tekst) {
 }
 // 'm1' i projekt.makieta (#189): link idzie też za makietą 3D – a link sprzed #188 (bez opisu makiety) ma inny
 // odcisk, więc przy najbliższym otwarciu projektu sam się uzupełnia (wysyła się tylko opis, strony się nie zmieniły).
-const odciskTresci = (projekt) => skrot(JSON.stringify(['m1', projekt.nazwa, projekt.sekcje, projekt.wzorce, projekt.strony, projekt.style, projekt.tabele, projekt.serie, projekt.czcionki, projekt.makieta || null, projekt.znak_wodny || null]));
+const odciskTresci = (projekt) => skrot(JSON.stringify(['m1', projekt.nazwa, projekt.sekcje, projekt.wzorce, projekt.strony, projekt.style, projekt.tabele, projekt.serie, projekt.czcionki, projekt.makieta || null, projekt.makieta_linku || null, projekt.znak_wodny || null]));
 
 // Skrót wszystkiego, od czego zależy wygląd jednej strony wydruku. Strona o tym samym
 // skrócie co przy poprzedniej aktualizacji linku nie jest rysowana ani wysyłana.
@@ -116,6 +117,7 @@ function odswiezOknoUdostepniania() {
   $('#udostepnij-komunikat').classList.remove('sukces');
   odswiezOchrone(p, zKontem); // z listy projektów: ochronę też ustawisz i zmienisz (#190, #196)
   odswiezZnak(p, zKontem);
+  odswiezMakieteLinku(p, zKontem);
   if (!u) return;
   $('#udostepnij-link').value = linkUdostepnienia(p);
   const aktualny = u.odcisk === odciskTresci(p);
@@ -389,12 +391,86 @@ export async function zapiszZnakWodny() {
   }
 }
 
+// ---------- Makieta 3D w linku (#325) ----------
+// projekt.makieta_linku = { pokaz: false } – bez makiety; { model } – rodzaj; { ujecie } – id zapisanego ujęcia
+// (rodzaj, kamera, światło i tło z ujęcia). Bez pola – rodzaj dobrany do projektu, pierwsze zapisane ujęcie.
+function wypelnijMakieteLinku(p) {
+  if (!p) return;
+  const ml = p.makieta_linku || {};
+  $('#udostepnij-makieta-wl').checked = ml.pokaz !== false;
+  let modele = []; let inne = [];
+  try { ({ modele, inne = [] } = modeleProjektu(p)); } catch { modele = []; }
+  let dm = null;
+  try { const b = bazaMakiety(p); dm = domyslnyModel(p, b.strony.length, b.okladka); } catch { dm = null; }
+  const wybor = $('#udostepnij-makieta-model');
+  wybor.replaceChildren(new Option(`Jak w makiecie projektu${dm && MODELE[dm] ? ` (${MODELE[dm]})` : ''}`, ''), ...modele.map((m) => new Option(MODELE[m] || m, m)));
+  if (inne.length) { const g = document.createElement('optgroup'); g.label = 'Nie pasuje do projektu'; g.append(...inne.map((m) => new Option(MODELE[m] || m, m))); wybor.append(g); }
+  wybor.value = ml.model && [...modele, ...inne].includes(ml.model) ? ml.model : '';
+  const uj = $('#udostepnij-makieta-ujecie');
+  const ujecia = p.makieta?.ujecia || [];
+  uj.replaceChildren(new Option(ujecia.length ? `Pierwsze zapisane („${ujecia[0].nazwa || 'Ujęcie'}”)` : 'Domyślne', ''), ...ujecia.map((u) => new Option(u.nazwa || 'Ujęcie', u.id)));
+  uj.value = ml.ujecie && ujecia.some((u) => u.id === ml.ujecie) ? ml.ujecie : '';
+  pokazPolaMakiety();
+}
+const pokazPolaMakiety = () => { $('#udostepnij-makieta-pola').hidden = !$('#udostepnij-makieta-wl').checked; };
+$('#udostepnij-makieta-wl')?.addEventListener('change', pokazPolaMakiety);
+function opisMakietyLinku(p) {
+  const ml = p.makieta_linku || {};
+  if (ml.pokaz === false) return 'Oglądający nie widzi makiety 3D – tylko strony.';
+  const uj = ml.ujecie && p.makieta?.ujecia?.find((u) => u.id === ml.ujecie);
+  if (uj) return `Oglądający widzi makietę 3D w ujęciu „${uj.nazwa || 'Ujęcie'}”.`;
+  if (ml.model) return `Oglądający widzi makietę 3D: ${MODELE[ml.model] || ml.model}.`;
+  return 'Oglądający widzi makietę 3D taką jak w makiecie projektu (rodzaj dobrany do projektu, pierwsze zapisane ujęcie).';
+}
+function odswiezMakieteLinku(p, mozna) {
+  $('#udostepnij-makieta').hidden = !mozna;
+  pokazPolaMakiety();
+  $('#udostepnij-makieta-stan').textContent = opisMakietyLinku(p);
+}
+// „Zapisz makietę w linku”: zapis w projekcie; istniejący link aktualizuje się w tle (opis makiety w manifeście).
+export async function zapiszMakieteLinku() {
+  const p = celOkna || stan.projekt;
+  if (!p) return;
+  const komunikat = $('#udostepnij-komunikat');
+  komunikat.classList.remove('sukces');
+  const wl = $('#udostepnij-makieta-wl').checked;
+  const model = $('#udostepnij-makieta-model').value;
+  const ujecie = $('#udostepnij-makieta-ujecie').value;
+  const nowy = !wl ? { pokaz: false } : { ...(model ? { model } : {}), ...(ujecie ? { ujecie } : {}) };
+  const pusty = !Object.keys(nowy).length;
+  if (JSON.stringify(pusty ? null : nowy) === JSON.stringify(p.makieta_linku || null)) { komunikat.textContent = 'Bez zmian.'; return; }
+  const przycisk = $('#udostepnij-makieta-zapisz');
+  przycisk.disabled = true;
+  trwaPublikacja = true;
+  const zapiszP = async () => { if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); } };
+  try {
+    if (pusty) delete p.makieta_linku; else p.makieta_linku = nowy;
+    await zapiszP();
+    odswiezMakieteLinku(p, true);
+    if (p.udostepnienie) {
+      komunikat.textContent = 'Zapisano. Link aktualizuje się w tle – możesz zamknąć to okno, ale nie zamykaj Makietki.';
+      if (p !== stan.projekt) await przygotujDoRysowania(p);
+      await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); }));
+      await zapiszP();
+    }
+    komunikat.textContent = `Zapisano. ${opisMakietyLinku(p)}`;
+    komunikat.classList.add('sukces');
+  } catch (e) {
+    komunikat.textContent = `Nie udało się zapisać makiety w linku: ${chmura.komunikatBledu(e)}`;
+  } finally {
+    trwaPublikacja = false;
+    przycisk.disabled = false;
+    odswiezOknoUdostepnianiaZachowujacKomunikat();
+  }
+}
+
 export async function otworzUdostepnianie(projekt = null) {
   // Ten sam projekt co otwarty (np. wczytany drugi raz z listy) – pracujemy na otwartym, żeby nie było dwóch kopii.
   celOkna = projekt && projekt !== stan.projekt && projekt.id !== stan.projekt?.id ? projekt : null;
   if (!celOkna && !stan.projekt) return;
   wypelnijOchrone(celOkna || stan.projekt);
   wypelnijZnak(celOkna || stan.projekt);
+  wypelnijMakieteLinku(celOkna || stan.projekt);
   odswiezOknoUdostepniania();
   $('#dlg-udostepnij').showModal();
   // Link sprzed krótkich adresów (#195) dostaje krótki kod przy otwarciu okna.

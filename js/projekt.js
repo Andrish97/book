@@ -242,6 +242,12 @@ export function normalizuj(p) {
   // Zapisane ujęcia makiety 3D (#181): bez ujęć pole znika.
   const makieta = normalizujMakiete(p.makieta);
   if (makieta) wynik.makieta = makieta; else delete wynik.makieta;
+  // Makieta 3D w linku (#325): czy oglądający ją widzi, rodzaj i zapisane ujęcie – bez pola: jak w makiecie projektu.
+  const ml = p.makieta_linku;
+  if (ml && typeof ml === 'object' && (ml.pokaz === false || typeof ml.model === 'string' || typeof ml.ujecie === 'string')) {
+    wynik.makieta_linku = { ...(ml.pokaz === false ? { pokaz: false } : {}), ...(typeof ml.model === 'string' && ml.model ? { model: ml.model } : {}), ...(typeof ml.ujecie === 'string' && ml.ujecie ? { ujecie: ml.ujecie } : {}) };
+    if (!Object.keys(wynik.makieta_linku).length) delete wynik.makieta_linku;
+  } else delete wynik.makieta_linku;
   delete wynik.motywy; // zastąpione wzorcami
   delete wynik.uklad;
 

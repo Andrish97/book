@@ -139,3 +139,42 @@ test('stary link bez makiety: po otwarciu projektu manifest sam dostaje opis mak
   while (!manifest().uklad.makieta && Date.now() - start < 40000) await strona.waitForTimeout(500);
   assert.ok(manifest().uklad.makieta, 'manifest po otwarciu projektu ma opis makiety');
 });
+
+// #325: właściciel wybiera w oknie Udostępnij, czy oglądający widzi makietę 3D, jaki rodzaj i które ujęcie.
+test('makieta 3D w linku: wybór rodzaju, ujęcia i wyłączenie w oknie Udostępnij', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Wybór makiety');
+  const w = await strona.evaluate(async () => {
+    const P = await import('./js/projekt.js');
+    const { opisMakiety } = await import('./js/makieta-opis.js');
+    const p = window.seriodruk.stan.projekt;
+    for (let i = 1; i < 8; i += 1) p.strony.push(P.nowaStrona(`S${i + 1}`, p.sekcje[0].id));
+    const domyslny = opisMakiety(p).model;
+    p.makieta = { ujecia: [{ id: 'u1', nazwa: 'Na stole', model: 'notes', kamera: { obrotY: 0.3, obrotX: 0.4, zoom: 1, fov: 28 } }] };
+    p.makieta_linku = { model: 'ksiazka_miekka' };
+    const zRodzajem = opisMakiety(P.normalizuj(p)).model;
+    p.makieta_linku = { ujecie: 'u1' };
+    const zUjecia = opisMakiety(P.normalizuj(p)).model;
+    p.makieta_linku = { pokaz: false };
+    const wylaczona = opisMakiety(P.normalizuj(p));
+    const zapis = P.normalizuj(p).makieta_linku;
+    delete p.makieta_linku;
+    return { domyslny, zRodzajem, zUjecia, wylaczona, zapis };
+  });
+  assert.equal(w.zRodzajem, 'ksiazka_miekka');
+  assert.equal(w.zUjecia, 'notes');
+  assert.equal(w.wylaczona, null);
+  assert.deepEqual(w.zapis, { pokaz: false });
+  // Okno Udostępnij ma część „Makieta 3D w linku” z rodzajami i zapisanymi ujęciami.
+  await strona.evaluate(async () => (await import('./js/app/podglad-ekran.js')).otworzUdostepnianie());
+  await strona.waitForSelector('#dlg-udostepnij[open]');
+  const okno = await strona.evaluate(() => ({
+    rodzaje: [...document.querySelectorAll('#udostepnij-makieta-model option')].map((o) => o.value),
+    ujecia: [...document.querySelectorAll('#udostepnij-makieta-ujecie option')].map((o) => o.textContent),
+    wl: document.querySelector('#udostepnij-makieta-wl').checked,
+  }));
+  assert.ok(okno.rodzaje.includes('') && okno.rodzaje.includes('notes'), `rodzaje: ${okno.rodzaje}`);
+  assert.ok(okno.ujecia.includes('Na stole'), `ujęcia: ${okno.ujecia}`);
+  assert.equal(okno.wl, true);
+  assert.deepEqual(bledy, []);
+});
