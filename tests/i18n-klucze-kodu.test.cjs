@@ -80,12 +80,19 @@ test('klucze w kodzie: odmiana po liczbie w pl, en i uk', async (t) => {
       en: [0, 1, 3].map((n) => formatuj(en, { n }, 'en')),
       uk: [1, 3, 5, 21].map((n) => formatuj(uk, { n }, 'uk')),
       bezZmiennej: formatuj('Pole {imie} i {n}', { n: 2 }, 'pl'),
+      // krótki zapis {n|jak 1|jak 2–4|jak 5}: grupę liczby wybiera reguła języka (21: po polsku „stron”, po ukraińsku „сторінка”)
+      krotkiPl: [1, 2, 5, 21, 22, 101, 111, 1.5].map((n) => formatuj('{n|# strona|# strony|# stron}', { n }, 'pl')),
+      krotkiUk: [1, 2, 5, 21, 22, 101, 111, 1.5].map((n) => formatuj('{n|# сторінка|# сторінки|# сторінок}', { n }, 'uk')),
+      krotkiEn: [1, 2, 21].map((n) => formatuj('{n|# page|# pages}', { n }, 'en')),
     };
   });
   assert.deepEqual(wynik.pl, ['Usunięto 1 obraz z „Okładka”.', 'Usunięto 2 obrazy z „Okładka”.', 'Usunięto 5 obrazów z „Okładka”.', 'Usunięto 12 obrazów z „Okładka”.', 'Usunięto 22 obrazy z „Okładka”.']);
   assert.deepEqual(wynik.en, ['Deleted nothing.', 'Deleted 1 image.', 'Deleted 3 images.']);
   assert.deepEqual(wynik.uk, ['1 сторінка', '3 сторінки', '5 сторінок', '21 сторінка']);
   assert.equal(wynik.bezZmiennej, 'Pole {imie} i 2');
+  assert.deepEqual(wynik.krotkiPl, ['1 strona', '2 strony', '5 stron', '21 stron', '22 strony', '101 stron', '111 stron', '1.5 strony']);
+  assert.deepEqual(wynik.krotkiUk, ['1 сторінка', '2 сторінки', '5 сторінок', '21 сторінка', '22 сторінки', '101 сторінка', '111 сторінок', '1.5 сторінки']);
+  assert.deepEqual(wynik.krotkiEn, ['1 page', '2 pages', '21 pages']);
   // W kodzie nie ma już ręcznej odmiany – wszystko idzie przez klucze.
   const fs = require('node:fs');
   const path = require('node:path');
