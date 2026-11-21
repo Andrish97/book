@@ -1,0 +1,7 @@
+;; Rekordy DNS aplikacji makietka.app na Cloudflare (#347) – do importu:
+;; Cloudflare → makietka.app → DNS → Records → Import and Export → Import DNS records
+;; (zaznacz „Proxy imported DNS records”). Adres 100:: to umowny adres „tylko przez Cloudflare”:
+;; ruch przejmuje worker makietka-app z tras makietka.app/* i www.makietka.app/*.
+$ORIGIN makietka.app.
+@	1	IN	AAAA	100:: ; cf_tags=cf-proxied:true
+www	1	IN	AAAA	100:: ; cf_tags=cf-proxied:true

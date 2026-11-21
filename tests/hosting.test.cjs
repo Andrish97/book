@@ -33,3 +33,21 @@ test('hosting: strona zbudowana jednym przepisem – pliki, wersja, 404, nagłó
     fs.rmSync(kat, { recursive: true, force: true });
   }
 });
+
+// #347: domena makietka.app na workerze – www przekierowuje na makietka.app, reszta idzie do plików;
+// trasy i plik importu DNS opisują ten sam adres.
+test('hosting: www.makietka.app przekierowuje na makietka.app, trasy i rekordy DNS do importu', async () => {
+  const kod = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'aplikacja', 'worker.js'), 'utf8');
+  const { default: worker } = await import(`data:text/javascript,${encodeURIComponent(kod)}`);
+  const env = { ASSETS: { fetch: async (z) => new Response(`plik ${new URL(z.url).pathname}`) } };
+  const www = await worker.fetch(new Request('https://www.makietka.app/js/aplikacja.js?v=1'), env);
+  assert.equal(www.status, 301);
+  assert.equal(www.headers.get('location'), 'https://makietka.app/js/aplikacja.js?v=1');
+  assert.equal(await (await worker.fetch(new Request('https://makietka.app/AbC123'), env)).text(), 'plik /AbC123');
+  const konf = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'aplikacja', 'wrangler.jsonc'), 'utf8');
+  assert.match(konf, /"pattern": "makietka\.app\/\*", "zone_name": "makietka\.app"/);
+  assert.match(konf, /"pattern": "www\.makietka\.app\/\*", "zone_name": "makietka\.app"/);
+  const dns = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'aplikacja', 'dns-makietka-app.txt'), 'utf8');
+  assert.match(dns, /^@\t1\tIN\tAAAA\t100:: ; cf_tags=cf-proxied:true$/m);
+  assert.match(dns, /^www\t1\tIN\tAAAA\t100:: ; cf_tags=cf-proxied:true$/m);
+});

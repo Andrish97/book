@@ -44,7 +44,10 @@ Podłączenie (raz):
    Production branch: `main`.
 3. Po wdrożeniu aplikacja działa pod adresem testowym `https://makietka-app.<konto>.workers.dev` – sprawdzić
    logowanie, otwarcie projektu, podgląd z linku i makietę.
-4. Przepięcie domeny: w GitHubie (Settings → Pages) usunąć własną domenę `makietka.app`, w Cloudflare usunąć
-   rekordy DNS GitHub Pages dla `makietka.app` i `www`, potem w `cloudflare/aplikacja/wrangler.jsonc` dopisać
-   `"routes": [{ "pattern": "makietka.app", "custom_domain": true }]` (zrobi to Claude) – po wdrożeniu domena
-   wskazuje na Cloudflare. Na koniec wyłączyć GitHub Pages i workflow `pages.yml`.
+4. Przepięcie domeny (#347): trasy `makietka.app/*` i `www.makietka.app/*` są już w `cloudflare/aplikacja/wrangler.jsonc`
+   (www przekierowuje na makietka.app – `cloudflare/aplikacja/worker.js`). W panelu:
+   - DNS → Records: usunąć rekordy GitHub Pages – 4 × A i 4 × AAAA dla `makietka.app` (185.199.x.153, 2606:50c0:…)
+     oraz CNAME `www` → `andrish97.github.io` (MX, TXT, rekordy poczty i `api` zostają);
+   - DNS → Records → Import and Export → Import: plik `cloudflare/aplikacja/dns-makietka-app.txt`, zaznaczone
+     „Proxy imported DNS records” (dwa rekordy AAAA 100:: – przez Cloudflare, ruch przejmuje worker);
+   - GitHub → Settings → Pages → Custom domain → Remove. Workflow `pages.yml` wyłączymy po sprawdzeniu.
