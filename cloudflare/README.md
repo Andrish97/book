@@ -51,4 +51,6 @@ Podłączenie (raz):
    - DNS → Records → Import and Export → Import: plik `cloudflare/aplikacja/dns-makietka-app.txt`, zaznaczone
      „Proxy imported DNS records” (dwa rekordy AAAA 100:: – przez Cloudflare, ruch przejmuje worker);
    - GitHub → Settings → Pages → Custom domain → Remove.
+   Trasy nie dodaje się w panelu – wpisuje je samo wdrożenie z `cloudflare/aplikacja/wrangler.jsonc`, dlatego polecenie
+   wdrożenia (Settings → Build → Deploy command) musi mieć `-c cloudflare/aplikacja/wrangler.jsonc`.
    Zrobione 21.11.2026: GitHub Pages wyłączone, workflow `pages.yml` usunięty (#349) – aplikację publikuje tylko Cloudflare.
