@@ -1,11 +1,11 @@
-// Aplikacja makietka.app na Cloudflare (#345, #347; worker w panelu nazywa się „book” – nazwa musi się zgadzać) – pliki strony (static assets) i krótki kod przekierowania www.
+// Aplikacja makietka.app na Cloudflare (#345, #347) – osobny worker „makietka-app” (worker „book” w panelu to przekaźnik API z katalogu cloudflare/) – pliki strony (static assets) i krótki kod przekierowania www.
 // Workers Builds (integracja z GitHubem): katalog główny „/”, polecenie budowania „bash scripts/buduj-strone.sh”,
 // polecenie wdrożenia „npx wrangler deploy -c cloudflare/aplikacja/wrangler.jsonc”. Kroki w panelu:
 // cloudflare/README.md, „Aplikacja na Cloudflare”.
 // Domena: trasy makietka.app/* i www.makietka.app/* w strefie makietka.app. Rekordy DNS (proxied AAAA 100::)
 // – import z pliku cloudflare/aplikacja/dns-makietka-app.txt.
 {
-  "name": "book",
+  "name": "makietka-app",
   "main": "worker.js",
   "compatibility_date": "2025-10-01",
   "workers_dev": true,
