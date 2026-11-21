@@ -38,6 +38,7 @@ export const MODULY_EDYTORA = [
   'js/biblioteka.js',
   'js/boki-stron.js',
   'js/dane.js',
+  'js/dymek.js',
   'js/elementy-danych.js',
   'js/ikony-biblioteki.js',
   'js/kalendarz-miesiaca.js',

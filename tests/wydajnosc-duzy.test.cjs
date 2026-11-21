@@ -23,6 +23,17 @@ const LIMITY = {
   jezyk: 1000, // 160 ms (przed #358: 670–830 ms) – przełączenie języka całego interfejsu
 };
 
+const LIMITY_TELEFON = {
+  otwarcie: 15000, // 2300–3000 ms
+  zmianaNajdluzsze: 700, // 150–225 ms
+  rozwin: 600, // 4–15 ms
+  odciski: 800, // 30–65 ms
+  kontrola: 1500, // 65–85 ms
+  oknoObrazowNajdluzsze: 900, // 170–245 ms
+  podglad: 5000, // 400–600 ms
+  jezyk: 2000, // ~420 ms
+};
+
 // Projekt budowany w przeglądarce (obrazy z płótna), na podstawie świeżego projektu aplikacji.
 async function zbudujDuzy(strona) {
   return strona.evaluate(async () => {
@@ -80,12 +91,12 @@ const zapiszPomiary = (wyniki) => {
   try { fs.appendFileSync(path.join(__dirname, '.pomiary-wydajnosci.txt'), linia); } catch { /* bez zapisu */ }
 };
 
-test('wydajność na dużym projekcie: otwarcie, zmiana, odciski linku, kontrola, okno obrazów, podgląd, język – w limitach', { timeout: 240000 }, async (t) => {
+async function zmierz(t, wolno, limity) {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Start');
   const p = await zbudujDuzy(strona);
-  // WOLNO=4 – procesor 4 razy wolniejszy (jak słabszy telefon); tylko do ręcznych pomiarów, limity są dla zwykłego.
-  if (process.env.WOLNO) await (await strona.context().newCDPSession(strona)).send('Emulation.setCPUThrottlingRate', { rate: Number(process.env.WOLNO) });
+  // procesor wolniejszy (jak słabszy telefon) – drugi test
+  if (wolno > 1) await (await strona.context().newCDPSession(strona)).send('Emulation.setCPUThrottlingRate', { rate: wolno });
   const wyniki = {};
   // długie zadania (> 50 ms) głównego wątku
   await strona.evaluate(() => { window.__dlugie = []; new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__dlugie.push(Math.round(e.duration)); }).observe({ type: 'longtask' }); });
@@ -136,8 +147,14 @@ test('wydajność na dużym projekcie: otwarcie, zmiana, odciski linku, kontrola
   wyniki.jezyk = Date.now() - t0;
   await strona.evaluate(() => import('./js/jezyk.js').then((m) => m.ustawJezyk('pl')));
 
-  zapiszPomiary(wyniki);
+  zapiszPomiary({ ...(wolno > 1 ? { procesor: `${wolno}x wolniej` } : {}), ...wyniki });
   t.diagnostic(JSON.stringify(wyniki));
-  if (!process.env.WOLNO) for (const [k, limit] of Object.entries(LIMITY)) assert.ok(wyniki[k] <= limit, `${k}: ${wyniki[k]} ms (limit ${limit} ms) – ${JSON.stringify(wyniki)}`);
+  for (const [k, limit] of Object.entries(limity)) assert.ok(wyniki[k] <= limit, `${k}: ${wyniki[k]} ms (limit ${limit} ms) – ${JSON.stringify(wyniki)}`);
   assert.deepEqual(bledy, []);
-});
+}
+
+test('wydajność na dużym projekcie: otwarcie, zmiana, odciski linku, kontrola, okno obrazów, podgląd, język – w limitach', { timeout: 240000 }, (t) => zmierz(t, 1, LIMITY));
+
+// #359: to samo przy procesorze 4 razy wolniejszym – jak na słabszym telefonie (pomiar lokalny w komentarzach).
+test('wydajność na dużym projekcie jak na słabszym telefonie (procesor 4× wolniejszy) – w limitach', { timeout: 300000 }, (t) => zmierz(t, 4, LIMITY_TELEFON));
+

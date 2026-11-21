@@ -368,6 +368,22 @@ Everything to do with the look is transferred — colors, gradients, stroke, fon
 opacity, shadow, print finishes — and the content stays. Tables, codes, charts and calendars have their own settings
 and don't take on the look.
 
+## 4.14 Speech bubble
+
+A speech bubble is one element: a text frame with a bubble around it. Insert it from [Library], category **Speech bubbles**. You type in it like in an ordinary text frame – the bubble grows with the text.
+
+| Type | Look |
+|---|---|
+| **speech** | Oval with a tail. |
+| **thought** | Cloud with small circles instead of a tail. |
+| **shout** | Burst with spikes. |
+| **whisper** | Oval with a dashed outline. |
+| **narration** | Rectangular box without a tail. |
+
+- Drag the orange handle on the page to move the tip of the tail – put it at the character's mouth. The tail moves together with the bubble.
+- In the **Speech bubble** part of the panel you change the **Type**, turn the **Tail** on or off, and set **Fill**, **Outline** and **Outline width**. Font, size and text colour work as in ordinary text (→ 5).
+- The bubble comes out in the PDF as vectors, just like on the page.
+
 # 5. Text
 
 Text frames, their look, styles and typesetting — from a single caption to the text of a book flowing across many pages.

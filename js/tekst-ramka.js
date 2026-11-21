@@ -159,6 +159,48 @@ const zmienLitery = (o, s) => (o.wielkosc_liter === 'wielkie' || o.wielkosc_lite
 const malaLitera = (z) => wielka(z) !== z;
 const mniejszy = (styl) => ({ ...styl, fontSize: styl.fontSize * SKALA_KAPITALIKOW });
 wplywaNaUklad('wielkosc_liter');
+
+// Szybszy pomiar znaków (#359): Fabric przy każdym znaku dwa razy składa opis czcionki i szuka pamięci szerokości
+// przez zamianę nazw na małe litery – na stronie z setkami ramek to największa część pracy po zmianie i przy
+// otwieraniu. Tu pamięć szerokości (ta sama co w Fabric – fabric.cache) i opis czcionki są brane raz na krój,
+// grubość i odmianę; wynik pomiaru identyczny.
+const pamiecKrojow = new Map(); // „krój|odmiana|grubość” → { szer: Map(znak → szerokość), font }
+const czyscPamiecFabric = fabric.cache.clearFontCache.bind(fabric.cache);
+fabric.cache.clearFontCache = (rodzina) => { pamiecKrojow.clear(); return czyscPamiecFabric(rodzina); };
+let ctxPomiaru = null;
+let fontPomiaru = '';
+let ostatniKroj = null; // ostatnio użyty – kolejne znaki ramki mają zwykle ten sam krój (bez składania klucza)
+const krojZnaku = (o, styl) => {
+  const r = styl.fontFamily ?? o.fontFamily; const st = styl.fontStyle ?? o.fontStyle; const g = styl.fontWeight ?? o.fontWeight;
+  if (ostatniKroj && ostatniKroj.r === r && ostatniKroj.st === st && ostatniKroj.g === g && pamiecKrojow.has(ostatniKroj.k)) return ostatniKroj;
+  const k = `${r}|${st}|${g}`;
+  let w = pamiecKrojow.get(k);
+  if (!w) {
+    w = { k, r, st, g, szer: fabric.cache.getFontCache({ fontFamily: styl.fontFamily ?? o.fontFamily, fontStyle: styl.fontStyle ?? o.fontStyle, fontWeight: styl.fontWeight ?? o.fontWeight }), font: o._getFontDeclaration(styl, true) };
+    pamiecKrojow.set(k, w);
+  }
+  ostatniKroj = w;
+  return w;
+};
+P._measureChar = function _measureChar(znak, styl, poprzedni, stylPoprzedniego) {
+  const kroj = krojZnaku(this, styl);
+  const szer = kroj.szer;
+  const razem = Boolean(poprzedni) && stylPoprzedniego && krojZnaku(this, stylPoprzedniego) === kroj;
+  const mierz = (t) => {
+    let v = szer.get(t);
+    if (v === undefined) {
+      ctxPomiaru ??= fabric.util.createCanvasElement().getContext('2d');
+      if (fontPomiaru !== kroj.font) { this._setTextStyles(ctxPomiaru, styl, true); fontPomiaru = ctxPomiaru.font = kroj.font; }
+      v = ctxPomiaru.measureText(t).width;
+      szer.set(t, v);
+    }
+    return v;
+  };
+  const w = mierz(znak);
+  const k = razem ? mierz(poprzedni + znak) - mierz(poprzedni) : w;
+  const skala = styl.fontSize / this.CACHE_FONT_SIZE;
+  return { width: w * skala, kernedWidth: k * skala };
+};
 const mierzZnak = P._measureChar;
 P._measureChar = function _measureChar(znak, styl, poprzedni, stylPoprzedniego) {
   if (!this.wielkosc_liter) return mierzZnak.call(this, znak, styl, poprzedni, stylPoprzedniego);

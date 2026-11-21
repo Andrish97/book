@@ -569,6 +569,25 @@ function elementZBiblioteki(o) {
     const w = o.wykres || {};
     return { ...GRUPA_STALA, id: o.id, left: o.left ?? 10, top: o.top ?? 10, width: w.szerokosc || 100, height: w.wysokosc || 60, wykres: { szerokosc: 100, wysokosc: 60, ...w }, objects: [] };
   }
+  // Dymek (#360): { type: 'dymek', tekst, left, top, ogonek: { x, y } (punkt na stronie, mm), rodzaj, width } –
+  // jedna ramka tekstu, dymek wokół rysuje aplikacja (rośnie razem z tekstem). Szerokość bez podania – z długości tekstu.
+  if (o.type === 'dymek') {
+    const rodzaj = ['mowa', 'mysl', 'krzyk', 'szept', 'narracja'].includes(o.rodzaj) ? o.rodzaj : 'mowa';
+    const tekst = String(o.tekst ?? o.text ?? '');
+    const pismo = Number(o.fontSize) > 0 ? Number(o.fontSize) : Math.round((11 * 25.4 / 72) * 1000) / 1000;
+    const najdluzszy = Math.max(...tekst.split('\n').map((l) => l.length), 4);
+    const szer = Number(o.width) > 5 ? Number(o.width) : Math.round(Math.min(60, Math.max(18, najdluzszy * pismo * 0.52 + 2)) * 10) / 10;
+    const left = Number(o.left) || 0; const top = Number(o.top) || 0;
+    const og = o.ogonek && Number.isFinite(Number(o.ogonek.x)) && Number.isFinite(Number(o.ogonek.y)) && rodzaj !== 'narracja'
+      ? { x: Math.round((Number(o.ogonek.x) - left) * 100) / 100, y: Math.round((Number(o.ogonek.y) - top) * 100) / 100 } : null;
+    return {
+      type: 'textbox', id: o.id, left, top, width: szer, text: tekst, angle: o.angle || 0,
+      fontFamily: o.fontFamily || 'Inter', fontSize: pismo, fontWeight: o.fontWeight || (rodzaj === 'krzyk' ? 'bold' : 'normal'),
+      fill: o.fill || '#1a1a1a', lineHeight: 1.15, textAlign: rodzaj === 'narracja' ? 'left' : 'center', strokeWidth: 0, styles: [],
+      spojniki: true, zasady_pl: true, nazwa: o.nazwa || 'Dymek',
+      dymek: { rodzaj, ogonek: og, wypelnienie: o.wypelnienie || '#ffffff', obrys: o.obrys || '#1a1a1a', grubosc: Number(o.grubosc) >= 0 ? Number(o.grubosc) : 0.35 },
+    };
+  }
   if (o.type === 'kolaz') {
     const k = { uklad: '2-pion', odstep: 2, zaokraglenie: 0, szerokosc: 120, wysokosc: 90, ...(o.kolaz || {}) };
     const ile = Math.max(1, Math.min(9, Number(o.pola) || ({ '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '9': 9 }[String(k.uklad).split('-')[0]] || 2)));
@@ -1201,7 +1220,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'dodaj_elementy',
       title: 'Dodaj elementy',
-      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }; skrótem także kalendarz miesiąca { type: "kalendarz", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, wykres { type: "wykres", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } } kolaż { type: "kolaz", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } }, spis treści { type: "spis", left, top, width, poziomy } i skorowidz { type: "skorowidz", left, top, width } – opis w opis_formatu) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
+      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }; skrótem także kalendarz miesiąca { type: "kalendarz", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, wykres { type: "wykres", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } } kolaż { type: "kolaz", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } }, dymek { type: "dymek", tekst, left, top, ogonek: { x, y } (punkt na stronie, w który celuje), rodzaj: "mowa"|"mysl"|"krzyk"|"szept"|"narracja" } – dymek rośnie z tekstem, spis treści { type: "spis", left, top, width, poziomy } i skorowidz { type: "skorowidz", left, top, width } – opis w opis_formatu) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
       inputSchema: S('', { gdzie: GDZIE, elementy: { type: 'array', items: obiekt('Element') }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)') }, ['gdzie', 'elementy']),
       dzialaj: ({ gdzie, elementy, przed }) => zmien((p) => {
         const m = miejsce(p, gdzie);

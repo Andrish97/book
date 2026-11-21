@@ -32,6 +32,7 @@ import { toKod, nowyKod, ulozKod, utrwalSkaleKodu } from './kod-obiekt.js';
 import { nowyKalendarz, toKalendarz } from './kalendarz-miesiaca.js';
 import { ustawKontrolkiKsztaltu, normalizujKsztalt } from './tekst-ksztalt.js';
 import { nowyWykres, toWykres } from './wykres.js';
+import { domyslnyDymek, przygotujDymek } from './dymek.js';
 import { ulozElementyDanych, ulozElementDanych, poSkalowaniuElementuDanych, toKolaz, ulozKolaz } from './elementy-danych.js';
 import { KSZTALTY, ukladKolazu, wzorKresek } from './ksztalty-biblioteka.js';
 import { szablonPlanera, zastosujSzablon } from './szablony-planera.js';
@@ -199,6 +200,7 @@ export class Edytor extends EventTarget {
     });
     c.on('object:added', (e) => {
       if (toTabela(e.target) && !e.target.zWzorca) this._przygotujTabele(e.target);
+      if (e.target?.dymek && !e.target.zWzorca) przygotujDymek(e.target); // uchwyt ogonka (#360)
       // Tekst po łuku albo wygięty (#131B): uchwyt zgięcia pod tekstem.
       if (e.target?.ksztalt_tekstu && !e.target.zWzorca) ustawKontrolkiKsztaltu(e.target, () => this.oznaczZmiane?.());
       // Kod dodany z opisu bez rysunku (np. przez łącznik AI) albo z inną treścią niż rysunek – rysujemy go.
@@ -687,6 +689,26 @@ export class Edytor extends EventTarget {
       spojniki: true,
       zasady_pl: true, lamanie_akapitu: true, // polskie zasady składu (#323)
       wdowy: 2,
+    });
+    return this._wstaw(t);
+  }
+
+  // Dymek (#360): ramka tekstu z dymkiem wokół i ogonkiem w dół w lewo (uchwyt ogonka przesuwa jego koniec).
+  dodajDymek(rodzaj = 'mowa', punkt = null, tresc = null) {
+    const szer = 46;
+    const t = new fabric.Textbox(tresc ?? (rodzaj === 'narracja' ? tt('edytor.dymekNarracja') : tt('edytor.dymekTekst')), {
+      left: punkt ? punkt.x - szer / 2 : this.strony[this.aktywna].x + this.marg.lewy + 10,
+      top: punkt ? punkt.y - 8 : this.marg.gora + 10,
+      width: szer,
+      fontFamily: DOMYSLNA,
+      fontSize: ptNaMm(11),
+      lineHeight: 1.15,
+      fill: '#1a1a1a',
+      textAlign: rodzaj === 'narracja' ? 'left' : 'center',
+      strokeWidth: 0,
+      spojniki: true, zasady_pl: true,
+      nazwa: tt('edytor.dymek'),
+      dymek: domyslnyDymek({ rodzaj, ogonek: rodzaj === 'narracja' ? null : { x: szer * 0.25, y: 22 } }),
     });
     return this._wstaw(t);
   }

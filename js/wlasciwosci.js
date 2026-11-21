@@ -882,11 +882,27 @@ export class PanelWlasciwosci {
       : tt('wlasciwosci.ustawiaNarazObramowanieAlbo')));
   }
 
+  // Dymek (#360): rodzaj, kolory, obrys, ogonek (uchwyt na płótnie), margines wokół tekstu.
+  zbudujDymek(obj) {
+    const sek = this.sekcja(tt('wlasciwosci.dymek'));
+    const d = () => obj.dymek;
+    const zmien = (zm) => { obj.dymek = { ...obj.dymek, ...zm }; obj.dirty = true; this.edytor.canvas.requestRenderAll(); this.edytor.oznaczZmiane(); };
+    sek.append(this.wybor(tt('wlasciwosci.rodzajDymka'), [['mowa', tt('wlasciwosci.dymekMowa')], ['mysl', tt('wlasciwosci.dymekMysl')], ['krzyk', tt('wlasciwosci.dymekKrzyk')], ['szept', tt('wlasciwosci.dymekSzept')], ['narracja', tt('wlasciwosci.dymekNarracja')]], () => d().rodzaj, (v) => { zmien({ rodzaj: v }); this.zbuduj(); }));
+    if (d().rodzaj !== 'narracja') {
+      sek.append(this.przelacznik(tt('wlasciwosci.ogonek'), () => Boolean(d().ogonek), (v) => { zmien({ ogonek: v ? { x: obj.width * 0.25, y: obj.height + 14 } : null }); this.edytor.canvas.requestRenderAll(); }));
+      if (d().ogonek) sek.append(this.wskazowka(tt('wlasciwosci.ogonekUchwyt')));
+    }
+    sek.append(this.kolor(tt('wlasciwosci.wypelnienieDymka'), () => d().wypelnienie, (v) => zmien({ wypelnienie: v || '#ffffff' })));
+    sek.append(this.kolor(tt('wlasciwosci.obrysDymka'), () => d().obrys, (v) => zmien({ obrys: v || 'transparent' }), { brak: true }));
+    sek.append(this.liczba(tt('wlasciwosci.gruboscObrysu'), () => zaokr(d().grubosc, 2), (v) => zmien({ grubosc: Math.max(0, v) }), { jednostka: 'mm', krok: 0.05, min: 0 }));
+  }
+
   zbudujTekst(obj, { komorka = false } = {}) {
     const czytaj = (k) => this._czytajTekst(obj, k);
     const ustaw = (w) => this._ustawTekst(obj, w);
 
     if (obj.ksiazka && !komorka) this.zbudujElementKsiazki(obj);
+    if (obj.dymek && !komorka) this.zbudujDymek(obj);
     this.zbudujStyl(obj);
 
     const s = this.sekcja(tt('wlasciwosci.tekst'));

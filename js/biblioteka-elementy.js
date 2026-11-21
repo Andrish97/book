@@ -152,6 +152,26 @@ zarejestrujKategorie({
   ],
 });
 
+// Dymki (#360): jedna ramka tekstu z dymkiem wokół – mowa, myśl, krzyk, narracja (js/dymek.js).
+const P_DYMKA = 'fill="#fff" stroke="currentColor" stroke-width="2" stroke-linejoin="round"';
+const PODGLADY_DYMKOW = {
+  mowa: `<path ${P_DYMKA} d="M18 8h34a10 10 0 0 1 10 10v10a10 10 0 0 1-10 10H30l-12 10 3-10h-3A10 10 0 0 1 8 28V18A10 10 0 0 1 18 8z"/>`,
+  mysl: `<g ${P_DYMKA}><ellipse cx="36" cy="22" rx="26" ry="15"/><circle cx="18" cy="42" r="4"/><circle cx="11" cy="48" r="2.5"/></g>`,
+  krzyk: `<path ${P_DYMKA} d="M35 4l5 8 9-6 1 10 11-2-5 9 9 5-10 4 5 9-11-1-2 10-8-7-6 8-3-10-11 3 4-10-10-4 9-5-6-9 11 1 1-10 9 6z"/>`,
+  szept: `<path ${P_DYMKA} stroke-dasharray="4 3" d="M18 8h34a10 10 0 0 1 10 10v10a10 10 0 0 1-10 10H30l-12 10 3-10h-3A10 10 0 0 1 8 28V18A10 10 0 0 1 18 8z"/>`,
+  narracja: `<rect ${P_DYMKA} x="8" y="12" width="54" height="26"/><path d="M15 22h40M15 29h28" stroke="currentColor" stroke-width="2"/>`,
+};
+zarejestrujKategorie({
+  id: 'dymki', nazwa: tt('bibliotekaElementy.dymki'), ikona: 'komentarz', kolejnosc: 38,
+  elementy: () => [
+    ['mowa', tt('bibliotekaElementy.dymekMowa'), 'dymek mowa rozmowa komiks dialog'],
+    ['mysl', tt('bibliotekaElementy.dymekMysl'), 'dymek mysl chmurka komiks'],
+    ['krzyk', tt('bibliotekaElementy.dymekKrzyk'), 'dymek krzyk wybuch komiks'],
+    ['szept', tt('bibliotekaElementy.dymekSzept'), 'dymek szept cicho przerywany komiks'],
+    ['narracja', tt('bibliotekaElementy.dymekNarracja'), 'dymek narracja ramka komiks opis'],
+  ].map(([rodzaj, nazwa, slowa]) => ({ id: `dymek-${rodzaj}`, nazwa, slowa, podglad: PODGLADY_DYMKOW[rodzaj], opis: tt('bibliotekaElementy.dymekOpis'), wstaw: (e, punkt) => e.dodajDymek(rodzaj, punkt) })),
+});
+
 // Style tekstu (#131A, #134): style akapitu projektu. Kliknięcie nadaje styl zaznaczonemu tekstowi,
 // a bez zaznaczonego tekstu wstawia nowy tekst w tym stylu. Style tworzy się i zmienia w panelu tekstu.
 const escS = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);

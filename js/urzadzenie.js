@@ -63,6 +63,10 @@ export const czyZaslonka = () => urzadzenie().zaslonka;
 let biezacy = null;
 function ustaw() {
   const u = urzadzenie();
+  const zmiana = !biezacy || Object.keys(u).some((k) => u[k] !== biezacy[k]);
+  // Bez zmiany – bez zapisu (#359): każdy zapis atrybutu czy zmiennej na <html> każe przeliczyć style całej strony,
+  // a ustaw() idzie przy każdym przejściu fokusu (np. otwarcie okna z setkami miniatur).
+  if (!zmiana) return;
   const root = document.documentElement;
   root.dataset.urzadzenie = u.rodzaj;
   root.dataset.orientacja = u.orientacja;
@@ -72,9 +76,8 @@ function ustaw() {
   root.toggleAttribute('data-kompakt', u.kompakt);
   root.toggleAttribute('data-klawiatura', u.klawiatura > 0);
   root.style.setProperty('--klawiatura-h', `${u.klawiatura}px`);
-  const zmiana = !biezacy || Object.keys(u).some((k) => u[k] !== biezacy[k]);
   biezacy = u;
-  if (zmiana) document.dispatchEvent(new CustomEvent('urzadzenie', { detail: u }));
+  document.dispatchEvent(new CustomEvent('urzadzenie', { detail: u }));
 }
 
 let czeka = false;

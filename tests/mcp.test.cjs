@@ -170,6 +170,17 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   assert.equal(kod.type, 'group');
   assert.deepEqual([kod.kod.rodzaj, kod.kod.tresc, kod.kod.szerokosc, kod.kod.wysokosc, kod.objects.length], ['ean', '978-83-01-00000', 37.29, 25.93, 0]);
   await narzedzie('usun_elementy', { gdzie: 'strona:s1', id: [kod.id] });
+  // Dymek (#360): krótki skrót – ramka tekstu z opisem dymka; ogonek z punktu na stronie na punkt względem ramki.
+  const dd = await narzedzie('dodaj_elementy', { gdzie: 'strona:s1', elementy: [{ type: 'dymek', tekst: 'Gdzie jest skarb?', left: 30, top: 40, ogonek: { x: 42, y: 75 } }, { type: 'dymek', rodzaj: 'narracja', tekst: 'Tymczasem…', left: 10, top: 10, ogonek: { x: 1, y: 1 } }] });
+  assert.equal(dd.blad, false, dd.tekst);
+  const [dymek, narracja] = s.projekt().projekt.strony[0].obiekty.slice(-2);
+  assert.equal(dymek.type, 'textbox');
+  assert.equal(dymek.text, 'Gdzie jest skarb?');
+  assert.deepEqual(dymek.dymek, { rodzaj: 'mowa', ogonek: { x: 12, y: 35 }, wypelnienie: '#ffffff', obrys: '#1a1a1a', grubosc: 0.35 });
+  assert.ok(dymek.width >= 18 && dymek.width <= 60, `szerokość z długości tekstu: ${dymek.width}`);
+  assert.equal(narracja.dymek.rodzaj, 'narracja');
+  assert.equal(narracja.dymek.ogonek, null, 'narracja bez ogonka');
+  await narzedzie('usun_elementy', { gdzie: 'strona:s1', id: [dymek.id, narracja.id] });
   assert.equal(s.projekt().projekt.strony[0].obiekty.length, 2);
   const ns = await narzedzie('dodaj_strone', { strona: { nazwa: 'Wstęp' }, po: 's1' });
   assert.equal(ns.blad, false, ns.tekst);

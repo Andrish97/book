@@ -481,6 +481,22 @@ Wygląd jednego elementu przeniesiesz na inny jednym kliknięciem — bez przepi
 
 Przechodzi wszystko, co dotyczy wyglądu — kolory, przejścia, obrys, czcionka, odstępy, filtry zdjęcia, krycie, cień, uszlachetnienia — a treść zostaje. Tabele, kody, wykresy i kalendarze mają własne ustawienia i wyglądu nie przejmują.
 
+### 4.14 Dymek
+
+Dymek to jeden element: ramka tekstu z dymkiem dookoła. Wstawisz go z **Biblioteka**, kategoria **Dymki**. Piszesz w nim jak w zwykłej ramce tekstu – dymek rośnie razem z tekstem.
+
+| Rodzaj | Wygląd |
+|---|---|
+| **mowa** | Owal z ogonkiem. |
+| **myśl** | Chmurka z kółkami zamiast ogonka. |
+| **krzyk** | Wybuch z kolcami. |
+| **szept** | Owal z przerywanym obrysem. |
+| **narracja** | Prostokątna ramka bez ogonka. |
+
+- Koniec ogonka przesuwasz pomarańczowym uchwytem na stronie – ustaw go przy ustach postaci. Ogonek jedzie razem z dymkiem.
+- W części **Dymek** panelu zmienisz **Rodzaj**, włączysz albo wyłączysz **Ogonek**, ustawisz **Wypełnienie**, **Obrys** i **Grubość obrysu**. Krój, rozmiar i kolor tekstu – jak w zwykłym tekście (rozdział „5 Tekst”).
+- Dymek wychodzi w PDF jako wektor, tak jak na stronie.
+
 ## 5. Tekst
 
 Ramki tekstu, ich wygląd, style i skład — od jednego napisu po tekst książki płynący przez wiele stron.

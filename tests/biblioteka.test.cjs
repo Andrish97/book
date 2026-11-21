@@ -33,7 +33,7 @@ test('biblioteka: rejestr kategorii, wyszukiwanie we wszystkich kategoriach, kol
   await modul('js/biblioteka-elementy.js');
   const { kategorieBiblioteki, szukajWBibliotece, zarejestrujKategorie, elementBiblioteki } = await modul('js/biblioteka.js');
   const { polaKolazu, KSZTALTY, KOLAZE } = await modul('js/ksztalty-biblioteka.js');
-  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['moje', 'gotowe-sekcje', 'ksztalty', 'ikony', 'ilustracje', 'strzalki', 'ramki', 'ozdobniki', 'linie', 'etykiety', 'okolicznosciowe', 'tla', 'kalendarze', 'planer', 'formularze', 'wykresy', 'infografiki', 'kolaze', 'naglowki', 'teksty', 'bloki', 'uklady', 'style', 'marka', 'ksiazka', 'kody']);
+  assert.deepEqual(kategorieBiblioteki().map((k) => k.id), ['moje', 'gotowe-sekcje', 'ksztalty', 'ikony', 'ilustracje', 'strzalki', 'ramki', 'ozdobniki', 'linie', 'etykiety', 'okolicznosciowe', 'dymki', 'tla', 'kalendarze', 'planer', 'formularze', 'wykresy', 'infografiki', 'kolaze', 'naglowki', 'teksty', 'bloki', 'uklady', 'style', 'marka', 'ksiazka', 'kody']);
   assert.ok(KSZTALTY.length >= 400, `kształtów: ${KSZTALTY.length}`);
   assert.equal(KOLAZE.length, 12);
   // Wyszukiwanie bez polskich znaków, w każdej kategorii naraz.
@@ -57,7 +57,7 @@ test('kalendarz miesiąca z biblioteki: siatka marca 2027, niedziele i święta,
   await nowyProjekt(strona, 'Kalendarz');
   await strona.click('[data-akcja="biblioteka"]');
   await strona.waitForSelector('#dlg-biblioteka[open]');
-  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 27, 'z „Moimi elementami”, „Marką”, „Gotowymi sekcjami” i „Wzorcami stron”');
+  assert.equal(await strona.locator('#kategorie-biblioteki .chip-biblioteki').count(), 28, 'z „Moimi elementami”, „Marką”, „Gotowymi sekcjami” i „Wzorcami stron”');
   await strona.click('#kategorie-biblioteki [data-kategoria="kalendarze"]');
   await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="zwykly"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.kalendarz);

@@ -359,6 +359,17 @@ Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** �
 
 - `uklad`: `2-pion`, `2-poziom`, `3-kolumny`, `3-duzy-lewo`, `3-duzy-gora`, `4-siatka`, `4-duzy-lewo`, `5-mozaika`, `5-duzy-gora`, `6-siatka`, `6-pion`, `9-siatka`. Pola to prostokąty – ramki obrazu: zdjęcie wstawisz, ustawiając polu `zasob` (jak kształtowi z obrazem).
 
+### Dymek (#360)
+
+```json
+{ "type": "dymek", "tekst": "Gdzie jest skarb?", "left": 30, "top": 40, "ogonek": { "x": 42, "y": 75 }, "rodzaj": "mowa" }
+```
+
+- Jeden element: ramka tekstu (`textbox`) z opisem `dymek` – dymek wokół rysuje aplikacja i rośnie razem z tekstem (dłuższy tekst = wyższy dymek; szerokość to `width`, bez niej – z długości tekstu, najwyżej 60 mm).
+- `rodzaj`: `mowa` (owal z ogonkiem), `mysl` (chmurka z kółkami), `krzyk` (wybuch z kolcami), `szept` (owal z przerywanym obrysem), `narracja` (prostokątna ramka bez ogonka).
+- `ogonek`: punkt **na stronie** (mm), w który celuje ogonek – np. usta postaci; bez niego dymek nie ma ogonka. W zapisie strony ogonek jest względem lewego górnego rogu ramki tekstu (`dymek.ogonek`), więc jedzie razem z dymkiem.
+- Opcjonalnie: `width`, `fontSize`, `fontFamily`, `fill` (kolor tekstu), `wypelnienie`, `obrys`, `grubosc` (mm). Zmiana tekstu: `zmien_elementy` z `text`; zmiana rodzaju albo ogonka: `zmien_elementy` z `dymek`.
+
 Pozostałe elementy Biblioteki nie mają skrótu – to zwykłe elementy, które zapiszesz sam:
 - **Kalendarz roczny** z Planera to `group` tekstów: rok, nazwa każdego miesiąca i po jednym `textbox` na kolumnę dnia tygodnia (skrót dnia i liczby w kolejnych wierszach, `"textAlign": "center"`).
 - **Planer** (lista zadań, tracker nawyków, plan tygodnia i dnia, notatki w linie, siatka dni, budżet, kontakty, plan lekcji, plan miesiąca, plan posiłków, trackery nastroju, wody, czytania, dziennik modlitwy, lista życzeń, budżet miesięczny; w Formularzach – tabelka zamówienia i lista obecności) to zwykła tabela (rozdział 9): wąska pierwsza kolumna z pustymi komórkami to kratki do odhaczania, notatki w linie to tabela z jedną kolumną bez linii pionowych (`linie_komorek`).

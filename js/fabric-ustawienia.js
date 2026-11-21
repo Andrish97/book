@@ -6,6 +6,7 @@
 import { zainstalujUszlachetnienia } from './kolory-druku.js';
 import { zainstalujMiekkieKrawedzie } from './miekkie-krawedzie.js';
 import { zainstalujWzory } from './wzor-wypelnienia.js';
+import { zainstalujDymki } from './dymek.js';
 
 // Własne właściwości obiektów, które zapisujemy razem z JSON-em Fabric.
 export const WLASNE_POLA = [
@@ -47,6 +48,7 @@ export const WLASNE_POLA = [
   'wzor', // wzór jako wypełnienie kształtu: { id, kolor, skala, obrot } – tłem jest fill (wzor-wypelnienia.js, #182)
   'na_czesci', // element na ścianie części składanki (#284) – w grupie części, jedzie z nią
   'czesc', 'skladanka', // składanka (#224): definicja części modelu z papieru i rola elementu w części (js/skladanka.js)
+  'dymek', // dymek wokół ramki tekstu: { rodzaj: mowa|mysl|krzyk|narracja, ogonek: { x, y }, wypelnienie, obrys, grubosc } (dymek.js, #360)
   'kolaz', // kolaż: { uklad, odstep, zaokraglenie, szerokosc, wysokosc } – grupa pól na zdjęcia (#131A)
 ];
 
@@ -55,6 +57,7 @@ if (!fabric.BaseFabricObject.prototype._ustawieniaSeriodruku) {
   zainstalujUszlachetnienia();
   zainstalujMiekkieKrawedzie();
   zainstalujWzory();
+  zainstalujDymki();
 
   // Pamięć podręczna obiektów tylko tam, gdzie się opłaca (#158). Fabric domyślnie trzyma każdy obiekt
   // w osobnym płótnie (min. 256×256 px) i przy każdym odrysowaniu nakłada je na stronę – przy 200–300
