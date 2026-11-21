@@ -32,7 +32,7 @@ export const GRUPY_KATEGORII = {
 };
 zarejestrujKategorie({ id: 'ksztalty', nazwa: 'Kształty', ikona: 'ksztalty', kolejnosc: 10, elementy: ksztaltyZ(...GRUPY_KATEGORII.ksztalty) });
 zarejestrujKategorie({ id: 'strzalki', nazwa: 'Strzałki i dymki', ikona: 'strzalka', kolejnosc: 20, elementy: ksztaltyZ(...GRUPY_KATEGORII.strzalki) });
-zarejestrujKategorie({ id: 'ramki', nazwa: 'Ramki', ikona: 'ramka', kolejnosc: 25, elementy: ksztaltyZ(...GRUPY_KATEGORII.ramki) });
+zarejestrujKategorie({ id: 'ramki', nazwa: tt('bibliotekaElementy.ramki'), ikona: 'ramka', kolejnosc: 25, elementy: ksztaltyZ(...GRUPY_KATEGORII.ramki) });
 zarejestrujKategorie({ id: 'ozdobniki', nazwa: 'Ozdobniki', ikona: 'ozdobnik', kolejnosc: 30, elementy: ksztaltyZ(...GRUPY_KATEGORII.ozdobniki) });
 zarejestrujKategorie({ id: 'etykiety', nazwa: 'Etykiety i plakietki', ikona: 'etykieta', kolejnosc: 35, elementy: ksztaltyZ(...GRUPY_KATEGORII.etykiety) });
 
@@ -60,7 +60,7 @@ const svgLinii = ({ grubosc = 0.5, kreski = 'ciagla', podwojna, pionowa }) => {
 zarejestrujKategorie({
   id: 'linie', nazwa: 'Linie i separatory', ikona: 'separator', kolejnosc: 32,
   elementy: () => [
-    ...LINIE.map(([id, nazwa, slowa, opis]) => ({ id, nazwa, slowa: `${slowa} separator`, podglad: svgLinii(opis), grupa: 'Linie', wstaw: (e, punkt) => e.dodajLinieZBiblioteki({ ...opis, nazwa }, punkt) })),
+    ...LINIE.map(([id, nazwa, slowa, opis]) => ({ id, nazwa, slowa: `${slowa} separator`, podglad: svgLinii(opis), grupa: tt('bibliotekaElementy.linie'), wstaw: (e, punkt) => e.dodajLinieZBiblioteki({ ...opis, nazwa }, punkt) })),
     ...ksztaltyZ('Separatory ozdobne')(),
   ],
 });
@@ -84,7 +84,7 @@ zarejestrujKategorie({
 
 // Kalendarze: ten sam element w trzech gotowych ustawieniach.
 const KALENDARZE = [
-  ['zwykly', 'Kalendarz miesiąca', 'siatka dni swieta', {}],
+  ['zwykly', tt('bibliotekaElementy.kalendarzMiesiaca'), 'siatka dni swieta', {}],
   ['notatki', 'Kalendarz z miejscem na notatki', 'planer notatki duzy', { notatki: true, wiersz_dnia: 18 }],
   ['tygodnie', 'Kalendarz z numerami tygodni', 'tydzien numery tygodni', { tygodnie: true, nazwy: 'litery' }],
 ];
@@ -100,7 +100,7 @@ zarejestrujKategorie({
 
 // Wykresy: rodzaje; dane z pierwszej tabeli projektu (zmienia się w panelu).
 const WYKRESY = [
-  ['slupki', 'Wykres słupkowy', '<path d="M8 44h54"/><rect x="12" y="24" width="9" height="20"/><rect x="27" y="12" width="9" height="32"/><rect x="42" y="18" width="9" height="26"/>'],
+  ['slupki', tt('bibliotekaElementy.wykresSlupkowy'), '<path d="M8 44h54"/><rect x="12" y="24" width="9" height="20"/><rect x="27" y="12" width="9" height="32"/><rect x="42" y="18" width="9" height="26"/>'],
   ['poziome', 'Wykres poziomy', '<path d="M10 6v40"/><rect x="10" y="9" width="40" height="8"/><rect x="10" y="21" width="28" height="8"/><rect x="10" y="33" width="48" height="8"/>'],
   ['linia', 'Wykres liniowy', '<path d="M8 44h54"/><path d="M10 36 24 22l12 8 22-20" class="linia"/>'],
   ['kolo', 'Wykres kołowy', '<path d="M35 26V6a20 20 0 1 1-17.3 30z"/><path d="M35 26 17.7 36A20 20 0 0 1 35 6z" class="drugi"/>'],
@@ -147,7 +147,7 @@ const PODGLAD_EAN = podgladEAN();
 zarejestrujKategorie({
   id: 'kody', nazwa: 'Kody', ikona: 'kod', kolejnosc: 70,
   elementy: () => [
-    { id: 'qr', nazwa: 'Kod QR', slowa: 'kod qr adres strona link wifi telefon e-mail', duzy: true, podglad: PODGLAD_QR, opis: 'Adres, tekst, e-mail, telefon, Wi-Fi – także z danych', wstaw: (e) => e.dodajKod('qr') },
+    { id: 'qr', nazwa: tt('bibliotekaElementy.kodQr'), slowa: 'kod qr adres strona link wifi telefon e-mail', duzy: true, podglad: PODGLAD_QR, opis: 'Adres, tekst, e-mail, telefon, Wi-Fi – także z danych', wstaw: (e) => e.dodajKod('qr') },
     { id: 'ean', nazwa: 'Kod kreskowy EAN / ISBN', slowa: 'kod kreskowy ean isbn ksiazka okladka', duzy: true, podglad: PODGLAD_EAN, opis: 'Np. ISBN na okładkę książki', wstaw: (e) => e.dodajKod('ean') },
   ],
 });
@@ -156,7 +156,7 @@ zarejestrujKategorie({
 // a bez zaznaczonego tekstu wstawia nowy tekst w tym stylu. Style tworzy się i zmienia w panelu tekstu.
 const escS = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
 zarejestrujKategorie({
-  id: 'style', nazwa: 'Style tekstu', ikona: 'tekst', kolejnosc: 65,
+  id: 'style', nazwa: tt('bibliotekaElementy.styleTekstu'), ikona: 'tekst', kolejnosc: 65,
   elementy: () => ((typeof window !== 'undefined' && window.seriodruk?.stan?.projekt?.style) || []).map((st) => ({
     id: st.id, nazwa: st.nazwa, slowa: `styl tekst akapit ${st.fontFamily || ''}`, duzy: true,
     podglad: `<svg viewBox="0 0 70 52" aria-hidden="true"><text x="35" y="32" text-anchor="middle" style="font-family:'${escS(st.fontFamily || 'Inter')}';font-weight:${st.fontWeight === 'bold' ? 700 : 400};font-style:${st.fontStyle === 'italic' ? 'italic' : 'normal'}" font-size="18" fill="${escS(typeof st.fill === 'string' ? st.fill : 'currentColor')}">Aa</text></svg>`,
@@ -180,7 +180,7 @@ const TEKSTY = [
   ['pieczec', 'Pieczęć – napis w okręgu', 'MAKIETKA • PIECZĘĆ • 2027 •', { rodzaj: 'okrag', strona: 'zewn' }, '<circle cx="35" cy="26" r="19" class="linia"/><circle cx="35" cy="26" r="12" class="linia"/>', 12],
   ['usmiech', 'Łuk w dół', 'UŚMIECHNIJ SIĘ', { rodzaj: 'luk', zgiecie: -45 }, '<path d="M10 12 Q35 48 60 12" class="linia"/>'],
   ['fala', 'Falisty baner', 'FALUJĄCY NAPIS', { rodzaj: 'fala', zgiecie: 60 }, '<path d="M6 26 C18 6 26 6 35 26 S52 46 64 26" class="linia"/>'],
-  ['flaga', 'Flaga', 'NA WIETRZE', { rodzaj: 'flaga', zgiecie: 50 }, '<path d="M8 18 C20 8 30 28 42 18 S56 10 62 16 M8 34 C20 24 30 44 42 34 S56 26 62 32" class="linia"/>'],
+  ['flaga', tt('bibliotekaElementy.flaga'), 'NA WIETRZE', { rodzaj: 'flaga', zgiecie: 50 }, '<path d="M8 18 C20 8 30 28 42 18 S56 10 62 16 M8 34 C20 24 30 44 42 34 S56 26 62 32" class="linia"/>'],
   ['wypukly', 'Wypukły tytuł', 'TYTUŁ', { rodzaj: 'wypuklosc', zgiecie: 60 }, '<path d="M8 16 Q35 2 62 16 M8 36 Q35 50 62 36" class="linia"/>'],
   ['zwezenie', 'Zwężający się napis', 'PERSPEKTYWA', { rodzaj: 'zwezenie', zgiecie: 60 }, '<path d="M6 10 L64 20 M6 42 L64 32" class="linia"/>'],
 ];
@@ -201,10 +201,10 @@ const PODGLAD_SPISU = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="8" y
 const PODGLAD_SKOROWIDZA = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="8" y="5" width="54" height="42" rx="1" class="tlo"/>'
   + '<path d="M13 12h4v5h-4z"/><path d="M13 22h16M13 28h20M13 34h14M13 40h18" class="linia"/><path d="M44 22h12M44 28h12M44 34h12M44 40h12" class="kropki"/></svg>';
 zarejestrujKategorie({
-  id: 'ksiazka', nazwa: 'Książka', ikona: 'ksiazka', kolejnosc: 68,
+  id: 'ksiazka', nazwa: tt('bibliotekaElementy.ksiazka'), ikona: 'ksiazka', kolejnosc: 68,
   elementy: () => [
-    { id: 'spis', nazwa: 'Spis treści', slowa: 'spis tresci rozdzialy naglowki strony ksiazka', duzy: true, podglad: PODGLAD_SPISU, opis: tt('bibliotekaElementy.rozdzialyZNumeramiStron'), wstaw: (e, punkt) => e.dodajElementKsiazki('spis', punkt) },
-    { id: 'skorowidz', nazwa: 'Skorowidz', slowa: 'skorowidz indeks hasla slowa ksiazka', duzy: true, podglad: PODGLAD_SKOROWIDZA, opis: tt('bibliotekaElementy.haslaAlfabetycznieZNumerami'), wstaw: (e, punkt) => e.dodajElementKsiazki('skorowidz', punkt) },
+    { id: 'spis', nazwa: tt('bibliotekaElementy.spisTresci'), slowa: 'spis tresci rozdzialy naglowki strony ksiazka', duzy: true, podglad: PODGLAD_SPISU, opis: tt('bibliotekaElementy.rozdzialyZNumeramiStron'), wstaw: (e, punkt) => e.dodajElementKsiazki('spis', punkt) },
+    { id: 'skorowidz', nazwa: tt('bibliotekaElementy.skorowidz'), slowa: 'skorowidz indeks hasla slowa ksiazka', duzy: true, podglad: PODGLAD_SKOROWIDZA, opis: tt('bibliotekaElementy.haslaAlfabetycznieZNumerami'), wstaw: (e, punkt) => e.dodajElementKsiazki('skorowidz', punkt) },
   ],
 });
 
@@ -214,7 +214,7 @@ zarejestrujKategorie({
 export const MOJE = { lista: [], zmienNazwe: null, usun: null };
 const escM = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
 zarejestrujKategorie({
-  id: 'moje', nazwa: 'Moje elementy', ikona: 'zapisz_w_bibliotece', kolejnosc: 5,
+  id: 'moje', nazwa: tt('bibliotekaElementy.mojeElementy'), ikona: 'zapisz_w_bibliotece', kolejnosc: 5,
   pusto: 'Tu trafią Twoje elementy. Zaznacz element albo kilka na stronie i wybierz „Zapisz w bibliotece” (we właściwościach, obok Kopiuj i Duplikuj) – będzie pod ręką w każdym projekcie.',
   odswiez: async () => (await import('./moje-elementy.js')).wczytajMojeElementy(),
   elementy: () => (MOJE.lista || []).map((m) => ({
@@ -229,7 +229,7 @@ zarejestrujKategorie({
       return e.wstawElementZBiblioteki(dane, projekt.zasoby, punkt);
     },
     akcje: [
-      { ikona: 'olowek', nazwa: 'Zmień nazwę', fn: () => MOJE.zmienNazwe?.(m) },
+      { ikona: 'olowek', nazwa: tt('bibliotekaElementy.zmienNazwe'), fn: () => MOJE.zmienNazwe?.(m) },
       { ikona: 'kosz', nazwa: 'Usuń z biblioteki', fn: () => MOJE.usun?.(m) },
     ],
   })),
@@ -239,7 +239,7 @@ zarejestrujKategorie({
 const PODGLAD_MARKI = '<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="8" y="10" width="54" height="32" rx="4" class="tlo"/><path d="M35 15l3.3 6.7 7.4 1.1-5.4 5.2 1.3 7.3L35 31.9l-6.6 3.4 1.3-7.3-5.4-5.2 7.4-1.1z"/></svg>';
 const markaZKonta = () => { try { return globalThis.makietkaMarka || null; } catch { return null; } };
 zarejestrujKategorie({
-  id: 'marka', nazwa: 'Marka', ikona: 'marka', kolejnosc: 66,
+  id: 'marka', nazwa: tt('bibliotekaElementy.marka'), ikona: 'marka', kolejnosc: 66,
   elementy: () => {
     const m = markaZKonta();
     const loga = (m?.loga || []).map((l) => ({
@@ -256,8 +256,8 @@ zarejestrujKategorie({
     }));
     return [
       ...loga,
-      { id: 'zastosuj', nazwa: 'Zastosuj markę do projektu…', slowa: 'marka kolory czcionki zamien', duzy: true, podglad: PODGLAD_MARKI, opis: 'Kolory i czcionki projektu → marki', wstaw: async () => { (await import('./app/marka-zastosuj.js')).otworzZastosowanieMarki(); return null; } },
-      { id: 'edytuj', nazwa: 'Edytuj zestaw marki…', slowa: 'marka zestaw kolory czcionki logo', duzy: true, podglad: PODGLAD_MARKI, opis: 'Kolory, czcionki i logo na koncie', wstaw: async () => { (await import('./marka-okno.js')).otworzMarke(); return null; } },
+      { id: 'zastosuj', nazwa: tt('bibliotekaElementy.zastosujMarkeDoProjektu'), slowa: 'marka kolory czcionki zamien', duzy: true, podglad: PODGLAD_MARKI, opis: 'Kolory i czcionki projektu → marki', wstaw: async () => { (await import('./app/marka-zastosuj.js')).otworzZastosowanieMarki(); return null; } },
+      { id: 'edytuj', nazwa: tt('bibliotekaElementy.edytujZestawMarki'), slowa: 'marka zestaw kolory czcionki logo', duzy: true, podglad: PODGLAD_MARKI, opis: 'Kolory, czcionki i logo na koncie', wstaw: async () => { (await import('./marka-okno.js')).otworzMarke(); return null; } },
     ];
   },
 });

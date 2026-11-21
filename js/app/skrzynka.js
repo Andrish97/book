@@ -138,11 +138,11 @@ function wierszListy(t) {
     t.robocze ? '<span class="plakietka robocza">Wersja robocza</span>' : '',
   ].join('');
   li.innerHTML = `
-    <label class="wybor" title="Zaznacz"><input type="checkbox" ${s.zaznaczone.has(t.id) ? 'checked' : ''} aria-label="Zaznacz: ${esc(t.temat || '(bez tematu)')}"></label>
+    <label class="wybor" title="${tt('skrzynka.zaznacz')}"><input type="checkbox" ${s.zaznaczone.has(t.id) ? 'checked' : ''} aria-label="Zaznacz: ${esc(t.temat || '(bez tematu)')}"></label>
     ${robocza ? '<span class="gwiazdka-miejsce"></span>' : `<button type="button" class="gwiazdka" data-ikona="gwiazdka" data-rozmiar="18" aria-pressed="${t.gwiazdka}" title="${t.gwiazdka ? 'Usuń gwiazdkę' : 'Dodaj gwiazdkę'}" aria-label="Gwiazdka"></button>`}
     <button type="button" class="otworz">
       <span class="od">${esc(od)}${t.liczba > 1 ? `<span class="liczba">${t.liczba}</span>` : ''}</span>
-      <span class="kiedy">${t.zalaczniki ? '<span data-ikona="spinacz" data-rozmiar="14" title="Załączniki"></span>' : ''}${esc(kiedy(t.ostatnia))}</span>
+      <span class="kiedy">${t.zalaczniki ? `<span data-ikona="spinacz" data-rozmiar="14" title="${tt('skrzynka.zalaczniki')}"></span>` : ''}${esc(kiedy(t.ostatnia))}</span>
       <span class="temat">${plakietki}<span class="tekst-tematu">${esc(t.temat || '(bez tematu)')}</span></span>
       <span class="zajawka">${esc(t.zajawka || '')}</span>
     </button>`;
@@ -214,7 +214,7 @@ function ustawLicznik(n) {
 function zamknijWatek() {
   s.otwarty = null;
   s.dane = null;
-  $('#admin-watek').innerHTML = '<div class="skrzynka-nic"><span data-ikona="koperta" data-rozmiar="40"></span><p>Wybierz wiadomość z listy.</p></div>';
+  $('#admin-watek').innerHTML = `<div class="skrzynka-nic"><span data-ikona="koperta" data-rozmiar="40"></span><p>${tt('skrzynka.wybierzWiadomoscZListy')}</p></div>`;
   wstawIkony($('#admin-watek'));
   for (const li of $$('#admin-watki li')) li.classList.remove('wybrany');
   if ($('#admin-skrzynka').dataset.widok !== 'pisz') ustawWidok('lista');
@@ -261,8 +261,8 @@ function rysujWatek() {
   const ostatnia = wiadomosci.at(-1);
   box.innerHTML = `
     <div class="watek-pasek">
-      <button type="button" class="przycisk-ikona watek-wstecz" data-ikona="wstecz" title="Wróć do listy" aria-label="Wróć do listy"></button>
-      <div class="watek-akcje" role="toolbar" aria-label="Rozmowa">${akcje}</div>
+      <button type="button" class="przycisk-ikona watek-wstecz" data-ikona="wstecz" title="${tt('skrzynka.wrocDoListy')}" aria-label="${tt('skrzynka.wrocDoListy')}"></button>
+      <div class="watek-akcje" role="toolbar" aria-label="${tt('skrzynka.rozmowa')}">${akcje}</div>
     </div>
     <div class="watek-przewijany">
       <h3 class="watek-temat">${esc(t.temat || '(bez tematu)')}${t.folder !== 'skrzynka' ? `<span class="plakietka">${esc(FOLDERY[t.folder] || t.folder)}</span>` : ''}</h3>
@@ -276,9 +276,9 @@ function rysujWatek() {
         <span class="zajawka">${esc((r.html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 140) || '(pusta)')}</span>
         <button type="button" class="przycisk maly" data-edytuj-robocza="${r.id}" data-ikona="olowek">Edytuj</button></div>`).join('')}
       <div class="watek-odpowiedz">
-        <button type="button" class="przycisk" data-pisz-tryb="odpowiedz" data-ikona="odpowiedz">Odpowiedz</button>
+        <button type="button" class="przycisk" data-pisz-tryb="odpowiedz" data-ikona="odpowiedz">${tt('skrzynka.odpowiedz')}</button>
         ${(ostatnia && (ostatnia.do_lista || []).length + (ostatnia.dw || []).length > 1) ? '<button type="button" class="przycisk" data-pisz-tryb="wszystkim" data-ikona="odpowiedzWszystkim">Odpowiedz wszystkim</button>' : ''}
-        <button type="button" class="przycisk" data-pisz-tryb="przekaz" data-ikona="przekaz">Przekaż</button>
+        <button type="button" class="przycisk" data-pisz-tryb="przekaz" data-ikona="przekaz">${tt('skrzynka.przekaz')}</button>
       </div>
     </div>`;
   wstawIkony(box);
@@ -335,8 +335,8 @@ function wiadomoscHtml(m, zwinieta) {
         </div>
         <div class="wiadomosc-kiedy"><span title="${esc(data(m.utworzono))}">${esc(kiedy(m.utworzono))}</span>${stanWysylki}</div>
         <div class="wiadomosc-akcje">
-          <button type="button" class="przycisk-ikona" data-pisz-tryb="odpowiedz" data-ikona="odpowiedz" title="Odpowiedz" aria-label="Odpowiedz"></button>
-          <button type="button" class="przycisk-ikona" data-pisz-tryb="przekaz" data-ikona="przekaz" title="Przekaż" aria-label="Przekaż"></button>
+          <button type="button" class="przycisk-ikona" data-pisz-tryb="odpowiedz" data-ikona="odpowiedz" title="${tt('skrzynka.odpowiedz')}" aria-label="${tt('skrzynka.odpowiedz')}"></button>
+          <button type="button" class="przycisk-ikona" data-pisz-tryb="przekaz" data-ikona="przekaz" title="${tt('skrzynka.przekaz')}" aria-label="${tt('skrzynka.przekaz')}"></button>
         </div>
       </header>
       <div class="wiadomosc-tresc"></div>
@@ -719,7 +719,7 @@ function rysujZalaczniki() {
     const li = document.createElement('li');
     li.className = `zalacznik ${z.klucz ? '' : 'wysylanie'}`;
     li.innerHTML = `<span data-ikona="spinacz" data-rozmiar="16"></span><span class="nazwa">${esc(z.nazwa)}</span><span class="ciche">${z.klucz ? esc(rozmiar(z.rozmiar)) : 'wysyłanie…'}</span>
-      <button type="button" class="przycisk-ikona maly" data-ikona="zamknij" data-rozmiar="14" title="Usuń załącznik" aria-label="Usuń załącznik ${esc(z.nazwa)}"></button>`;
+      <button type="button" class="przycisk-ikona maly" data-ikona="zamknij" data-rozmiar="14" title="${tt('skrzynka.usunZalacznik')}" aria-label="Usuń załącznik ${esc(z.nazwa)}"></button>`;
     li.querySelector('button').addEventListener('click', () => {
       pisz.zalaczniki.splice(i, 1);
       if (z.klucz && pisz.wlasne.has(z.klucz) && !pisz.id) { pisz.wlasne.delete(z.klucz); usunPliki([z.klucz]); }

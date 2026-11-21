@@ -420,33 +420,33 @@ function ulepszKolor(input) {
     okienko.setAttribute('aria-label', tt('kontrolki.wyborKoloru'));
     okienko.innerHTML = `
       <div class="kolor-pole" tabindex="0" role="slider" aria-label="Nasycenie i jasność"><i></i></div>
-      <div class="kolor-barwa" tabindex="0" role="slider" aria-label="Barwa" aria-valuemin="0" aria-valuemax="360"><i></i></div>
+      <div class="kolor-barwa" tabindex="0" role="slider" aria-label="${tt('kontrolki.barwa')}" aria-valuemin="0" aria-valuemax="360"><i></i></div>
       <label class="kolor-hex"><span>Kod koloru</span><input type="text" maxlength="7" spellcheck="false" autocomplete="off"></label>
-      <div class="kolor-paleta" role="group" aria-label="Gotowe kolory"></div>
-      <div class="kolor-paleta ostatnie" role="group" aria-label="Ostatnio używane" hidden></div>
+      <div class="kolor-paleta" role="group" aria-label="${tt('kontrolki.gotoweKolory')}"></div>
+      <div class="kolor-paleta ostatnie" role="group" aria-label="${tt('kontrolki.ostatnioUzywane')}" hidden></div>
       <div class="kolor-z-marki" hidden>
-        <span class="kolor-podpis">Marka</span>
-        <div class="kolor-paleta marki" role="group" aria-label="Kolory marki"></div>
+        <span class="kolor-podpis">${tt('kontrolki.marka')}</span>
+        <div class="kolor-paleta marki" role="group" aria-label="${tt('kontrolki.koloryMarki')}"></div>
       </div>
       <div class="kolor-w-sekcji" hidden>
         <span class="kolor-podpis">W tej sekcji</span>
-        <div class="kolor-paleta sekcji" role="group" aria-label="Użyte w tej sekcji"></div>
+        <div class="kolor-paleta sekcji" role="group" aria-label="${tt('kontrolki.uzyteWTejSekcji')}"></div>
       </div>
       <div class="kolor-uzyte" hidden>
-        <span class="kolor-podpis">Użyte w projekcie</span>
-        <div class="kolor-paleta projektu" role="group" aria-label="Użyte w projekcie"></div>
+        <span class="kolor-podpis">${tt('kontrolki.uzyteWProjekcie')}</span>
+        <div class="kolor-paleta projektu" role="group" aria-label="${tt('kontrolki.uzyteWProjekcie')}"></div>
       </div>
       <div class="kolor-dodatkowe" hidden>
-        <span class="kolor-podpis">Kolory dodatkowe (np. Pantone)</span>
-        <div class="kolor-paleta spoty" role="group" aria-label="Kolory dodatkowe"></div>
+        <span class="kolor-podpis">${tt('kontrolki.koloryDodatkoweNpPantone')}</span>
+        <div class="kolor-paleta spoty" role="group" aria-label="${tt('kontrolki.koloryDodatkowe')}"></div>
         <label class="kolor-odcien"><span>Odcień</span><input type="number" min="1" max="100" step="5" value="100" inputmode="numeric"><i>%</i></label>
         <div class="kolor-nowy-spot" hidden>
           <label class="kolor-hex"><span>Nazwa farby</span><input type="text" maxlength="60" spellcheck="false" autocomplete="off" placeholder="np. PANTONE 186 C"></label>
-          <button type="button" class="przycisk maly kolor-nowy-spot-dodaj">Dodaj</button>
+          <button type="button" class="przycisk maly kolor-nowy-spot-dodaj">${tt('kontrolki.dodaj')}</button>
         </div>
         <div class="kolor-linki">
           <button type="button" class="link-przycisk kolor-z-tego">Zrób z tego koloru kolor dodatkowy…</button>
-          <button type="button" class="link-przycisk kolor-zarzadzaj">Kolory projektu…</button>
+          <button type="button" class="link-przycisk kolor-zarzadzaj">${tt('kontrolki.koloryProjektu')}</button>
         </div>
       </div>
       <p class="kolor-tryb" hidden></p>`;
@@ -676,12 +676,12 @@ function ulepszDate(input) {
     okienko.setAttribute('aria-label', tt('kontrolki.wyborDnia'));
     okienko.innerHTML = `
       <div class="kalendarz-naglowek">
-        <button type="button" class="przycisk-ikona maly" data-krok="-1" aria-label="Poprzedni miesiąc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 6-6 6 6 6"/></svg></button>
+        <button type="button" class="przycisk-ikona maly" data-krok="-1" aria-label="${tt('kontrolki.poprzedniMiesiac')}"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 6-6 6 6 6"/></svg></button>
         <strong aria-live="polite"></strong>
         <button type="button" class="przycisk-ikona maly" data-krok="1" aria-label="Następny miesiąc"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m9 6 6 6-6 6"/></svg></button>
       </div>
       <div class="kalendarz-siatka" role="grid" tabindex="0"></div>
-      <div class="kalendarz-stopka"><button type="button" class="przycisk maly" data-dzis>Dziś</button></div>`;
+      <div class="kalendarz-stopka"><button type="button" class="przycisk maly" data-dzis>${tt('kontrolki.dzis')}</button></div>`;
     const siatka = okienko.querySelector('.kalendarz-siatka');
     const wolno = (iso) => !min || iso >= min;
     const rysuj = () => {

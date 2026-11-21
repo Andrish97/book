@@ -7,6 +7,7 @@ import * as chmura from '../chmura.js';
 import { $, powiadom } from '../ui.js';
 import { trasa } from './kontekst.js';
 import { wyborProjektow } from './dostep-ai.js';
+import { t } from '../jezyk.js';
 
 function okno() {
   let dlg = $('#dlg-polacz-ai');
@@ -15,20 +16,20 @@ function okno() {
   dlg.id = 'dlg-polacz-ai';
   dlg.className = 'dialog-szeroki';
   dlg.innerHTML = `<form method="dialog" class="formularz">
-    <h2>Połącz z Makietką</h2>
+    <h2>${t('polaczAi.polaczZMakietka')}</h2>
     <p class="polacz-kto"></p>
     <div class="rzad">
-      <label class="pole"><span>Może</span><select name="rola"><option value="edycja">czytać i zmieniać</option><option value="odczyt">tylko czytać</option></select></label>
-      <label class="pole"><span>Na jak długo</span><select name="dni"><option value="7">7 dni</option><option value="30">30 dni</option><option value="90" selected>90 dni</option><option value="365">rok</option><option value="bez">bez terminu</option></select></label>
+      <label class="pole"><span>${t('polaczAi.moze')}</span><select name="rola"><option value="edycja">${t('polaczAi.czytacIZmieniac')}</option><option value="odczyt">${t('polaczAi.tylkoCzytac')}</option></select></label>
+      <label class="pole"><span>${t('polaczAi.naJakDlugo')}</span><select name="dni"><option value="7">${t('polaczAi.7Dni')}</option><option value="30">${t('polaczAi.30Dni')}</option><option value="90" selected>${t('polaczAi.90Dni')}</option><option value="365">${t('polaczAi.rok')}</option><option value="bez">${t('polaczAi.bezTerminu')}</option></select></label>
     </div>
-    <div class="przelacznik-segmentowy" role="radiogroup" aria-label="Zakres">
-      <label><input type="radio" name="zakres" value="wybrane" checked><span>Wybrane projekty</span></label>
+    <div class="przelacznik-segmentowy" role="radiogroup" aria-label="${t('polaczAi.zakres')}">
+      <label><input type="radio" name="zakres" value="wybrane" checked><span>${t('polaczAi.wybraneProjekty')}</span></label>
       <label><input type="radio" name="zakres" value="pelny"><span>Wszystkie (też tworzenie i usuwanie)</span></label>
     </div>
     <div class="lista-projektow-klucza polacz-projekty"></div>
     <p class="podpowiedz">Połączenie to zwykły klucz dostępu – zobaczysz go i odbierzesz w ustawieniach konta → Sztuczna inteligencja. Aplikacja AI nie dostaje Twojego hasła.</p>
     <p class="blad-polaczenia" role="alert" hidden></p>
-    <div class="przyciski-dialogu"><button class="przycisk" value="nie">Odmów</button><button class="przycisk glowny" value="tak">Zezwól</button></div>
+    <div class="przyciski-dialogu"><button class="przycisk" value="nie">${t('polaczAi.odmow')}</button><button class="przycisk glowny" value="tak">${t('polaczAi.zezwol')}</button></div>
   </form>`;
   document.body.append(dlg);
   const f = dlg.querySelector('form');

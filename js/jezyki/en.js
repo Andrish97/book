@@ -797,7 +797,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Inny – API zgodne z OpenAI":"Other – OpenAI-compatible API",
 "Inny kolor…":"Other color…",
 "Instagram – 1080 × 1080 px":"Instagram – 1080 × 1080 px",
-"Instrukcja":"Guide",
+"Instrukcja":"Instructions",
 "Instrukcja montażu":"Assembly instructions",
 "Interlinia":"Line spacing",
 "Internet – 1600 px":"Web – 1600 px",

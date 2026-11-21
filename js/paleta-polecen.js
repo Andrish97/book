@@ -59,8 +59,8 @@ function zbuduj() {
   okno.id = 'paleta-polecen';
   okno.className = 'paleta-polecen';
   okno.setAttribute('aria-label', tt('paletaPolecen.szukajPolecenia'));
-  okno.innerHTML = '<input type="search" class="paleta-pole" placeholder="Szukaj polecenia… (np. pdf, dane, obraz)" aria-label="Szukaj polecenia" autocomplete="off" spellcheck="false">'
-    + '<ul class="paleta-lista" role="listbox" aria-label="Polecenia"></ul><p class="paleta-pusto ciche" hidden>Nic nie pasuje.</p>';
+  okno.innerHTML = `<input type="search" class="paleta-pole" placeholder="${tt('paletaPolecen.szukajPoleceniaNpPdf')}" aria-label="${tt('paletaPolecen.szukajPolecenia')}" autocomplete="off" spellcheck="false">`
+    + `<ul class="paleta-lista" role="listbox" aria-label="${tt('paletaPolecen.polecenia')}"></ul><p class="paleta-pusto ciche" hidden>Nic nie pasuje.</p>`;
   document.body.append(okno);
   const pole = okno.querySelector('.paleta-pole');
   const lista = okno.querySelector('.paleta-lista');

@@ -147,9 +147,9 @@ function pokazPoleHasla(t) {
   $('#podglad-tytul').textContent = tt('udostepnione.podgladChronionyHaslem');
   $('#podglad-opis').textContent = '';
   const el = $('#podglad-tresc');
-  el.innerHTML = `<div class="podglad-pusto" id="podglad-haslo"><h2>Podgląd chroniony hasłem</h2>
+  el.innerHTML = `<div class="podglad-pusto" id="podglad-haslo"><h2>${tt('udostepnione.podgladChronionyHaslem')}</h2>
     <p class="ciche">Osoba, która udostępniła ten podgląd, ustawiła hasło. Wpisz je, żeby zobaczyć strony.</p>
-    <form><input type="password" name="haslo" autocomplete="current-password" aria-label="Hasło do podglądu" placeholder="Hasło" required><button type="submit" class="przycisk glowny">Pokaż</button></form>
+    <form><input type="password" name="haslo" autocomplete="current-password" aria-label="${tt('udostepnione.hasloDoPodgladu')}" placeholder="${tt('udostepnione.haslo')}" required><button type="submit" class="przycisk glowny">${tt('udostepnione.pokaz')}</button></form>
     <p class="komunikat" role="status"></p></div>`;
   const form = $('form', el);
   form.elements.haslo.focus();

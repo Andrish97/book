@@ -29,7 +29,7 @@ function pokazPliki() {
     const li = document.createElement('li');
     li.className = 'zalacznik';
     li.innerHTML = '<span data-ikona="spinacz" data-rozmiar="16"></span><span class="nazwa"></span><span class="ciche"></span>'
-      + '<button type="button" class="przycisk-ikona maly" data-ikona="zamknij" data-rozmiar="14" title="Usuń załącznik"></button>';
+      + `<button type="button" class="przycisk-ikona maly" data-ikona="zamknij" data-rozmiar="14" title="${tt('kontakt.usunZalacznik')}"></button>`;
     li.querySelector('.nazwa').textContent = f.name;
     li.querySelector('.ciche').textContent = rozmiar(f.size);
     li.querySelector('button').setAttribute('aria-label', `Usuń załącznik ${f.name}`);

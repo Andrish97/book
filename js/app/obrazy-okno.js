@@ -78,17 +78,17 @@ function rysuj() {
     li.tabIndex = 0;
     li.classList.toggle('nieuzywany', !u.uzyty);
     li.innerHTML = `
-      <label class="obraz-zaznacz"><input type="checkbox" aria-label="Zaznacz obraz"></label>
+      <label class="obraz-zaznacz"><input type="checkbox" aria-label="${tt('obrazyOkno.zaznaczObraz')}"></label>
       <div class="obraz-miniatura"><img alt="" decoding="async"></div>
       <div class="obraz-opis">
-        <button type="button" class="obraz-nazwa" data-rola="nazwa" title="Zmień nazwę"></button>
+        <button type="button" class="obraz-nazwa" data-rola="nazwa" title="${tt('obrazyOkno.zmienNazwe')}"></button>
         <span class="obraz-wymiary"></span>
         <span class="obraz-uzycie"></span>
       </div>
       <div class="obraz-akcje">
-        <button type="button" class="przycisk-ikona" data-rola="kopiuj" data-ikona="kopiuj" title="Kopiuj nazwę" aria-label="Kopiuj nazwę"></button>
-        ${u.pierwsze ? '<button type="button" class="przycisk-ikona" data-rola="pokaz" data-ikona="oko" title="Pokaż na stronie" aria-label="Pokaż na stronie"></button>' : ''}
-        <button type="button" class="przycisk-ikona obraz-wiecej" data-rola="wiecej" data-ikona="wiecej" title="Więcej" aria-label="Więcej działań" aria-haspopup="menu" aria-expanded="false"></button>
+        <button type="button" class="przycisk-ikona" data-rola="kopiuj" data-ikona="kopiuj" title="${tt('obrazyOkno.kopiujNazwe')}" aria-label="${tt('obrazyOkno.kopiujNazwe')}"></button>
+        ${u.pierwsze ? `<button type="button" class="przycisk-ikona" data-rola="pokaz" data-ikona="oko" title="${tt('obrazyOkno.pokazNaStronie')}" aria-label="${tt('obrazyOkno.pokazNaStronie')}"></button>` : ''}
+        <button type="button" class="przycisk-ikona obraz-wiecej" data-rola="wiecej" data-ikona="wiecej" title="${tt('obrazyOkno.wiecej')}" aria-label="${tt('obrazyOkno.wiecejDzialan')}" aria-haspopup="menu" aria-expanded="false"></button>
       </div>`;
     wpiszNazwe(li.querySelector('.obraz-nazwa'), z.nazwa);
     li.querySelector('.obraz-uzycie').textContent = opisUzycia(u);
@@ -370,9 +370,9 @@ function otworzMenuObrazu(przycisk, id) {
     menu.className = 'menu menu-strony';
     menu.setAttribute('role', 'menu');
     menu.hidden = true;
-    menu.innerHTML = `<button type="button" role="menuitem" data-op="nazwa"><span data-ikona="olowek"></span>Zmień nazwę</button>
+    menu.innerHTML = `<button type="button" role="menuitem" data-op="nazwa"><span data-ikona="olowek"></span>${tt('obrazyOkno.zmienNazwe')}</button>
       <button type="button" role="menuitem" data-op="podmien"><span data-ikona="wyslij"></span>Podmień plik…</button>
-      <button type="button" role="menuitem" data-op="kopiuj"><span data-ikona="kopiuj"></span>Kopiuj nazwę</button>
+      <button type="button" role="menuitem" data-op="kopiuj"><span data-ikona="kopiuj"></span>${tt('obrazyOkno.kopiujNazwe')}</button>
       <hr>
       <button type="button" role="menuitem" data-op="usun"><span data-ikona="kosz"></span>Usuń obraz…</button>`;
     wstawIkony(menu);

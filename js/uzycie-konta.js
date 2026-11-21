@@ -53,7 +53,7 @@ function wierszProjektu(p, najwiekszy, { cudzy = false } = {}) {
     <div class="uzycie-opis"><strong></strong><span class="ciche uzycie-meta"></span></div>
     ${cudzy ? '' : '<div class="uzycie-slupek" aria-hidden="true"><span></span></div>'}
     <div class="uzycie-akcje">
-      <button type="button" class="przycisk maly" data-rola="otworz">Otwórz</button>
+      <button type="button" class="przycisk maly" data-rola="otworz">${t('uzycieKonta.otworz')}</button>
       <button type="button" class="przycisk maly" data-rola="obrazy">Pokaż obrazy</button>
     </div>`;
   wpiszNazwe(li.querySelector('strong'), p.nazwa || 'Projekt');

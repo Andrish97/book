@@ -124,7 +124,7 @@ export function otworzWzorce() {
       const li = document.createElement('li');
       li.className = 'wzorzec standardowy';
       // Cała karta jest przyciskiem: podgląd, nazwa, opis i „+ Dodaj” (#109, #164).
-      li.innerHTML = `<button type="button" class="karta-wzorca dodaj-standardowy"><span class="podglad-wzorca"></span><span class="opis-wzorca"><strong class="nazwa"></strong><small></small></span><span class="znak-dodaj">${ikona('plus', { rozmiar: 16 })}<span>Dodaj</span></span></button>`;
+      li.innerHTML = `<button type="button" class="karta-wzorca dodaj-standardowy"><span class="podglad-wzorca"></span><span class="opis-wzorca"><strong class="nazwa"></strong><small></small></span><span class="znak-dodaj">${ikona('plus', { rozmiar: 16 })}<span>${t('wzorce.dodaj')}</span></span></button>`;
       wpiszNazwe(li.querySelector('.nazwa'), w.nazwa);
       li.querySelector('small').textContent = w.opis;
       const b = li.querySelector('button');

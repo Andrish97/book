@@ -33,10 +33,10 @@ function oknoSejfu(tryb) {
     dlg.id = 'dlg-sejf-ai';
     dlg.innerHTML = `<form method="dialog" class="formularz"><h2></h2>
       <p class="ciche">Klucze API szyfruje Twoja przeglądarka tym hasłem, zanim trafią na konto. Na serwerze leży tylko zaszyfrowany zapis – bez hasła nie odczyta go nikt poza Tobą, nawet administratorzy Makietki. Hasło znasz tylko Ty: zgubione – klucze trzeba będzie wkleić od nowa.</p>
-      <label class="pole"><span>Hasło do kluczy AI</span><input name="haslo" type="password" autocomplete="new-password" minlength="8"></label>
-      <label class="pole" data-rola="powtorz"><span>Powtórz hasło</span><input name="powtorz" type="password" autocomplete="new-password"></label>
+      <label class="pole"><span>${t('sejfAi.hasloDoKluczyAi')}</span><input name="haslo" type="password" autocomplete="new-password" minlength="8"></label>
+      <label class="pole" data-rola="powtorz"><span>${t('sejfAi.powtorzHaslo')}</span><input name="powtorz" type="password" autocomplete="new-password"></label>
       <p class="blad-sejfu" role="alert" hidden></p>
-      <div class="przyciski-dialogu"><button class="przycisk" type="button" data-rola="usun" hidden>Nie pamiętam – usuń zapisane klucze</button><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak"></button></div></form>`;
+      <div class="przyciski-dialogu"><button class="przycisk" type="button" data-rola="usun" hidden>${t('sejfAi.niePamietamUsunZapisane')}</button><button class="przycisk" value="nie">${t('sejfAi.anuluj')}</button><button class="przycisk glowny" value="tak"></button></div></form>`;
     document.body.append(dlg);
   }
   const fo = dlg.querySelector('form');

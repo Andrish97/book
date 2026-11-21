@@ -48,7 +48,7 @@ export class OknoCzcionek {
       const li = document.createElement('li');
       li.innerHTML = `
         <span class="probka"></span>
-        <label class="pole"><span>Rodzina</span><input data-rodzina="${c.id}" maxlength="60" aria-label="Nazwa rodziny czcionki"></label>
+        <label class="pole"><span>Rodzina</span><input data-rodzina="${c.id}" maxlength="60" aria-label="${t('oknoCzcionek.nazwaRodzinyCzcionki')}"></label>
         <span class="opis"></span>
         <button type="button" class="przycisk-ikona" data-usun="${c.id}" data-ikona="kosz" title="Usuń czcionkę z projektu" aria-label="Usuń czcionkę"></button>`;
       const probka = li.querySelector('.probka');
@@ -117,7 +117,7 @@ export class OknoCzcionek {
         <span class="probka"></span>
         <span class="opis"></span>
         <button type="button" class="przycisk" data-rola="dodaj">Dodaj do projektu</button>
-        <button type="button" class="przycisk-ikona" data-rola="zapomnij" data-ikona="kosz" title="Usuń z moich czcionek (projekty zachowują swoje kopie)" aria-label="Usuń z moich czcionek"></button>`;
+        <button type="button" class="przycisk-ikona" data-rola="zapomnij" data-ikona="kosz" title="${t('oknoCzcionek.usunZMoichCzcionek')}" aria-label="${t('oknoCzcionek.usunZMoichCzcionek2')}"></button>`;
       li.dataset.rodzina = rodzina;
       const probka = li.querySelector('.probka');
       probka.textContent = rodzina;

@@ -38,6 +38,11 @@ const PRZYPISANIA = new Set(['textContent', 'innerText', 'title', 'placeholder',
 const WLASCIWOSCI = new Set(['tytul', 'opis', 'etykieta', 'podpowiedz', 'placeholder', 'komunikat', 'textContent', 'title', 'wskazowka', 'pytanie', 'przycisk']);
 const ATRYBUTY = new Set(['title', 'aria-label', 'placeholder', 'alt']);
 
+// Katalogi bibliotek (#355): nazwy kształtów, ikon, kategorii i grup to tylko napisy na ekranie (porównania idą po id
+// i po polskiej „kategorii” kształtu, której się nie tłumaczy).
+const KATALOGI = new Set(['biblioteka-elementy.js', 'biblioteka-kompozycje.js', 'biblioteka-wzorce.js', 'biblioteka-gotowe-sekcje.js',
+  'ksztalty-biblioteka.js', 'ksztalty-wiecej.js', 'ikony-biblioteki.js']);
+let biezacyPlik = '';
 const nazwaWywolania = (c) => (c.type === 'Identifier' ? c.name : c.type === 'MemberExpression' && !c.computed ? c.property.name : null);
 
 // Czy literał (z przodkami) to napis na ekranie.
@@ -67,8 +72,12 @@ function naEkranie(anc) {
   if (r.type === 'Property') {
     if (r.value !== dziecko || r.computed) return false;
     const k = r.key.type === 'Identifier' ? r.key.name : r.key.value;
+    if (KATALOGI.has(biezacyPlik) && (['nazwa', 'grupa'].includes(k) || /^NAZWY/.test(anc[i - 2]?.id?.name || ''))) return true;
     return WLASCIWOSCI.has(k);
   }
+  // Wiersz katalogu kształtów/ikon: ['id', 'Nazwa', 'Kategoria', …] – tylko nazwa (indeks 1).
+  if (r.type === 'ArrayExpression' && KATALOGI.has(biezacyPlik) && r.elements[1] === dziecko
+    && r.elements[0]?.type === 'Literal' && /^[a-z0-9-]+$/.test(String(r.elements[0].value))) return true;
   // Opis pozycji listy wyboru: this.wybor('…', [['wartosc', 'Opis'], …]) – drugi i dalsze elementy pary.
   if (r.type === 'ArrayExpression' && r.elements.indexOf(dziecko) >= 1) {
     const lista = anc[i - 1]; const wyw = anc[i - 2];
@@ -117,6 +126,7 @@ function main() {
     if (/PLIK SKŁADANY|Plik wygenerowany/.test(kod.slice(0, 400))) continue; // pliki składane skryptami
     let ast;
     try { ast = acorn.parse(kod, { ecmaVersion: 'latest', sourceType: 'module' }); } catch (e) { console.warn(`pominięty ${wzgl}: ${e.message}`); continue; }
+    biezacyPlik = path.basename(plik);
     const obszar = camel(wzgl.replace(/\.js$/, '').replace(/^app\//, '').replace(/[/-]/g, ' '), 6);
     // Nazwa funkcji: t, a gdy plik ma już własne „t” (parametr, zmienna) – tt.
     const nazwy = new Set();
@@ -125,6 +135,29 @@ function main() {
       if (!n || typeof n.type !== 'string') return;
       anc.push(n);
       if (n.type === 'Identifier') nazwy.add(n.name);
+      // Napisy w kawałkach HTML (#355): >Tekst< i title/placeholder/aria-label/alt="Tekst" w szablonach i napisach.
+      if ((n.type === 'TemplateElement' || (n.type === 'Literal' && typeof n.value === 'string')) && /<[a-z]/i.test(n.type === 'Literal' ? n.value : n.value.raw)) {
+        const jestLiteral = n.type === 'Literal';
+        let surowy = jestLiteral ? n.raw.slice(1, -1) : n.value.raw;
+        if (jestLiteral) surowy = surowy.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+        let zmiana = false;
+        const bezpieczny = (x) => x.length > 1 && /\p{L}/u.test(x) && /[a-ząćęłńóśźż]{2}/iu.test(x) && stare.en[x] !== undefined
+          && ![stare.en[x], stare.uk[x], x].some((v) => v === undefined || /[<>&"`]/.test(v));
+        const wynikHtml = surowy
+          .replace(/>([^<>$`\\{}]*\p{L}[^<>$`\\{}]*)</gu, (cale, w) => {
+            const x = norm(w);
+            if (!bezpieczny(x)) return cale;
+            zmiana = true;
+            return `>${w.match(/^\s*/)[0]}\${@@('${nadajKlucz(obszar, x)}')}${w.match(/\s*$/)[0]}<`;
+          })
+          .replace(/\b(title|placeholder|aria-label|alt)="([^"$`\\{}]+)"/g, (cale, at, w) => {
+            const x = norm(w);
+            if (!bezpieczny(x)) return cale;
+            zmiana = true;
+            return `${at}="\${@@('${nadajKlucz(obszar, x)}')}"`;
+          });
+        if (zmiana) zamiany.push({ od: n.start, do: n.end, gotowe: jestLiteral ? `\`${wynikHtml}\`` : wynikHtml });
+      }
       if (n.type === 'Literal' && typeof n.value === 'string') {
         const tekst = norm(n.value);
         if (tekst.length > 1 && /\p{L}/u.test(tekst) && (/\s/.test(tekst) || /^\p{Lu}/u.test(tekst)) && stare.en[tekst] !== undefined && tekst === n.value && naEkranie(anc)) {
@@ -145,7 +178,10 @@ function main() {
     const fn = jest ? jest.local.name : (nazwy.has('t') ? 'tt' : 't');
     if (!jest && nazwy.has(fn)) { console.warn(`pominięty ${wzgl}: zajęte nazwy t i tt`); continue; }
     let nowy = kod;
-    for (const z of [...zamiany].sort((a, b) => b.od - a.od)) nowy = `${nowy.slice(0, z.od)}${fn}('${nadajKlucz(obszar, z.tekst)}')${nowy.slice(z.do)}`;
+    for (const z of [...zamiany].sort((a, b) => b.od - a.od)) {
+      const tekst = z.gotowe !== undefined ? z.gotowe.replace(/@@\(/g, `${fn}(`) : `${fn}('${nadajKlucz(obszar, z.tekst)}')`;
+      nowy = `${nowy.slice(0, z.od)}${tekst}${nowy.slice(z.do)}`;
+    }
     if (!jest) {
       const spec = fn === 't' ? 't' : 't as tt';
       if (importJezyka) {

@@ -365,17 +365,17 @@ export class Podglad {
     // powiększenie; zamknięcie to X w prawym górnym rogu. Na dotyku bez powiększenia (przybliża się palcami).
     // Pasek i X chowają się po chwili bez ruchu; wracają po ruchu myszy, stuknięciu albo klawiszu.
     el.innerHTML = '<div class="prezentacja-scena"></div>'
-      + `<button type="button" class="prezentacja-strzalka wstecz" aria-label="Poprzednia strona">${ikona('wstecz', { rozmiar: 30 })}</button>`
-      + `<button type="button" class="prezentacja-strzalka dalej" aria-label="Następna strona">${ikona('dalej', { rozmiar: 30 })}</button>`
-      + `<button type="button" class="prezentacja-zamknij prezentacja-sterowanie" aria-label="Zamknij prezentację" title="Zamknij prezentację (Esc)">${ikona('zamknij', { rozmiar: 22 })}</button>`
+      + `<button type="button" class="prezentacja-strzalka wstecz" aria-label="${tt('podglad.poprzedniaStrona')}">${ikona('wstecz', { rozmiar: 30 })}</button>`
+      + `<button type="button" class="prezentacja-strzalka dalej" aria-label="${tt('podglad.nastepnaStrona')}">${ikona('dalej', { rozmiar: 30 })}</button>`
+      + `<button type="button" class="prezentacja-zamknij prezentacja-sterowanie" aria-label="${tt('podglad.zamknijPrezentacje')}" title="${tt('podglad.zamknijPrezentacjeEsc')}">${ikona('zamknij', { rozmiar: 22 })}</button>`
       + '<div class="prezentacja-pasek prezentacja-sterowanie"><div class="prezentacja-pigulka">'
-      + `<button type="button" class="prezentacja-krok wstecz" data-krok="-1" aria-label="Poprzednia strona" title="Poprzednia strona (←)">${ikona('wstecz', { rozmiar: 18 })}</button>`
+      + `<button type="button" class="prezentacja-krok wstecz" data-krok="-1" aria-label="${tt('podglad.poprzedniaStrona')}" title="${tt('podglad.poprzedniaStrona2')}">${ikona('wstecz', { rozmiar: 18 })}</button>`
       + '<span class="prezentacja-licznik" aria-live="polite"></span>'
-      + `<button type="button" class="prezentacja-krok dalej" data-krok="1" aria-label="Następna strona" title="Następna strona (→)">${ikona('dalej', { rozmiar: 18 })}</button>`
-      + '<div class="powiekszenie prezentacja-zoom" role="group" aria-label="Powiększenie">'
-      + `<button type="button" class="powiekszenie-krok prezentacja-minus" aria-label="Pomniejsz" title="Pomniejsz (−)">${ikona('minus', { rozmiar: 16 })}</button>`
-      + '<button type="button" class="wartosc-zoom prezentacja-wartosc" aria-label="Dopasuj do ekranu" title="Dopasuj do ekranu (0)">100%</button>'
-      + `<button type="button" class="powiekszenie-krok prezentacja-plus" aria-label="Powiększ" title="Powiększ (+)">${ikona('plus', { rozmiar: 16 })}</button></div>`
+      + `<button type="button" class="prezentacja-krok dalej" data-krok="1" aria-label="${tt('podglad.nastepnaStrona')}" title="Następna strona (→)">${ikona('dalej', { rozmiar: 18 })}</button>`
+      + `<div class="powiekszenie prezentacja-zoom" role="group" aria-label="${tt('podglad.powiekszenie')}">`
+      + `<button type="button" class="powiekszenie-krok prezentacja-minus" aria-label="${tt('podglad.pomniejsz')}" title="${tt('podglad.pomniejsz2')}">${ikona('minus', { rozmiar: 16 })}</button>`
+      + `<button type="button" class="wartosc-zoom prezentacja-wartosc" aria-label="${tt('podglad.dopasujDoEkranu')}" title="${tt('podglad.dopasujDoEkranu0')}">100%</button>`
+      + `<button type="button" class="powiekszenie-krok prezentacja-plus" aria-label="${tt('podglad.powieksz')}" title="${tt('podglad.powieksz2')}">${ikona('plus', { rozmiar: 16 })}</button></div>`
       + '</div></div>';
     this.el.parentElement.append(el);
     const p = {

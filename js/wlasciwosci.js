@@ -327,9 +327,9 @@ export class PanelWlasciwosci {
     const l = this.sekcja(tt('wlasciwosci.linieNaStronie'));
     const legenda = document.createElement('ul');
     legenda.className = 'legenda-prowadnic';
-    legenda.innerHTML = '<li><i class="ciecie"></i>Linia cięcia – krawędź strony po przycięciu</li>'
-      + '<li><i class="spad"></i>Spad – zostanie odcięty</li>'
-      + '<li><i class="margines"></i>Margines – trzymaj w nim teksty</li>'
+    legenda.innerHTML = `<li><i class="ciecie"></i>${tt('wlasciwosci.liniaCieciaKrawedzStrony')}</li>`
+      + `<li><i class="spad"></i>${tt('wlasciwosci.spadZostanieOdciety')}</li>`
+      + `<li><i class="margines"></i>${tt('wlasciwosci.marginesTrzymajWNim')}</li>`
       + (grzbiet ? '<li><i class="grzbiet"></i>Grzbiet – tu strony są zszyte</li>' : '');
     l.append(legenda);
     l.append(this.wskazowka(tt('wlasciwosci.kliknijElementNaStronie')));

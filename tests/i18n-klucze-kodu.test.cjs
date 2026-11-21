@@ -51,3 +51,18 @@ test('klucze w kodzie: etykieta panelu z t() zmienia język bez przeładowania',
   await etykieta('Zablokuj położenie i rozmiar');
   assert.deepEqual(bledy, []);
 });
+
+// #355: nazwy w Bibliotece (kształty, kategorie) i napisy w kawałkach HTML z kodu – po angielsku od startu.
+test('klucze w kodzie: Biblioteka po angielsku – nazwy kształtów i kategorii', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.evaluate(() => localStorage.setItem('makietka-jezyk', 'en'));
+  await strona.reload();
+  await strona.waitForFunction(() => document.documentElement.lang === 'en');
+  const nazwy = await strona.evaluate(async () => {
+    const { KSZTALTY } = await import('./js/ksztalty-biblioteka.js');
+    return KSZTALTY.filter((k) => k.id === 'trojkat' || k.id === 'romb').map((k) => [k.nazwa, k.kategoria]);
+  });
+  assert.deepEqual(nazwy[0], ['Triangle', 'Podstawowe'], 'nazwa po angielsku, kategoria (do porównań) bez zmian');
+  assert.ok(nazwy[1][0] !== 'Romb', JSON.stringify(nazwy));
+  assert.deepEqual(bledy, []);
+});

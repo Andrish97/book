@@ -78,7 +78,7 @@ export function utworzEdytorWiadomosci(cel, { zapytaj = async (t, e, w) => windo
   const styl = document.createElement('select');
   styl.className = 'edytor-wiadomosci-styl';
   styl.setAttribute('aria-label', tt('edytorWiadomosci.stylAkapitu'));
-  styl.innerHTML = '<option value="p">Akapit</option><option value="h2">Nagłówek</option><option value="h3">Podtytuł</option><option value="blockquote">Cytat</option><option value="pre">Kod</option>';
+  styl.innerHTML = `<option value="p">${tt('edytorWiadomosci.akapit')}</option><option value="h2">${tt('edytorWiadomosci.naglowek')}</option><option value="h3">${tt('edytorWiadomosci.podtytul')}</option><option value="blockquote">${tt('edytorWiadomosci.cytat')}</option><option value="pre">Kod</option>`;
   const tresc = document.createElement('div');
   tresc.className = 'edytor-wiadomosci-tresc';
   tresc.contentEditable = 'true';

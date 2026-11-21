@@ -4,9 +4,10 @@
 
 import { zarejestrujKategorie } from './biblioteka.js';
 import { SZABLONY_SEKCJI, KATEGORIE_SEKCJI, svgSchematu } from './gotowe-sekcje.js';
+import { t } from './jezyk.js';
 
 zarejestrujKategorie({
-  id: 'gotowe-sekcje', nazwa: 'Gotowe sekcje', ikona: 'strony', kolejnosc: 8,
+  id: 'gotowe-sekcje', nazwa: t('bibliotekaGotoweSekcje.gotoweSekcje'), ikona: 'strony', kolejnosc: 8,
   elementy: () => SZABLONY_SEKCJI.map((s) => ({
     id: s.id, nazwa: s.nazwa, slowa: `${s.slowa} szablon dokument sekcja gotowy`, duzy: true, opis: s.opis,
     grupa: KATEGORIE_SEKCJI.find((k) => k.id === s.kategoria)?.nazwa,

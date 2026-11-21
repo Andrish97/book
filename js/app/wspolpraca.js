@@ -102,7 +102,7 @@ function wierszOsoby(o) {
   if (otwarty.wlasciciel && o.typ === 'wspolpracownik') {
     const rola = document.createElement('select');
     rola.setAttribute('aria-label', `Rola: ${kto(o)}`);
-    rola.innerHTML = '<option value="edycja">może edytować</option><option value="odczyt">może oglądać</option>';
+    rola.innerHTML = `<option value="edycja">${tt('wspolpraca.mozeEdytowac')}</option><option value="odczyt">${tt('wspolpraca.mozeOgladac')}</option>`;
     rola.value = o.rola;
     rola.addEventListener('change', async () => {
       try { await wsp.zmienRole(otwarty.id, o.id, rola.value); powiadom(`${kto(o)}: ${opisRoli(rola.value)}.`); } catch (e) { powiadom(komunikatBledu(e), true); }

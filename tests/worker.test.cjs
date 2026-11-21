@@ -57,5 +57,5 @@ test('przekaźnik api.makietka.app: /mcp → /functions/v1/mcp, reszta bez zmian
   const konf = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'wrangler.jsonc'), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
   assert.equal(konf.name, 'makietka-api');
   assert.equal(konf.main, 'api-worker.js');
-  assert.deepEqual(konf.routes, [{ pattern: 'api.makietka.app', custom_domain: true }]);
+  assert.deepEqual(konf.routes, [{ pattern: 'api.makietka.app', custom_domain: true }, { pattern: 'makietka.app/*', zone_name: 'makietka.app' }, { pattern: 'www.makietka.app/*', zone_name: 'makietka.app' }]); // #352: ten sam worker podaje aplikację
 });

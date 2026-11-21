@@ -23,12 +23,12 @@ function rysujKolory() {
   ul.replaceChildren(...robocza.kolory.map((k, i) => {
     const li = document.createElement('li');
     li.className = 'kolor-marki';
-    li.innerHTML = `<input type="color" aria-label="Kolor" value="${esc(k.kolor)}">
-      <input type="text" class="nazwa" placeholder="Nazwa (np. Granat marki)" maxlength="60" value="${esc(k.nazwa)}" aria-label="Nazwa koloru">
+    li.innerHTML = `<input type="color" aria-label="${tt('markaOkno.kolor')}" value="${esc(k.kolor)}">
+      <input type="text" class="nazwa" placeholder="${tt('markaOkno.nazwaNpGranatMarki')}" maxlength="60" value="${esc(k.nazwa)}" aria-label="${tt('markaOkno.nazwaKoloru')}">
       <input type="text" class="kod" maxlength="7" spellcheck="false" value="${esc(k.kolor)}" aria-label="Kod koloru">
-      <label class="przelacznik-maly" title="Kolor dodatkowy do druku (np. Pantone) – osobna płyta w PDF"><input type="checkbox" class="spot"${k.cmyk ? ' checked' : ''}><span>Pantone / CMYK</span></label>
+      <label class="przelacznik-maly" title="${tt('markaOkno.kolorDodatkowyDoDruku')}"><input type="checkbox" class="spot"${k.cmyk ? ' checked' : ''}><span>Pantone / CMYK</span></label>
       <span class="cmyk"${k.cmyk ? '' : ' hidden'}>${['C', 'M', 'Y', 'K'].map((n, j) => `<label><span>${n}</span><input type="number" min="0" max="100" step="any" value="${k.cmyk?.[j] ?? 0}" inputmode="decimal"></label>`).join('')}</span>
-      <button type="button" class="przycisk-ikona maly" data-ikona="kosz" title="Usuń kolor" aria-label="Usuń kolor"></button>`;
+      <button type="button" class="przycisk-ikona maly" data-ikona="kosz" title="${tt('markaOkno.usunKolor')}" aria-label="${tt('markaOkno.usunKolor')}"></button>`;
     const [wybor, nazwa, kod] = li.querySelectorAll('input[type="color"], input.nazwa, input.kod');
     const spot = li.querySelector('.spot');
     const cmyk = [...li.querySelectorAll('.cmyk input')];
@@ -54,7 +54,7 @@ function rysujLoga() {
     const li = document.createElement('li');
     li.className = 'logo-marki';
     li.innerHTML = `<span class="podglad">${l.podglad ? `<img src="${esc(l.podglad)}" alt="">` : ''}</span><span class="nazwa"></span>
-      <button type="button" class="przycisk-ikona maly" data-ikona="kosz" title="Usuń logo" aria-label="Usuń logo"></button>`;
+      <button type="button" class="przycisk-ikona maly" data-ikona="kosz" title="${tt('markaOkno.usunLogo')}" aria-label="${tt('markaOkno.usunLogo')}"></button>`;
     wpiszNazwe(li.querySelector('.nazwa'), l.nazwa);
     li.querySelector('button').addEventListener('click', async () => {
       try { robocza = normalizujMarke({ ...robocza, loga: (await usunLogo(l.id)).loga }); rysujLoga(); } catch (e) { komunikat(e.message, true); }
@@ -85,16 +85,16 @@ function rysujStyle(otwarty = null) {
     const listaKolorow = kolory.some(([k]) => k === s.kolor) ? kolory : [...kolory, [s.kolor, s.kolor]];
     li.innerHTML = `<details${s.id === otwarty ? ' open' : ''}><summary><span class="proba-stylu"></span><small class="ciche"></small></summary>
       <div class="pola-stylu-marki">
-        <label class="pole szeroko"><span>Nazwa</span><input type="text" data-pole="nazwa" maxlength="60" value="${esc(s.nazwa)}"></label>
-        <label class="pole szeroko"><span>Czcionka</span><select data-pole="czcionka">${opcje([...(czcionki.includes(s.czcionka) ? [] : [s.czcionka]), ...czcionki].map((c) => [c, c]), s.czcionka)}</select></label>
+        <label class="pole szeroko"><span>${tt('markaOkno.nazwa')}</span><input type="text" data-pole="nazwa" maxlength="60" value="${esc(s.nazwa)}"></label>
+        <label class="pole szeroko"><span>${tt('markaOkno.czcionka')}</span><select data-pole="czcionka">${opcje([...(czcionki.includes(s.czcionka) ? [] : [s.czcionka]), ...czcionki].map((c) => [c, c]), s.czcionka)}</select></label>
         <label class="pole"><span>Rozmiar (pt)</span><input type="number" data-pole="rozmiar" min="4" max="400" step="any" inputmode="decimal" value="${s.rozmiar}"></label>
-        <label class="pole"><span>Waga</span><select data-pole="waga">${opcje(WAGI, s.waga)}</select></label>
-        <label class="pole"><span>Interlinia</span><input type="number" data-pole="interlinia" min="0.6" max="4" step="0.05" inputmode="decimal" value="${s.interlinia}"></label>
+        <label class="pole"><span>${tt('markaOkno.waga')}</span><select data-pole="waga">${opcje(WAGI, s.waga)}</select></label>
+        <label class="pole"><span>${tt('markaOkno.interlinia')}</span><input type="number" data-pole="interlinia" min="0.6" max="4" step="0.05" inputmode="decimal" value="${s.interlinia}"></label>
         <label class="pole"><span>Odstęp liter (‰)</span><input type="number" data-pole="odstep_liter" min="-200" max="2000" step="10" inputmode="numeric" value="${s.odstep_liter}"></label>
-        <label class="pole"><span>Kolor</span><select data-pole="kolor">${opcje(listaKolorow, s.kolor)}</select></label>
-        <label class="pole"><span>Wielkość liter</span><select data-pole="wielkosc_liter">${opcje(WIELKOSCI_LITER, s.wielkosc_liter)}</select></label>
-        <label class="przelacznik szeroko"><input type="checkbox" data-pole="kursywa"${s.kursywa ? ' checked' : ''}><span>Kursywa</span></label>
-        <button type="button" class="przycisk maly niebezpieczny szeroko" data-usun>Usuń styl</button>
+        <label class="pole"><span>${tt('markaOkno.kolor')}</span><select data-pole="kolor">${opcje(listaKolorow, s.kolor)}</select></label>
+        <label class="pole"><span>${tt('markaOkno.wielkoscLiter')}</span><select data-pole="wielkosc_liter">${opcje(WIELKOSCI_LITER, s.wielkosc_liter)}</select></label>
+        <label class="przelacznik szeroko"><input type="checkbox" data-pole="kursywa"${s.kursywa ? ' checked' : ''}><span>${tt('markaOkno.kursywa')}</span></label>
+        <button type="button" class="przycisk maly niebezpieczny szeroko" data-usun>${tt('markaOkno.usunStyl')}</button>
       </div></details>`;
     const proba = li.querySelector('.proba-stylu');
     const opis = li.querySelector('summary small');

@@ -135,14 +135,14 @@ export class PanelWarstw {
       menu.className = 'menu menu-strony';
       menu.setAttribute('role', 'menu');
       menu.hidden = true;
-      menu.innerHTML = `<button role="menuitem" data-op="wierzch">Na wierzch</button>
-        <button role="menuitem" data-op="wyzej">Wyżej</button>
-        <button role="menuitem" data-op="nizej">Niżej</button>
-        <button role="menuitem" data-op="spod">Na spód</button>
+      menu.innerHTML = `<button role="menuitem" data-op="wierzch">${t('warstwy.naWierzch')}</button>
+        <button role="menuitem" data-op="wyzej">${t('warstwy.wyzej')}</button>
+        <button role="menuitem" data-op="nizej">${t('warstwy.nizej')}</button>
+        <button role="menuitem" data-op="spod">${t('warstwy.naSpod')}</button>
         <hr>
-        <button role="menuitem" data-op="nazwa">Zmień nazwę</button>
-        <button role="menuitem" data-op="malarz">Kopiuj wygląd</button>
-        <button role="menuitem" data-op="zapisz-w-bibliotece">Zapisz w bibliotece</button>`;
+        <button role="menuitem" data-op="nazwa">${t('warstwy.zmienNazwe')}</button>
+        <button role="menuitem" data-op="malarz">${t('warstwy.kopiujWyglad')}</button>
+        <button role="menuitem" data-op="zapisz-w-bibliotece">${t('warstwy.zapiszWBibliotece')}</button>`;
       menu.addEventListener('click', async (e) => {
         const b = e.target.closest('[data-op]');
         if (!b || b.disabled) return;
@@ -230,7 +230,7 @@ export class PanelWarstw {
     if (!warstwy.length && !zeWzorcow.length) {
       const li = document.createElement('li');
       li.className = 'pusto-wzorce';
-      li.innerHTML = '<strong>Pusta strona</strong><p>Tu pojawi się lista elementów strony, od wierzchu do spodu.</p>';
+      li.innerHTML = `<strong>${t('warstwy.pustaStrona')}</strong><p>Tu pojawi się lista elementów strony, od wierzchu do spodu.</p>`;
       this.lista.append(li);
       return;
     }
@@ -238,12 +238,12 @@ export class PanelWarstw {
       const li = document.createElement('li');
       li.dataset.id = w.id;
       li.className = `warstwa${w.zaznaczony ? ' zaznaczona' : ''}${w.otwarta ? ' otwarta' : ''}${w.ukryty ? ' ukryta' : ''}${w.zablokowany ? ' zablokowana' : ''}`;
-      li.innerHTML = `<span class="warstwa-uchwyt" title="Przeciągnij, żeby zmienić kolejność" aria-hidden="true">${ikona('uchwyt', { rozmiar: 16 })}</span>
+      li.innerHTML = `<span class="warstwa-uchwyt" title="${t('warstwy.przeciagnijZebyZmienicKolejnosc')}" aria-hidden="true">${ikona('uchwyt', { rozmiar: 16 })}</span>
         <button class="warstwa-oko" aria-label="${w.ukryty ? 'Pokaż' : 'Ukryj'}" title="${w.ukryty ? 'Pokaż' : 'Ukryj (nie będzie drukowany)'}">${ikona(w.ukryty ? 'okoOff' : 'oko', { rozmiar: 16 })}</button>
         <span class="warstwa-typ">${ikona(IKONY_TYPOW[w.typ] || 'prostokat', { rozmiar: 16 })}</span>
         <span class="warstwa-nazwa"></span>
         <button class="warstwa-klodka" aria-label="${w.zablokowany ? 'Odblokuj' : 'Zablokuj'}" title="${w.zablokowany ? 'Odblokuj' : 'Zablokuj'}">${ikona(w.zablokowany ? 'klodka' : 'klodkaOtwarta', { rozmiar: 16 })}</button>
-        <button class="warstwa-menu" aria-label="Kolejność i nazwa" title="Kolejność i nazwa" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 16 })}</button>`;
+        <button class="warstwa-menu" aria-label="${t('warstwy.kolejnoscINazwa')}" title="${t('warstwy.kolejnoscINazwa')}" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 16 })}</button>`;
       li.querySelector('.warstwa-nazwa').textContent = w.opis;
       li.querySelector('.warstwa-nazwa').title = w.opis;
       this.lista.append(li);

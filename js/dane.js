@@ -91,7 +91,7 @@ export class Dane {
 
     const html = ['<thead><tr><th class="rog"></th>'];
     t.kolumny.forEach((k, i) => {
-      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="Nazwa kolumny – w tekście wpisujesz ją w nawiasach klamrowych"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="Pilnuj, żeby wartości w tej kolumnie się nie powtarzały" aria-label="Pilnuj powtórzeń w kolumnie">≠</button><button type="button" class="lista-kolumny" data-k="${i}" aria-pressed="${Boolean(t.listy?.[k]?.length)}" title="Lista dozwolonych wartości kolumny – w szablonie danych komórki dostaną listę rozwijaną" aria-label="Lista dozwolonych wartości kolumny">☰</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
+      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="${tt('dane.nazwaKolumnyWTekscie')}"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="${tt('dane.pilnujZebyWartosciW')}" aria-label="${tt('dane.pilnujPowtorzenWKolumnie')}">≠</button><button type="button" class="lista-kolumny" data-k="${i}" aria-pressed="${Boolean(t.listy?.[k]?.length)}" title="${tt('dane.listaDozwolonychWartosciKolumny')}" aria-label="${tt('dane.listaDozwolonychWartosciKolumny2')}">☰</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
     });
     html.push('</tr></thead><tbody></tbody>');
     this.siatka.innerHTML = html.join('');
@@ -764,11 +764,11 @@ export class Dane {
     const wiersz = document.createElement('div');
     wiersz.className = 'wiersz-dodatkowej';
     wiersz.innerHTML = `
-      <label class="pole"><span>Tabela</span><select data-pole="tabela"></select></label>
+      <label class="pole"><span>${tt('dane.tabela')}</span><select data-pole="tabela"></select></label>
       <label class="pole"><span>Nowy wiersz</span><select data-pole="kiedy"></select></label>
       <label class="pole waskie"><span>Nowy wiersz co … stron</span><input data-pole="co" type="number" min="1" max="2000" step="1" inputmode="numeric"></label>
-      <label class="pole waskie" title="Gdy pierwszy okres jest krótszy – np. rok zaczyna się w środę, więc pierwszy tydzień ma 5 dni"><span>Pierwszy wiersz przez … stron</span><input data-pole="pierwszy" type="number" min="1" max="2000" step="1" inputmode="numeric" placeholder="tyle samo"></label>
-      <button type="button" class="przycisk-ikona" data-usun-dodatkowa title="Usuń tę tabelę z serii" aria-label="Usuń tabelę dodatkową">×</button>`;
+      <label class="pole waskie" title="${tt('dane.gdyPierwszyOkresJest')}"><span>Pierwszy wiersz przez … stron</span><input data-pole="pierwszy" type="number" min="1" max="2000" step="1" inputmode="numeric" placeholder="tyle samo"></label>
+      <button type="button" class="przycisk-ikona" data-usun-dodatkowa title="${tt('dane.usunTeTabeleZ')}" aria-label="${tt('dane.usunTabeleDodatkowa')}">×</button>`;
     const sel = wiersz.querySelector('select');
     for (const t of p.tabele) sel.add(new Option(`${t.nazwa} (${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')})`, t.id));
     sel.value = d.tabela || '';

@@ -280,7 +280,7 @@ export function schowajZNowegoProjektu() {
 
 function przygotuj() {
   const sel = $('#gotowe-paleta');
-  sel.innerHTML = `${marka() ? '<option value="marka">Kolory marki</option>' : ''}<option value="">Kolory szablonu</option>${Object.entries(PALETY).map(([k, v]) => `<option value="${k}">${esc(v.nazwa)}</option>`).join('')}`;
+  sel.innerHTML = `${marka() ? `<option value="marka">${tt('gotoweSekcjeOkno.koloryMarki')}</option>` : ''}<option value="">Kolory szablonu</option>${Object.entries(PALETY).map(([k, v]) => `<option value="${k}">${esc(v.nazwa)}</option>`).join('')}`;
   sel.value = marka() ? 'marka' : '';
   pokazChipy();
   pole.placeholder = tryb.nowy ? tt('gotoweSekcjeOkno.szukajKsiazkaPlanerKalendarz') : tt('gotoweSekcjeOkno.szukajKalendarzDyplomMenu');

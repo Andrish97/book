@@ -78,7 +78,7 @@ async function rysujZapisy() {
   const lista = await rpc('admin_dziennik_zapisow', { p_projekt: projekt, p_limit: 200 });
   const miejsce = $('#admin-zapisy');
   miejsce.innerHTML = lista.length
-    ? `<table class="admin-tabela"><thead><tr><th>Kiedy</th><th>Projekt</th><th>Kto</th><th>Wersja</th><th>Strony</th><th></th></tr></thead><tbody>${lista.map((z) => `<tr>
+    ? `<table class="admin-tabela"><thead><tr><th>Kiedy</th><th>${t('admin.projekt')}</th><th>Kto</th><th>Wersja</th><th>${t('admin.strony')}</th><th></th></tr></thead><tbody>${lista.map((z) => `<tr>
         <td>${esc(data(z.kiedy))}</td>
         <td><button type="button" class="link-przycisk" data-filtr-projektu="${esc(z.projekt_id)}" title="Pokaż tylko ten projekt">${esc(z.projekt || z.projekt_id)}</button><br><small class="ciche">${esc(z.wlasciciel || '')}</small></td>
         <td>${esc(KTO[z.kto] || z.kto)}${z.uzytkownik ? `<br><small class="ciche">${esc(z.uzytkownik)}</small>` : ''}</td>
@@ -159,9 +159,9 @@ async function rysujKolejke() {
   lista.replaceChildren(...k.maile.map((m) => {
     const li = document.createElement('li');
     const akcje = [
-      m.stan === 'czeka' ? '<button type="button" class="przycisk maly" data-akcja-kolejki="teraz">Wyślij teraz</button>' : '',
-      ['blad', 'anulowany'].includes(m.stan) ? '<button type="button" class="przycisk maly" data-akcja-kolejki="ponow">Ponów</button>' : '',
-      ['czeka', 'blad'].includes(m.stan) ? '<button type="button" class="przycisk maly niebezpieczny" data-akcja-kolejki="anuluj">Anuluj</button>' : '',
+      m.stan === 'czeka' ? `<button type="button" class="przycisk maly" data-akcja-kolejki="teraz">${t('admin.wyslijTeraz')}</button>` : '',
+      ['blad', 'anulowany'].includes(m.stan) ? `<button type="button" class="przycisk maly" data-akcja-kolejki="ponow">${t('admin.ponow')}</button>` : '',
+      ['czeka', 'blad'].includes(m.stan) ? `<button type="button" class="przycisk maly niebezpieczny" data-akcja-kolejki="anuluj">${t('admin.anuluj')}</button>` : '',
     ].join('');
     li.innerHTML = `<div class="opis"><strong><span class="stan-maila ${m.stan}">${esc(STANY[m.stan] || m.stan)}</span>${esc(RODZAJE[m.rodzaj] || m.rodzaj)} → ${esc(m.do_email)}</strong>
       <span>${esc(m.temat || '')}${m.temat ? ' · ' : ''}dodano ${esc(kiedy(m.utworzono))}${m.wyslano ? ` · wysłano ${esc(kiedy(m.wyslano))}` : ''}${m.stan === 'czeka' && new Date(m.nastepna_proba) > new Date() ? ` · następna próba ${esc(data(m.nastepna_proba))}` : ''}${m.proby ? ` · prób: ${m.proby}` : ''}${m.dostawca ? ` · przez ${esc(NAZWY_DOSTAWCOW[m.dostawca] || m.dostawca)}` : ''}</span>
@@ -189,17 +189,17 @@ async function rysujUstawienia() {
   $('#admin-adres-skrzynki').textContent = u.ustawienia.skrzynka_email;
   $('#admin-dostawcy tbody').innerHTML = u.dostawcy.map((d) => `<tr data-dostawca="${esc(d.id)}">
     <td><strong>${esc(d.nazwa)}</strong><span class="ciche">${esc(d.typ)}</span></td>
-    <td><input type="number" min="1" max="99" name="priorytet" value="${d.priorytet}" aria-label="Priorytet"></td>
+    <td><input type="number" min="1" max="99" name="priorytet" value="${d.priorytet}" aria-label="${t('admin.priorytet')}"></td>
     <td><input type="number" min="0" max="100000" name="dzienny_limit" value="${d.dzienny_limit}" aria-label="Dzienny limit"></td>
     <td>${d.dzien === new Date().toISOString().slice(0, 10) ? d.wyslane_dzis : 0}</td>
-    <td><input type="checkbox" name="aktywny" ${d.aktywny ? 'checked' : ''} aria-label="Włączony"></td>
+    <td><input type="checkbox" name="aktywny" ${d.aktywny ? 'checked' : ''} aria-label="${t('admin.wlaczony')}"></td>
     <td><span class="stan-sekretu ${sekrety?.[d.id] ? 'ok' : 'brak'}">${sekrety ? (sekrety[d.id] ? 'ustawiony' : 'brak') : '?'}</span></td>
     <td><button type="button" class="przycisk maly" data-test-dostawcy="${esc(d.id)}">Test</button></td></tr>`).join('');
   for (const b of $$('#admin-dostawcy [data-test-dostawcy]')) b.addEventListener('click', () => wyslijTest(null, b.dataset.testDostawcy));
   $('#admin-odstepy tbody').innerHTML = u.odstepy.map((o) => `<tr data-akcja-odstepu="${esc(o.akcja)}">
     <td>${esc(o.opis)}<span class="ciche">${esc(o.akcja)}</span></td>
     <td><input type="number" min="0" max="86400" name="sekundy" value="${o.sekundy}" aria-label="Odstęp w sekundach"></td>
-    <td><input type="number" min="0" max="100000" name="na_dobe" value="${o.na_dobe ?? ''}" aria-label="Na dobę"></td>
+    <td><input type="number" min="0" max="100000" name="na_dobe" value="${o.na_dobe ?? ''}" aria-label="${t('admin.naDobe')}"></td>
     <td><input type="checkbox" name="wlaczone" ${o.wlaczone ? 'checked' : ''} aria-label="Włączony"></td></tr>`).join('');
   if (!$('#admin-test-adres').value) $('#admin-test-adres').value = stan.uzytkownik?.email || '';
 }
@@ -294,7 +294,7 @@ async function rysujStatystyki() {
   ].join('');
   const tabele = (rozmiary.tabele || []).slice(0, 12);
   $('#admin-tabele').innerHTML = tabele.length
-    ? `<table class="admin-tabela"><thead><tr><th>Tabela</th><th>Rozmiar</th><th>Wiersze (szac.)</th></tr></thead><tbody>${tabele.map((x) => `<tr><td>${esc(x.tabela)}</td><td>${esc(mb(x.bajty))}</td><td>${esc(Math.max(0, x.wiersze).toLocaleString('pl-PL'))}</td></tr>`).join('')}</tbody></table>`
+    ? `<table class="admin-tabela"><thead><tr><th>${t('admin.tabela')}</th><th>${t('admin.rozmiar')}</th><th>Wiersze (szac.)</th></tr></thead><tbody>${tabele.map((x) => `<tr><td>${esc(x.tabela)}</td><td>${esc(mb(x.bajty))}</td><td>${esc(Math.max(0, x.wiersze).toLocaleString('pl-PL'))}</td></tr>`).join('')}</tbody></table>`
     : '<p class="ciche">Żadna tabela nie przekracza 256 kB.</p>';
   const wykresSerwera = serwer.blad ? '' : wykres('Strony narysowane na serwerze', serwer.dni.map((d) => ({ dzien: d.dzien, ile: d.stron })));
   $('#admin-wykresy').innerHTML = [wykres('Nowe konta', s.serie.konta), wykres('Nowe projekty', s.serie.projekty), wykres('Wysłane maile', s.serie.maile), wykresSerwera].join('');

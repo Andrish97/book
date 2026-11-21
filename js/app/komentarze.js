@@ -173,7 +173,7 @@ function pokazListe() {
     // Treść albo – przy poprawianiu własnego komentarza – pole z przyciskami.
     const tresc = (x, korzen = false) => (edytowany === x.id
       ? `<div class="poprawa-komentarza" data-id="${x.id}"><textarea rows="2" maxlength="4000" data-pole="z-${x.id}" aria-label="Popraw komentarz">${esc(x.tresc)}</textarea>
-          <div class="akcje-watku"><span class="odstep"></span><button type="button" class="przycisk maly" data-op="anuluj-zmiane">Anuluj</button><button type="button" class="przycisk maly glowny" data-op="zapisz-zmiane">Zapisz</button></div></div>`
+          <div class="akcje-watku"><span class="odstep"></span><button type="button" class="przycisk maly" data-op="anuluj-zmiane">${tt('komentarze.anuluj')}</button><button type="button" class="przycisk maly glowny" data-op="zapisz-zmiane">${tt('komentarze.zapisz')}</button></div></div>`
       : `<p${korzen ? ' class="tresc-komentarza"' : ''}>${trescHtml(x.tresc)}${zmieniony(x)}</p>`);
     const stronaJest = Boolean(st);
     li.innerHTML = `<button type="button" class="naglowek-watku" data-op="otworz">
@@ -183,18 +183,18 @@ function pokazListe() {
       </button>
       ${tresc(k, true)}
       <div class="szczegoly-watku">
-        <ol class="odpowiedzi">${odp.map((o) => `<li data-id="${o.id}"><strong>${esc(o.autor_nazwa)}${o.zrodlo === 'ai' ? ' <small class="plakietka-ai">AI</small>' : ''}</strong> <small>${esc(kiedy(o.utworzono))}</small>${o.moj && edytowany !== o.id ? '<button type="button" class="przycisk-ikona maly" data-op="zmien" data-ikona="olowek" data-rozmiar="14" aria-label="Popraw odpowiedź" title="Popraw odpowiedź"></button>' : ''}${o.moj || wlasciciel ? '<button type="button" class="przycisk-ikona maly" data-op="usun-odp" data-ikona="kosz" data-rozmiar="14" aria-label="Usuń odpowiedź" title="Usuń odpowiedź"></button>' : ''}${tresc(o)}</li>`).join('')}</ol>
+        <ol class="odpowiedzi">${odp.map((o) => `<li data-id="${o.id}"><strong>${esc(o.autor_nazwa)}${o.zrodlo === 'ai' ? ' <small class="plakietka-ai">AI</small>' : ''}</strong> <small>${esc(kiedy(o.utworzono))}</small>${o.moj && edytowany !== o.id ? `<button type="button" class="przycisk-ikona maly" data-op="zmien" data-ikona="olowek" data-rozmiar="14" aria-label="${tt('komentarze.poprawOdpowiedz')}" title="${tt('komentarze.poprawOdpowiedz')}"></button>` : ''}${o.moj || wlasciciel ? `<button type="button" class="przycisk-ikona maly" data-op="usun-odp" data-ikona="kosz" data-rozmiar="14" aria-label="${tt('komentarze.usunOdpowiedz')}" title="${tt('komentarze.usunOdpowiedz')}"></button>` : ''}${tresc(o)}</li>`).join('')}</ol>
         <div class="odpowiedz-komentarz">
-          <textarea rows="2" maxlength="4000" data-pole="o-${k.id}" placeholder="Odpowiedz… (@nazwa wspomina osobę)" aria-label="Odpowiedź"></textarea>
+          <textarea rows="2" maxlength="4000" data-pole="o-${k.id}" placeholder="Odpowiedz… (@nazwa wspomina osobę)" aria-label="${tt('komentarze.odpowiedz')}"></textarea>
           <div class="podpowiedzi-wzmianek" hidden></div>
         </div>
         <div class="akcje-watku">
-          <button type="button" class="przycisk maly" data-op="pokaz" data-ikona="oko"${stronaJest ? '' : ' disabled title="Tej strony nie ma już w projekcie"'}>Pokaż na stronie</button>
+          <button type="button" class="przycisk maly" data-op="pokaz" data-ikona="oko"${stronaJest ? '' : ' disabled title="Tej strony nie ma już w projekcie"'}>${tt('komentarze.pokazNaStronie')}</button>
           <button type="button" class="przycisk maly" data-op="rozwiaz" data-ikona="${k.rozwiazany ? 'cofnij' : 'ok'}">${k.rozwiazany ? 'Otwórz ponownie' : 'Rozwiąż'}</button>
-          ${k.moj && edytowany !== k.id ? '<button type="button" class="przycisk-ikona maly" data-op="zmien" data-ikona="olowek" aria-label="Popraw komentarz" title="Popraw komentarz"></button>' : ''}
-          ${mozeUsunac ? '<button type="button" class="przycisk-ikona maly niebezpieczny-ikona" data-op="usun" data-ikona="kosz" aria-label="Usuń wątek" title="Usuń wątek"></button>' : ''}
+          ${k.moj && edytowany !== k.id ? `<button type="button" class="przycisk-ikona maly" data-op="zmien" data-ikona="olowek" aria-label="${tt('komentarze.poprawKomentarz')}" title="${tt('komentarze.poprawKomentarz')}"></button>` : ''}
+          ${mozeUsunac ? `<button type="button" class="przycisk-ikona maly niebezpieczny-ikona" data-op="usun" data-ikona="kosz" aria-label="${tt('komentarze.usunWatek')}" title="${tt('komentarze.usunWatek')}"></button>` : ''}
           <span class="odstep"></span>
-          <button type="button" class="przycisk maly glowny" data-op="odpowiedz">Odpowiedz</button>
+          <button type="button" class="przycisk maly glowny" data-op="odpowiedz">${tt('komentarze.odpowiedz2')}</button>
         </div>
       </div>`;
     return li;

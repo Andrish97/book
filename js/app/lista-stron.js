@@ -85,7 +85,7 @@ function renderujListeStron() {
     const nag = document.createElement('li');
     nag.className = 'sekcja-listy';
     nag.innerHTML = `<div class="opis-sekcji"><strong></strong><small></small></div>
-      <button class="przycisk-ikona maly" aria-label="Opcje sekcji" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
+      <button class="przycisk-ikona maly" aria-label="${t('listaStron.opcjeSekcji')}" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
     wpiszNazwe($('strong', nag), sekcja.nazwa);
     const opis = [nazwaFormatu(sekcja.wydruk), `${strony.length} str.`];
     if (rozkladowki) opis.push('rozkładówki');
@@ -129,7 +129,7 @@ function renderujListeStron() {
       li.innerHTML = `<span class="numer">${nr ?? '–'}</span>
         <button class="miniatura"></button>
         <span class="nazwa"></span>
-        <button class="przycisk-ikona menu-miniatury" aria-label="Opcje strony" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
+        <button class="przycisk-ikona menu-miniatury" aria-label="${t('listaStron.opcjeStrony')}" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
       $('.miniatura', li).setAttribute('aria-label', `Strona ${nr ?? ''} ${s.nazwa}`);
       $('.miniatura', li).draggable = true; // przeciąganie zaczyna się zwykle na miniaturze
       if (aktywna) $('.miniatura', li).setAttribute('aria-current', 'page');
@@ -198,7 +198,7 @@ function renderujListeWzorcow() {
   if (!projekt.wzorce.length) {
     const li = document.createElement('li');
     li.className = 'pusto-wzorce';
-    li.innerHTML = '<strong>Brak wzorców</strong><p>Na razie każda strona ma tylko własną treść. Wybierz gotowy wzorzec poniżej – np. numer strony – a pojawi się od razu na wszystkich stronach sekcji.</p>';
+    li.innerHTML = `<strong>${t('listaStron.brakWzorcow')}</strong><p>${t('listaStron.naRazieKazdaStrona')}</p>`;
     lista.append(li);
     return;
   }
@@ -211,15 +211,15 @@ function renderujListeWzorcow() {
     const li = document.createElement('li');
     li.className = `strona wzorzec${aktywny ? ' aktywna' : ''}`;
     li.dataset.id = w.id;
-    li.innerHTML = `<button class="miniatura" title="Edytuj wzorzec"></button>
+    li.innerHTML = `<button class="miniatura" title="${t('listaStron.edytujWzorzec')}"></button>
       <div class="opis-wzorca"><strong class="nazwa"></strong><small></small>
         <div class="rzad-przyciskow">
           <button type="button" class="przycisk maly" data-op="strona" aria-pressed="false"></button>
           <button type="button" class="przycisk maly" data-op="sekcja" aria-pressed="false"></button>
-          <button type="button" class="przycisk maly" data-op="edytuj">Edytuj</button>
+          <button type="button" class="przycisk maly" data-op="edytuj">${t('listaStron.edytuj')}</button>
         </div>
       </div>
-      <button class="przycisk-ikona menu-miniatury" aria-label="Opcje wzorca" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
+      <button class="przycisk-ikona menu-miniatury" aria-label="${t('listaStron.opcjeWzorca')}" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
     $('.miniatura', li).append(obrazMiniatury(w.id, w.wydruk));
     $('.miniatura', li).setAttribute('aria-label', `Wzorzec ${w.nazwa}`);
     wpiszNazwe($('.nazwa', li), w.nazwa);

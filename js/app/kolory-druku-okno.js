@@ -105,9 +105,9 @@ function rysujSpoty() {
     const li = document.createElement('li');
     li.className = 'spot';
     li.innerHTML = `<span class="probka-spotu" aria-hidden="true"></span>
-      <label class="pole nazwa-spotu"><span>Nazwa</span><input type="text" maxlength="60" spellcheck="false"></label>
+      <label class="pole nazwa-spotu"><span>${tt('koloryDrukuOkno.nazwa')}</span><input type="text" maxlength="60" spellcheck="false"></label>
       ${['C', 'M', 'Y', 'K'].map((k, j) => `<label class="pole cmyk"><span>${k}</span><input type="number" min="0" max="100" step="1" inputmode="decimal" data-j="${j}"></label>`).join('')}
-      <button type="button" class="przycisk-ikona niebezpieczny-ikona" title="Usuń kolor dodatkowy" aria-label="Usuń kolor ${s.nazwa}">${ikona('kosz', { rozmiar: 18 })}</button>`;
+      <button type="button" class="przycisk-ikona niebezpieczny-ikona" title="${tt('koloryDrukuOkno.usunKolorDodatkowy')}" aria-label="Usuń kolor ${s.nazwa}">${ikona('kosz', { rozmiar: 18 })}</button>`;
     li.querySelector('.probka-spotu').style.background = hexSpotu(s, 1);
     const nazwa = li.querySelector('.nazwa-spotu input');
     nazwa.value = s.nazwa;

@@ -8,6 +8,7 @@
 //  – metadane XMP z oznaczeniem PDF/X-4, klucz Trapped, identyfikator dokumentu, wersja PDF 1.6.
 
 import { czytajProfil, SilnikCmyk, profilSrgb, WARUNKI_DRUKU } from './profil-icc.js';
+import { t as tt } from './jezyk.js';
 
 // Warunki druku do eksportu: wbudowane (klucz z WARUNKI_DRUKU) albo własny profil drukarni ({ nazwa, bajty }).
 // Zwraca { profil, identyfikator, opis, zRejestru, silnik() }.
@@ -98,7 +99,7 @@ export async function dodajPdfX(PDFLib, pdf, druk, { tytul }) {
    <xmp:ModifyDate>${data}</xmp:ModifyDate>
    <xmp:MetadataDate>${data}</xmp:MetadataDate>
    <pdf:Producer>${xml(pdf.getProducer() || 'Makietka')}</pdf:Producer>
-   <pdf:Trapped>False</pdf:Trapped>
+   <pdf:Trapped>${tt('pdfX.false')}</pdf:Trapped>
    <xmpMM:DocumentID>uuid:${dokument}</xmpMM:DocumentID>
    <xmpMM:InstanceID>uuid:${uuid()}</xmpMM:InstanceID>
    <xmpMM:VersionID>1</xmpMM:VersionID>

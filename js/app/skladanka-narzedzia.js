@@ -149,12 +149,12 @@ export function oknoBryly() {
   if (!dlg) {
     dlg = document.createElement('dialog');
     dlg.id = 'dlg-bryla-skladanki';
-    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Bryła z kształtu</h2>
+    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${tt('skladankaNarzedzia.brylaZKsztaltu')}</h2>
       <p class="ciche">Zaznaczony kształt to podstawa (rzut) bryły. Makietka zrobi z niego siatkę: ściany na każdym boku, zakładki z numerami par i zgięcia. Kształt wklęsły (np. litera L) też się da – sprawdź tylko, czy ściany na siatce nie nachodzą na siebie.</p>
       <div class="rzad"><label class="pole"><span>Bryła</span><select name="rodzaj"><option value="graniastoslup">Graniastosłup (ściany prostopadłe, wieko)</option><option value="ostroslup">Ostrosłup (ściany do wierzchołka)</option><option value="z_dachem">Ściany z dachem (dwie części: ściany i dach na zakładkach)</option></select></label>
-      <label class="pole waskie"><span>Wysokość (mm)</span><input type="number" name="wysokosc" min="1" step="any" value="40" inputmode="decimal"></label>
+      <label class="pole waskie"><span>${tt('skladankaNarzedzia.wysokoscMm')}</span><input type="number" name="wysokosc" min="1" step="any" value="40" inputmode="decimal"></label>
       <label class="pole waskie"><span>Wysokość dachu (mm)</span><input type="number" name="wysokosc_dachu" min="1" step="any" value="25" inputmode="decimal"></label></div>
-      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Zrób bryłę</button></div></form>`;
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">${tt('skladankaNarzedzia.anuluj')}</button><button class="przycisk glowny" value="tak">${tt('skladankaNarzedzia.zrobBryle')}</button></div></form>`;
     document.body.append(dlg);
   }
   const f = dlg.querySelector('form');
@@ -212,12 +212,12 @@ export function oknoModelu3D() {
   if (!dlg) {
     dlg = document.createElement('dialog');
     dlg.id = 'dlg-model-3d';
-    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Model 3D na siatkę</h2>
+    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${tt('skladankaNarzedzia.model3dNaSiatke')}</h2>
       <p class="ciche">Wczytaj bryłę z Blendera albo z sieci (OBJ albo STL). Makietka rozłoży ją na płasko: ściany wzdłuż najbardziej płaskich krawędzi, zgięcia góra i dolina z kątem, zakładki z numerami par; gdy część nachodziłaby na siebie, powstaje następna. Im mniej ścian, tym łatwiej skleić – najlepiej do kilkuset trójkątów.</p>
       <label class="pole"><span>Plik modelu (OBJ albo STL; do OBJ można dołączyć MTL z kolorami i obrazek tekstury)</span><input type="file" name="plik" accept=".obj,.stl,.mtl,.png,.jpg,.jpeg,.webp,model/obj,model/stl,image/png,image/jpeg,image/webp" multiple></label>
-      <label class="pole waskie"><span>Największy wymiar (mm)</span><input type="number" name="rozmiar" min="10" step="any" value="120" inputmode="decimal"></label>
+      <label class="pole waskie"><span>${tt('skladankaNarzedzia.najwiekszyWymiarMm')}</span><input type="number" name="rozmiar" min="10" step="any" value="120" inputmode="decimal"></label>
       <p class="blad-polaczenia" role="alert" hidden></p>
-      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Rozłóż model</button></div></form>`;
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">${tt('skladankaNarzedzia.anuluj')}</button><button class="przycisk glowny" value="tak">${tt('skladankaNarzedzia.rozlozModel')}</button></div></form>`;
     document.body.append(dlg);
     const f = dlg.querySelector('form');
     f.addEventListener('submit', async (e) => {
@@ -859,10 +859,10 @@ export function oknoSzablonow() {
   if (!dlg) {
     dlg = document.createElement('dialog');
     dlg.id = 'dlg-szablon-skladanki';
-    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Szablon składanki</h2>
-      <label class="pole"><span>Model</span><select name="szablon">${Object.entries(SZABLONY_SKLADANEK).map(([k, v]) => `<option value="${k}">${v.nazwa}</option>`).join('')}</select></label>
+    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${tt('skladankaNarzedzia.szablonSkladanki')}</h2>
+      <label class="pole"><span>${tt('skladankaNarzedzia.model')}</span><select name="szablon">${Object.entries(SZABLONY_SKLADANEK).map(([k, v]) => `<option value="${k}">${v.nazwa}</option>`).join('')}</select></label>
       <p class="ciche opis-szablonu"></p><div class="rzad parametry-szablonu"></div><p class="ciche grubosc-szablonu"></p>
-      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Anuluj</button><button class="przycisk glowny" value="tak">Wstaw</button></div></form>`;
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">${tt('skladankaNarzedzia.anuluj')}</button><button class="przycisk glowny" value="tak">${tt('skladankaNarzedzia.wstaw')}</button></div></form>`;
     document.body.append(dlg);
     dlg.querySelector('select').addEventListener('change', () => pola());
   }
@@ -906,8 +906,8 @@ export function oknoInstrukcji() {
     dlg = document.createElement('dialog');
     dlg.id = 'dlg-instrukcja-montazu';
     dlg.className = 'okno-raportu';
-    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>Instrukcja montażu</h2><ol class="kroki-montazu"></ol>
-      <div class="przyciski-dialogu"><button class="przycisk" value="nie">Zamknij</button><button class="przycisk" type="button" data-rola="pobierz">Pobierz (.txt)</button><button class="przycisk glowny" value="strona">Wstaw jako stronę</button></div></form>`;
+    dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${tt('skladankaNarzedzia.instrukcjaMontazu')}</h2><ol class="kroki-montazu"></ol>
+      <div class="przyciski-dialogu"><button class="przycisk" value="nie">${tt('skladankaNarzedzia.zamknij')}</button><button class="przycisk" type="button" data-rola="pobierz">${tt('skladankaNarzedzia.pobierzTxt')}</button><button class="przycisk glowny" value="strona">${tt('skladankaNarzedzia.wstawJakoStrone')}</button></div></form>`;
     document.body.append(dlg);
   }
   dlg.querySelector('ol').replaceChildren(...ins.kroki.map((k) => Object.assign(document.createElement('li'), { textContent: k })));

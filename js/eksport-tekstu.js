@@ -6,6 +6,7 @@
 
 import { rozwin } from './serie.js';
 import { naglowkiProjektu } from './ksiazka.js';
+import { t as tt } from './jezyk.js';
 
 const esc = (t) => String(t).replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
 
@@ -126,7 +127,7 @@ export async function zapiszEpub(projekt, JSZip, akapity = akapityProjektu(proje
     zip.file(`OEBPS/r${i + 1}.xhtml`, xhtml(r.tytul, tresc));
   });
   zip.file('OEBPS/styl.css', 'body{font-family:serif;line-height:1.45}h1,h2,h3{font-family:sans-serif;line-height:1.2}p{margin:0;text-indent:1.2em;text-align:justify}h1+p,h2+p,h3+p{text-indent:0}');
-  zip.file('OEBPS/spis.xhtml', xhtml('Spis treści', `<nav epub:type="toc" id="toc"><h1>Spis treści</h1><ol>${rozdzialy.map((r, i) => `<li><a href="r${i + 1}.xhtml">${esc(r.tytul)}</a></li>`).join('')}</ol></nav>`));
+  zip.file('OEBPS/spis.xhtml', xhtml('Spis treści', `<nav epub:type="toc" id="toc"><h1>${tt('eksportTekstu.spisTresci')}</h1><ol>${rozdzialy.map((r, i) => `<li><a href="r${i + 1}.xhtml">${esc(r.tytul)}</a></li>`).join('')}</ol></nav>`));
   const teraz = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
   zip.file('OEBPS/content.opf', `<?xml version="1.0" encoding="UTF-8"?><package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id"><metadata xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:identifier id="id">${id}</dc:identifier><dc:title>${esc(projekt.nazwa)}</dc:title><dc:language>${jezyk}</dc:language><meta property="dcterms:modified">${teraz}</meta></metadata><manifest><item id="spis" href="spis.xhtml" media-type="application/xhtml+xml" properties="nav"/><item id="styl" href="styl.css" media-type="text/css"/>${rozdzialy.map((_, i) => `<item id="r${i + 1}" href="r${i + 1}.xhtml" media-type="application/xhtml+xml"/>`).join('')}</manifest><spine>${rozdzialy.map((_, i) => `<itemref idref="r${i + 1}"/>`).join('')}</spine></package>`);
   return zip.generateAsync({ type: 'blob', mimeType: 'application/epub+zip' });

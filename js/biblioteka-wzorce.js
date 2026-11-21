@@ -4,6 +4,7 @@
 
 import { zarejestrujKategorie } from './biblioteka.js';
 import { WZORCE_STANDARDOWE, podgladSvgWzorca, markaDoWzorcow } from './wzorce-standardowe.js';
+import { t } from './jezyk.js';
 
 const pamiec = new Map();
 const podglad = (def) => {
@@ -14,7 +15,7 @@ const podglad = (def) => {
 };
 
 zarejestrujKategorie({
-  id: 'wzorce-stron', nazwa: 'Wzorce stron', ikona: 'wzorzec', kolejnosc: 38,
+  id: 'wzorce-stron', nazwa: t('bibliotekaWzorce.wzorceStron'), ikona: 'wzorzec', kolejnosc: 38,
   opis: 'To, co powtarza się na wielu stronach: numer, nagłówek, stopka, tło, ramka',
   elementy: () => WZORCE_STANDARDOWE.map((def) => ({
     id: def.klucz,
