@@ -75,3 +75,45 @@ test('język: nazwy projektów, sekcji i stron użytkownika zostają bez tłumac
   assert.match(await strona.textContent('.projekty-naglowek'), /project/i, 'interfejs dalej po angielsku');
   assert.deepEqual(bledy, []);
 });
+
+// #339: napisy index.html mają klucze (data-i18n…), słowniki kluczy są kompletne we wszystkich językach,
+// a tekst wpisany przez kod do elementu z kluczem nie jest nadpisywany napisem klucza.
+test('język: klucze w index.html – kompletne słowniki, przełączanie w obie strony, treść z kodu nietknięta', async (t) => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const wczytaj = (j) => { const s = fs.readFileSync(path.join(__dirname, '..', 'js', 'jezyki', 'klucze', `${j}.js`), 'utf8'); return JSON.parse(s.slice(s.indexOf('{'), s.lastIndexOf('}') + 1)); };
+  const pl = wczytaj('pl');
+  for (const j of ['en', 'uk']) {
+    const sl = wczytaj(j);
+    const brak = Object.keys(pl).filter((k) => typeof sl[k] !== 'string' || !sl[k].trim());
+    assert.deepEqual(brak, [], `${j}: każdy klucz ma tłumaczenie`);
+  }
+  const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  const uzyte = [...html.matchAll(/data-i18n(?:-[a-z-]+)?="([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(uzyte.length > 1000, `napisy z kluczami: ${uzyte.length}`);
+  assert.deepEqual(uzyte.filter((k) => pl[k] === undefined), [], 'każdy klucz z index.html jest w słowniku');
+
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Klucze');
+  const stan = () => strona.evaluate(() => ({
+    pdf: document.querySelector('[data-akcja="pdf"][data-i18n]')?.textContent,
+    zmieniony: document.querySelector('#nazwa-projektu')?.getAttribute('aria-label'),
+  }));
+  const pdfPl = (await stan()).pdf;
+  await strona.evaluate(async () => {
+    // element z kluczem, któremu kod wpisał własną treść – zostaje
+    const el = document.querySelector('[data-i18n]:not(title)');
+    el.dataset.test = '1';
+    el.textContent = 'Treść z kodu 123';
+    await (await import('./js/jezyk.js')).ustawJezyk('en', { zapamietaj: false });
+  });
+  const en = await stan();
+  assert.equal(en.pdf, 'Export to PDF…', 'napis z kluczem po angielsku');
+  assert.equal(await strona.$eval('[data-test="1"]', (e) => e.textContent), 'Treść z kodu 123', 'treść wpisana przez kod nietknięta');
+  await strona.evaluate(async () => { await (await import('./js/jezyk.js')).ustawJezyk('uk', { zapamietaj: false }); });
+  assert.notEqual((await stan()).pdf, en.pdf, 'przełączenie en → uk');
+  await strona.evaluate(async () => { await (await import('./js/jezyk.js')).ustawJezyk('pl', { zapamietaj: false }); });
+  assert.equal((await stan()).pdf, pdfPl, 'powrót do polskiego');
+  assert.equal(await strona.evaluate(async () => (await import('./js/jezyk.js')).t('ekranStart.wczytywanie')), 'Wczytywanie…', 't(klucz) po polsku');
+  assert.deepEqual(bledy, []);
+});

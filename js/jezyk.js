@@ -20,8 +20,33 @@ export function wpiszNazwe(el, tekst) {
   return el;
 }
 const ATRYBUTY = ['title', 'placeholder', 'aria-label'];
+
+// ---------- Klucze (#339, jak w Familiadzie) ----------
+// Napisy interfejsu mają klucze „obszar.nazwa”: w HTML data-i18n (tekst), data-i18n-title / -placeholder /
+// -aria-label (atrybuty), w kodzie t('obszar.nazwa', { zmienne }). Słowniki: js/jezyki/klucze/<język>.js.
+// Polski tekst zostaje w HTML – po polsku nic się nie wczytuje. Tłumaczy się tylko to, co ma klucz; napisy kodu
+// bez klucza (przenoszone etapami) – jeszcze dawnym słownikiem „polski napis → tłumaczenie”.
+const slownikiKluczy = {}; // język → { klucz: napis }
+let klucze = null; // bieżący język
+const wczytajKlucze = async (j) => { slownikiKluczy[j] ??= (await import(`./jezyki/klucze/${j}.js`)).default; return slownikiKluczy[j]; };
+// Czy tekst elementu to wciąż napis klucza w którymś języku (a nie treść wstawiona przez kod) – wtedy wolno go podmienić.
+const napisKlucza = (k, tekst) => Object.values(slownikiKluczy).some((sl) => sl[k] !== undefined && norm(sl[k]) === tekst);
+function zastosujKlucze(korzen) {
+  if (!klucze || !korzen?.querySelectorAll) return;
+  const el = korzen.nodeType === 1 ? [korzen] : [];
+  for (const e of [...el, ...korzen.querySelectorAll('[data-i18n],[data-i18n-title],[data-i18n-placeholder],[data-i18n-aria-label]')]) {
+    const k = e.getAttribute('data-i18n');
+    if (k && klucze[k] !== undefined && napisKlucza(k, norm(e.textContent)) && e.textContent !== klucze[k]) e.textContent = klucze[k];
+    for (const a of ATRYBUTY) {
+      const ka = e.getAttribute(`data-i18n-${a}`);
+      if (!ka || klucze[ka] === undefined || !e.hasAttribute(a)) continue;
+      if (napisKlucza(ka, norm(e.getAttribute(a))) && e.getAttribute(a) !== klucze[ka]) e.setAttribute(a, klucze[ka]);
+    }
+  }
+}
 // Miejsca z treścią użytkownika – bez tłumaczenia.
 const POMIJANE = 'script, style, textarea, [contenteditable], .canvas-container, [data-bez-tlumaczenia], .nazwa-projektu-karta';
+// (element z kluczem, któremu kod wpisał inny napis bez klucza, tłumaczy jeszcze dawny słownik – do etapu 3, #339)
 
 let jezyk = 'pl';
 let slownik = null;
@@ -64,9 +89,12 @@ function przeloz(klucz, glebokosc = 0) {
 }
 
 // Tłumaczenie napisu z JS (np. komunikat) – bez słownika albo bez wpisu: polski.
-export function t(polski) {
-  if (jezyk === 'pl' || !slownik) return polski;
-  return przeloz(norm(polski)) ?? polski;
+// t('obszar.nazwa', { n: 3 }) – napis klucza w bieżącym języku ze zmiennymi {n}; t('Polski napis') – dawny słownik.
+export function t(tekst, zmienne = null) {
+  const kl = (klucze || slownikiKluczy.pl)?.[tekst] ?? slownikiKluczy.pl?.[tekst];
+  if (kl !== undefined) return zmienne ? kl.replace(/\{(\w+)\}/g, (c, n) => (zmienne[n] !== undefined ? String(zmienne[n]) : c)) : kl;
+  if (jezyk === 'pl' || !slownik) return tekst;
+  return przeloz(norm(tekst)) ?? tekst;
 }
 
 function tlumaczTekst(wezel) {
@@ -89,7 +117,7 @@ function tlumaczTekst(wezel) {
 function tlumaczAtrybuty(el) {
   if (el.closest(POMIJANE)) return;
   for (const a of ATRYBUTY) {
-    if (!el.hasAttribute(a)) continue;
+    if (!el.hasAttribute(a) || el.hasAttribute(`data-i18n-${a}`)) continue; // z kluczem – zastosujKlucze
     let mapa = oryginalyAtrybutow.get(el);
     const oryg = mapa?.has(a) ? mapa.get(a) : el.getAttribute(a);
     const klucz = norm(oryg);
@@ -113,7 +141,7 @@ function tlumaczDrzewo(korzen) {
 
 function zastosuj(korzen = document.body) {
   wlasneZmiany = true;
-  try { tlumaczDrzewo(korzen); } finally { obserwator?.takeRecords(); wlasneZmiany = false; }
+  try { zastosujKlucze(korzen === document.body ? document.documentElement : korzen); tlumaczDrzewo(korzen); } finally { obserwator?.takeRecords(); wlasneZmiany = false; }
 }
 
 function obserwuj() {
@@ -123,7 +151,7 @@ function obserwuj() {
     wlasneZmiany = true;
     try {
       for (const z of zmiany) {
-        if (z.type === 'childList') z.addedNodes.forEach((n) => tlumaczDrzewo(n));
+        if (z.type === 'childList') z.addedNodes.forEach((n) => { zastosujKlucze(n); tlumaczDrzewo(n); });
         else if (z.type === 'characterData') { oryginalyTekstu.delete(z.target); tlumaczTekst(z.target); }
         else if (z.type === 'attributes') { oryginalyAtrybutow.get(z.target)?.delete(z.attributeName); tlumaczAtrybuty(z.target); }
       }
@@ -135,6 +163,8 @@ function obserwuj() {
 export async function ustawJezyk(nowy, { zapamietaj = true } = {}) {
   if (!JEZYKI[nowy]) nowy = 'pl';
   slownik = nowy === 'pl' ? null : (await import(`./jezyki/${nowy}.js`)).default;
+  // Słownik kluczy bieżącego języka i polski (rozpoznanie napisów klucza przy przełączaniu języków).
+  [klucze] = await Promise.all([wczytajKlucze(nowy), wczytajKlucze('pl')]);
   jezyk = nowy;
   document.documentElement.lang = nowy;
   if (zapamietaj) { try { localStorage.setItem(KLUCZ, nowy); } catch { /* bez pamięci – na tę sesję */ } }
