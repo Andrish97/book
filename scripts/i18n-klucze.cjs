@@ -3,7 +3,7 @@
 // title / placeholder / aria-label → data-i18n-title / data-i18n-placeholder / data-i18n-aria-label.
 // Obszar – najbliższy przodek z id (okno, ekran, sekcja), nazwa – z polskiego tekstu. Polski tekst zostaje w HTML
 // (działa bez słownika), a słowniki kluczy (js/jezyki/klucze/<język>.js) powstają z dotychczasowych słowników
-// „polski napis → tłumaczenie” (js/jezyki/<język>.js). Skrypt można uruchamiać wiele razy – istniejące klucze zostają.
+// ze słowników kluczy (to samo polskie brzmienie). Skrypt można uruchamiać wiele razy – istniejące klucze zostają.
 //
 // Użycie: node scripts/i18n-klucze.cjs [--sprawdz]   (--sprawdz: tylko sprawdza, czy nic nie zostało do przeniesienia)
 
@@ -20,9 +20,12 @@ const norm = (t) => t.replace(/\s+/g, ' ').trim();
 const odEncji = (t) => t.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
 const bezOgonkow = (t) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').replace(/Ł/g, 'L');
 
+// Znane tłumaczenia „polski napis → tłumaczenie” – ze słowników kluczy (dawne słowniki usunięte, #358).
 function wczytajSlownik(j) {
-  const tekst = fs.readFileSync(path.join(KORZEN, 'js', 'jezyki', `${j}.js`), 'utf8');
-  return JSON.parse(tekst.slice(tekst.indexOf('{'), tekst.lastIndexOf('}') + 1));
+  const czytajK = (x) => { const t = fs.readFileSync(path.join(KORZEN, 'js', 'jezyki', 'klucze', `${x}.js`), 'utf8'); return JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1)); };
+  const pl = czytajK('pl'); const sl = czytajK(j); const m = {};
+  for (const [k, v] of Object.entries(pl)) if (sl[k] !== undefined && m[norm(v)] === undefined) m[norm(v)] = sl[k];
+  return m;
 }
 
 const camel = (t) => {

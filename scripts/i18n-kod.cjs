@@ -4,7 +4,7 @@
 // na ekran: powiadomienia i pytania, etykiety paneli, podpowiedzi (title, placeholder, aria-label), textContent,
 // pola tytul/opis/etykieta w obiektach, opisy pozycji list wyboru. Porównania, dane projektu (nazwy stron, treść
 // tekstów), klucze obiektów i pliki składane (ai-narzedzia-rdzen.js) zostają nietknięte. Tłumaczenia kluczy biorą
-// się z dawnych słowników „polski napis → tłumaczenie” (js/jezyki/<język>.js), polski tekst – z kodu.
+// się z istniejących kluczy o tym samym polskim napisie (nowe – do przetłumaczenia), polski tekst – z kodu.
 //
 // Użycie: node scripts/i18n-kod.cjs <pliki…>   (bez plików – wszystkie js/ poza zewnetrzne/ i jezyki/)
 // Wymaga parsera acorn (jest w zależnościach eslint).
@@ -136,7 +136,12 @@ function zbierzPliki() {
 
 function main() {
   const pliki = process.argv.slice(2).length ? process.argv.slice(2).map((p) => path.resolve(p)) : zbierzPliki();
-  const stare = Object.fromEntries(JEZYKI.map((j) => [j, czytaj(path.join(KORZEN, 'js', 'jezyki', `${j}.js`))]));
+  // Znane tłumaczenia: „polski napis → tłumaczenie” ze słowników kluczy (dawne słowniki usunięte, #358).
+  const stare = Object.fromEntries(JEZYKI.map((j) => {
+    const pl = czytaj(plikKluczy('pl')); const sl = czytaj(plikKluczy(j)); const m = {};
+    for (const [k, v] of Object.entries(pl)) if (sl[k] !== undefined && m[norm(v)] === undefined) m[norm(v)] = sl[k];
+    return [j, m];
+  }));
   const klucze = { pl: czytaj(plikKluczy('pl')), ...Object.fromEntries(JEZYKI.map((j) => [j, czytaj(plikKluczy(j))])) };
   const wObszarze = new Map();
   for (const [k, v] of Object.entries(klucze.pl)) wObszarze.set(`${k.split('.')[0]}|${v}`, k);

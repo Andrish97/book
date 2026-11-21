@@ -20,7 +20,7 @@ const LIMITY = {
   kontrola: 800, // 41 ms – kontrola projektu
   oknoObrazowNajdluzsze: 500, // 68 ms – najdłuższe zatrzymanie po otwarciu okna „Obrazy projektu”
   podglad: 3000, // 263 ms – podgląd całego projektu do pierwszej strony
-  jezyk: 2500, // 670 ms – przełączenie języka całego interfejsu
+  jezyk: 1000, // 160 ms (przed #358: 670–830 ms) – przełączenie języka całego interfejsu
 };
 
 // Projekt budowany w przeglądarce (obrazy z płótna), na podstawie świeżego projektu aplikacji.
@@ -84,6 +84,8 @@ test('wydajność na dużym projekcie: otwarcie, zmiana, odciski linku, kontrola
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Start');
   const p = await zbudujDuzy(strona);
+  // WOLNO=4 – procesor 4 razy wolniejszy (jak słabszy telefon); tylko do ręcznych pomiarów, limity są dla zwykłego.
+  if (process.env.WOLNO) await (await strona.context().newCDPSession(strona)).send('Emulation.setCPUThrottlingRate', { rate: Number(process.env.WOLNO) });
   const wyniki = {};
   // długie zadania (> 50 ms) głównego wątku
   await strona.evaluate(() => { window.__dlugie = []; new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__dlugie.push(Math.round(e.duration)); }).observe({ type: 'longtask' }); });
@@ -136,6 +138,6 @@ test('wydajność na dużym projekcie: otwarcie, zmiana, odciski linku, kontrola
 
   zapiszPomiary(wyniki);
   t.diagnostic(JSON.stringify(wyniki));
-  for (const [k, limit] of Object.entries(LIMITY)) assert.ok(wyniki[k] <= limit, `${k}: ${wyniki[k]} ms (limit ${limit} ms) – ${JSON.stringify(wyniki)}`);
+  if (!process.env.WOLNO) for (const [k, limit] of Object.entries(LIMITY)) assert.ok(wyniki[k] <= limit, `${k}: ${wyniki[k]} ms (limit ${limit} ms) – ${JSON.stringify(wyniki)}`);
   assert.deepEqual(bledy, []);
 });
