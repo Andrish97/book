@@ -123,6 +123,7 @@ const akcjePodgladuZLinku = {
   // Makieta 3D z linku (#188) – jeden wariant, bez ustawień.
   'podglad-makieta': () => otworzMakieteLinku(),
   'makieta-zamknij': () => $('#dlg-makieta').close(),
+  'makieta-pelny-ekran': async () => (await import('./app/makieta-okno.js')).przelaczPelnyEkranMakiety(),
   'makieta-plus': async () => (await import('./app/makieta-okno.js')).powiekszMakiete(1.25),
   'makieta-minus': async () => (await import('./app/makieta-okno.js')).powiekszMakiete(0.8),
   'makieta-przod': async () => (await import('./app/makieta-okno.js')).widokZPrzodu(),

@@ -645,3 +645,37 @@ test('makieta 3D: twarda oprawa – krawędź kartek w główce dochodzi do łuk
   // grzbiet bloku leży po stronie najmniejszego x – krawędź kartek ma sięgać tam, gdzie łuk grzbietu
   assert.ok(minX(krawedz) - minX(grzbiet) < 0.3, `krawędź kartek przy łuku grzbietu (${minX(krawedz).toFixed(2)} / ${minX(grzbiet).toFixed(2)})`);
 });
+
+// Zgłoszenie 21.11: pełny ekran makiety – przycisk w nagłówku okna; scena zajmuje prawie cały ekran,
+// płótno dopasowuje się do niej; drugie kliknięcie (albo zamknięcie okna) wraca do zwykłego okna.
+for (const telefon of [false, true]) {
+  test(`makieta 3D: pełny ekran${telefon ? ' na telefonie' : ''}`, async (t) => {
+    const { otworz, nowyProjekt } = require('./pomoc.cjs');
+    const { strona, bledy } = await otworz(t, telefon ? { telefon: true } : {});
+    await nowyProjekt(strona, 'Pełny ekran');
+    await strona.evaluate(async () => { (await import('./js/app/makieta-okno.js')).otworzMakiete(window.seriodruk.stan.projekt); });
+    await strona.waitForFunction(() => document.querySelector('#makieta-plotno').dataset.gotowe === 'true', null, { timeout: 60000 });
+    const wymiary = () => strona.evaluate(() => {
+      const s = document.querySelector('.makieta-scena').getBoundingClientRect();
+      const c = document.querySelector('#makieta-plotno');
+      return { h: s.height, w: s.width, ekranH: window.innerHeight, ekranW: window.innerWidth, plotnoH: c.getBoundingClientRect().height, pelna: document.querySelector('#dlg-makieta').classList.contains('makieta-pelna') };
+    });
+    const przed = await wymiary();
+    await strona.click('[data-akcja="makieta-pelny-ekran"]');
+    await strona.waitForFunction(() => document.querySelector('#dlg-makieta').classList.contains('makieta-pelna'));
+    await strona.waitForTimeout(400);
+    const pelny = await wymiary();
+    assert.ok(pelny.h > przed.h + 50, `scena wyższa w pełnym ekranie (${przed.h} → ${pelny.h})`);
+    assert.ok(pelny.h > pelny.ekranH * 0.55, `scena zajmuje większość ekranu (${pelny.h} / ${pelny.ekranH})`);
+    assert.ok(pelny.w >= pelny.ekranW - 40, `scena na całą szerokość (${pelny.w} / ${pelny.ekranW})`);
+    assert.ok(Math.abs(pelny.plotnoH - pelny.h) < 2, 'płótno wypełnia scenę');
+    await strona.click('[data-akcja="makieta-pelny-ekran"]');
+    await strona.waitForFunction(() => !document.querySelector('#dlg-makieta').classList.contains('makieta-pelna'));
+    await strona.click('[data-akcja="makieta-pelny-ekran"]');
+    await strona.waitForFunction(() => document.querySelector('#dlg-makieta').classList.contains('makieta-pelna'));
+    await strona.evaluate(() => document.querySelector('#dlg-makieta').close());
+    // zamknięcie okna kończy pełny ekran (zdarzenie „close” przychodzi chwilę po zamknięciu)
+    await strona.waitForFunction(() => !document.querySelector('#dlg-makieta').classList.contains('makieta-pelna'), null, { timeout: 5000 });
+    assert.deepEqual(bledy, []);
+  });
+}

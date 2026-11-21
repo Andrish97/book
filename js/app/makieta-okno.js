@@ -25,7 +25,7 @@ import { bazaMakiety, bazaZOpisu, domyslnyModel, modeleProjektu, powodNiepasowan
 import { uzyteKoloryDruku, stanUszlachetnien, FOLIE, plytaUszlachetnienia } from '../kolory-druku.js';
 import { maskaZRoznicy } from '../separacje.js';
 import { KoderGif } from '../gif.js';
-import { ikona } from '../ikony.js';
+import { ikona, wstawIkony } from '../ikony.js';
 import { wpiszNazwe } from '../jezyk.js';
 
 const dlg = $('#dlg-makieta');
@@ -922,6 +922,35 @@ export function ustawKamereMakiety(zmiany) {
   rysujPozniej();
 }
 
+// Pełny ekran makiety (zgłoszenie 21.11): okno zajmuje cały ekran, płótno całą wysokość (zostają nagłówek
+// i sterowanie pod spodem). Gdzie przeglądarka pozwala – także prawdziwy pełny ekran (bez pasków przeglądarki);
+// na iPhonie (bez pełnego ekranu dla elementów strony) – okno na całą stronę.
+let pelnyPrzezApi = false;
+export function przelaczPelnyEkranMakiety(wlacz) {
+  const cel = wlacz ?? !dlg.classList.contains('makieta-pelna');
+  dlg.classList.toggle('makieta-pelna', cel);
+  const b = dlg.querySelector('[data-akcja="makieta-pelny-ekran"]');
+  if (b) {
+    b.setAttribute('aria-pressed', String(cel));
+    b.title = cel ? 'Zamknij pełny ekran (Esc)' : 'Pełny ekran';
+    b.setAttribute('aria-label', b.title);
+    b.querySelector(':scope > svg.ikona')?.remove();
+    b.dataset.ikona = cel ? 'zwin-ekran' : 'pelny-ekran';
+    wstawIkony(b.parentElement);
+  }
+  if (cel && !document.fullscreenElement && dlg.requestFullscreen) {
+    dlg.requestFullscreen({ navigationUI: 'hide' }).then(() => { pelnyPrzezApi = true; }).catch(() => {});
+  } else if (!cel && document.fullscreenElement === dlg) {
+    pelnyPrzezApi = false;
+    document.exitFullscreen().catch(() => {});
+  }
+  if (st) dopasujPlotno();
+}
+// Wyjście z pełnego ekranu klawiszem Esc albo gestem – okno wraca do zwykłej wielkości.
+document.addEventListener('fullscreenchange', () => {
+  if (pelnyPrzezApi && document.fullscreenElement !== dlg) { pelnyPrzezApi = false; przelaczPelnyEkranMakiety(false); }
+});
+
 export function powiekszMakiete(k) {
   if (!st) return;
   st.kamera.zoom = Math.max(0.25, Math.min(5, st.kamera.zoom * k));
@@ -1274,6 +1303,7 @@ wyborUlozenia.addEventListener('change', () => ustawUlozenie(wyborUlozenia.value
 $('#makieta-wstecz').addEventListener('click', () => kartkuj(-1));
 $('#makieta-dalej').addEventListener('click', () => kartkuj(1));
 dlg.addEventListener('close', () => {
+  if (dlg.classList.contains('makieta-pelna')) przelaczPelnyEkranMakiety(false);
   zaznaczOtwarta(false);
   partia?.pasek.koniec();
   partia = null;

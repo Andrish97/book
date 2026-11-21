@@ -1743,6 +1743,8 @@ Strony idą po kolei, rozkładówki stoją obok siebie. Strony serii mają podpi
 
 **Makieta 3D** obok **Separacje** na pasku podglądu pokazuje projekt jako wydrukowaną rzecz — jak zdjęcie produktu w studiu: prawdziwe wymiary stron, grubość z papieru i liczby stron, światło z cieniem na stole albo ścianie. Można ją obracać i kartkować, zanim pójdzie do drukarni.
 
+Przycisk pełnego ekranu w nagłówku okna (obok zamknięcia) powiększa makietę na cały ekran — zostaje ułożenie, kartkowanie i widok. Ten sam przycisk albo Esc wraca do zwykłego okna. Działa też dla osoby, która ogląda makietę z linku.
+
 ![Makieta 3D: otwarta książka w twardej oprawie](https://makietka.app/img/instrukcja/k-makieta.png)
 
 | Rodzaj | Jak wygląda |

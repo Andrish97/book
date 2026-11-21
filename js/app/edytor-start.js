@@ -361,6 +361,7 @@ export const akcje = {
   // Makieta 3D (#131D) – obok „Separacji” w podglądzie.
   'podglad-makieta': async () => (await import('./makieta-okno.js')).otworzMakiete(stan.projekt),
   'makieta-zamknij': () => $('#dlg-makieta').close(),
+  'makieta-pelny-ekran': async () => (await import('./makieta-okno.js')).przelaczPelnyEkranMakiety(),
   'makieta-plus': async () => (await import('./makieta-okno.js')).powiekszMakiete(1.25),
   'makieta-minus': async () => (await import('./makieta-okno.js')).powiekszMakiete(0.8),
   'makieta-przod': async () => (await import('./makieta-okno.js')).widokZPrzodu(),

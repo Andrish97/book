@@ -1361,3 +1361,15 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .dane-zrodlo .znacznik-zmian { padding: 2px 8px; border-radius: 999px; background: var(--zmiana-tlo); color: var(--zmiana-tekst); font-size: 12px; }
 .dane-link { display: flex; gap: 8px; align-items: flex-end; padding: 8px 0; }
 .dane-link .pole { flex: 1; }
+
+/* Pełny ekran makiety 3D (zgłoszenie 21.11): okno na cały ekran, scena zajmuje całą wolną wysokość;
+   zostają nagłówek i podstawowe sterowanie (rodzaj, ułożenie, kartki, widok), reszta ustawień schowana. */
+.dialog-makieta.makieta-pelna {
+  inset: 0; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0;
+  border-radius: 0; transform: none; padding: 0;
+}
+.dialog-makieta.makieta-pelna > .formularz { height: 100%; max-height: none; display: flex; flex-direction: column; padding: 8px 12px; gap: 8px; overflow: hidden; }
+.dialog-makieta.makieta-pelna .makieta-scena { flex: 1 1 auto; height: auto; min-height: 0; }
+.dialog-makieta.makieta-pelna > .formularz > :not(.naglowek-dialogu, .makieta-scena, .makieta-sterowanie) { display: none; }
+.dialog-makieta:fullscreen { background: var(--powierzchnia); }
+.dialog-makieta.makieta-pelna .makieta-model, .dialog-makieta.makieta-pelna [data-akcja="makieta-pobierz"] { display: none; }
