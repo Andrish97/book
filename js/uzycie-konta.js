@@ -6,6 +6,7 @@
 import { $ } from './ui.js';
 import * as chmura from './chmura.js';
 import { rozmiar } from './miejsce.js';
+import { wpiszNazwe } from './jezyk.js';
 
 const liczba = (x) => Number(x) || 0;
 const procent = (x) => `${Math.min(100, Math.round(x * 100))}%`;
@@ -55,7 +56,7 @@ function wierszProjektu(p, najwiekszy, { cudzy = false } = {}) {
       <button type="button" class="przycisk maly" data-rola="otworz">Otwórz</button>
       <button type="button" class="przycisk maly" data-rola="obrazy">Pokaż obrazy</button>
     </div>`;
-  li.querySelector('strong').textContent = p.nazwa || 'Projekt';
+  wpiszNazwe(li.querySelector('strong'), p.nazwa || 'Projekt');
   li.querySelector('.uzycie-meta').textContent = [...meta, ...dodatki].join(' · ');
   if (!cudzy) li.querySelector('.uzycie-slupek span').style.width = najwiekszy ? `${Math.max(2, (p.bajty / najwiekszy) * 100)}%` : '0';
   li.querySelector('[data-rola="otworz"]').addEventListener('click', () => { location.hash = `#/p/${p.id}`; });

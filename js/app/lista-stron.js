@@ -19,6 +19,7 @@ import { pokazWarstwy } from './dok-warstw.js';
 import { bilansSkladki, opisSkladki } from '../okladka.js';
 import { dopelnijSkladke } from './sekcje.js';
 import { opisSchowka } from './schowek-okno.js';
+import { wpiszNazwe } from '../jezyk.js';
 
 // ---------- Lista: strony (pogrupowane w sekcje) i wzorce ----------
 
@@ -85,7 +86,7 @@ function renderujListeStron() {
     nag.className = 'sekcja-listy';
     nag.innerHTML = `<div class="opis-sekcji"><strong></strong><small></small></div>
       <button class="przycisk-ikona maly" aria-label="Opcje sekcji" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
-    $('strong', nag).textContent = sekcja.nazwa;
+    wpiszNazwe($('strong', nag), sekcja.nazwa);
     const opis = [nazwaFormatu(sekcja.wydruk), `${strony.length} str.`];
     if (rozkladowki) opis.push('rozkładówki');
     if (sekcja.wzorce.length) opis.push(nazwyWzorcow(sekcja.wzorce));
@@ -221,7 +222,7 @@ function renderujListeWzorcow() {
       <button class="przycisk-ikona menu-miniatury" aria-label="Opcje wzorca" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
     $('.miniatura', li).append(obrazMiniatury(w.id, w.wydruk));
     $('.miniatura', li).setAttribute('aria-label', `Wzorzec ${w.nazwa}`);
-    $('.nazwa', li).textContent = w.nazwa;
+    wpiszNazwe($('.nazwa', li), w.nazwa);
     $('small', li).textContent = `${n} str.${w.lustro ? ' · odbicie na lewych stronach' : ''}`;
     const [naStr, wSek] = [$('[data-op="strona"]', li), $('[data-op="sekcja"]', li)];
     naStr.hidden = !strona; wSek.hidden = !strona;

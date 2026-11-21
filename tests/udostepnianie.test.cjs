@@ -88,10 +88,11 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   const stanPrzed = await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano);
   await strona.click('[data-akcja="dodaj-prostokat"]');
   await strona.waitForFunction((z) => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano !== z, stanPrzed, { timeout: 25000 });
-  // Zmieniła się jedna strona z dwóch: narysowany i wysłany jest tylko jej obraz, do tego opis.
+  // Zmieniła się jedna strona z dwóch: narysowany i wysłany jest tylko jej obraz, do tego opis – od razu na
+  // początku (nowy układ, #331) i na końcu (nowe skróty stron).
   const ponownie = baza.wyslania.slice(przedAktualizacja).filter((k) => k.startsWith('podglady/'));
   assert.equal(ponownie.filter((k) => /\.(webp|jpg)$/.test(k) && !/\/makieta-[^/]*$/.test(k)).length, 1);
-  assert.equal(ponownie.filter((k) => k.endsWith('manifest.json')).length, 1);
+  assert.ok([1, 2].includes(ponownie.filter((k) => k.endsWith('manifest.json')).length));
   // Otwarty u gościa link sprawdza się sam (co minutę i przy powrocie do karty): podmienia się tylko
   // obraz zmienionej strony, a druga zostaje.
   const obrazyGoscia = () => obca.evaluate(() => [...document.querySelectorAll('.podglad-strona[data-id] img')].map((i) => i.getAttribute('src')));
@@ -533,4 +534,49 @@ test('udostępnianie w tle: link od razu, oglądający widzi „w przygotowaniu�
     return widoczne.length && widoczne.every((f) => f.querySelector('img').naturalWidth > 0);
   }, null, { timeout: 15000 });
   await gosc.close();
+});
+
+// #331: zmiana samej makiety 3D w linku – opis linku od razu nowy, żadna strona nie jest rysowana ani wysyłana
+// od nowa; opis w trakcie publikacji ma odciski stron (przerwana publikacja nie wymusza wysłania wszystkiego).
+test('link: zmiana makiety 3D bez wysyłania stron, opis od razu, odciski w trakcie publikacji', async (t) => {
+  const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
+  await nowyProjekt(strona, 'Makieta w linku');
+  for (let i = 0; i < 3; i += 1) await strona.click('[data-akcja="strona-dodaj"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 4);
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled, null, { timeout: 30000 });
+  const manifest = () => { const k = [...baza.pliki.keys()].find((x) => x.startsWith('podglady/') && x.endsWith('manifest.json')); return { k, m: JSON.parse(baza.pliki.get(k).tresc.toString()) }; };
+  const obrazy = () => [...baza.pliki].filter(([k]) => k.startsWith('podglady/') && /\.(webp|jpg)$/.test(k)).map(([k, v]) => `${k}@${v.czas}`).sort().join('|');
+  const przed = obrazy();
+  assert.equal(Object.keys(manifest().m.tresci || {}).length, 4, 'odciski wszystkich stron');
+  // Wyłączenie makiety w linku: opis zmienia się, obrazy stron zostają nietknięte.
+  await strona.waitForSelector('#udostepnij-makieta:not([hidden])');
+  await strona.uncheck('#udostepnij-makieta-wl');
+  await strona.click('#udostepnij-makieta-zapisz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
+  assert.equal(manifest().m.uklad.makieta ?? null, null, 'w opisie linku nie ma już makiety');
+  assert.equal(obrazy(), przed, 'żaden obraz strony nie został wysłany od nowa');
+  // Opis zapisany w trakcie publikacji (przerwanej) ma odciski stron – także tych jeszcze nie przerobionych.
+  const odNowa = await strona.evaluate(async () => {
+    const chmura = await import('./js/chmura.js');
+    const zapisy = [];
+    const p = window.seriodruk.stan.projekt;
+    const strony = [{ id: 'a' }, { id: 'b' }];
+    let n = 0;
+    try {
+      await chmura.opublikujPodglad(p.id, 'test-przerwany', { nazwa: 'x', sekcje: [] }, strony, async () => { n += 1; if (n === 2) throw new Error('przerwane'); return new Blob(['x'], { type: 'image/webp' }); }, () => {}, { a: 'A1', b: 'B1' }, { rozszerzenie: 'webp' });
+    } catch (e) { zapisy.push(e.message); }
+    return zapisy;
+  });
+  assert.deepEqual(odNowa, ['przerwane']);
+  const przerwany = [...baza.pliki.keys()].find((k) => k.includes('/test-przerwany/manifest.json'));
+  assert.ok(przerwany, 'opis zapisany od razu na początku publikacji');
+  assert.deepEqual(bledy, []);
 });

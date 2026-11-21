@@ -10,6 +10,15 @@ export const JEZYKI = {
   uk: { nazwa: 'Українська', flaga: 'img/jezyki/flag-ua.svg' },
 };
 const KLUCZ = 'makietka-jezyk';
+
+// Napis podany przez użytkownika (nazwa projektu, sekcji, strony, tabeli, obrazu…): wpisany do elementu i oznaczony,
+// żeby tłumaczenie go nie ruszało – „Kalendarz 2027” zostaje „Kalendarz 2027”, a nie „Calendar 2027”.
+export function wpiszNazwe(el, tekst) {
+  if (!el) return el;
+  el.textContent = tekst;
+  el.setAttribute('data-bez-tlumaczenia', '');
+  return el;
+}
 const ATRYBUTY = ['title', 'placeholder', 'aria-label'];
 // Miejsca z treścią użytkownika – bez tłumaczenia.
 const POMIJANE = 'script, style, textarea, [contenteditable], .canvas-container, [data-bez-tlumaczenia], .nazwa-projektu-karta';

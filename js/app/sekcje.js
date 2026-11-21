@@ -16,6 +16,7 @@ import { stan, biezacaSekcja, tenSamRozmiar, liczba, edytor, biezacaStrona } fro
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis, cofnijKrok } from './zapis.js';
 import { panel } from './skladniki.js';
 import { ustawZakladke, przelejPoZmianieKolejnosci } from './lista-stron.js';
+import { wpiszNazwe } from '../jezyk.js';
 
 // ---------- Sekcje ----------
 
@@ -275,7 +276,7 @@ function wypelnijOkladke(f, sekcja, jakoOkladka = false) {
     label.innerHTML = '<input type="checkbox" name="ok_srodek"><span></span>';
     $('input', label).value = s.id;
     $('input', label).checked = !o.srodek || o.srodek.includes(s.id);
-    $('span', label).textContent = s.nazwa;
+    wpiszNazwe($('span', label), s.nazwa);
     return label;
   }));
   $('#pole-ok-srodek').hidden = kandydaci.length < 2;

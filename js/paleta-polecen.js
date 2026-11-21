@@ -1,3 +1,4 @@
+import { wpiszNazwe } from './jezyk.js';
 // Paleta poleceń (Ctrl+K / ⌘K, decyzja #103): wyszukiwarka działań aplikacji dla samodzielnej pracy – zamiast
 // szukać przycisku w menu wpisujesz kilka liter („pdf”, „dane”, „wzorce”, „obraz”) i Enter.
 // Lista powstaje z przycisków z data-akcja widocznych na bieżącym ekranie (także z menu ⋯ i menu konta),
@@ -79,7 +80,7 @@ function zbuduj() {
       li.setAttribute('role', 'option');
       li.setAttribute('aria-selected', String(i === wybrany));
       const n = document.createElement('span');
-      n.textContent = p.nazwa;
+      wpiszNazwe(n, p.nazwa);
       li.append(n);
       if (p.opis) {
         const o = document.createElement('span');

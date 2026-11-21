@@ -19,6 +19,7 @@ import { edytorGotowy } from './doczytaj.js';
 import { DOSTAWCY, modeleDostawcy } from '../ai-dostawcy.js';
 import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
+import { wpiszNazwe } from '../jezyk.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
 // Drobniejsze zakresy (#252) – pilnuje baza (ai_zakres_brak). Brak listy (null) – wszystko.
@@ -74,7 +75,7 @@ function listaWyboru(kontener, zaznaczone) {
     pole.value = p.id;
     pole.checked = zaznaczone.has(p.id);
     const tekst = document.createElement('span');
-    tekst.textContent = p.nazwa;
+    wpiszNazwe(tekst, p.nazwa);
     if (p.wlasciciel) {
       const ciche = document.createElement('span');
       ciche.className = 'ciche';

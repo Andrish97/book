@@ -8,6 +8,7 @@ import {
   listaZestawow, idZestawuMarki, wybierzZestaw, dodajZestaw, zmienNazweZestawu, usunZestaw,
 } from './zestaw-marki.js';
 import { wstawIkony } from './ikony.js';
+import { wpiszNazwe } from './jezyk.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (z) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[z]);
@@ -54,7 +55,7 @@ function rysujLoga() {
     li.className = 'logo-marki';
     li.innerHTML = `<span class="podglad">${l.podglad ? `<img src="${esc(l.podglad)}" alt="">` : ''}</span><span class="nazwa"></span>
       <button type="button" class="przycisk-ikona maly" data-ikona="kosz" title="Usuń logo" aria-label="Usuń logo"></button>`;
-    li.querySelector('.nazwa').textContent = l.nazwa;
+    wpiszNazwe(li.querySelector('.nazwa'), l.nazwa);
     li.querySelector('button').addEventListener('click', async () => {
       try { robocza = normalizujMarke({ ...robocza, loga: (await usunLogo(l.id)).loga }); rysujLoga(); } catch (e) { komunikat(e.message, true); }
     });
@@ -98,7 +99,7 @@ function rysujStyle(otwarty = null) {
     const proba = li.querySelector('.proba-stylu');
     const opis = li.querySelector('summary small');
     const odswiez = () => {
-      proba.textContent = s.nazwa;
+      wpiszNazwe(proba, s.nazwa);
       podgladStylu(proba, s);
       opis.textContent = `${s.czcionka} · ${String(s.rozmiar).replace('.', ',')} pt${s.rola ? '' : ' · własny'}`;
     };

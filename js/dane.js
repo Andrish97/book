@@ -13,6 +13,7 @@ import { wstawIkony } from './ikony.js';
 import { zPostepem } from './postep.js';
 import { przypnijZrodlo, odepnijZrodlo, zmienionaWMakietce, podpisDanych, porownajTabele, opisPorownania, zapamietajUchwyt, uchwytTabeli, plikZUchwytu, moznaZapamietacPlik, wybierzPlikZDostepem, plikZLinku } from './zrodla-danych.js';
 import { dataUrlZasobu } from './zasoby.js';
+import { wpiszNazwe } from './jezyk.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
 const PORCJA_WIERSZY = 400;
@@ -63,7 +64,7 @@ export class Dane {
       b.type = 'button';
       b.setAttribute('aria-current', String(t.id === this.idTabeli));
       b.innerHTML = '<strong></strong><small></small>';
-      b.querySelector('strong').textContent = t.nazwa;
+      wpiszNazwe(b.querySelector('strong'), t.nazwa);
       b.querySelector('small').textContent = `${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')} · ${t.kolumny.length} ${odmiana(t.kolumny.length, 'kolumna', 'kolumny', 'kolumn')}`;
       b.addEventListener('click', () => { this.idTabeli = t.id; this.rysuj(); });
       li.append(b);

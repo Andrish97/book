@@ -28,6 +28,7 @@ import {
 import { generujMiniatury, przejdzDoStrony } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
 import { panel } from './skladniki.js';
+import { wpiszNazwe } from '../jezyk.js';
 
 const okno = $('#dlg-obrazy');
 const lista = $('#obrazy-lista');
@@ -89,7 +90,7 @@ function rysuj() {
         ${u.pierwsze ? '<button type="button" class="przycisk-ikona" data-rola="pokaz" data-ikona="oko" title="Pokaż na stronie" aria-label="Pokaż na stronie"></button>' : ''}
         <button type="button" class="przycisk-ikona obraz-wiecej" data-rola="wiecej" data-ikona="wiecej" title="Więcej" aria-label="Więcej działań" aria-haspopup="menu" aria-expanded="false"></button>
       </div>`;
-    li.querySelector('.obraz-nazwa').textContent = z.nazwa;
+    wpiszNazwe(li.querySelector('.obraz-nazwa'), z.nazwa);
     li.querySelector('.obraz-uzycie').textContent = opisUzycia(u);
     li.querySelector('img').alt = z.nazwa;
     const r = rozmiarZasobu(z);

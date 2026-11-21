@@ -25,6 +25,7 @@ import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pok
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
 import { ustawZakladke, generujMiniatury, renderujListe, oznaczBiezacaWLiscie, odswiezMiniature, odrysujMiniaturyWTle } from './lista-stron.js';
+import { wpiszNazwe } from '../jezyk.js';
 
 // Nazwa projektu w górnym pasku; pełna także w dymku – na wąskim ekranie pole bywa ucięte.
 const pokazNazwe = (nazwa) => { const pole = $('#nazwa-projektu'); pole.value = nazwa; pole.title = nazwa; };
@@ -995,7 +996,7 @@ function zapytajOKonflikty(p, konflikty) {
     const li = document.createElement('li');
     li.dataset.klucz = k.klucz;
     li.innerHTML = '<strong></strong><label><input type="radio" value="moje"><span></span></label><label><input type="radio" value="konto" checked><span></span></label>';
-    li.querySelector('strong').textContent = k.nazwa;
+    wpiszNazwe(li.querySelector('strong'), k.nazwa);
     const [moje, konto] = li.querySelectorAll('label');
     for (const pole of li.querySelectorAll('input')) pole.name = `konflikt-${i}`;
     moje.querySelector('span').textContent = `Z tego urządzenia (${k.moje})`;

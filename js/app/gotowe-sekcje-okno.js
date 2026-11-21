@@ -22,6 +22,7 @@ import {
 import { stan, biezacaSekcja } from './kontekst.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { ustawZakladke, generujMiniatury } from './lista-stron.js';
+import { wpiszNazwe } from '../jezyk.js';
 
 const dlgGotowe = $('#dlg-gotowe-sekcje');
 const tresc = dlgGotowe.querySelector('.gotowe');
@@ -149,7 +150,7 @@ function pokazSzczegoly(id) {
   szczegoly.dataset.id = id;
   galeria.hidden = true;
   szczegoly.hidden = false;
-  $('#gotowe-nazwa').textContent = s.nazwa;
+  wpiszNazwe($('#gotowe-nazwa'), s.nazwa);
   $('#gotowe-opis').textContent = s.opis;
   const pyt = $('#gotowe-pytania');
   const odp = tryb.nowy ? domyslneOpcjeProjektu(s) : domyslneOpcje(s);

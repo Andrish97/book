@@ -26,6 +26,7 @@ import * as wsp from '../wspolpraca-chmura.js';
 import {
   otworzWspolprace, opuscProjekt, odswiezZaproszenia, ustawZaleznosci, krotkoRola, ikonaWspolpracy,
 } from './wspolpraca.js';
+import { wpiszNazwe, t } from '../jezyk.js';
 
 function odmianaProjektow(n) {
   if (n === 1) return 'projekt';
@@ -168,10 +169,10 @@ export async function pokazProjekty({ cicho = false } = {}) {
       </div>`;
     if (w.wspolpraca) {
       li.classList.add('wspoldzielony');
-      $('.plakietka-wspolpracy span', li).textContent = w.wspolpraca.nazwa;
+      wpiszNazwe($('.plakietka-wspolpracy span', li), w.wspolpraca.nazwa);
     }
     if (w.miniatura) $('img', li).src = w.miniatura;
-    $('strong', li).textContent = w.nazwa || 'Bez nazwy';
+    wpiszNazwe($('strong', li), w.nazwa || t('Bez nazwy'));
     const niewyslany = stan.uzytkownik && w.lokalnie && w.doSynchronizacji;
     // Stan wysyłki jako mała chmurka przy nazwie (#109): zapisano na koncie / czeka na wysłanie / offline.
     if (stan.uzytkownik) {

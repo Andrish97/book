@@ -54,3 +54,24 @@ test('język: edytor po angielsku – menu, panele i pozycja „Język” w menu
   assert.ok(polskie.length < 5, `nieprzetłumaczone podpowiedzi: ${polskie.join(' | ')}`);
   assert.deepEqual(bledy, []);
 });
+
+// Zgłoszenie 21.11: nazwy nadane przez użytkownika nie są tłumaczone („Kalendarz 2027” nie staje się „Calendar 2027”),
+// a napisy interfejsu obok nich – tak.
+test('język: nazwy projektów, sekcji i stron użytkownika zostają bez tłumaczenia', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.evaluate(() => localStorage.setItem('makietka-jezyk', 'en'));
+  await strona.reload();
+  await strona.waitForFunction(() => document.documentElement.lang === 'en');
+  await nowyProjekt(strona, 'Kalendarz 2027');
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.sekcje[0].nazwa = 'Kalendarz';
+    await (await import('./js/app/lista-stron.js')).odswiezListe?.();
+  });
+  await strona.click('[data-akcja="do-projektow"]:visible');
+  await strona.waitForSelector('.karta-projektu:not(.szkielet)');
+  const karta = await strona.$eval('.karta-projektu .opis strong', (e) => e.textContent);
+  assert.equal(karta, 'Kalendarz 2027', 'nazwa projektu na karcie bez tłumaczenia');
+  assert.match(await strona.textContent('.projekty-naglowek'), /project/i, 'interfejs dalej po angielsku');
+  assert.deepEqual(bledy, []);
+});

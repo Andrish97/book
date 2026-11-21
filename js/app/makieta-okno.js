@@ -26,6 +26,7 @@ import { uzyteKoloryDruku, stanUszlachetnien, FOLIE, plytaUszlachetnienia } from
 import { maskaZRoznicy } from '../separacje.js';
 import { KoderGif } from '../gif.js';
 import { ikona } from '../ikony.js';
+import { wpiszNazwe } from '../jezyk.js';
 
 const dlg = $('#dlg-makieta');
 const plotno = $('#makieta-plotno');
@@ -1036,7 +1037,7 @@ function pokazZapisane() {
     b.dataset.pokazUjecie = u.id;
     b.title = 'Pokaż to ujęcie';
     const n = document.createElement('span');
-    n.textContent = u.nazwa;
+    wpiszNazwe(n, u.nazwa);
     const o = document.createElement('span');
     o.className = 'ciche';
     o.textContent = [MODELE[u.model] || '', TLA[u.opcje?.tlo] || ''].filter(Boolean).join(' · ');

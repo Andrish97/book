@@ -1,3 +1,4 @@
+import { wpiszNazwe } from './jezyk.js';
 // Raport przeniesienia (#232): co przy zapisie do innego programu (albo odczycie z niego) przeszło bez zmian, co
 // zamieniło się w obraz, co uproszczono, a co się nie przeniosło – z miejscem (strona, element), żeby dało się to
 // pokazać w edytorze. Zapis zbiera wpisy w trakcie (te same reguły, które decydują o kształcie pliku), odczyt –
@@ -111,7 +112,7 @@ export function pokazRaport({ tytul, wstep, raport, przycisk = 'Pobierz', anuluj
     const g = grupy.filter((x) => x.rodzaj === rodzaj);
     if (!g.length) continue;
     const h = document.createElement('h3');
-    h.textContent = nazwa;
+    wpiszNazwe(h, nazwa);
     const ul = document.createElement('ul');
     ul.className = `lista-uwag raport-${rodzaj}`;
     for (const x of g) {

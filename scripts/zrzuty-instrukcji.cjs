@@ -16,7 +16,8 @@ const ADRES = process.argv[2] || 'http://localhost:8000/';
 // Drugi argument „ciemny” robi ten sam komplet w ciemnym motywie (img/instrukcja/ciemny/).
 const CIEMNY = process.argv[3] === 'ciemny';
 const KATALOG = path.join(__dirname, '..', 'img', 'instrukcja', ...(CIEMNY ? ['ciemny'] : []));
-const MOTYW = { colorScheme: CIEMNY ? 'dark' : 'light' };
+// Język polski – aplikacja bierze język z przeglądarki (#219), a instrukcja jest po polsku.
+const MOTYW = { colorScheme: CIEMNY ? 'dark' : 'light', locale: 'pl-PL' };
 if (require.main === module) require('node:fs').mkdirSync(KATALOG, { recursive: true });
 const WIDOK = { width: 1280, height: 800 };
 
@@ -193,7 +194,7 @@ if (require.main === module) (async () => {
       tryb: 'atrapa',
       konta: [{ id: '11111111-1111-4111-8111-111111111111', email: 'anna@przyklad.pl', haslo: 'Dobre#Haslo1', potwierdzone: true, nazwa: 'Anna' }],
     });
-    await k.emulateMedia(MOTYW);
+    await k.emulateMedia({ colorScheme: MOTYW.colorScheme });
     await k.waitForSelector('#ekran-logowania', { state: 'visible' });
     await k.fill('#form-logowania input[name=email]', 'anna@przyklad.pl');
     await k.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');

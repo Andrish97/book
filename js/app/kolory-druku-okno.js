@@ -12,6 +12,7 @@ import {
   TRYBY_KOLOROW, hexSpotu, koloryDodatkowe, trybKolorow, koloryPozaTrybem, najblizszyDozwolony, przekolorujProjekt, zmienZapasSpotu,
   koloryWZakresie, zamienKolorWZakresie, mapaSpotow, uzyteKoloryDruku, sekcjaBiezaca,
 } from '../kolory-druku.js';
+import { wpiszNazwe } from '../jezyk.js';
 
 const dlg = $('#dlg-kolory-druku');
 const OPISY = {
@@ -63,7 +64,7 @@ function rysujUzyte() {
     const inp = li.querySelector('input');
     inp.value = kolor;
     inp.setAttribute('aria-label', `Zamień kolor ${nazwa}`);
-    li.querySelector('b').textContent = nazwa;
+    wpiszNazwe(li.querySelector('b'), nazwa);
     li.querySelector('small').textContent = `${ile} ${ile === 1 ? 'raz' : 'razy'}`;
     inp.addEventListener('change', async () => {
       const nowy = inp.value;

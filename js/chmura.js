@@ -676,17 +676,23 @@ async function publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, 
   let gotowe = 0;
   let wyslane = 0;
   // Opis w trakcie: strony już gotowe (nowe skróty) i jeszcze nie przerobione z poprzedniej publikacji.
+  // Odciski treści zapisują się też w opisie w trakcie (#331): przerwana publikacja (zamknięta karta, uśpiony telefon)
+  // nie zmusza następnej do rysowania wszystkich stron od nowa – strony już wysłane mają odcisk nowej treści,
+  // a te jeszcze nie przerobione – odcisk sprzed (ich obrazy się nie zmieniły).
   const zapiszOpis = async (koniec) => {
     const teraz = koniec ? skroty : { ...Object.fromEntries(strony.map((x) => [x.id, poprzednie[x.id]]).filter(([, v]) => v)), ...skroty };
     const brak = strony.some((x) => !teraz[x.id]);
-    const m = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano: new Date().toISOString(), v: Date.now(), uklad, skroty: teraz, rozszerzenie, ...(odciski && koniec ? { tresci: odciski } : {}), ...(!koniec && brak ? { przygotowanie: true, gotowe, wszystkie: strony.length } : {}) };
+    const tresci = !odciski ? null : koniec ? odciski
+      : Object.fromEntries(strony.map((x) => [x.id, skroty[x.id] ? odciski[x.id] : poprzednieTresci[x.id]]).filter(([, v]) => v));
+    const m = { format: 'seriodruk-podglad', wersja: 1, zaktualizowano: new Date().toISOString(), v: Date.now(), uklad, skroty: teraz, rozszerzenie, ...(tresci ? { tresci } : {}), ...(!koniec && brak ? { przygotowanie: true, gotowe, wszystkie: strony.length } : {}) };
     await r2.wyslij(BUCKET_PODGLADOW, `${folder}/manifest.json`, new Blob([JSON.stringify(m)], { type: 'application/json' }), { cache: 'no-cache' });
     return m;
   };
-  if (naLink) {
-    await zapiszOpis(false);
-    await naLink();
-  }
+  // Opis od razu (#331): nowy układ i makieta 3D są w linku zaraz po kliknięciu, a nie dopiero po przejściu
+  // wszystkich stron; strony, których obraz się nie zmienił, zostają z poprzedniej publikacji.
+  // (pełna publikacja bez linku – np. nowe hasło – nie pokazuje „w przygotowaniu”, dopóki stary opis jest dobry)
+  if (naLink || !pelna) await zapiszOpis(false);
+  if (naLink) await naLink();
   let ostatniOpis = Date.now();
   for (const s of strony) {
     if (odciski && poprzednie[s.id] && poprzednieTresci[s.id] === odciski[s.id]) {
@@ -702,7 +708,7 @@ async function publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, 
     }
     gotowe += 1;
     postep(gotowe, strony.length);
-    if (naLink && Date.now() - ostatniOpis > 3000 && gotowe < strony.length) { ostatniOpis = Date.now(); await zapiszOpis(false); }
+    if ((naLink || !pelna) && Date.now() - ostatniOpis > 3000 && gotowe < strony.length) { ostatniOpis = Date.now(); await zapiszOpis(false); }
   }
   // Obrazy stron usuniętych od poprzedniej aktualizacji.
   const potrzebne = new Set([...strony.map((s) => `${s.id}.${rozszerzenie}`), 'manifest.json']);

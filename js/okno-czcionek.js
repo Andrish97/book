@@ -8,6 +8,7 @@ import {
   CZCIONKI, ROZSZERZENIA_CZCIONEK, dodajCzcionkiDoProjektu, zarejestrujCzcionkiProjektu, nazwaOdmiany, uzyteCzcionki,
 } from './czcionki.js';
 import { mojeCzcionki, zapamietaj, zapomnij, dodajRodzineDoProjektu, kluczOdmiany } from './moje-czcionki.js';
+import { wpiszNazwe } from './jezyk.js';
 
 const probki = new Map(); // rodzina ze zbioru → nazwa, pod którą przeglądarka zna jej próbkę
 
@@ -71,7 +72,7 @@ export class OknoCzcionek {
       const li = document.createElement('li');
       li.dataset.rodzina = c.nazwa;
       li.innerHTML = '<span class="nazwa-rodziny"></span><span class="probka"></span><span class="opis"></span><button type="button" class="przycisk-ikona" data-ikona="pobierz"></button>';
-      li.querySelector('.nazwa-rodziny').textContent = c.nazwa;
+      wpiszNazwe(li.querySelector('.nazwa-rodziny'), c.nazwa);
       const pobierz = li.querySelector('button');
       pobierz.title = `Pobierz pliki czcionki ${c.nazwa}`;
       pobierz.setAttribute('aria-label', pobierz.title);

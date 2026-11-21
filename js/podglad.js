@@ -9,6 +9,7 @@
 import { rozwin } from './serie.js';
 import { $ } from './ui.js';
 import { ikona } from './ikony.js';
+import { wpiszNazwe } from './jezyk.js';
 
 const MAKS_PX = 1800; // górna granica szerokości renderowanego obrazu
 const MAKS_PX_ZOOM = 4096; // powiększona strona w prezentacji – ostra, ale bez zjadania pamięci
@@ -138,7 +139,7 @@ export class Podglad {
     this.uklad = uklad;
     this.zrodlo = zrodlo;
     const n = stronyUkladu(this.uklad).length;
-    $('#podglad-tytul').textContent = this.uklad.nazwa;
+    wpiszNazwe($('#podglad-tytul'), this.uklad.nazwa);
     $('#podglad-tytul').title = this.uklad.nazwa;
     $('#podglad-opis').textContent = `${n} ${odmianaStron(n)} · ${zrodlo.opis}`;
     this.buduj();
@@ -170,7 +171,7 @@ export class Podglad {
     this.uklad = uklad;
     this.zrodlo = zrodlo;
     const n = stronyUkladu(uklad).length;
-    $('#podglad-tytul').textContent = uklad.nazwa;
+    wpiszNazwe($('#podglad-tytul'), uklad.nazwa);
     $('#podglad-tytul').title = uklad.nazwa;
     $('#podglad-opis').textContent = `${n} ${odmianaStron(n)} · ${zrodlo.opis}`;
     this.buduj();
@@ -196,7 +197,7 @@ export class Podglad {
       const blok = document.createElement('section');
       blok.className = 'podglad-sekcja';
       const nag = document.createElement('h2');
-      nag.textContent = sekcja.nazwa;
+      wpiszNazwe(nag, sekcja.nazwa);
       // Jedna sekcja w projekcie – jej nazwa niczego nie mówi i zabiera miejsce (#103).
       nag.hidden = this.uklad.sekcje.length === 1;
       blok.append(nag);
