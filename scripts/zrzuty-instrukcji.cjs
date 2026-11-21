@@ -13,10 +13,12 @@ const { chromium, devices } = require('playwright');
 const { otworz: otworzZAtrapa, podlaczAtrape, zaloguj } = require('../tests/pomoc.cjs');
 
 const ADRES = process.argv[2] || 'http://localhost:8000/';
-// Drugi argument „ciemny” robi ten sam komplet w ciemnym motywie (img/instrukcja/ciemny/).
-const CIEMNY = process.argv[3] === 'ciemny';
-const KATALOG = path.join(__dirname, '..', 'img', 'instrukcja', ...(CIEMNY ? ['ciemny'] : []));
-// Język polski – aplikacja bierze język z przeglądarki (#219), a instrukcja jest po polsku.
+// Dalsze argumenty: „ciemny” – ten sam komplet w ciemnym motywie (img/instrukcja/ciemny/); „en” albo „uk” –
+// zrzuty w tym języku interfejsu (img/instrukcja/en/…, img/instrukcja/uk/…; #334, jak w Familiadzie).
+const CIEMNY = process.argv.slice(3).includes('ciemny');
+const JEZYK = process.argv.slice(3).find((a) => ['en', 'uk'].includes(a)) || 'pl';
+const KATALOG = path.join(__dirname, '..', 'img', 'instrukcja', ...(JEZYK !== 'pl' ? [JEZYK] : []), ...(CIEMNY ? ['ciemny'] : []));
+// Przeglądarka po polsku: skrypt klika po polskich napisach; język zrzutu włącza się tylko na czas zrzutu (naJezyk).
 const MOTYW = { colorScheme: CIEMNY ? 'dark' : 'light', locale: 'pl-PL' };
 if (require.main === module) require('node:fs').mkdirSync(KATALOG, { recursive: true });
 const WIDOK = { width: 1280, height: 800 };
@@ -27,26 +29,47 @@ const FAKE_KONFIG = "export const SUPABASE_URL = 'https://przyklad.supabase.co';
 // Reszta zrzutów powstaje na koncie w atrapie bazy z testów (tests/pomoc.cjs) – na przykładowych
 // projektach, bez łączenia z prawdziwą bazą.
 
+// Język interfejsu na czas zrzutu (tłumaczenie w locie, js/jezyk.js) – potem z powrotem polski.
+async function naJezyk(strona, j) {
+  if (JEZYK === 'pl') return;
+  await strona.evaluate(async (jj) => { try { await (await import(new URL('js/jezyk.js', location.href).href)).ustawJezyk(jj, { zapamietaj: false }); } catch { /* strona bez aplikacji */ } }, j);
+  await strona.waitForTimeout(150);
+}
+
 async function zrzut(strona, nazwa, opcje = {}) {
+  await naJezyk(strona, JEZYK);
   await strona.waitForTimeout(350);
   await strona.screenshot({ path: path.join(KATALOG, nazwa), ...opcje });
+  await naJezyk(strona, 'pl');
   console.log('✓', nazwa);
 }
 
 // Kadr (decyzja #114): wycinek ekranu wokół wskazanych elementów, z pomarańczową obwódką wokół miejsca,
 // które się klika. obszar, zaznacz – selektory Playwright (pierwszy pasujący widoczny element).
 async function kadr(strona, nazwa, { obszar, zaznacz = [], margines = 16 }) {
+  // Elementy szukane po polsku (selektory z napisami), mierzone już w języku zrzutu – napisy w innym języku
+  // mają inną długość (#334).
+  const znajdz = async (sel) => {
+    const el = await strona.locator(sel).locator('visible=true').first().elementHandle({ timeout: 30000 });
+    if (!el) throw new Error(`kadr ${nazwa}: brak ${sel}`);
+    return el;
+  };
+  const elObszaru = [];
+  for (const sel of [].concat(obszar)) elObszaru.push(await znajdz(sel));
+  const elZnacznikow = [];
+  for (const sel of [].concat(zaznacz)) elZnacznikow.push(await znajdz(sel));
+  await naJezyk(strona, JEZYK);
+  await elObszaru[0].scrollIntoViewIfNeeded();
   const ramki = [];
-  await strona.locator([].concat(obszar)[0]).locator('visible=true').first().scrollIntoViewIfNeeded();
-  for (const sel of [].concat(obszar)) {
-    const r = await strona.locator(sel).locator('visible=true').first().boundingBox();
-    if (!r) throw new Error(`kadr ${nazwa}: brak ${sel}`);
+  for (const el of elObszaru) {
+    const r = await el.boundingBox();
+    if (!r) throw new Error(`kadr ${nazwa}: element niewidoczny`);
     ramki.push(r);
   }
   const znaczniki = [];
-  for (const sel of [].concat(zaznacz)) {
-    const r = await strona.locator(sel).locator('visible=true').first().boundingBox();
-    if (!r) throw new Error(`kadr ${nazwa}: brak ${sel}`);
+  for (const el of elZnacznikow) {
+    const r = await el.boundingBox();
+    if (!r) throw new Error(`kadr ${nazwa}: znacznik niewidoczny`);
     znaczniki.push(r);
   }
   await strona.evaluate((lista) => {

@@ -11,6 +11,7 @@ import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
 import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
 import { czyCiemny } from './motyw.js';
+import { biezacyJezyk } from './jezyk.js';
 import { CZESCI, ROZDZIALY as ZRODLO } from './instrukcja-tresc.js';
 // Klawisze skrótu: „Ctrl++” to Ctrl i plus – plus jako klawisz nie może zniknąć przy dzieleniu (#174).
 const klawiszeSkrotu = (t) => t.split(/\+(?!$)/).map((k) => k || '+');
@@ -72,6 +73,7 @@ export class Instrukcja {
     this.zbudujSpis();
     // Zmiana motywu przy otwartej instrukcji podmienia zrzuty na pasujące.
     document.addEventListener('motyw', () => { if (this.dlg?.open) this.pokaz(this.indeks, { przewin: false }); });
+    document.addEventListener('jezyk', () => { if (this.dlg?.open) this.pokaz(this.indeks, { przewin: false }); }); // zrzuty w nowym języku (#334)
     this.szukaj?.addEventListener('input', () => this.filtruj(this.szukaj.value));
     this.wybor?.addEventListener('click', () => this.przelaczSpis());
     this.dlg.querySelector('[data-akcja="instrukcja-spis-zamknij"]')?.addEventListener('click', () => this.przelaczSpis(false));
@@ -232,9 +234,14 @@ export class Instrukcja {
   }
 
   stronaRozdzialu(r, i) {
-    const katalog = czyCiemny() ? 'img/instrukcja/ciemny/' : 'img/instrukcja/';
+    // Zrzuty w języku interfejsu (#334): img/instrukcja/<język>/[ciemny/]; gdy jakiegoś brakuje – polski.
+    const motyw = czyCiemny() ? 'ciemny/' : '';
+    const j = biezacyJezyk();
+    const katalog = `img/instrukcja/${j !== 'pl' ? `${j}/` : ''}${motyw}`;
+    const zapas = `img/instrukcja/${motyw}`;
     const html = r.sekcje.map((s) => `<section class="podrozdzial" id="${idSekcji(s.id)}" data-sekcja="${s.id}"><h2><small>${s.id}</small>${esc(s.tytul)}</h2>${s.html}</section>`).join('')
-      .replace(/src="img\/instrukcja\//g, `src="${katalog}`);
+      .replace(/src="img\/instrukcja\/([^"]+)"/g, (_, plik) => (katalog === zapas ? `src="${zapas}${plik}"`
+        : `src="${katalog}${plik}" onerror="this.onerror=null;this.src='${zapas}${plik}'"`));
     // Bez okruszków (#169): część i rozdział pokazuje już spis z boku, a na telefonie przycisk nad treścią.
     return `<header class="instrukcja-naglowek"><h1 class="instrukcja-h1"><small>${r.nr}.</small> ${esc(r.tytul)}</h1>`
       + (r.wstep ? `<p class="instrukcja-lead wstep-rozdzialu">${r.wstep}</p>` : '')
