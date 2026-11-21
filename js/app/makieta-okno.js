@@ -532,6 +532,12 @@ function ustawModel(model, { kamera = true } = {}) {
   const T = st.kartki.reduce((a, x) => a + x.d, 0);
   const wo = parametryWireO(T);
   const uwagi = [];
+  // Broszura zeszytowa (#322): arkusze składane na pół – strony w wielokrotności 4; zszywki spinają cienki zeszyt.
+  if (model === 'ksiazka_zeszytowa') {
+    const stron = st.kartki.length * 2;
+    if (stron % 4) uwagi.push(`Broszura zeszytowa ma ${stron} stron – arkusze składa się na pół, więc liczba stron musi być wielokrotnością 4. Brakujące strony będą puste.`);
+    if (stron > 64 || T > 6) uwagi.push(`Broszura ma ${stron} stron (ok. ${T.toFixed(1)} mm) – zszywki zwykle spinają do ok. 64 stron. Grubszą publikację lepiej oprawić klejem (miękka oprawa).`);
+  }
   if (spirala && wo.zaGruby) uwagi.push(`Blok ma ok. ${Math.round(T)} mm grubości – więcej niż mieści największy pierścień Wire-O (${wo.maks} mm). Makieta pokazuje największą spiralę; do druku podziel projekt na tomy albo wybierz oprawę klejoną.`);
   // Sekcja środka w innym formacie niż reszta bloku (#185) – np. wyklejka A4 bez ustawionego typu. Takiej strony
   // nie da się poprawnie złożyć w książkę: makieta mówi to wprost i prowadzi do ustawienia typu sekcji.

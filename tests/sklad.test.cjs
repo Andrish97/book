@@ -61,7 +61,7 @@ test('spójniki: jednoliterowe nie zostają na końcu wiersza; wyłączone – m
   }
   let byl = false;
   for (const szer of [30, 38, 45, 52, 61]) {
-    const z = await tekst(strona, { text, width: szer, spojniki: undefined });
+    const z = await tekst(strona, { text, width: szer, spojniki: undefined, zasady_pl: undefined });
     if (z.linie.slice(0, -1).some((l) => /\s[aiouwz]$/u.test(l.tekst))) byl = true;
   }
   assert.ok(byl, 'bez ustawienia spójnik zostaje czasem na końcu wiersza');
@@ -234,5 +234,65 @@ test('PDF: tekst z dzieleniem, inicjałem i tabulatorami z kropkami zostaje wekt
   }, DLUGI);
   assert.ok(wynik.rozmiar > 1000);
   assert.deepEqual(wynik.uwagi, [], 'żaden element nie trafił do PDF jako obraz');
+  assert.deepEqual(bledy, []);
+});
+
+// #323: polskie zasady składu – nie łamie po skrótach, inicjałach, między liczbą a jednostką/datą, przed myślnikiem.
+test('polskie zasady składu: skróty, inicjały, liczby z jednostkami i myślnik nie rozdzielone na granicy wierszy', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Zasady');
+  const TEKST = 'Spotkanie zaplanowano np. na 12 maja 2027 r. w sali nr 5, a prowadzi je dr J. Kowalski – ekspert od druku, który waży 82 kg i ma 10 000 książek oraz 25 % zniżki na kolejne wydanie.';
+  const { zasady, bez } = await strona.evaluate(async (tekstAkapitu) => {
+    const { edytor } = window.seriodruk;
+    const wyniki = { zasady: [], bez: [] };
+    for (const [klucz, zasady] of [['zasady', true], ['bez', false]]) {
+      for (let w = 40; w <= 110; w += 3) {
+        const o = edytor.dodajTekst(tekstAkapitu);
+        o.set({ width: w, fontSize: 3, zasady_pl: zasady || undefined, spojniki: zasady || undefined });
+        o.initDimensions();
+        wyniki[klucz].push(o._textLines.map((l) => l.join('')));
+        edytor.canvas.remove(o);
+      }
+    }
+    return wyniki;
+  }, TEKST);
+  const { powodWiazania } = await import('../js/zasady-skladu.js');
+  const zlamania = (uklady) => uklady.flatMap((linie) => linie.slice(0, -1).map((l, i) => {
+    const a = l.trim().split(/\s+/).at(-1); const b = linie[i + 1].trim().split(/\s+/)[0];
+    return powodWiazania(a, b) ? `${a} | ${b}` : null;
+  }).filter(Boolean));
+  assert.deepEqual(zlamania(zasady), [], 'z zasadami – żadnego zakazanego złamania');
+  assert.ok(zlamania(bez).length > 0, 'bez zasad – takie złamania się zdarzają (test coś sprawdza)');
+  // Treść bez zmian.
+  for (const linie of zasady) assert.equal(linie.join(' ').replace(/\s+/g, ' ').trim(), TEKST);
+  assert.deepEqual(bledy, []);
+});
+
+// #323: poprawki znaków i ostrzeżenia o składzie niezgodnym z zasadami.
+test('polskie zasady składu: „Popraw znaki” i ostrzeżenia o niezgodnościach', async (t) => {
+  const { poprawkiZnakow, uwagiZnakow } = await import('../js/zasady-skladu.js');
+  const zastosuj = (s) => { let w = s; for (const z of poprawkiZnakow(s)) w = w.slice(0, z.od) + z.na + w.slice(z.do); return w; };
+  assert.equal(zastosuj('Powiedział "tak" - i poszedł...  Dalej ( nawias ) , koniec .'), 'Powiedział „tak” – i poszedł… Dalej (nawias), koniec.');
+  assert.equal(zastosuj('Pole {imie} "zostaje"'), 'Pole {imie} „zostaje”');
+  assert.deepEqual(uwagiZnakow('Dobrze – „cytat”… i tyle.'), []);
+  assert.deepEqual(uwagiZnakow('Źle "cytat"...').map((u) => u.kod).sort(), ['cudzyslow', 'kropki']);
+
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Uwagi');
+  const wynik = await strona.evaluate(async () => {
+    const { edytor } = window.seriodruk;
+    const o = edytor.dodajTekst('Napisał "tak" - i poszedł...');
+    o.set({ width: 80, fontSize: 3 });
+    o.initDimensions();
+    edytor.przeliczOstrzezenia();
+    const przed = (edytor.ostrzezenia || []).filter((x) => x.id === o.id && x.typ === 'sklad_pl').length;
+    const ile = edytor.poprawZnaki(o);
+    edytor.przeliczOstrzezenia();
+    const po = (edytor.ostrzezenia || []).filter((x) => x.id === o.id && x.typ === 'sklad_pl').length;
+    return { przed, ile, po, text: o.text };
+  });
+  assert.equal(wynik.text, 'Napisał „tak” – i poszedł…');
+  assert.equal(wynik.ile, 4);
+  assert.equal(wynik.po, 0, 'po poprawce bez ostrzeżeń');
   assert.deepEqual(bledy, []);
 });

@@ -182,7 +182,7 @@ export function odlaczRamke(r) {
 
 // Właściwości tekstu wspólne dla całego wątku – tekst wygląda tak samo w każdej ramce.
 export const WSPOLNE_W_WATKU = ['auto_strony', 'fontFamily', 'fontSize', 'fill', 'lineHeight', 'charSpacing', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'textAlign', 'lista', 'styl', 'wielkosc_liter',
-  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'do_siatki', 'tabulatory'];
+  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'zasady_pl', 'wdowy', 'do_siatki', 'tabulatory'];
 
 // Kolejność czytania ramek: z góry na dół, a ramki leżące obok siebie – od lewej.
 export function kolejnoscCzytania(ramki) {

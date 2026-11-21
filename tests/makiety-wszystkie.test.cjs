@@ -13,7 +13,7 @@ const { otworz, nowyProjekt } = require('./pomoc.cjs');
 const PROJEKTY = [
   { nazwa: 'Książka twarda', szablon: 'ksiazka-twarda', modele: ['ksiazka_twarda'] },
   { nazwa: 'Książka miękka', szablon: 'ksiazka-miekka', modele: ['ksiazka_miekka', 'notes'] },
-  { nazwa: 'Broszura', szablon: 'broszura', modele: ['ksiazka_miekka'] },
+  { nazwa: 'Broszura', szablon: 'broszura', modele: ['ksiazka_zeszytowa'] },
   { nazwa: 'Kalendarz ścienny', szablon: 'kalendarz-scienny-plecy', modele: ['kalendarz_scienny', 'kalendarz_biurkowy'] },
   { nazwa: 'Kalendarz biurkowy', sekcja: 'kalendarz-biurkowy', modele: ['kalendarz_biurkowy', 'kalendarz_scienny'] },
   { nazwa: 'Zaproszenie', sekcja: 'zaproszenie', modele: ['kartka'] },

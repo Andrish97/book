@@ -81,6 +81,7 @@ const OPIS_OSTRZEZEN = {
   w_marginesie: 'Wchodzi w margines – może zostać przycięty.',
   nieznane_pole: 'Pole w klamrach nie pasuje do kolumny tabeli tej strony ani do pola dokumentu.',
   nie_miesci_sie: 'Tekst nie mieści się w ramce – dół zostanie ucięty.',
+  sklad_pl: 'Skład niezgodny z polskimi zasadami.',
 };
 
 
@@ -118,7 +119,7 @@ function renderujOstrzezenia(lista) {
     const li = document.createElement('li');
     li.innerHTML = '<span class="opis" role="button" tabindex="0" title="Zaznacz element"><strong></strong><span></span></span><button class="przycisk" title="To celowe – nie pokazuj ostrzeżenia dla tego elementu">Wycisz</button>';
     $('strong', li).textContent = o.obiekt;
-    $('.opis span', li).textContent = OPIS_OSTRZEZEN[o.typ];
+    $('.opis span', li).textContent = o.opis || OPIS_OSTRZEZEN[o.typ];
     $('.opis', li).addEventListener('click', () => edytor.zaznacz(o.id));
     $('.przycisk', li).addEventListener('click', () => {
       const obj = edytor.canvas.getObjects().find((x) => x.id === o.id);

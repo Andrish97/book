@@ -18,6 +18,7 @@ import { polaBezpieczne, STREFY } from './okladka.js';
 import { uwagiElementu, strefaWPunkcie } from './sekcje-specjalne.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
+import { uwagiSkladuTekstu, poprawkiZnakow } from './zasady-skladu.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
 import { odswiezAdresZasobu } from './zasoby.js';
 import { maObraz, moznaWstawicObraz, przygotujObrazyKsztaltow, ukladObrazu, ustawKadr, ustawZrodloObrazow } from './obraz-w-ksztalcie.js';
@@ -682,9 +683,27 @@ export class Edytor extends EventTarget {
       strokeWidth: 0, // domyślne 1 (= 1 mm) poszerzałoby ramkę obiektu
       // Skład (#131): spójniki nie zostają na końcu wiersza, wdowy i sieroty pilnowane przy przelewaniu.
       spojniki: true,
+      zasady_pl: true, // polskie zasady składu (#323)
       wdowy: 2,
     });
     return this._wstaw(t);
+  }
+
+  // Polskie zasady składu (#323): poprawki znaków w tekście (cudzysłowy, półpauzy, wielokropki, spacje) – z zachowaniem
+  // stylów fragmentów (zmiany od końca tekstu, przez removeChars/insertChars).
+  poprawZnaki(obj) {
+    const zmiany = poprawkiZnakow(obj.text);
+    if (!zmiany.length) return 0;
+    for (const z of zmiany) {
+      if (z.do > z.od) obj.removeChars(z.od, z.do);
+      if (z.na) obj.insertChars(z.na, null, z.od, z.od);
+    }
+    obj.initDimensions?.();
+    obj.dirty = true;
+    this.canvas.requestRenderAll();
+    this.oznaczZmiane();
+    this.ulozSkladStrony?.();
+    return zmiany.length;
   }
 
   // Długi tekst z pliku (#216): ramka na cały obszar w marginesach, z tekstem i stylami fragmentów, z dokładaniem
@@ -696,7 +715,7 @@ export class Edytor extends EventTarget {
       left: this.strony[this.aktywna].x + m.lewy, top: m.gora,
       width: Math.max(20, this.wydruk.szerokosc_mm - m.lewy - m.prawy),
       fontFamily: DOMYSLNA, fontSize: ptNaMm(rozmiarPt), lineHeight: 1.35, fill: '#1a1a1a', textAlign: 'justify',
-      strokeWidth: 0, spojniki: true, wdowy: 2,
+      strokeWidth: 0, spojniki: true, zasady_pl: true, wdowy: 2,
       styles: fabric.util.stylesFromArray(styles || [], text),
     });
     t.ramka_h = Math.max(20, h - m.gora - m.dol);
@@ -3503,6 +3522,11 @@ export class Edytor extends EventTarget {
       }
       if (typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });
       if (nieMiesciSie(o)) lista.push({ id: o.id, typ: 'nie_miesci_sie', obiekt: opisObiektu(o) });
+      // Polskie zasady składu (#323): złamania wierszy i znaki niezgodne z zasadami.
+      if (o.type === 'textbox') {
+        const sk = uwagiSkladuTekstu(o);
+        if (sk.length) lista.push({ id: o.id, typ: 'sklad_pl', obiekt: opisObiektu(o), opis: `Skład niezgodny z polskimi zasadami: ${sk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ')}.` });
+      }
       const nrStrony = this.strony.length > 1 ? this.stronaW(this._srodekObiektu(o).x) : 0;
       const nieznane = [...this._nieznanePola(o).map((p) => p.nazwa), ...polaZDanych(o).filter((n) => !this.znanePole(n, nrStrony))];
       if (nieznane.length) lista.push({ id: o.id, typ: 'nieznane_pole', obiekt: opisObiektu(o), pola: [...new Set(nieznane)] });

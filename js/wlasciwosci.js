@@ -21,6 +21,7 @@ import { toKod, domyslnyKod, uwagiKodu, EAN_NOMINAL } from './kod-obiekt.js';
 import { trescQR } from './kody.js';
 import { naglowkiProjektu, celeOdsylaczy, LICZENIE_PRZYPISOW, RODZAJE as RODZAJE_KSIAZKI } from './ksiazka.js';
 import { ikona } from './ikony.js';
+import { poprawkiZnakow, uwagiSkladuTekstu } from './zasady-skladu.js';
 import { uzyteCzcionki } from './kontrolki.js';
 import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU, rowneWStylu, stylZnakowyZFragmentu, zastosujStylZnakowy, stylZnakowyNaPozycji } from './style-tekstu.js';
@@ -1289,6 +1290,21 @@ export class PanelWlasciwosci {
       s.append(this.liczba('Najkrótszy dzielony wyraz', () => obj.dziel_min || 5, (v) => ustaw('dziel_min', Math.max(3, Math.min(15, Math.round(v)))), { jednostka: 'liter', krok: 1, min: 3 }));
       s.append(this.liczba('Najmniej liter przed łącznikiem', () => obj.dziel_przed || 2, (v) => ustaw('dziel_przed', Math.max(1, Math.min(6, Math.round(v)))), { jednostka: 'liter', krok: 1, min: 1 }));
       s.append(this.liczba('Najmniej liter po łączniku', () => obj.dziel_po || 2, (v) => ustaw('dziel_po', Math.max(1, Math.min(6, Math.round(v)))), { jednostka: 'liter', krok: 1, min: 1 }));
+    }
+    s.append(this.przelacznik('Polskie zasady składu', () => Boolean(obj.zasady_pl), (v) => ustaw('zasady_pl', v || undefined)));
+    s.append(this.wskazowka('Nie łamie wiersza po skrótach (np., tj., ul., dr…), inicjałach, między liczbą a jednostką lub datą i przed myślnikiem – jak w normach polskiego składu.'));
+    // Uwagi do składu tego tekstu i poprawka znaków jednym przyciskiem (#323).
+    const uwagiSk = uwagiSkladuTekstu(obj);
+    if (uwagiSk.length) s.append(this.wskazowka(`Niezgodne z zasadami: ${uwagiSk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ')}.`, true));
+    const poprawki = poprawkiZnakow(obj.text);
+    if (poprawki.length) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'przycisk maly';
+      b.textContent = `Popraw znaki (${poprawki.length})`;
+      b.title = 'Cudzysłowy „…”, półpauzy zamiast dywizów między spacjami, wielokropki, bez podwójnych spacji i spacji przed przecinkiem';
+      b.addEventListener('click', () => { this.edytor.poprawZnaki?.(obj); setTimeout(() => this.zbuduj()); });
+      s.append(b);
     }
     const spojniki = this.wybor('Spójniki na końcu wiersza', [
       ['', 'mogą zostać na końcu wiersza'],

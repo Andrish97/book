@@ -20,10 +20,11 @@
 // Właściwości każdego elementu: oblewanie: 'prostokat' | 'ksztalt' | 'skok', oblewanie_odstep (mm).
 
 import { miejscaPodzialu } from './dzielenie.js';
+import { powodWiazania } from './zasady-skladu.js';
 
 const PT = 25.4 / 72;
 
-export const POLA_SKLADU = ['dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory', 'do_siatki', 'bez_oblewania'];
+export const POLA_SKLADU = ['zasady_pl', 'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory', 'do_siatki', 'bez_oblewania'];
 
 function wplywaNaUklad(k) {
   const T = fabric.Textbox;
@@ -41,13 +42,18 @@ function spojnik(o, slowo) {
   const s = slowo.toLocaleLowerCase('pl');
   return SPOJNIKI_1.has(s) || (o.spojniki === 'dwuliterowe' && SPOJNIKI_2.has(s));
 }
+// Czy między wyrazami a i b nie wolno złamać wiersza: spójniki według ustawienia, a z polskimi zasadami składu
+// (#323) także skróty, inicjały, liczba z jednostką, datą albo dalszymi cyframi i myślnik na początku wiersza.
+function wiazane(o, a, b) {
+  return spojnik(o, a) || Boolean(o.zasady_pl && powodWiazania(a, b));
+}
 
 const inicjalAktywny = (o) => o.inicjal >= 2 && !(o.watek && o.watek_nr > 0 && (o.lacznik ?? '\n') !== '\n');
 const maTab = (o) => typeof o.text === 'string' && o.text.includes('\t');
 
 // Czy tekst potrzebuje składu (inaczej – zwykłe łamanie Fabric, bez żadnej zmiany).
 export function skladAktywny(o) {
-  return Boolean(o.dziel_wyrazy || o.spojniki || inicjalAktywny(o) || o._przeszkody?.length || o.tabulatory?.length || maTab(o));
+  return Boolean(o.zasady_pl || o.dziel_wyrazy || o.spojniki || inicjalAktywny(o) || o._przeszkody?.length || o.tabulatory?.length || maTab(o));
 }
 
 // ---------- Tabulatory ----------
@@ -295,8 +301,10 @@ function sklad(o, linieTekstu, szerokoscRamki) {
         }
         // Przeniesienie do następnego wiersza; spójniki z końca wiersza (także kilka pod rząd: „i w”)
         // idą razem ze słowem, o ile w wierszu zostaje coś przed nimi.
+        // (z polskimi zasadami – także skrót, inicjał, liczba z jednostką; myślnik nie zaczyna wiersza).
+        const tekstSlowa = (i) => zn.slice(slowa[i].od, slowa[i].do).join('');
         let j = k - 1;
-        while (j > 0 && slowa[j].od >= start && slowa[j - 1].do > start && spojnik(o, zn.slice(slowa[j].od, slowa[j].do).join(''))) j -= 1;
+        while (j > 0 && slowa[j].od >= start && slowa[j - 1].do > start && wiazane(o, tekstSlowa(j), tekstSlowa(j + 1))) j -= 1;
         if (j < k - 1) {
           const pierwszy = slowa[j + 1];
           zamknij(pierwszy.od - 1, false, pierwszy.od);

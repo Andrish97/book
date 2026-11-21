@@ -594,6 +594,7 @@ Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, 
 
 | Ustawienie | Co robi |
 |---|---|
+| **Polskie zasady składu** | Włączone w nowych tekstach. Wiersz nie łamie się po skrócie (np., tj., ul., dr…), po inicjale (J. Kowalski), między liczbą a jednostką, datą albo dalszymi cyframi (5 kg, 12 maja, 10 000), a myślnik nie zaczyna wiersza — jak w normach PN-83/P-55366 i PN-70/P-55036. Pod przełącznikiem są uwagi o miejscach niezgodnych z zasadami i przycisk **Popraw znaki**: cudzysłowy „…” zamiast prostych, półpauza (–) zamiast dywizu między spacjami, wielokropek (…) zamiast trzech kropek, bez podwójnych spacji i spacji przed przecinkiem — formatowanie fragmentów zostaje. |
 | **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad — wyjustowany tekst nie ma wtedy dziur. Obok ustawisz najkrótszy dzielony wyraz i ile liter zostaje przed łącznikiem i po nim. |
 | **Spójniki na końcu wiersza** | Pojedyncze **a, i, o, u, w, z** (albo też dwuliterowe: do, na, że…) przechodzą do następnego wiersza razem ze słowem, jak w polskim składzie. |
 | **Wdowy i sieroty** | Tekst płynący przez kilka ramek (rozdział „5.7 Kolumny i tekst przez kilka ramek”) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. |
@@ -601,6 +602,8 @@ Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, 
 | **Nie opływaj innych elementów** | Tekst leży na elementach z oblewaniem, zamiast je opływać (rozdział „5.12 Oblewanie tekstem”) — np. podpis na zdjęciu. |
 
 ![Skład akapitu we właściwościach tekstu](https://makietka.app/img/instrukcja/k-sklad-akapitu.png)
+
+**Ostrzeżenia o składzie.** Tekst niezgodny z polskimi zasadami (spójnik albo skrót na końcu wiersza, liczba oddzielona od jednostki, myślnik na początku wiersza, cudzysłów prosty, trzy kropki, podwójne spacje…) pojawia się w ostrzeżeniach edytora i w kontroli przed drukiem (rozdział „20.1 Lista uwag”) z przykładem miejsca. Ostrzeżenie dla celowego tekstu wyciszysz przyciskiem **Wycisz**.
 
 ### 5.10 Inicjał
 
@@ -1751,7 +1754,7 @@ Strony idą po kolei, rozkładówki stoją obok siebie. Strony serii mają podpi
 | **Kalendarz biurkowy** | Stoi na biurku na stojaku z grubej tektury; karty przewracają się przez górę na drugą stronę. |
 | **Pojedyncza kartka** | Ulotka, plakat, zaproszenie — leży na stole, przód i tył. |
 
-**Rodzaj dobrany do projektu.** Lista **Rodzaj** pokazuje na górze tylko to, czym projekt naprawdę jest — zwykle jeden rodzaj, najwyżej dwa: twarda okładka — **Książka – twarda oprawa**; miękka — książka albo notes na spirali; zeszytowa — broszura zeszytowa; bez okładki 12–14 kart albo kalendarz — kalendarz ścienny i biurkowy; jedna, dwie strony — kartka; inne bez okładki — notes albo książka. Pozostałe rodzaje są niżej, w grupie **Nie pasuje do projektu**: po wybraniu takiego makieta mówi, czego brakuje, i proponuje, co zrobić (np. zmienić oprawę na twardą, dodać okładkę albo zacząć od szablonu projektu; brakujące karty pokaże jako białe).
+**Rodzaj dobrany do projektu.** Lista **Rodzaj** pokazuje na górze tylko to, czym projekt naprawdę jest — zwykle jeden rodzaj, najwyżej dwa: twarda okładka — **Książka – twarda oprawa**; miękka — książka albo notes na spirali; zeszytowa — broszura zeszytowa; bez okładki 12–14 kart albo kalendarz — kalendarz ścienny i biurkowy; jedna, dwie strony — kartka; bez okładki do 64 stron w wielokrotności 4 — notes albo broszura zeszytowa; inne bez okładki — notes albo książka. Broszura zeszytowa ostrzega, gdy liczba stron nie jest wielokrotnością 4 albo gdy jest za gruba na zszywki (ponad ok. 64 strony). Pozostałe rodzaje są niżej, w grupie **Nie pasuje do projektu**: po wybraniu takiego makieta mówi, czego brakuje, i proponuje, co zrobić (np. zmienić oprawę na twardą, dodać okładkę albo zacząć od szablonu projektu; brakujące karty pokaże jako białe).
 
 | **Ulotka składana** | Z sekcji typu ulotka (rozdział „10.11 Sekcje specjalne: obwoluta, ulotka, kalendarze, wykrojniki, użytki”): złożona okładką do góry, rozkłada się panel po panelu (zwijana albo harmonijka), potem odwraca na stronę zewnętrzną. |
 |---|---|

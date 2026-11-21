@@ -18,6 +18,7 @@ export function domyslnyModel(projekt, liczbaStron, okladka) {
   if (/biurk/.test(nazwa)) return 'kalendarz_biurkowy';
   if (/kalend/.test(nazwa) || (liczbaStron >= 12 && liczbaStron <= 14)) return 'kalendarz_scienny';
   if (liczbaStron <= 2) return 'kartka';
+  if (liczbaStron % 4 === 0 && liczbaStron <= 64) return 'ksiazka_zeszytowa';
   return 'ksiazka_miekka';
 }
 
@@ -68,6 +69,8 @@ function pasujaceOgolne(projekt, ciag) {
   const kalendarz = typy.has('kalendarz') || typy.has('podkladka') || /kalend/i.test(projekt.nazwa || '') || (stron >= 12 && stron <= 14);
   if (kalendarz) return poziomo || /biurk/i.test(projekt.nazwa || '') ? ['kalendarz_biurkowy', 'kalendarz_scienny'] : ['kalendarz_scienny', 'kalendarz_biurkowy'];
   if (stron <= 2) return ['kartka'];
+  // Bez okładki, do 64 stron i wielokrotność 4 – zwykle broszura zeszytowa (okładka z tego samego papieru).
+  if (stron % 4 === 0 && stron <= 64) return ['notes', 'ksiazka_zeszytowa'];
   return ['notes', 'ksiazka_miekka'];
 }
 

@@ -5,6 +5,7 @@
 import { rozwin } from './serie.js';
 import { tekstyEgzemplarza, tabeleEgzemplarza } from './zlozenie.js';
 import { nieMiesciSie } from './tekst-ramka.js';
+import { uwagiSkladuTekstu } from './zasady-skladu.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { odmiana } from './ui.js';
 
@@ -18,6 +19,7 @@ const lista = (numery, ile = 8) => {
 // przerwij() → true kończy sprawdzanie wcześniej (np. zamknięto okno).
 export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { przerwij } = {}) {
   const wystapienia = new Map(); // id obiektu → { nazwa, strony, idStrony }
+  const sklad = new Map(); // id obiektu → { nazwa, strony, idStrony, powody: Map(opis → przykład) } (#323)
   const tabele = new Map(); // id tabeli → { nazwa, strony, idStrony, ile (największe wyjście poza stronę, mm) }
   let licznik = 0;
   for (const egz of ciag.egzemplarze) {
@@ -36,6 +38,14 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
       tabele.set(id, wpis);
     }
     for (const { obiekt, zrodlo, id } of await tekstyEgzemplarza(projekt, egz, ciag)) {
+      const uw = uwagiSkladuTekstu(obiekt);
+      if (uw.length) {
+        const tresc0 = (obiekt.nazwa || obiekt.text || '').replace(/\s+/g, ' ').trim();
+        const s = sklad.get(id) || { nazwa: tresc0.length > 30 ? `${tresc0.slice(0, 30)}…` : tresc0, strony: [], idStrony: zrodlo === 'strona' ? egz.strona.id : null, zWzorca: zrodlo === 'wzorzec', powody: new Map() };
+        s.strony.push(egz.indeks + 1);
+        for (const u of uw) if (!s.powody.has(u.opis)) s.powody.set(u.opis, u.przyklad || '');
+        sklad.set(id, s);
+      }
       if (!nieMiesciSie(obiekt)) continue;
       const tresc = (obiekt.nazwa || obiekt.text || '').replace(/\s+/g, ' ').trim();
       const wpis = wystapienia.get(id) || { nazwa: tresc.length > 30 ? `${tresc.slice(0, 30)}…` : tresc, strony: [], idStrony: zrodlo === 'strona' ? egz.strona.id : null, zWzorca: zrodlo === 'wzorzec' };
@@ -51,6 +61,9 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
   })), ...[...tabele].map(([idObiektu, t]) => ({
     rodzaj: 'tabela_poza_strona', strony: t.strony, idStrony: t.idStrony, idObiektu,
     opis: `Tabela${t.nazwa ? ` „${t.nazwa}”` : ''}${t.zWzorca ? ' (ze wzorca)' : ''} po wypełnieniu danymi wychodzi poza stronę (nawet o ${String(Math.round(t.ile * 10) / 10).replace('.', ',')} mm) – ${odmiana(new Set(t.strony).size, 'strona', 'strony', 'strony')} ${lista(t.strony)}.`,
+  })), ...[...sklad].map(([idObiektu, s]) => ({
+    rodzaj: 'sklad_pl', strony: s.strony, idStrony: s.idStrony, idObiektu,
+    opis: `Tekst „${s.nazwa}”${s.zWzorca ? ' (ze wzorca)' : ''} – skład niezgodny z polskimi zasadami: ${[...s.powody].map(([o, p]) => (p ? `${o} („${p}”)` : o)).join('; ')} – ${odmiana(new Set(s.strony).size, 'strona', 'strony', 'strony')} ${lista(s.strony)}.`,
   }))];
 }
 
