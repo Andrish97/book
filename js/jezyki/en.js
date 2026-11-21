@@ -1832,7 +1832,7 @@ export default {"– drukujemy gotowy PDF, więc data i adres strony nie powinny
 "Otwarto zgłoszenie ponownie":"Ticket reopened",
 "Otwieraj ją z ekranu początkowego jak zwykłą aplikację – na całym ekranie, bez paska przeglądarki.":"Open it from your home screen like a regular app – full screen, without the browser bar.",
 "Otwieranie projektu…":"Opening project…",
-"Otwórz":"Unlock",
+"Otwórz":"Open",
 "Otwórz GPT Makietka":"Open the Makietka GPT",
 "Otwórz klucze AI na tym urządzeniu":"Unlock AI keys on this device",
 "Otwórz klucze na tym urządzeniu":"Unlock keys on this device",

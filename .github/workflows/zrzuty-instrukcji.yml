@@ -1,7 +1,7 @@
 name: Zrzuty instrukcji
 
 # Po każdej zmianie wyglądu aplikacji na main robi od nowa zrzuty do instrukcji (img/instrukcja,
-# jasne i ciemne) na atrapie bazy z testów i zapisuje je na main, jeśli się zmieniły. Własny zapis
+# jasne i ciemne, po polsku, angielsku i ukraińsku) na atrapie bazy z testów i zapisuje je na main, jeśli się zmieniły. Własny zapis
 # robota nie uruchamia tego workflow drugi raz: pomija go warunek na autora i „[skip ci]”.
 
 on:
@@ -28,7 +28,7 @@ jobs:
   zrzuty:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 75
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,6 +55,18 @@ jobs:
 
       - name: Zrzuty ciemne
         run: node scripts/zrzuty-instrukcji.cjs http://localhost:8000/ ciemny
+
+      # Zrzuty w języku interfejsu (#334, #346): img/instrukcja/<język>/[ciemny/] – instrukcja po angielsku
+      # i ukraińsku pokazuje aplikację w swoim języku.
+      - name: Zrzuty po angielsku
+        run: |
+          node scripts/zrzuty-instrukcji.cjs http://localhost:8000/ en
+          node scripts/zrzuty-instrukcji.cjs http://localhost:8000/ en ciemny
+
+      - name: Zrzuty po ukraińsku
+        run: |
+          node scripts/zrzuty-instrukcji.cjs http://localhost:8000/ uk
+          node scripts/zrzuty-instrukcji.cjs http://localhost:8000/ uk ciemny
 
       - name: Zapis zmienionych zrzutów
         run: |
