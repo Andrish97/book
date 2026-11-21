@@ -438,3 +438,8 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 .siatka-wielokatow svg { width: 28px; height: 28px; }
 .siatka-wielokatow polygon { fill: var(--akcent-tlo); stroke: var(--tusz); stroke-width: 1.2; stroke-linejoin: round; }
 .menu-wielokata .podpowiedz-menu { margin: 6px 6px 2px; font-size: 12px; color: var(--cichy); }
+
+/* Pasek postępu na telefonie (zgłoszenie 21.11): u dołu jest pasek narzędzi – cienki pasek u góry, pod nagłówkiem. */
+@media (max-width: 760px) {
+  .postepy { top: calc(var(--pasek) + 6px + var(--bezp-gora)); bottom: auto; left: 50%; transform: translateX(-50%); width: min(340px, calc(100vw - 16px)); flex-direction: column; }
+}
