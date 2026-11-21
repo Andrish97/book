@@ -125,6 +125,8 @@ test('kilka zestawów marki (#211): dawny plik = jeden zestaw; nowy zestaw, wyb�
   const idMoja = await strona.evaluate(() => [...document.querySelectorAll('#marka-zestaw option')].find((o) => /Moja marka/.test(o.textContent)).value);
   await strona.selectOption('#marka-zestaw', idMoja);
   await strona.waitForFunction(() => globalThis.makietkaMarka?.kolory?.[0]?.kolor === '#1c2541');
+  // kolory zestawu zmieniają się chwilę przed zapamiętaniem go w projekcie – czekamy na jedno i drugie
+  await strona.waitForFunction((id) => window.seriodruk.stan.projekt.zestaw_marki === id, idMoja);
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.zestaw_marki), idMoja);
   assert.match(await strona.textContent('#marka-zestaw-opis'), /marką otwartego projektu/);
   assert.deepEqual(bledy, []);
