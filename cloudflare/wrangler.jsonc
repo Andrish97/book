@@ -7,13 +7,20 @@
   "name": "makietka-api",
   "main": "api-worker.js",
   "compatibility_date": "2025-10-01",
+  // @cloudflare/puppeteer (rysowanie na serwerze, #335) potrzebuje zgodności z Node.
+  "compatibility_flags": ["nodejs_compat"],
   "routes": [{ "pattern": "api.makietka.app", "custom_domain": true }],
   "workers_dev": false,
   "observability": { "enabled": true },
   "r2_buckets": [{ "binding": "PLIKI", "bucket_name": "makietka-files" }],
+  // Rysowanie stron linku na serwerze (#335, cloudflare/rysowanie.js): przeglądarka Cloudflare i kolejka na projekt.
+  "browser": { "binding": "PRZEGLADARKA" },
+  "durable_objects": { "bindings": [{ "name": "RYSOWANIE", "class_name": "Rysowanie" }] },
+  "migrations": [{ "tag": "rysowanie-v1", "new_sqlite_classes": ["Rysowanie"] }],
   "vars": {
     "SUPABASE_URL": "https://pganajmivwtstapnwsgv.supabase.co",
-    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq"
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq",
+    "APLIKACJA": "https://makietka.app"
   },
   // Co minutę przebieg kolejki maili (cloudflare/poczta.js, decyzja #95).
   "triggers": { "crons": ["* * * * *"] }

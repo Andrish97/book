@@ -1,0 +1,8 @@
+{
+  "name": "makietka-api",
+  "private": true,
+  "description": "Worker api.makietka.app – przekaźnik do bazy, pliki R2, poczta i rysowanie stron linku (Browser Rendering).",
+  "dependencies": {
+    "@cloudflare/puppeteer": "^1.4.0"
+  }
+}

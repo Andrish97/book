@@ -24,6 +24,10 @@
 // Limity plików – LIMITY niżej (jedno miejsce). Bez sekretów – klucz publikowalny bazy jest jawny.
 
 import { obsluzEmail, obsluzKontakt, przebiegKolejki, przebiegPowiadomien } from './poczta.js';
+import { obsluzRysowanie } from './rysowanie.js';
+
+// Kolejka rysowania linku na serwerze (Durable Object, #335) – klasa musi być wystawiona z głównego modułu.
+export { Rysowanie } from './rysowanie.js';
 
 export const CEL = 'https://pganajmivwtstapnwsgv.supabase.co';
 export const KLUCZ_PUBLICZNY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';
@@ -458,6 +462,14 @@ export default {
         return await obsluzEksport(zapytanie, env, u);
       } catch (e) {
         return json(500, { blad: `Błąd magazynu plików: ${e.message}` }, naglowkiCors(zapytanie, true));
+      }
+    }
+    // Rysowanie stron linku na serwerze (#335, cloudflare/rysowanie.js).
+    if (u.pathname.startsWith('/rysuj/')) {
+      try {
+        return await obsluzRysowanie(zapytanie, env, u, { json, naglowkiCors, tokenZZapytania, uzytkownik, dostep, linkChronionyWazny });
+      } catch (e) {
+        return json(500, { blad: `Błąd rysowania: ${e.message}` }, naglowkiCors(zapytanie, false));
       }
     }
     if (u.pathname.startsWith('/pliki/') || u.pathname.startsWith('/podglady/')) {

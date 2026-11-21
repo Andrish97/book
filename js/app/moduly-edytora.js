@@ -61,6 +61,7 @@ export const MODULY_EDYTORA = [
   'js/okno-czcionek.js',
   'js/pisownia-rdzen.js',
   'js/przyciaganie.js',
+  'js/publikacja-linku.js',
   'js/schowek-projektow.js',
   'js/skladanka-szablony.js',
   'js/skladanka.js',
