@@ -401,9 +401,28 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false, bezPodloz
 // oryginaly (pełne obrazy zamiast kopii roboczych – do eksportu).
 export async function renderujCel(projekt, cel, { szerokoscPx = 200, spad = true, ciag, format = 'png', jakosc = 0.88, oryginaly = false, bezPodloza = false } = {}) {
   const { plotno } = await plotnoCelu(projekt, cel, { szerokoscPx, spad, ciag, oryginaly, bezPodloza });
-  const url = plotno.toDataURL({ format, quality: jakosc });
-  plotno.dispose();
-  return url;
+  try {
+    // Wydajność (#344): gotowe, już narysowane płótno kodowane asynchronicznie (toBlob – poza głównym wątkiem).
+    // toDataURL Fabrica rysowało całą stronę drugi raz na nowym płótnie i kodowało ją w głównym wątku.
+    return await kodujPlotno(plotno.lowerCanvasEl || plotno.getElement(), format, jakosc);
+  } finally {
+    plotno.dispose();
+  }
+}
+
+// Obraz z płótna jako „data:” – kodowanie asynchroniczne, wynik taki sam jak toDataURL.
+export function kodujPlotno(el, format = 'png', jakosc = 0.88) {
+  const typ = `image/${format === 'jpg' ? 'jpeg' : format}`;
+  return new Promise((ok, blad) => {
+    if (!el.toBlob) { ok(el.toDataURL(typ, jakosc)); return; }
+    el.toBlob((blob) => {
+      if (!blob) { ok(el.toDataURL(typ, jakosc)); return; }
+      const r = new FileReader();
+      r.onload = () => ok(r.result);
+      r.onerror = () => blad(r.error);
+      r.readAsDataURL(blob);
+    }, typ, jakosc);
+  });
 }
 
 // Ta sama strona jako płótno z narysowaną treścią: `uzyj(plotno, obiekty)` dostaje je na czas pracy
