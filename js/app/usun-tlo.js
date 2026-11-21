@@ -123,7 +123,7 @@ $('#usun-tlo-zapisz').addEventListener('click', async () => {
     else if (maObraz(obj)) { const kadr = obj.obraz_kadr; await edytor.wstawObrazDoKsztaltu(obj, id); obj.obraz_kadr = kadr; edytor.canvas.requestRenderAll(); }
     panel.zbuduj();
     dlg.close();
-    powiadom(`Zapisano „${nazwa}”. Oryginał został w obrazach projektu.`);
+    powiadom(tt('usunTlo.zapisanoOryginalZostalW', { nazwa }));
   } catch (e) {
     powiadom(e.message || tt('usunTlo.nieUdaloSieZapisac'), true);
   } finally {
@@ -137,7 +137,7 @@ $('#usun-tlo-zapisz').addEventListener('click', async () => {
 export async function otworzUsuwanieTla(obj) {
   const zasob = obj?.zasob;
   if (!zasob || !stan.projekt?.zasoby?.[zasob]) { powiadom(tt('usunTlo.tenElementNieMa')); return; }
-  if (/svg/i.test(stan.projekt.zasoby[zasob].typ || '') || /\.svg$/i.test(stan.projekt.zasoby[zasob].nazwa || '')) { powiadom('Rysunek SVG ma już przezroczyste tło – usuń zbędne kształty po „Rozłóż rysunek na elementy”.'); return; }
+  if (/svg/i.test(stan.projekt.zasoby[zasob].typ || '') || /\.svg$/i.test(stan.projekt.zasoby[zasob].nazwa || '')) { powiadom(tt('usunTlo.rysunekSvgMaJuz')); return; }
   Object.assign(st, { obj, zasob, nazwa: stan.projekt.zasoby[zasob].nazwa, cofnij: [], dane: null, maska: null });
   $('#usun-tlo-cofnij').disabled = true;
   ustawTryb('rozdzka');
@@ -160,7 +160,7 @@ export async function otworzUsuwanieTla(obj) {
     st.dane = ctx.getImageData(0, 0, st.szer, st.wys).data;
     st.maska = new Uint8Array(st.szer * st.wys).fill(255);
     stanTekst(skala < 1
-      ? `Kliknij w tło, żeby je usunąć. Duże zdjęcie – nowy plik będzie miał ${st.szer} × ${st.wys} px.`
+      ? tt('usunTlo.kliknijWTloZeby2', { szer: st.szer, wys: st.wys })
       : tt('usunTlo.kliknijWTloZeby'));
     rysuj();
   } catch (e) {

@@ -1,9 +1,10 @@
 // Okno „Sprawdź przed drukiem”: uwagi do całego projektu, już po powieleniu serii.
 
-import { $, odmiana } from './ui.js';
+import { $ } from './ui.js';
 import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
+import { t } from './jezyk.js';
 
 // Wypełnia listę uwagami. Przy uwadze z numerami stron jest „Pokaż” – otwiera podgląd na pierwszej z tych
 // stron (już z danymi tego powielenia); przy uwadze o konkretnym elemencie także „Otwórz wzór” – stronę
@@ -57,15 +58,15 @@ export class OknoKontroli {
     };
     let uwagi = sprawdzProjekt(projekt, ciag);
     rysujUwagi(lista, uwagi, pokaz);
-    stan.textContent = `Sprawdzam, czy teksty mieszczą się w ramkach na ${ciag.egzemplarze.length} ${odmiana(ciag.egzemplarze.length, 'stronie', 'stronach', 'stronach')}…`;
+    stan.textContent = t('oknoKontroli.sprawdzamCzyTekstyMieszcza', { egzemplarzeIle: ciag.egzemplarze.length });
     this.okno.showModal();
     const teksty = await sprawdzMieszczenie(projekt, ciag, { przerwij: () => nr !== this.nr });
     if (nr !== this.nr) return;
     uwagi = [...uwagi, ...teksty];
     rysujUwagi(lista, uwagi, pokaz);
     stan.textContent = uwagi.length
-      ? `${uwagi.length} ${odmiana(uwagi.length, 'uwaga', 'uwagi', 'uwag')} do sprawdzenia. Żadna nie blokuje eksportu.`
-      : `Wszystko w porządku: ${ciag.egzemplarze.length} ${odmiana(ciag.egzemplarze.length, 'strona', 'strony', 'stron')} bez uwag.`;
+      ? t('oknoKontroli.doSprawdzeniaZadnaNie', { uwagiIle: uwagi.length })
+      : t('oknoKontroli.wszystkoWPorzadkuBez', { egzemplarzeIle: ciag.egzemplarze.length });
     this.uwagi = uwagi; // do testów
   }
 }

@@ -200,7 +200,7 @@ export class PanelWarstw {
     rozwin.className = 'warstwa-rozwin';
     rozwin.setAttribute('aria-expanded', String(otwarta));
     rozwin.setAttribute('aria-label', otwarta ? t('warstwy.zwinTabele') : t('warstwy.pokazKomorkiTabeli'));
-    rozwin.title = otwarta ? t('warstwy.zwinTabele') : `Pokaż komórki tabeli (${komorki.length})`;
+    rozwin.title = otwarta ? t('warstwy.zwinTabele') : t('warstwy.pokazKomorkiTabeli2', { komorkiIle: komorki.length });
     rozwin.textContent = otwarta ? '▾' : '▸';
     li.querySelector('.warstwa-typ').replaceWith(rozwin);
     if (!otwarta) return;
@@ -212,7 +212,7 @@ export class PanelWarstw {
       el.dataset.k = String(k.k);
       el.className = `warstwa w-grupie w-tabeli${k.pisana ? ' zaznaczona' : ''}${k.w !== wiersz ? ' nowy-wiersz' : ''}${w.ukryty ? ' ukryta' : ''}`;
       wiersz = k.w;
-      el.title = `Wiersz ${k.w + 1}, kolumna ${k.k + 1} – kliknij, żeby pisać w tej komórce`;
+      el.title = t('warstwy.wierszKolumnaKliknijZeby', { x: k.w + 1, x2: k.k + 1 });
       el.innerHTML = '<span class="warstwa-adres"></span><span class="warstwa-nazwa"></span>';
       el.querySelector('.warstwa-adres').textContent = `${k.w + 1}.${k.k + 1}`;
       const nazwa = el.querySelector('.warstwa-nazwa');
@@ -255,7 +255,7 @@ export class PanelWarstw {
       rozwin.className = 'warstwa-rozwin';
       rozwin.setAttribute('aria-expanded', String(otwarta));
       rozwin.setAttribute('aria-label', otwarta ? t('warstwy.zwinGrupe') : t('warstwy.pokazElementyGrupy'));
-      rozwin.title = otwarta ? t('warstwy.zwinGrupe') : `Pokaż elementy grupy (${w.dzieci.length})`;
+      rozwin.title = otwarta ? t('warstwy.zwinGrupe') : t('warstwy.pokazElementyGrupy2', { dzieciIle: w.dzieci.length });
       rozwin.textContent = otwarta ? '▾' : '▸';
       li.querySelector('.warstwa-typ').replaceWith(rozwin);
       if (!otwarta) continue;
@@ -285,7 +285,7 @@ export class PanelWarstw {
         const li = document.createElement('li');
         li.className = 'warstwa ze-wzorca';
         if (w.idWzorca) li.dataset.wzorzec = w.idWzorca;
-        li.title = `Element wzorca „${w.wzorzec}” – kliknij, żeby przejść do wzorca`;
+        li.title = t('warstwy.elementWzorcaKliknijZeby', { wzorzec: w.wzorzec });
         li.innerHTML = `<span class="warstwa-typ">${ikona(IKONY_TYPOW[w.typ] || 'prostokat', { rozmiar: 16 })}</span><span class="warstwa-nazwa"></span><small></small>`;
         li.querySelector('.warstwa-nazwa').textContent = w.opis;
         li.querySelector('small').textContent = `${w.wzorzec}${w.nad ? ' · nad treścią' : ''}`;

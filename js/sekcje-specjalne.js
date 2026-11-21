@@ -378,7 +378,7 @@ function geometriaWyklejki(projekt, sekcja, p) {
 export const ROLE_SEKCJI = {
   blok: { nazwa: 'Blok (środek książki)', opis: tt('sekcjeSpecjalne.stronySrodkaLiczaSie') },
   okladka: { nazwa: 'Okładka', opis: tt('sekcjeSpecjalne.okladkaZGrzbietemLiczonym') },
-  wyklejka: { nazwa: 'Wyklejka', opis: 'Arkusz łączący blok z twardą okładką: połowa na okładce, połowa to pierwsza albo ostatnia kartka. Własny papier, bez numerów stron.' },
+  wyklejka: { nazwa: 'Wyklejka', opis: tt('sekcjeSpecjalne.arkuszLaczacyBlokZ') },
   obwoluta: { nazwa: 'Obwoluta', opis: tt('sekcjeSpecjalne.papierowaOkladkaNaTwarda2') },
   wkladka: { nazwa: 'Wkładka', opis: tt('sekcjeSpecjalne.kartkiNaInnymPapierze') },
   podkladka: { nazwa: 'Podkładka / plecy', opis: tt('sekcjeSpecjalne.kartonPodKalendarzemAlbo') },
@@ -524,7 +524,7 @@ export const RODZAJE_SEKCJI = {
   },
   kalendarz: {
     nazwa: 'Kalendarz z datami',
-    opis: 'Sekcja „rok”: daty, dni tygodnia, numery tygodni i polskie święta (także ruchome) w danych – zmiana roku przelicza wszystko.',
+    opis: tt('sekcjeSpecjalne.sekcjaRokDatyDni'),
     domyslne: { rok: new Date().getFullYear() + 1, jednostka: 'miesiac', pierwszy: 'pn', swieta: 'pl', tabela: null, seria: null },
     normalizuj: (o, d) => ({
       rok: Math.round(liczbaLub(o.rok, d.rok, 1900, 2200)), jednostka: zListy(o.jednostka, ['dzien', 'tydzien', 'miesiac'], d.jednostka),
@@ -559,7 +559,7 @@ export const RODZAJE_SEKCJI = {
   },
   wyklejka: {
     nazwa: 'Wyklejka',
-    opis: 'Przednia albo tylna wyklejka twardej oprawy: arkusz z dwóch kartek formatu bloku – połowa na okładce, połowa to luźna kartka. Własny papier, bez numerów stron.',
+    opis: tt('sekcjeSpecjalne.przedniaAlboTylnaWyklejka'),
     domyslne: { strona: 'przednia', zadruk: 'jednostronny', gramatura: 140 },
     normalizuj: (o, d) => ({
       strona: zListy(o.strona, ['przednia', 'tylna'], d.strona), zadruk: zListy(o.zadruk, ['czysta', 'jednostronny', 'dwustronny'], d.zadruk),
@@ -569,7 +569,7 @@ export const RODZAJE_SEKCJI = {
   },
   skladanka: {
     nazwa: 'Składanka / wycinanka',
-    opis: 'Arkusze z częściami modelu z papieru: zakładki, zgięcia, miejsca klejenia z numerami par, szczeliny – z grubością materiału.',
+    opis: tt('sekcjeSpecjalne.arkuszeZCzesciamiModelu'),
     domyslne: { arkusz: 'A4', arkusz_szer_mm: 320, arkusz_wys_mm: 450, orientacja: 'pionowa', material: 'karton', gramatura: 250, grubosc_mm: 0.33, druk: 'domowy', druga_strona: 'brak', margines_mm: 5 },
     normalizuj: (o, d) => {
       const material = zListy(o.material, Object.keys(MATERIALY), d.material);
@@ -806,20 +806,20 @@ export function opisSpecjalnej(sekcja) {
   if (!p) return '';
   if (p.rodzaj === 'kalendarz') {
     const ile = wierszeKalendarza(p).length;
-    return `Rok ${p.rok}: ${ile} ${p.jednostka === 'dzien' ? 'dni' : p.jednostka === 'tydzien' ? 'tygodni' : 'miesięcy'} w danych${p.swieta === 'pl' ? ', ze świętami' : ''}.`;
+    return tt('sekcjeSpecjalne.rokWDanych', { rok: p.rok, ile, x: p.jednostka === 'dzien' ? 'dni' : p.jednostka === 'tydzien' ? 'tygodni' : tt('sekcjeSpecjalne.miesiecy'), x2: p.swieta === 'pl' ? tt('sekcjeSpecjalne.zeSwietami') : '' });
   }
   const w = p.wynik;
   if (!w) return '';
   const rozmiar = `${mm(w.szerokosc)} × ${mm(w.wysokosc)} mm`;
-  if (p.rodzaj === 'obwoluta') return `Obwoluta ${rozmiar}: grzbiet ${mm(w.ksiazka.grzbiet)} mm, płyta ${mm(w.ksiazka.panel)} × ${mm(w.ksiazka.wysokosc)} mm${w.ksiazka.zOkladki ? ' (z okładki projektu)' : ` (liczona dla ${w.ksiazka.stron} stron środka)`}.`;
-  if (p.rodzaj === 'ulotka') return `Arkusz ${rozmiar}, ${p.panele} panele${p.zlozenie === 'c' && p.panele > 2 ? ` (zwijana: panele ${w.panele.map(mm).join(' / ')} mm)` : ''}, strona zewnętrzna i wewnętrzna.`;
-  if (p.rodzaj === 'trojdzielny') return `Kalendarz ${rozmiar}: główka ${mm(p.glowka_mm)} mm, 3 kalendaria po ${mm(p.kalendarium_mm)} mm${p.reklama_mm ? `, pasek reklamowy ${mm(p.reklama_mm)} mm` : ''}.`;
-  if (p.rodzaj === 'wykrojnik') return `Rozkładówka ${rozmiar}; po złożeniu ${mm(w.zlozona.w)} × ${mm(w.zlozona.h)}${w.zlozona.g ? ` × ${mm(w.zlozona.g)}` : ''} mm. Wykrojnik w PDF jako osobny kolor „CutContour”.`;
-  if (p.rodzaj === 'wyklejka') return `Wyklejka ${p.strona} ${rozmiar} (dwie kartki formatu bloku), papier ${p.gramatura} g/m²${p.zadruk === 'czysta' ? ', bez zadruku' : p.zadruk === 'dwustronny' ? ', zadruk dwustronny' : ''}. Bez numerów stron; luźna kartka liczy się do grzbietu.`;
-  if (p.rodzaj === 'skladanka') return `Arkusz ${rozmiar}, ${MATERIALY[p.material].nazwa.toLowerCase()}${MATERIALY[p.material].mikron ? ` ${p.gramatura} g/m²` : ''} – grubość ${mm(p.grubosc_mm)} mm (szczeliny i zakładki ją uwzględniają); ${p.druk === 'domowy' ? `druk domowy – linie cięcia i zgięć drukowane, margines drukarki ${mm(p.margines_mm)} mm` : 'drukarnia z ploterem – linie cięcia, zgięć i kleju jako osobne kolory'}${p.druga_strona === 'druk' ? '; druk z obu stron' : p.druga_strona === 'klej' ? '; druga strona tylko na miejsca klejenia (bez druku)' : ''}.`;
+  if (p.rodzaj === 'obwoluta') return tt('sekcjeSpecjalne.obwolutaGrzbietMmPlyta', { rozmiar, mm: mm(w.ksiazka.grzbiet), mm2: mm(w.ksiazka.panel), mm3: mm(w.ksiazka.wysokosc), x: w.ksiazka.zOkladki ? tt('sekcjeSpecjalne.zOkladkiProjektu') : tt('sekcjeSpecjalne.liczonaDlaStronSrodka', { stron: w.ksiazka.stron }) });
+  if (p.rodzaj === 'ulotka') return tt('sekcjeSpecjalne.arkuszPaneleStronaZewnetrzna', { rozmiar, panele: p.panele, x: p.zlozenie === 'c' && p.panele > 2 ? tt('sekcjeSpecjalne.zwijanaPaneleMm', { join: w.panele.map(mm).join(' / ') }) : '' });
+  if (p.rodzaj === 'trojdzielny') return tt('sekcjeSpecjalne.kalendarzGlowkaMm3', { rozmiar, mm: mm(p.glowka_mm), mm2: mm(p.kalendarium_mm), x: p.reklama_mm ? tt('sekcjeSpecjalne.pasekReklamowyMm', { mm: mm(p.reklama_mm) }) : '' });
+  if (p.rodzaj === 'wykrojnik') return tt('sekcjeSpecjalne.rozkladowkaPoZlozeniuMm', { rozmiar, mm: mm(w.zlozona.w), mm2: mm(w.zlozona.h), x: w.zlozona.g ? ` × ${mm(w.zlozona.g)}` : '' });
+  if (p.rodzaj === 'wyklejka') return tt('sekcjeSpecjalne.wyklejkaDwieKartkiFormatu', { strona: p.strona, rozmiar, gramatura: p.gramatura, x: p.zadruk === 'czysta' ? tt('sekcjeSpecjalne.bezZadruku') : p.zadruk === 'dwustronny' ? tt('sekcjeSpecjalne.zadrukDwustronny') : '' });
+  if (p.rodzaj === 'skladanka') return tt('sekcjeSpecjalne.arkuszGruboscMmSzczeliny', { rozmiar, toLowerCase: MATERIALY[p.material].nazwa.toLowerCase(), x: MATERIALY[p.material].mikron ? ` ${p.gramatura} g/m²` : '', mm: mm(p.grubosc_mm), x2: p.druk === 'domowy' ? tt('sekcjeSpecjalne.drukDomowyLinieCiecia', { mm: mm(p.margines_mm) }) : tt('sekcjeSpecjalne.drukarniaZPloteremLinie'), x3: p.druga_strona === 'druk' ? tt('sekcjeSpecjalne.drukZObuStron') : p.druga_strona === 'klej' ? tt('sekcjeSpecjalne.drugaStronaTylkoNa') : '' });
   if (p.rodzaj === 'arkusz') {
     const u = w.uzytki;
-    return `Użytek ${rozmiar}; na arkuszu ${mm(u.arkusz.w)} × ${mm(u.arkusz.h)} mm mieści się ${u.kolumny} × ${u.wiersze} = ${u.na_arkuszu}.`;
+    return tt('sekcjeSpecjalne.uzytekNaArkuszuMm', { rozmiar, mm: mm(u.arkusz.w), mm2: mm(u.arkusz.h), kolumny: u.kolumny, wiersze: u.wiersze, na_arkuszu: u.na_arkuszu });
   }
   return rozmiar;
 }
@@ -870,21 +870,21 @@ export function uwagiSekcjiSpecjalnych(projekt, ciag) {
   const ileWyklejek = (projekt.sekcje || []).filter((s) => rolaSekcji(projekt, s) === 'wyklejka');
   if (twarda && (!wyk.przednia || !wyk.tylna)) {
     const brak = [!wyk.przednia && 'przedniej', !wyk.tylna && 'tylnej'].filter(Boolean).join(' i ');
-    uwagi.push({ rodzaj: 'specjalna', idSekcji: twarda.id, naprawa: 'wyklejki', opis: `Twarda oprawa bez wyklejki ${brak}. Wyklejka łączy blok z okładką – dodaj ją (może zostać czysta) albo potwierdź z drukarnią, że użyje własnej.` });
+    uwagi.push({ rodzaj: 'specjalna', idSekcji: twarda.id, naprawa: 'wyklejki', opis: tt('sekcjeSpecjalne.twardaOprawaBezWyklejki', { brak }) });
   }
-  if (!twarda && ileWyklejek.length) uwagi.push({ rodzaj: 'specjalna', idSekcji: ileWyklejek[0].id, opis: 'Projekt ma wyklejkę, a nie ma okładki twardej – wyklejki są tylko w twardej oprawie. Zmień oprawę okładki albo usuń wyklejkę.' });
+  if (!twarda && ileWyklejek.length) uwagi.push({ rodzaj: 'specjalna', idSekcji: ileWyklejek[0].id, opis: tt('sekcjeSpecjalne.projektMaWyklejkeA') });
   for (const strona of ['przednia', 'tylna']) {
     const lista = ileWyklejek.filter((s) => typSekcji(s) === `wyklejka_${strona}`);
-    if (lista.length > 1) uwagi.push({ rodzaj: 'specjalna', idSekcji: lista[1].id, opis: `Projekt ma ${lista.length} wyklejki ${strona === 'przednia' ? 'przednie' : 'tylne'} – książka ma jedną przednią i jedną tylną.` });
+    if (lista.length > 1) uwagi.push({ rodzaj: 'specjalna', idSekcji: lista[1].id, opis: tt('sekcjeSpecjalne.projektMaWyklejkiKsiazka', { listaIle: lista.length, x: strona === 'przednia' ? 'przednie' : 'tylne' }) });
   }
   for (const sekcja of projekt.sekcje || []) {
     const p = sekcja.specjalna;
     if (!p?.wynik) continue;
     const w = p.wynik;
     const egz = (ciag?.egzemplarze || []).filter((e) => e.sekcja?.id === sekcja.id && !e.pusta);
-    if (p.rodzaj === 'ulotka' && egz.length > 2) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, opis: `Ulotka „${sekcja.nazwa}” ma ${egz.length} stron – drukuje się arkusz z dwiema stronami (zewnątrz i środek). Nadmiarowe strony usuń albo przenieś do innej sekcji.` });
-    if (p.rodzaj === 'obwoluta' && !w.ksiazka?.zOkladki) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, opis: `Obwoluta „${sekcja.nazwa}” jest liczona dla twardej oprawy ${w.ksiazka?.stron ?? 0} stron środka – projekt nie ma okładki twardej. Sprawdź grzbiet z drukarnią.` });
-    if (p.rodzaj === 'arkusz' && !w.uzytki?.na_arkuszu) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, opis: `Użytek „${sekcja.nazwa}” nie mieści się na wybranym arkuszu – wybierz większy arkusz albo mniejszy użytek.` });
+    if (p.rodzaj === 'ulotka' && egz.length > 2) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, opis: tt('sekcjeSpecjalne.ulotkaMaStronDrukuje', { nazwa: sekcja.nazwa, egzIle: egz.length }) });
+    if (p.rodzaj === 'obwoluta' && !w.ksiazka?.zOkladki) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, opis: tt('sekcjeSpecjalne.obwolutaJestLiczonaDla', { nazwa: sekcja.nazwa, x: w.ksiazka?.stron ?? 0 }) });
+    if (p.rodzaj === 'arkusz' && !w.uzytki?.na_arkuszu) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, opis: tt('sekcjeSpecjalne.uzytekNieMiesciSie', { nazwa: sekcja.nazwa }) });
     const naZgieciu = [];
     const poza = [];
     egz.forEach((e, i) => {
@@ -898,8 +898,8 @@ export function uwagiSekcjiSpecjalnych(projekt, ciag) {
       }
     });
     const numery = (l) => [...new Set(l)].sort((a, b) => a - b);
-    if (naZgieciu.length) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, strony: numery(naZgieciu), opis: `„${sekcja.nazwa}”: tekst leży na zgięciu albo perforacji – po złożeniu zostanie przełamany.` });
-    if (poza.length) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, strony: numery(poza), opis: `„${sekcja.nazwa}”: element leży poza linią wykrojnika – zostanie wycięty.` });
+    if (naZgieciu.length) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, strony: numery(naZgieciu), opis: tt('sekcjeSpecjalne.tekstLezyNaZgieciu', { nazwa: sekcja.nazwa }) });
+    if (poza.length) uwagi.push({ rodzaj: 'specjalna', idSekcji: sekcja.id, strony: numery(poza), opis: tt('sekcjeSpecjalne.elementLezyPozaLinia', { nazwa: sekcja.nazwa }) });
   }
   return uwagi;
 }

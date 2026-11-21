@@ -161,11 +161,11 @@ function pokazSzczegoly(id) {
   wp.hidden = !s.format || Boolean(tryb.nowy); // nowy projekt: zawsze w formacie szablonu
   if (s.format) {
     const cel = wydrukCelu();
-    $('#gotowe-format-opis').textContent = `Format szablonu ${s.format[0]} × ${s.format[1]} mm${cel ? ` (bez zaznaczenia – format sekcji ${cel.szerokosc_mm} × ${cel.wysokosc_mm} mm)` : ''}`;
+    $('#gotowe-format-opis').textContent = tt('gotoweSekcjeOkno.formatSzablonuMm', { x: s.format[0], x2: s.format[1], x3: cel ? tt('gotoweSekcjeOkno.bezZaznaczeniaFormatSekcji', { szerokosc_mm: cel.szerokosc_mm, wysokosc_mm: cel.wysokosc_mm }) : '' });
     $('#gotowe-wlasny-format').checked = true;
   }
   if (!$('#gotowe-paleta').value) $('#gotowe-paleta').value = marka() ? 'marka' : '';
-  $('#gotowe-paleta').querySelector('option[value=""]').textContent = `Kolory szablonu (${PALETY[s.paleta]?.nazwa || 'domyślne'})`;
+  $('#gotowe-paleta').querySelector('option[value=""]').textContent = tt('gotoweSekcjeOkno.kolorySzablonu', { x: PALETY[s.paleta]?.nazwa || tt('gotoweSekcjeOkno.domyslne') });
   odswiezPodglad();
   $('#gotowe-wstaw').focus();
 }
@@ -193,7 +193,7 @@ function odswiezPodglad() {
       const sek = p.sekcje.at(-1);
       if (tryb.nowy) {
         const blok = p.sekcje.find((x) => x.typ === 'blok') || sek;
-        $('#gotowe-podsumowanie').textContent = `${sekcjeSzablonu(s, odpowiedzi()).join(' · ')} · razem ${stronSlowo(egz.length)} · ${Math.round(blok.wydruk.szerokosc_mm)} × ${Math.round(blok.wydruk.wysokosc_mm)} mm`;
+        $('#gotowe-podsumowanie').textContent = tt('gotoweSekcjeOkno.razemMm', { join: sekcjeSzablonu(s, odpowiedzi()).join(' · '), stronSlowo: stronSlowo(egz.length), round: Math.round(blok.wydruk.szerokosc_mm), round2: Math.round(blok.wydruk.wysokosc_mm) });
         return;
       }
       $('#gotowe-podsumowanie').textContent = `${egz.length} ${egz.length === 1 ? 'strona' : egz.length < 5 ? 'strony' : 'stron'} · ${Math.round(sek.wydruk.szerokosc_mm)} × ${Math.round(sek.wydruk.wysokosc_mm)} mm${s.dane ? ' · strony z tabeli danych (do zmiany w oknie Dane)' : ''}`;
@@ -226,10 +226,10 @@ async function wstaw() {
       const projekt = await zbudujProjekt(s.id, { ...opcje, nazwa: nazwa() || s.nazwa });
       okno().close('szablon');
       await utworz(projekt);
-      powiadom(`Utworzono projekt z szablonu „${s.nazwa}”: ${sekcjeSzablonu(s, opcje.odpowiedzi).join(', ')}.`);
+      powiadom(tt('gotoweSekcjeOkno.utworzonoProjektZSzablonu', { nazwa: s.nazwa, join: sekcjeSzablonu(s, opcje.odpowiedzi).join(', ') }));
     } catch (e) {
       console.error(e);
-      powiadom(`Nie udało się utworzyć projektu: ${e.message}`, true);
+      powiadom(tt('gotoweSekcjeOkno.nieUdaloSieUtworzyc', { message: e.message }), true);
     } finally { przycisk.disabled = false; }
     return;
   }
@@ -254,7 +254,7 @@ async function wstaw() {
   generujMiniatury();
   zaplanujZapis();
   const zDanymi = s.dane ? ' Treść stron bierze się z tabeli danych – zmienisz ją w oknie Dane.' : '';
-  powiadom(`Wstawiono sekcję „${sekcja.nazwa}”. Cofnij (Ctrl+Z), jeśli to nie to.${zDanymi}`);
+  powiadom(tt('gotoweSekcjeOkno.wstawionoSekcjeCofnijCtrl', { nazwa: sekcja.nazwa, zDanymi }));
 }
 
 // ---------- Otwieranie ----------
@@ -286,7 +286,7 @@ function przygotuj() {
   pole.placeholder = tryb.nowy ? tt('gotoweSekcjeOkno.szukajKsiazkaPlanerKalendarz') : tt('gotoweSekcjeOkno.szukajKalendarzDyplomMenu');
   $('#gotowe-wstaw').textContent = tryb.nowy ? tt('gotoweSekcjeOkno.utworzProjektZTym') : tt('gotoweSekcjeOkno.wstawJakoNowaSekcje');
   galeria.querySelector('.gotowe-wstep').textContent = tryb.nowy
-    ? 'Szablony całych projektów: od razu wszystkie sekcje z ustawieniami – okładka, wyklejki, blok z krotnością stron – gotowe do druku i makiety 3D.'
+    ? tt('gotoweSekcjeOkno.szablonyCalychProjektowOd')
     : tt('gotoweSekcjeOkno.caleGotoweDokumentyKalendarze');
 }
 

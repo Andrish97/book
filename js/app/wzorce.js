@@ -38,7 +38,7 @@ export async function dodajWzorzec() {
   projekt.wzorce.push(w);
   // Nowy wzorzec od razu działa w bieżącej sekcji – najczęstszy przypadek.
   sekcja.wzorce = [...sekcja.wzorce, w.id];
-  powiadom(`Wzorzec będzie widoczny na stronach sekcji „${sekcja.nazwa}”. Zmienisz to w panelu z prawej.`);
+  powiadom(t('wzorce.wzorzecBedzieWidocznyNa', { nazwa: sekcja.nazwa }));
   await edytujWzorzec(w.id);
   zaplanujZapis();
 }
@@ -67,8 +67,8 @@ export async function usunWzorzec(id) {
   const w = projekt.wzorce.find((x) => x.id === id);
   const n = stronyZWzorcem(projekt, id).length;
   const ok = await potwierdz(
-    `Usunąć wzorzec „${w.nazwa}”?`,
-    n ? `Zniknie ze ${n} stron, które go używają. Ich własna treść zostanie.` : t('wzorce.wzorzecNieJestNigdzie'),
+    t('wzorce.usunacWzorzec', { nazwa: w.nazwa }),
+    n ? t('wzorce.zniknieZeStronKtore', { n }) : t('wzorce.wzorzecNieJestNigdzie'),
     t('wzorce.usunWzorzec'),
     true,
   );
@@ -87,7 +87,7 @@ export async function usunWzorzec(id) {
     await zaladujCel();
   }
   zaplanujZapis();
-  powiadom(`Usunięto wzorzec „${w.nazwa}”.`, false, { etykieta: t('wzorce.cofnij'), fn: () => cofnijKrok(-1) });
+  powiadom(t('wzorce.usunietoWzorzec', { nazwa: w.nazwa }), false, { etykieta: t('wzorce.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 // Kolejność wzorców: pierwszy na liście leży najniżej na stronie.
@@ -129,7 +129,7 @@ export function otworzWzorce() {
       li.querySelector('small').textContent = w.opis;
       const b = li.querySelector('button');
       b.dataset.standard = w.klucz;
-      b.title = `Dodaj wzorzec „${w.nazwa}” do stron sekcji „${sekcja.nazwa}”`;
+      b.title = t('wzorce.dodajWzorzecDoStron', { nazwa: w.nazwa, nazwa2: sekcja.nazwa });
       b.setAttribute('aria-label', b.title);
       // Podgląd schematyczny w formacie sekcji i kolorach marki (#164) – miniatura prawdziwej strony była
       // za mała, żeby rozpoznać numer czy stopkę; tu elementy wzorca są wyraźne, treść strony blada.
@@ -164,7 +164,7 @@ export async function dodajWzorzecStandardowy(klucz, { doSekcji = true } = {}) {
   renderujListe();
   generujMiniatury();
   zaplanujZapis();
-  powiadom(doSekcji ? `Wzorzec „${nazwa}” jest teraz na wszystkich stronach sekcji „${sekcja.nazwa}”.` : `Dodano wzorzec „${nazwa}”.`, false, { etykieta: t('wzorce.cofnij'), fn: () => cofnijKrok(-1) });
+  powiadom(doSekcji ? t('wzorce.wzorzecJestTerazNa', { nazwa, nazwa2: sekcja.nazwa }) : t('wzorce.dodanoWzorzec', { nazwa }), false, { etykieta: t('wzorce.cofnij'), fn: () => cofnijKrok(-1) });
   return w;
 }
 

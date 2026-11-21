@@ -229,18 +229,18 @@ export class Konto {
     const { tryb } = this;
     // Logowanie: adres e-mail albo nazwa użytkownika (#192).
     if (tryb === 'logowanie' && !email) { this.komunikat(tt('konto.podajAdresEMail')); return; }
-    if (tryb === 'logowanie' && !email.includes('@') && !poprawnaNazwa(email)) { this.komunikat('Podaj poprawny adres e-mail albo nazwę użytkownika.'); return; }
+    if (tryb === 'logowanie' && !email.includes('@') && !poprawnaNazwa(email)) { this.komunikat(tt('konto.podajPoprawnyAdresE2')); return; }
     if (tryb !== 'nowe-haslo' && tryb !== 'logowanie' && !poprawnyEmail(email)) { this.komunikat(tt('konto.podajPoprawnyAdresE')); return; }
     if (tryb === 'logowanie' && email.includes('@') && !poprawnyEmail(email)) { this.komunikat(tt('konto.podajPoprawnyAdresE')); return; }
     if (tryb === 'logowanie' && !haslo) { this.komunikat(tt('konto.podajHaslo')); return; }
     if (tryb === 'rejestracja' && !poprawnaNazwa(f.elements.nazwa.value.trim())) {
-      this.komunikat(`Nazwa użytkownika: ${ZASADY_NAZWY}`);
+      this.komunikat(tt('konto.nazwaUzytkownika', { ZASADY_NAZWY }));
       f.elements.nazwa.focus();
       return;
     }
     if (tryb === 'rejestracja' || tryb === 'nowe-haslo') {
       const braki = brakiHasla(haslo);
-      if (braki.length) { this.komunikat(`W haśle brakuje: ${braki.join(', ')}.`); return; }
+      if (braki.length) { this.komunikat(tt('konto.wHasleBrakuje', { join: braki.join(', ') })); return; }
       if (haslo !== f.elements.haslo2.value) { this.komunikat(tt('konto.haslaNieSaTakie')); return; }
     }
     // Wolna nazwa – sprawdzana na końcu (zapytanie do bazy), żeby błędy formularza były od razu.
@@ -366,7 +366,7 @@ export class Konto {
       if (email === this.o.stan.uzytkownik.email) { blad('To jest Twój obecny adres.'); return null; }
       this.zaktualizuj(await chmura.zmienEmail(email));
       this.zwin('form-email');
-      powiadom(`Link potwierdzający wysłany na ${email}.`);
+      powiadom(tt('konto.linkPotwierdzajacyWyslanyNa', { email }));
       return null;
     });
 
@@ -395,7 +395,7 @@ export class Konto {
       k.classList.remove('sukces');
       try {
         await chmura.wyslijResetHasla(this.o.stan.uzytkownik.email);
-        k.textContent = `Link do ustawienia hasła wysłany na ${this.o.stan.uzytkownik.email}.`;
+        k.textContent = tt('konto.linkDoUstawieniaHasla', { email: this.o.stan.uzytkownik.email });
         k.classList.add('sukces');
         odliczaj(e.currentTarget, 'Nie pamiętasz hasła?');
       } catch (err) {
@@ -438,7 +438,7 @@ export class Konto {
       const n = await this.o.liczbaProjektow();
       const ok = await potwierdz(
         tt('konto.usunacKontoNaZawsze'),
-        `Konto ${stan.uzytkownik.email} i ${n === 0 ? 'wszystkie dane' : `wszystkie projekty (${n})`} zostaną trwale usunięte. Tego nie da się cofnąć.`,
+        tt('konto.kontoIZostanaTrwale', { email: stan.uzytkownik.email, x: n === 0 ? tt('konto.wszystkieDane') : tt('konto.wszystkieProjekty', { n }) }),
         tt('konto.usunKontoIDane'),
         true,
       );
@@ -528,6 +528,6 @@ export class Konto {
     import('./powiadomienia.js').then((m) => m.pokazPowiadomienia()).catch(() => {}); // sekcja „Powiadomienia” (#113)
     import('./marka-okno.js').then((m) => m.odswiezMarkeWUstawieniach()).catch(() => {}); // sekcja „Zestaw marki” (#131D)
     this.pokazSekcje(sekcja);
-    document.title = `Ustawienia konta – ${NAZWA}`;
+    document.title = tt('konto.ustawieniaKonta', { NAZWA });
   }
 }

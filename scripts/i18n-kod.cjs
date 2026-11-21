@@ -45,6 +45,25 @@ const KATALOGI = new Set(['biblioteka-elementy.js', 'biblioteka-kompozycje.js', 
 let biezacyPlik = '';
 const nazwaWywolania = (c) => (c.type === 'Identifier' ? c.name : c.type === 'MemberExpression' && !c.computed ? c.property.name : null);
 
+// Szerzej (#356): zdania w kodzie, które trafiają na ekran pośrednio – zwracane z funkcji, dopisywane do list
+// komunikatów, opcje list (new Option), zmienne o nazwach opisów. Tylko dla zdań (szablonów i napisów ze spacją).
+const ZMIENNE_OPISOW = /opis|tekst|tytul|komunikat|czesci|^ile$|stron$|lista|pominiete|etykieta|naglowek|podpis|wiadomosc|uwag|powod|tresc/i;
+function poSrednio(anc) {
+  let i = anc.length - 1;
+  let dziecko = anc[i];
+  i -= 1;
+  while (i >= 0 && ((anc[i].type === 'ConditionalExpression' && anc[i].test !== dziecko) || (anc[i].type === 'LogicalExpression'))) { dziecko = anc[i]; i -= 1; }
+  const r = anc[i];
+  if (!r) return false;
+  if (r.type === 'ReturnStatement' || (r.type === 'ArrowFunctionExpression' && r.body === dziecko)) return true;
+  if (r.type === 'NewExpression' && nazwaWywolania(r.callee) === 'Option' && r.arguments[0] === dziecko) return true;
+  if (r.type === 'CallExpression' && ['push', 'unshift'].includes(nazwaWywolania(r.callee))) return true;
+  if (r.type === 'VariableDeclarator' && r.init === dziecko && ZMIENNE_OPISOW.test(r.id?.name || '')) return true;
+  if (r.type === 'ArrayExpression') { const w = anc[i - 1]; return w?.type === 'VariableDeclarator' && ZMIENNE_OPISOW.test(w.id?.name || ''); }
+  if (r.type === 'AssignmentExpression' && r.right === dziecko && ZMIENNE_OPISOW.test(r.left.type === 'Identifier' ? r.left.name : r.left.property?.name || '')) return true;
+  return false;
+}
+
 // Czy literał (z przodkami) to napis na ekranie.
 function naEkranie(anc) {
   let i = anc.length - 1; // anc[i] – literał
@@ -87,6 +106,22 @@ function naEkranie(anc) {
   return false;
 }
 
+// Zdania budowane w kodzie (#356): `Usunięto ${n} ${odmiana(n, 'obraz', 'obrazy', 'obrazów')}.` →
+// t('obszar.klucz', { n }) z wartością „Usunięto {n} {n, plural, one {obraz} few {obrazy} many {obrazów} other {obrazów}}.”.
+const POLSKIE_SLOWA = /(^|[^\p{L}])(nie|jest|są|się|na|do|lub|albo|tylko|oraz|przy|dla|już|jeszcze|wszystkie|projekt\w*|stron\w*|tekst\w*|obraz\w*|plik\w*|zapis\w*|usun\w*|dodan\w*|wczyt\w*|kolumn\w*|wiersz\w*|tabel\w*|sekcj\w*|wzorz?ec\w*|element\w*|czcion\w*|kolor\w*)(?=$|[^\p{L}])/iu;
+const polskie = (t) => /[ąćęłńóśźż]/i.test(t) || POLSKIE_SLOWA.test(t);
+// W miejscu na pewno na ekranie wystarczy, że to wygląda na zdanie albo nazwę (słowo, spacja albo wielka litera).
+const tekstowy = (t) => /\p{L}{3,}/u.test(t) && (/\s/.test(t.trim()) || /^\p{Lu}/u.test(t.trim()) || polskie(t));
+const nazwaZmiennej = (e, kod) => {
+  if (e.type === 'Identifier') return e.name;
+  if (e.type === 'MemberExpression' && !e.computed) {
+    if (e.property.name === 'length') return `${nazwaZmiennej(e.object, kod)}Ile`;
+    return e.property.name;
+  }
+  if (e.type === 'CallExpression') { const n = nazwaWywolania(e.callee); if (n) return n; }
+  return 'x';
+};
+
 function zbierzPliki() {
   const wynik = [];
   const zbierz = (d) => {
@@ -109,8 +144,9 @@ function main() {
   const nadajKlucz = (obszar, tekst) => {
     const juz = wObszarze.get(`${obszar}|${tekst}`);
     if (juz) return juz;
-    let k = `${obszar}.${camel(tekst)}`;
-    for (let i = 2; zajete.has(k); i += 1) k = `${obszar}.${camel(tekst)}${i}`;
+    const naNazwe = tekst.replace(/\{[^{}]*(\{[^{}]*\}[^{}]*)*\}/g, ' ');
+    let k = `${obszar}.${camel(naNazwe)}`;
+    for (let i = 2; zajete.has(k); i += 1) k = `${obszar}.${camel(naNazwe)}${i}`;
     zajete.add(k);
     wObszarze.set(`${obszar}|${tekst}`, k);
     klucze.pl[k] = tekst;
@@ -131,10 +167,82 @@ function main() {
     // Nazwa funkcji: t, a gdy plik ma już własne „t” (parametr, zmienna) – tt.
     const nazwy = new Set();
     const zamiany = [];
+    // Szablon → t('klucz', { zmienne }); wyrażenia: odmiana(…) → plural, napisy w warunkach – własne klucze.
+    const zrodlo = (e) => kod.slice(e.start, e.end);
+    const przepiszWyrazenie = (e) => {
+      // napisy w gałęziach warunku: a ? ' (ze wzorca)' : ''
+      const wewn = [];
+      const szukaj = (x, rodzic) => {
+        if (!x || typeof x.type !== 'string') return;
+        const wGalezi = rodzic && ((rodzic.type === 'ConditionalExpression' && rodzic.test !== x) || (rodzic.type === 'LogicalExpression' && rodzic.right === x));
+        if (wGalezi && x.type === 'Literal' && typeof x.value === 'string' && tekstowy(x.value) && !/[{}<>`]/.test(x.value)) { wewn.push({ od: x.start, do: x.end, tekst: `@@('${nadajKlucz(obszar, x.value)}')` }); return; }
+        if (wGalezi && x.type === 'TemplateLiteral' && (tekstowy(x.quasis.map((q) => q.value.cooked || '').join(' ')) || x.expressions.some((y) => y.type === 'CallExpression' && nazwaWywolania(y.callee) === 'odmiana')) && !x.quasis.some((q) => /<[a-z]|[{}]/i.test(q.value.cooked || ''))) {
+          const g = przepiszSzablon(x); if (g) { wewn.push({ od: x.start, do: x.end, tekst: g }); return; }
+        }
+        if (x.type === 'CallExpression' && nazwaWywolania(x.callee) === 'odmiana') return;
+        for (const [k, v] of Object.entries(x)) {
+          if (k === 'loc') continue;
+          if (Array.isArray(v)) v.forEach((y) => szukaj(y, x)); else if (v && typeof v === 'object' && typeof v.type === 'string') szukaj(v, x);
+        }
+      };
+      szukaj(e, null);
+      let t = zrodlo(e);
+      for (const w of wewn.sort((a, b) => b.od - a.od)) t = t.slice(0, w.od - e.start) + w.tekst + t.slice(w.do - e.start);
+      return t;
+    };
+    const przepiszSzablon = (tl) => {
+      const zmienne = new Map(); // źródło → nazwa
+      const uzyte = new Set();
+      const zmienna = (e) => {
+        const z = zrodlo(e);
+        if (zmienne.has(z)) return zmienne.get(z).nazwa;
+        let nz = nazwaZmiennej(e).replace(/^[^A-Za-z_]+/, '') || 'x';
+        for (let i = 2; uzyte.has(nz); i += 1) nz = `${nazwaZmiennej(e)}${i}`;
+        uzyte.add(nz);
+        zmienne.set(z, { nazwa: nz, wyr: e });
+        return nz;
+      };
+      let wartosc = '';
+      const kawalki = tl.quasis.map((q) => q.value.cooked);
+      const wKlamrach = new Set();
+      tl.expressions.forEach((e, i) => { if (kawalki[i].endsWith('{') && kawalki[i + 1].startsWith('}')) { kawalki[i] = kawalki[i].slice(0, -1); kawalki[i + 1] = kawalki[i + 1].slice(1); wKlamrach.add(e); } });
+      if (kawalki.some((x) => /[{}]/.test(x))) return null;
+      tl.quasis.forEach((q, i) => {
+        wartosc += kawalki[i];
+        const e = tl.expressions[i];
+        if (!e) return;
+        if (e.type === 'CallExpression' && nazwaWywolania(e.callee) === 'odmiana' && e.arguments.length === 4
+          && e.arguments.slice(1).every((a) => a.type === 'Literal' && typeof a.value === 'string')) {
+          const [n, a, b, c] = e.arguments;
+          wartosc += `{${zmienna(n)}, plural, one {${a.value}} few {${b.value}} many {${c.value}} other {${c.value}}}`;
+        } else wartosc += `{${zmienna(e)}}`;
+      });
+      if (!/\p{L}{2}/u.test(wartosc.replace(/\{\w+\}/g, ''))) return null;
+      const k = nadajKlucz(obszar, wartosc, true);
+      const pary = [...zmienne.values()].map(({ nazwa, wyr }) => {
+        const w = wKlamrach.has(wyr) ? `\`{\${${przepiszWyrazenie(wyr)}}}\`` : przepiszWyrazenie(wyr);
+        return w === nazwa ? nazwa : `${nazwa}: ${w}`;
+      });
+      return pary.length ? `@@('${k}', { ${pary.join(', ')} })` : `@@('${k}')`;
+    };
     const odwiedz = (n, anc) => {
       if (!n || typeof n.type !== 'string') return;
       anc.push(n);
       if (n.type === 'Identifier') nazwy.add(n.name);
+      const zOdmiana = n.type === 'TemplateLiteral' && n.expressions.some((e) => e.type === 'CallExpression' && nazwaWywolania(e.callee) === 'odmiana');
+      if (n.type === 'TemplateLiteral' && !n.quasis.some((q) => /<[a-z]/i.test(q.value.cooked || '') || /[{}]/.test((q.value.cooked || '').replace(/^\}|\{$/g, '')))
+        && (zOdmiana || tekstowy(n.quasis.map((q) => q.value.cooked || '').join(' ')))
+        && (zOdmiana || naEkranie(anc) || (/\s/.test(n.quasis.map((q) => q.value.cooked).join('').trim()) && poSrednio(anc)))) {
+        const gotowe = przepiszSzablon(n);
+        if (gotowe) { zamiany.push({ od: n.start, do: n.end, gotowe }); anc.pop(); return; }
+      }
+      // Polski napis spoza dawnego słownika w miejscu na ekranie (#356) – tłumaczenie dojdzie osobno.
+      if (n.type === 'Literal' && typeof n.value === 'string' && n.value.trim().length > 1 && tekstowy(n.value)
+        && stare.en[norm(n.value)] === undefined && !/[{}<>`]/.test(n.value) && naEkranie(anc)) {
+        zamiany.push({ od: n.start, do: n.end, gotowe: `@@('${nadajKlucz(obszar, n.value)}')` });
+        anc.pop();
+        return;
+      }
       // Napisy w kawałkach HTML (#355): >Tekst< i title/placeholder/aria-label/alt="Tekst" w szablonach i napisach.
       if ((n.type === 'TemplateElement' || (n.type === 'Literal' && typeof n.value === 'string')) && /<[a-z]/i.test(n.type === 'Literal' ? n.value : n.value.raw)) {
         const jestLiteral = n.type === 'Literal';

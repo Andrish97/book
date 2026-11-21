@@ -16,7 +16,7 @@ const podglad = (def) => {
 
 zarejestrujKategorie({
   id: 'wzorce-stron', nazwa: t('bibliotekaWzorce.wzorceStron'), ikona: 'wzorzec', kolejnosc: 38,
-  opis: 'To, co powtarza się na wielu stronach: numer, nagłówek, stopka, tło, ramka',
+  opis: t('bibliotekaWzorce.toCoPowtarzaSie'),
   elementy: () => WZORCE_STANDARDOWE.map((def) => ({
     id: def.klucz,
     nazwa: def.nazwa,

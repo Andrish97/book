@@ -346,7 +346,7 @@ export async function otworzProjekt(p, cel = {}) {
   try { await podlaczZasoby(stan.projekt, stan.uzytkownik ? chmura.pobierzZasob : null); } catch { /* bez magazynu obrazy pokażą się jako brakujące */ }
   // Własne czcionki muszą być gotowe, zanim tekst zostanie zmierzony na płótnie.
   const zleCzcionki = await zarejestrujCzcionkiProjektu(stan.projekt);
-  if (zleCzcionki.length) powiadom(`Nie udało się wczytać czcionek: ${zleCzcionki.join(', ')}.`, true);
+  if (zleCzcionki.length) powiadom(t('zapis.nieUdaloSieWczytac', { join: zleCzcionki.join(', ') }), true);
   // Czcionki stylów tekstu projektu pobierają się w tle – żeby nadanie stylu od razu mierzyło tekst
   // właściwą czcionką. Nie wstrzymują otwarcia projektu (czcionki stron wczytuje edytor przed rysowaniem).
   zapewnijRodziny((stan.projekt.style || []).map((s) => s.fontFamily)).catch(() => {});
@@ -419,7 +419,7 @@ function podpowiedzTypu(projekt) {
     localStorage.setItem(KLUCZ_PODPOWIEDZI_TYPU, JSON.stringify(byly));
   } catch { /* podpowiedź pokaże się znowu przy następnym otwarciu */ }
   const typ = /ty[lł]/i.test(s.nazwa) ? 'wyklejka_tylna' : 'wyklejka_przednia';
-  powiadom(`Sekcja „${s.nazwa}” wygląda na wyklejkę – ustawić typ „${typ === 'wyklejka_tylna' ? 'Wyklejka tylna' : 'Wyklejka przednia'}”?`, false, {
+  powiadom(t('zapis.sekcjaWygladaNaWyklejke', { nazwa: s.nazwa, x: typ === 'wyklejka_tylna' ? t('zapis.wyklejkaTylna') : t('zapis.wyklejkaPrzednia') }), false, {
     etykieta: t('zapis.ustawTyp'),
     fn: async () => {
       if (stan.projekt !== projekt) return;
@@ -432,7 +432,7 @@ function podpowiedzTypu(projekt) {
       stan.miniatury.clear();
       await zaladujCel();
       zaplanujZapis();
-      powiadom(`Sekcja „${s.nazwa}” ma teraz typ wyklejki – format i strefy liczą się z bloku.`);
+      powiadom(t('zapis.sekcjaMaTerazTyp', { nazwa: s.nazwa }));
     },
   });
 }
@@ -938,7 +938,7 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
     // Czy to urządzenie ma po połączeniu coś, czego nie ma na koncie.
     const doWyslania = !tenSamStan(p, podstawaKonta) || noweNagrobki(p, zKonta);
     if (ileZKonta && doWyslania) {
-      powiadom(`Połączono zmiany z innego urządzenia (z konta: ${ileZKonta} ${ileZKonta === 1 ? 'część' : 'części'} projektu). Twoje zmiany zostały.`);
+      powiadom(t('zapis.polaczonoZmianyZInnego', { ileZKonta, x: ileZKonta === 1 ? t('zapis.czesc') : t('zapis.czesci') }));
     } else if (ileZKonta && Date.now() - ostatnieWczytanie > 20000) {
       ostatnieWczytanie = Date.now();
       powiadom(t('zapis.wczytanoZmianyZInnego'));
@@ -991,7 +991,7 @@ export function obrazyOdAi(p) {
 function zapytajOKonflikty(p, konflikty) {
   const dlg = $('#dlg-konflikt');
   const lista = $('#konflikt-lista');
-  $('#konflikt-opis').textContent = `Projekt „${p.nazwa}” zmieniono też na innym urządzeniu. Wszystko, co zmieniono tylko po jednej stronie, zostało połączone. ${konflikty.length === 1 ? 'Jedną część zmieniono' : `${konflikty.length} części zmieniono`} w obu miejscach – wybierz, która wersja ma zostać.`;
+  $('#konflikt-opis').textContent = t('zapis.projektZmienionoTezNa', { nazwa: p.nazwa, x: konflikty.length === 1 ? t('zapis.jednaCzescZmieniono') : t('zapis.czesciZmieniono', { konfliktyIle: konflikty.length }) });
   lista.replaceChildren(...konflikty.map((k, i) => {
     const li = document.createElement('li');
     li.dataset.klucz = k.klucz;
@@ -999,8 +999,8 @@ function zapytajOKonflikty(p, konflikty) {
     wpiszNazwe(li.querySelector('strong'), k.nazwa);
     const [moje, konto] = li.querySelectorAll('label');
     for (const pole of li.querySelectorAll('input')) pole.name = `konflikt-${i}`;
-    moje.querySelector('span').textContent = `Z tego urządzenia (${k.moje})`;
-    konto.querySelector('span').textContent = `Z konta (${k.konto})`;
+    moje.querySelector('span').textContent = t('zapis.zTegoUrzadzenia', { moje: k.moje });
+    konto.querySelector('span').textContent = t('zapis.zKonta', { konto: k.konto });
     return li;
   }));
   return new Promise((ok) => {
@@ -1028,7 +1028,7 @@ async function zapytajOCalyProjekt(p, e) {
   const kiedyTamta = e.zmieniono ? ` (zapisana ${kiedy(e.zmieniono)})` : '';
   const tylkoKonto = await potwierdz(
     t('zapis.projektZmienionoWInnym'),
-    `Na koncie jest nowsza wersja projektu „${p.nazwa}”${kiedyTamta} – np. z innego urządzenia albo od AI. Wczytaj ją. Jeśli na tym urządzeniu też coś zmieniono, możesz te zmiany zachować jako osobną kopię projektu – nic nie przepadnie.`,
+    t('zapis.naKoncieJestNowsza', { nazwa: p.nazwa, kiedyTamta }),
     t('zapis.wczytajWersjeZKonta'),
     false,
     t('zapis.wczytajIZachowajMoja'),
@@ -1042,9 +1042,9 @@ async function zapytajOCalyProjekt(p, e) {
       await zapiszLokalnie(kopia, wlasciciel(), true);
       await chmura.zapiszWChmurze(kopia);
       await oznaczZsynchronizowany(kopia.id, kopia.zmieniono);
-      powiadom(`Twoja wersja jest zachowana jako „${kopia.nazwa}” na liście projektów.`);
+      powiadom(t('zapis.twojaWersjaJestZachowana', { nazwa: kopia.nazwa }));
     } catch (blad) {
-      powiadom(`Nie udało się zapisać kopii na koncie: ${chmura.komunikatBledu(blad)}. Kopia została na tym urządzeniu.`, true);
+      powiadom(t('zapis.nieUdaloSieZapisac', { komunikatBledu: chmura.komunikatBledu(blad) }), true);
     }
   }
   try {

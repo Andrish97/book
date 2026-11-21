@@ -36,6 +36,7 @@ import { ulozElementyDanych, ulozElementDanych, poSkalowaniuElementuDanych, toKo
 import { KSZTALTY, ukladKolazu, wzorKresek } from './ksztalty-biblioteka.js';
 import { szablonPlanera, zastosujSzablon } from './szablony-planera.js';
 import { moznaWzor, normalizujWzor } from './wzor-wypelnienia.js';
+import { t as tt } from './jezyk.js';
 
 export const PX_NA_MM = 96 / 25.4;
 
@@ -3528,7 +3529,7 @@ export class Edytor extends EventTarget {
       // Polskie zasady składu (#323): złamania wierszy i znaki niezgodne z zasadami.
       if (o.type === 'textbox') {
         const sk = uwagiSkladuTekstu(o);
-        if (sk.length) lista.push({ id: o.id, typ: 'sklad_pl', obiekt: opisObiektu(o), opis: `Skład niezgodny z polskimi zasadami: ${sk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ')}.` });
+        if (sk.length) lista.push({ id: o.id, typ: 'sklad_pl', obiekt: opisObiektu(o), opis: tt('edytor.skladNiezgodnyZPolskimi', { join: sk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ') }) });
       }
       const nrStrony = this.strony.length > 1 ? this.stronaW(this._srodekObiektu(o).x) : 0;
       const nieznane = [...this._nieznanePola(o).map((p) => p.nazwa), ...polaZDanych(o).filter((n) => !this.znanePole(n, nrStrony))];
@@ -4620,10 +4621,10 @@ const NAZWY_TYPOW = {
 export function opisObiektu(o) {
   if (o.nazwa) return o.nazwa;
   if (toKalendarz(o)) return `Kalendarz: ${o.getObjects?.().find((c) => c.type === 'textbox' && c.text)?.text || 'miesiąc'}`;
-  if (toWykres(o)) return o.wykres?.tytul ? `Wykres: „${o.wykres.tytul}”` : 'Wykres';
+  if (toWykres(o)) return o.wykres?.tytul ? tt('edytor.wykres', { tytul: o.wykres.tytul }) : 'Wykres';
   if (toKolaz(o)) return 'Kolaż';
-  if (toTabela(o)) return `Tabela ${o.tabela.wiersze.length}×${o.tabela.kolumny.length}`;
-  if (toKod(o)) return o.kod.rodzaj === 'ean' ? `Kod EAN ${o.kod.tresc}` : `Kod QR ${String(o.kod.tresc).slice(0, 30)}`;
+  if (toTabela(o)) return tt('edytor.tabela', { wierszeIle: o.tabela.wiersze.length, kolumnyIle: o.tabela.kolumny.length });
+  if (toKod(o)) return o.kod.rodzaj === 'ean' ? tt('edytor.kodEan', { tresc: o.kod.tresc }) : tt('edytor.kodQr', { slice: String(o.kod.tresc).slice(0, 30) });
   const typ = NAZWY_TYPOW[o.type] || o.type;
   if (o.text) {
     const t = o.text.replace(/\s+/g, ' ').trim();

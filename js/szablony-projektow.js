@@ -21,9 +21,9 @@ export const FORMATY_KSIAZKI = [
 const STRONY = (od, krok, ile) => Array.from({ length: ile }, (_, i) => [String(od + i * krok), `${od + i * krok} stron`]);
 const pytanieFormatu = (domyslny = '148x210', formaty = FORMATY_KSIAZKI) => ({ klucz: 'format', etykieta: t('szablonyProjektow.format'), typ: 'wybor', opcje: formaty, domyslna: domyslny });
 const pytanieKrotnosci = (domyslna = '16', opcje = ['16', '8', '32', '4']) => ({
-  klucz: 'skladka', etykieta: 'Krotność stron (składka)', typ: 'wybor', opcje: opcje.map((k) => [k, `po ${k} stron`]), domyslna,
+  klucz: 'skladka', etykieta: t('szablonyProjektow.krotnoscStronSkladka'), typ: 'wybor', opcje: opcje.map((k) => [k, `po ${k} stron`]), domyslna,
 });
-const pytanieStron = (domyslna = '64', opcje = STRONY(16, 16, 30)) => ({ klucz: 'stron', etykieta: 'Stron bloku', typ: 'wybor', opcje, domyslna });
+const pytanieStron = (domyslna = '64', opcje = STRONY(16, 16, 30)) => ({ klucz: 'stron', etykieta: t('szablonyProjektow.stronBloku'), typ: 'wybor', opcje, domyslna });
 
 export const KATEGORIE_PROJEKTOW = [
   { id: 'ksiazki', nazwa: 'Książki' },
@@ -36,50 +36,50 @@ export const KATEGORIE_PROJEKTOW = [
 export const SZABLONY_PROJEKTOW = [
   {
     id: 'ksiazka-twarda', nazwa: 'Książka w twardej oprawie', kategoria: 'ksiazki', paleta: 'granat',
-    opis: 'Okładka twarda, wyklejka przednia, blok z krotnością stron i wyklejka tylna – gotowa do makiety 3D.',
+    opis: t('szablonyProjektow.okladkaTwardaWyklejkaPrzednia'),
     slowa: 'ksiazka twarda oprawa wyklejki blok', oprawa: 'twarda', wyklejki: true,
     pytania: [pytanieFormatu(), pytanieStron(), pytanieKrotnosci()],
   },
   {
     id: 'ksiazka-twarda-obwoluta', nazwa: 'Książka w twardej oprawie z obwolutą', kategoria: 'ksiazki', paleta: 'zielen',
-    opis: 'Jak twarda oprawa, a do tego obwoluta ze skrzydełkami – wymiary liczą się z okładki.',
+    opis: t('szablonyProjektow.jakTwardaOprawaA'),
     slowa: 'ksiazka twarda obwoluta skrzydelka wyklejki', oprawa: 'twarda', wyklejki: true, obwoluta: true,
     pytania: [pytanieFormatu(), pytanieStron(), pytanieKrotnosci()],
   },
   {
     id: 'ksiazka-miekka', nazwa: 'Książka w miękkiej oprawie', kategoria: 'ksiazki', paleta: 'terakota',
-    opis: 'Okładka miękka klejona z grzbietem liczonym z liczby stron i blok z krotnością stron.',
+    opis: t('szablonyProjektow.okladkaMiekkaKlejonaZ'),
     slowa: 'ksiazka miekka klejona oprawa blok', oprawa: 'miekka',
     pytania: [pytanieFormatu('135x205'), pytanieStron('128'), pytanieKrotnosci()],
   },
   {
     id: 'broszura', nazwa: 'Broszura zeszytowa', kategoria: 'ksiazki', paleta: 'pastel',
-    opis: 'Okładka zeszytowa (szyta zszywkami) i środek – liczba stron podzielna przez 4.',
+    opis: t('szablonyProjektow.okladkaZeszytowaSzytaZszywkami'),
     slowa: 'broszura zeszyt zszywki katalog program', oprawa: 'zeszytowa',
     pytania: [pytanieFormatu('148x210', [['148x210', 'A5 – 148 × 210 mm'], ['210x297', 'A4 – 210 × 297 mm'], ['210x210', 'Kwadrat – 210 × 210 mm']]),
       pytanieStron('16', STRONY(8, 4, 15)), pytanieKrotnosci('4', ['4', '8', '16'])],
   },
   {
     id: 'planer-twardy', nazwa: 'Planer tygodniowy w twardej oprawie', kategoria: 'planery', paleta: 'zielen',
-    opis: 'Okładka twarda i wyklejki, w środku 52 tygodnie z datami – blok liczy się z kalendarza.',
+    opis: t('szablonyProjektow.okladkaTwardaIWyklejki'),
     slowa: 'planer tygodniowy kalendarz ksiazkowy twarda', oprawa: 'twarda', wyklejki: true, blok: 'planer-tygodniowy',
     pytania: [pytanieFormatu('148x210', FORMATY_KSIAZKI.slice(0, 5))],
   },
   {
     id: 'notes-miekki', nazwa: 'Planer dzienny w miękkiej oprawie', kategoria: 'planery', paleta: 'terakota',
-    opis: 'Okładka miękka, w środku strona na każdy dzień roku.',
+    opis: t('szablonyProjektow.okladkaMiekkaWSrodku'),
     slowa: 'planer dzienny kalendarz ksiazkowy miekka notes', oprawa: 'miekka', blok: 'planer-dzienny',
     pytania: [pytanieFormatu('148x210', FORMATY_KSIAZKI.slice(0, 5))],
   },
   {
     id: 'album-twardy', nazwa: 'Album ze zdjęciami w twardej oprawie', kategoria: 'ksiazki', paleta: 'mono',
-    opis: 'Okładka twarda, wyklejki i rozkładówki na zdjęcia.',
+    opis: t('szablonyProjektow.okladkaTwardaWyklejkiI'),
     slowa: 'album zdjecia fotoksiazka twarda', oprawa: 'twarda', wyklejki: true, blok: 'album',
     pytania: [pytanieFormatu('210x210', [['210x210', 'Kwadrat – 210 × 210 mm'], ['297x210', 'A4 poziomo – 297 × 210 mm'], ['210x297', 'A4 – 210 × 297 mm']])],
   },
   {
     id: 'kalendarz-scienny-plecy', nazwa: 'Kalendarz ścienny z plecami', kategoria: 'kalendarze', paleta: 'zielen',
-    opis: 'Okładka i 12 miesięcy na spiralę, a pod spodem karton (plecy).',
+    opis: t('szablonyProjektow.okladkaI12Miesiecy'),
     slowa: 'kalendarz scienny spirala plecy podkladka', blok: 'kalendarz-scienny', podkladka: true,
     pytania: [pytanieFormatu('210x297', [['210x297', 'A4 – 210 × 297 mm'], ['297x420', 'A3 – 297 × 420 mm'], ['240x330', 'Wąski – 240 × 330 mm']])],
   },

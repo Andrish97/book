@@ -49,7 +49,7 @@ function nazwaStrony(id) {
 function opisElementu(st, id) {
   const o = st?.obiekty?.find((x) => x.id === id);
   if (!o) return 'element';
-  if (/text/i.test(o.type)) return `tekst „${String(o.text || '').replace(/\s+/g, ' ').slice(0, 30)}${String(o.text || '').length > 30 ? '…' : ''}”`;
+  if (/text/i.test(o.type)) return tt('komentarze.tekst', { slice: String(o.text || '').replace(/\s+/g, ' ').slice(0, 30), x: String(o.text || '').length > 30 ? '…' : '' });
   return ({ rect: 'prostokąt', ellipse: 'elipsa', image: 'obraz', group: 'grupa', line: 'linia', path: 'kształt', polygon: 'wielokąt' })[String(o.type).toLowerCase()] || 'element';
 }
 
@@ -275,7 +275,7 @@ lista.addEventListener('click', async (e) => {
       await wczytaj();
     }
   } catch (err) {
-    powiadom(`Nie udało się: ${err.message || err}`, true);
+    powiadom(tt('komentarze.nieUdaloSie', { x: err.message || err }), true);
   } finally {
     b.disabled = false;
   }
@@ -345,7 +345,7 @@ function pokazSzkic() {
   odswiezOsoby();
   pokazListe();
   forma.hidden = false;
-  $('#nowy-komentarz-gdzie').textContent = `Nowy komentarz: ${szkic.opis}`;
+  $('#nowy-komentarz-gdzie').textContent = tt('komentarze.nowyKomentarz2', { opis: szkic.opis });
   poleNowego.value = '';
   poleNowego.focus();
   rysujPinezki();
@@ -366,7 +366,7 @@ forma.addEventListener('submit', async (e) => {
     if (filtr === 'moje' || filtr === 'otwarte') { /* nowy wątek jest otwarty i mój – widać go w obu */ }
     await wczytaj();
   } catch (err) {
-    powiadom(`Nie udało się dodać komentarza: ${err.message || err}`, true);
+    powiadom(tt('komentarze.nieUdaloSieDodac', { x: err.message || err }), true);
   } finally {
     przycisk.disabled = false;
   }
@@ -486,7 +486,7 @@ function rysujPinezki() {
       b.dataset.watek = p.k.id;
       b.textContent = String(nr.get(p.k.id));
       b.title = `${p.k.autor_nazwa}: ${p.k.tresc.slice(0, 80)}`;
-      b.setAttribute('aria-label', `Komentarz ${nr.get(p.k.id)}: ${p.k.tresc.slice(0, 80)}`);
+      b.setAttribute('aria-label', tt('komentarze.komentarz', { get: nr.get(p.k.id), slice: p.k.tresc.slice(0, 80) }));
     } else {
       b.textContent = '+';
       b.setAttribute('aria-label', tt('komentarze.nowyKomentarz'));

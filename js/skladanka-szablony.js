@@ -7,6 +7,7 @@
 
 import { punktyLuku } from './skladanka.js';
 import { rozlozSiatke } from './rozkladanie-3d.js';
+import { t as tt } from './jezyk.js';
 
 const LUZ = 0.5; // mm – luz między wieczkiem a pudełkiem
 const LUZ_SZCZELINY = 0.2;
@@ -41,7 +42,7 @@ function pudelkoZKlapa({ dlugosc: L, szerokosc: W, wysokosc: H }) {
   krawedzie[3] = { typ: 'ciecie' }; // górny brzeg ściany 3 (tu wchodzi język)
   krawedzie[4] = { typ: 'ciecie' }; // górny brzeg ściany 4
   krawedzie[13] = { typ: 'ciecie' }; // drugi bok wieka
-  return [{ ...c, nazwa: 'Pudełko z klapą wsuwaną', opis: 'Wieko na zawiasie, język wsuwany za przednią ścianę – otwiera się i zamyka bez kleju.', krawedzie }];
+  return [{ ...c, nazwa: 'Pudełko z klapą wsuwaną', opis: tt('skladankaSzablony.wiekoNaZawiasieJezyk'), krawedzie }];
 }
 
 // Pudełko z zatrzaskiem (#271): jak z klapą wsuwaną, ale język wieka wchodzi w szczelinę w przedniej (trzeciej)
@@ -54,7 +55,7 @@ function pudelkoZZatrzaskiem({ dlugosc: L, szerokosc: W, wysokosc: H }, t = 0.3)
   krawedzie[0] = { typ: 'wypustka', para: 'z', szer: szerJ };
   const sx = L + W + L / 2;
   const sy = W + Math.min(szerJ * 0.6, H / 3);
-  return [{ ...c, nazwa: 'Pudełko z zatrzaskiem', opis: 'Wieko na zawiasie, język wsuwany w szczelinę w przedniej ścianie – zamyka się na zatrzask.', krawedzie,
+  return [{ ...c, nazwa: 'Pudełko z zatrzaskiem', opis: tt('skladankaSzablony.wiekoNaZawiasieJezyk2'), krawedzie,
     szczeliny: [{ a: P(sx - dlJ / 2 - 0.5, sy), b: P(sx + dlJ / 2 + 0.5, sy), szer: r2(t + LUZ_SZCZELINY), para: 'z' }] }];
 }
 
@@ -70,7 +71,7 @@ function koloObrotowe({ srednica: D, pola: n0 }) {
   const krzyzyk = (c) => [{ a: P(c - 2, c), b: P(c + 2, c), szer: 0.2, para: null, naciecie: true }, { a: P(c, c - 2), b: P(c, c + 2), szer: 0.2, para: null, naciecie: true }];
   const dolny = {
     nazwa: 'Koło obrotowe – spód',
-    opis: `${n} pól do zadruku; w środku krzyżyk na ćwiek.`,
+    opis: tt('skladankaSzablony.polDoZadrukuW', { n }),
     punkty: krazek(R, R),
     krawedzie: krazek(R, R).map(() => ({ typ: 'ciecie' })),
     zgiecia: [],
@@ -87,7 +88,7 @@ function koloObrotowe({ srednica: D, pola: n0 }) {
   const nacieciaOkna = okno.map((p, i) => ({ a: p, b: okno[(i + 1) % okno.length], szer: 0.2, para: null, naciecie: true }));
   const gorny = {
     nazwa: 'Koło obrotowe – wierzch z okienkiem',
-    opis: 'Wytnij okienko, przebij środek obu krążków i połącz ćwiekiem – górny obraca się nad dolnym.',
+    opis: tt('skladankaSzablony.wytnijOkienkoPrzebijSrodek'),
     punkty: krazek(r, r),
     krawedzie: krazek(r, r).map(() => ({ typ: 'ciecie' })),
     zgiecia: [],
@@ -106,7 +107,7 @@ function suwak({ szerokosc: S, wysokosc: H, szerokosc_paska: w0, ruch: R0 }) {
   const xS = S - 12;
   const kartka = {
     nazwa: 'Suwak – kartka',
-    opis: 'Przetnij nacięcie przy prawym brzegu i przełóż przez nie pasek od spodu – szeroki koniec zostaje pod kartką.',
+    opis: tt('skladankaSzablony.przetnijNacieciePrzyPrawym'),
     punkty: [P(0, 0), P(S, 0), P(S, H), P(0, H)],
     krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
     zgiecia: [],
@@ -116,7 +117,7 @@ function suwak({ szerokosc: S, wysokosc: H, szerokosc_paska: w0, ruch: R0 }) {
   const szer = w + 10;
   const pasek = {
     nazwa: 'Suwak – pasek',
-    opis: `Ruch ${r2(ruch)} mm; uchwyt wystaje poza kartkę.`,
+    opis: tt('skladankaSzablony.ruchMmUchwytWystaje', { r2: r2(ruch) }),
     punkty: [P(0, 0), P(12, 0), P(12, 5), P(12 + dl, 5), P(12 + dl, 5 + w), P(12, 5 + w), P(12, szer), P(0, szer)],
     krawedzie: kr(Array(8).fill(['c'])),
     zgiecia: [],
@@ -144,7 +145,7 @@ function pudelkoPoduszka({ szerokosc: W, dlugosc: L, glebokosc: g0 }) {
     zgiecia.push({ a: P(x, 0), b: P(x + W, 0), luk: P(x + W / 2, g), rodzaj: 'dolina', kat: 90 });
     zgiecia.push({ a: P(x, L), b: P(x + W, L), luk: P(x + W / 2, L - g), rodzaj: 'dolina', kat: 90 });
   }
-  return [{ nazwa: 'Pudełko-poduszka', opis: 'Zegnij łuki (big po łuku) i wciśnij końce do środka – zamykają się same.', punkty, krawedzie, zgiecia }];
+  return [{ nazwa: 'Pudełko-poduszka', opis: tt('skladankaSzablony.zegnijLukiBigPo'), punkty, krawedzie, zgiecia }];
 }
 
 // Klapki (lift-the-flap, #280 – zawias do książek): kartka z n okienkami (1–6, w siatce), każde wycięte z trzech
@@ -169,8 +170,8 @@ function klapki({ szerokosc: S, wysokosc: H, klapki: n0, szerokosc_klapki: w0, w
   }
   const prost = () => [P(0, 0), P(S, 0), P(S, H), P(0, H)];
   return [
-    { nazwa: 'Klapki – kartka', opis: `${n} ${n === 1 ? 'klapka' : n < 5 ? 'klapki' : 'klapek'}: przetnij trzy boki każdej (czerwone), zegnij czwarty – to zawias.`, punkty: prost(), krawedzie: kr([['c'], ['c'], ['c'], ['c']]), zgiecia, szczeliny },
-    { nazwa: 'Klapki – spód', opis: 'Narysuj tu to, co zasłaniają klapki, i przyklej kartkę na wierzch – klej tylko poza okienkami.', punkty: prost(), krawedzie: kr([['c'], ['c'], ['c'], ['c']]), zgiecia: [] },
+    { nazwa: 'Klapki – kartka', opis: tt('skladankaSzablony.przetnijTrzyBokiKazdej', { n, x: n === 1 ? 'klapka' : n < 5 ? 'klapki' : 'klapek' }), punkty: prost(), krawedzie: kr([['c'], ['c'], ['c'], ['c']]), zgiecia, szczeliny },
+    { nazwa: 'Klapki – spód', opis: tt('skladankaSzablony.narysujTuToCo'), punkty: prost(), krawedzie: kr([['c'], ['c'], ['c'], ['c']]), zgiecia: [] },
   ];
 }
 
@@ -304,7 +305,7 @@ function popupWycinanka({ szerokosc: S, wysokosc: H, pudelka: n, glebokosc: d, w
   zgiecia.push({ a: P(S, y), b: P(S, H), rodzaj: 'dolina', kat: 90, grzbiet: true });
   return [{
     nazwa: 'Kartka pop-up',
-    opis: `Nacięcia (czerwone) przetnij, zegnij według linii i otwórz kartkę pod kątem prostym – ${ile === 1 ? 'pudełko wyskoczy' : 'pudełka wyskoczą'} na ${r2(gl)} mm.`,
+    opis: tt('skladankaSzablony.nacieciaCzerwonePrzetnijZegnij', { x: ile === 1 ? tt('skladankaSzablony.pudelkoWyskoczy') : tt('skladankaSzablony.pudelkaWyskocza'), r2: r2(gl) }),
     punkty: [P(0, 0), P(2 * S, 0), P(2 * S, H), P(0, H)],
     krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
     zgiecia,
@@ -326,7 +327,7 @@ function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pud
   const g = (H - w) / 2;
   const karta = {
     nazwa: 'Kartka pop-up – podstawa',
-    opis: 'Zegnij w dolinę na grzbiecie; pasek przyklej zakładkami do pól klejenia z tymi samymi numerami.',
+    opis: tt('skladankaSzablony.zegnijWDolineNa'),
     punkty: [P(0, 0), P(2 * S, 0), P(2 * S, H), P(0, H)],
     krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
     zgiecia: [{ a: P(S, 0), b: P(S, H), rodzaj: 'dolina', kat: 90, grzbiet: true }],
@@ -334,7 +335,7 @@ function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pud
   };
   const pasek = {
     nazwa: 'Kartka pop-up – platforma',
-    opis: `Góra ${r2(y)} mm, przód ${r2(h)} mm; zakładki do pól na kartce.`,
+    opis: tt('skladankaSzablony.goraMmPrzodMm', { r2: r2(y), r22: r2(h) }),
     punkty: [P(0, 0), P(y + h, 0), P(y + h, w), P(0, w)],
     krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: 'p', szer: zak }, { typ: 'ciecie' }, { typ: 'zakladka', para: 'l', szer: zak }],
     zgiecia: [{ a: P(y, 0), b: P(y, w), rodzaj: 'gora', kat: 90 }],
@@ -353,7 +354,7 @@ function popupPlatforma({ szerokosc: S, wysokosc: H, glebokosc: y0, wysokosc_pud
   karta.pola.push({ x: r2(S + y + d2), y: r2(g + g2), w: zak + 0.5, h: w2, para: 'p2' });
   const pasek2 = {
     nazwa: 'Kartka pop-up – druga warstwa',
-    opis: `Mniejsza platforma w kącie między pierwszą a kartką: ${d2} mm przy platformie, ${d1} mm przy kartce.`,
+    opis: tt('skladankaSzablony.mniejszaPlatformaWKacie', { d2, d1 }),
     punkty: [P(0, 0), P(d2 + d1, 0), P(d2 + d1, w2), P(0, w2)],
     krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: 'p2', szer: zak }, { typ: 'ciecie' }, { typ: 'zakladka', para: 'l2', szer: zak }],
     zgiecia: [{ a: P(d2, 0), b: P(d2, w2), rodzaj: 'gora', kat: 90 }],
@@ -375,7 +376,7 @@ function popupV({ szerokosc: S, wysokosc: H, ramie: g0, kat: alfa0 }) {
   const st = (rad) => r2((rad * 180) / Math.PI);
   const karta = {
     nazwa: 'Kartka pop-up V – podstawa',
-    opis: 'Zegnij grzbiet w dolinę; trójkąt przyklej zakładkami do skośnych pól z tymi samymi numerami.',
+    opis: tt('skladankaSzablony.zegnijGrzbietWDoline'),
     punkty: [P(0, 0), P(2 * S, 0), P(2 * S, H), P(0, H)],
     krawedzie: kr([['c'], ['c'], ['c'], ['c']]),
     zgiecia: [{ a: P(S, 0), b: P(S, H), rodzaj: 'dolina', kat: 90, grzbiet: true }],
@@ -388,7 +389,7 @@ function popupV({ szerokosc: S, wysokosc: H, ramie: g0, kat: alfa0 }) {
   };
   const trojkat = {
     nazwa: 'Kartka pop-up V – trójkąt',
-    opis: `Ramię ${r2(g)} mm, kąt ${r2((a * 180) / Math.PI)}° do grzbietu.`,
+    opis: tt('skladankaSzablony.ramieMmKatDo', { r2: r2(g), r22: r2((a * 180) / Math.PI) }),
     punkty: [P(0, 0), P(2 * g * sx, 0), P(g * sx, g * cy)],
     krawedzie: [{ typ: 'ciecie' }, { typ: 'zakladka', para: 'p', szer: zak }, { typ: 'zakladka', para: 'l', szer: zak }],
     zgiecia: [{ a: P(g * sx, g * cy), b: P(g * sx, 0), rodzaj: 'gora', kat: 90 }],
@@ -421,7 +422,7 @@ function walec({ srednica: D, wysokosc: H }) {
     { typ: 'klej', para: 'c' },
   ];
   return [
-    { nazwa: 'Walec – płaszcz', opis: `Zwiń w rurkę (obwód ${r2(obwod)} mm), sklej zakładkę „c”, potem zakładki do podstaw.`, punkty, krawedzie, zgiecia: [] },
+    { nazwa: 'Walec – płaszcz', opis: tt('skladankaSzablony.zwinWRurkeObwod', { r2: r2(obwod) }), punkty, krawedzie, zgiecia: [] },
     kolo(r, 'Walec – dno', 'a'),
     kolo(r, 'Walec – wieko', 'b'),
   ];
@@ -446,7 +447,7 @@ function stozekSciety({ srednica_dolu: D1, srednica_gory: D2, wysokosc: H }) {
     // Stożek: wycinek koła (wierzchołek w środku), zakładki na łuku i szew.
     const punkty = [P(R1, R1), ...luk(R1, false)];
     const krawedzie = [{ typ: 'klej', para: 'c' }, ...Array.from({ length: n }, () => ({ typ: 'zakladka', para: 'a', szer: szerZ })), { typ: 'zakladka', para: 'c', szer: 7 }];
-    return [{ nazwa: 'Stożek – płaszcz', opis: `Zwiń w stożek (kąt rozwinięcia ${r2((kat * 180) / Math.PI)}°), sklej zakładkę „c”, potem do dna.`, punkty, krawedzie, zgiecia: [] }, kolo(r1, 'Stożek – dno', 'a')];
+    return [{ nazwa: 'Stożek – płaszcz', opis: tt('skladankaSzablony.zwinWStozekKat', { r2: r2((kat * 180) / Math.PI) }), punkty, krawedzie, zgiecia: [] }, kolo(r1, 'Stożek – dno', 'a')];
   }
   const zew = luk(R1, false);
   const wew = luk(R2, true);
@@ -462,7 +463,7 @@ function stozekSciety({ srednica_dolu: D1, srednica_gory: D2, wysokosc: H }) {
   // Wieko w tej samej liczbie boków co pierścień (krawędzie zakładek pasują długością).
   const wieko = { nazwa: 'Stożek ścięty – wieko', punkty: Array.from({ length: n }, (_, i) => P(rg + rg * Math.cos((2 * Math.PI * i) / n), rg + rg * Math.sin((2 * Math.PI * i) / n))), krawedzie: Array.from({ length: n }, () => ({ typ: 'klej', para: 'b' })), zgiecia: [] };
   const dno = { nazwa: 'Stożek ścięty – dno', punkty: Array.from({ length: n }, (_, i) => P(r1 + r1 * Math.cos((2 * Math.PI * i) / n), r1 + r1 * Math.sin((2 * Math.PI * i) / n))), krawedzie: Array.from({ length: n }, () => ({ typ: 'klej', para: 'a' })), zgiecia: [] };
-  return [{ nazwa: 'Stożek ścięty – płaszcz', opis: `Zwiń (kąt rozwinięcia ${r2((kat * 180) / Math.PI)}°), sklej zakładkę „c”, potem dno i wieko.`, punkty, krawedzie, zgiecia: [] }, dno, wieko];
+  return [{ nazwa: 'Stożek ścięty – płaszcz', opis: tt('skladankaSzablony.zwinKatRozwinieciaSklej', { r2: r2((kat * 180) / Math.PI) }), punkty, krawedzie, zgiecia: [] }, dno, wieko];
 }
 const stozek = ({ srednica: D, wysokosc: H }) => stozekSciety({ srednica_dolu: D, srednica_gory: 0, wysokosc: H });
 
@@ -535,7 +536,7 @@ export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc:
       punkty.push(a, w);
       krawedzie.push({ typ: 'klej', para: `s${(i + n - 1) % n}` }, { typ: 'zakladka', para: `s${i}`, szer: szer(sb) });
     }
-    return [przesunNaZero({ nazwa: `${nazwa} – ostrosłup`, opis: `Ostrosłup o wysokości ${r2(H)} mm z wielokąta (${n} boków).`, punkty, krawedzie, zgiecia })];
+    return [przesunNaZero({ nazwa: `${nazwa} – ostrosłup`, opis: tt('skladankaSzablony.ostroslupOWysokosciMm', { r2: r2(H), n }), punkty, krawedzie, zgiecia })];
   }
   if (rodzaj === 'z_dachem') {
     // Łączenie brył (#282): ściany z dnem (bez wieka) – górne brzegi z zakładkami d0…d(n−1) – i dach (ostrosłup bez
@@ -547,7 +548,7 @@ export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc:
       punkty.push(a, dodaj(a, nr, H), dodaj(b, nr, H));
       krawedzie.push({ typ: 'klej', para: `s${(i + n - 1) % n}` }, { typ: 'zakladka', para: `d${i}`, szer: szer(dl(a, b)) }, { typ: 'zakladka', para: `s${i}`, szer: szer(H) });
     }
-    const sciany = przesunNaZero({ nazwa: `${nazwa} – ściany`, opis: `Ściany wysokości ${r2(H)} mm z dnem; zakładki u góry wchodzą pod dach.`, punkty, krawedzie, zgiecia });
+    const sciany = przesunNaZero({ nazwa: `${nazwa} – ściany`, opis: tt('skladankaSzablony.scianyWysokosciMmZ', { r2: r2(H) }), punkty, krawedzie, zgiecia });
     const c = { x: pkt.reduce((s2, p) => s2 + p.x, 0) / n, y: pkt.reduce((s2, p) => s2 + p.y, 0) / n };
     const ram = pkt.map((p) => Math.hypot(dl(p, c), HD)); // krawędzie boczne dachu
     const dach = [P(0, 0)];
@@ -566,7 +567,7 @@ export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc:
       }
     }
     kr2.push({ typ: 'zakladka', para: 'r', szer: szer(ram[0]) });
-    const dachC = przesunNaZero({ nazwa: `${nazwa} – dach`, opis: `Dach wysokości ${r2(HD)} mm: sklej w stożek zakładką r i naklej na zakładki d ścian.`, punkty: dach, krawedzie: kr2, zgiecia: zg2 });
+    const dachC = przesunNaZero({ nazwa: `${nazwa} – dach`, opis: tt('skladankaSzablony.dachWysokosciMmSklej', { r2: r2(HD) }), punkty: dach, krawedzie: kr2, zgiecia: zg2 });
     return [sciany, dachC];
   }
   const A = dodaj(pkt[0], normalna(pkt[0], pkt[1]), H);
@@ -590,7 +591,7 @@ export function brylaZRzutu(punktyWejscie, { rodzaj = 'graniastoslup', wysokosc:
     krawedzie.push({ typ: 'zakladka', para: `s${i}`, szer: szer(H) });
   }
   zgiecia.push({ a: A, b: B, rodzaj: 'gora', kat: 90 });
-  return [przesunNaZero({ nazwa: `${nazwa} – graniastosłup`, opis: `Graniastosłup o wysokości ${r2(H)} mm z wielokąta (${n} boków); wieko przy pierwszej ścianie.`, punkty, krawedzie, zgiecia })];
+  return [przesunNaZero({ nazwa: `${nazwa} – graniastosłup`, opis: tt('skladankaSzablony.graniastoslupOWysokosciMm', { r2: r2(H), n }), punkty, krawedzie, zgiecia })];
 }
 
 // ---------- Gotowe trudniejsze modele (#265, plan składanek krok 14) ----------
@@ -663,29 +664,29 @@ const samochod = ({ dlugosc: L, wysokosc: H, szerokosc: W }) => modelZSylwetki([
 ], W, 'Samochód');
 
 export const SZABLONY_SKLADANEK = {
-  prostopadloscian: { nazwa: 'Prostopadłościan (kostka)', opis: 'Jedna część: pas czterech ścian, wieko i dno, zakładki klejowe.', parametry: { dlugosc: 60, szerokosc: 40, wysokosc: 30 }, buduj: prostopadloscian },
-  pudelko_klapa: { nazwa: 'Pudełko z klapą wsuwaną', opis: 'Mechanizm: wieko na zawiasie z językiem wsuwanym za przednią ścianę – otwiera się i zamyka bez kleju.', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZKlapa },
-  pudelko_zatrzask: { nazwa: 'Pudełko z zatrzaskiem', opis: 'Mechanizm: wieko z językiem wsuwanym w szczelinę w przedniej ścianie – zamyka się na zatrzask (szczelina na grubość materiału).', parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZZatrzaskiem },
-  kolo_obrotowe: { nazwa: 'Koło obrotowe (do książek)', opis: 'Element ruchomy: dwa krążki na ćwieku – górny z okienkiem pokazuje kolejne pola dolnego.', parametry: { srednica: 120, pola: 6 }, buduj: koloObrotowe },
-  poduszka: { nazwa: 'Pudełko-poduszka (zgięcia po łuku)', opis: 'Dwie ściany z łukami na końcach – zgięcia po łuku domykają pudełko bez kleju na końcach.', parametry: { szerokosc: 70, dlugosc: 120, glebokosc: 18 }, buduj: pudelkoPoduszka },
-  klapki: { nazwa: 'Klapki (lift-the-flap, do książek)', opis: 'Okienka wycięte z trzech stron i zgięte na czwartej (zawias) – pod nimi druga kartka z ukrytym obrazkiem.', parametry: { szerokosc: 100, wysokosc: 140, klapki: 4, szerokosc_klapki: 30, wysokosc_klapki: 40 }, buduj: klapki },
-  suwak: { nazwa: 'Suwak (pull-tab, do książek)', opis: 'Element ruchomy: pasek przełożony przez nacięcie w kartce – wysuwasz go za uchwyt, szeroki koniec nie pozwala go wyciągnąć.', parametry: { szerokosc: 100, wysokosc: 140, szerokosc_paska: 25, ruch: 50 }, buduj: suwak },
-  tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: 'Dno i cztery ścianki, zakładki na dłuższych ściankach.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },
-  pudelko: { nazwa: 'Pudełko z wieczkiem nakładanym', opis: 'Dwie części: pudełko i wieczko większe o dwie grubości materiału i luz – nakłada się ciasno, ale bez wciskania.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40, wieczko: 15 }, buduj: pudelkoZWieczkiem },
-  graniastoslup: { nazwa: 'Graniastosłup (np. sześciokątny)', opis: 'Pas ścian i dwie podstawy przy pierwszej ścianie.', parametry: { boki: 6, bok: 25, wysokosc: 60 }, buduj: graniastoslup },
-  ostroslup: { nazwa: 'Ostrosłup (piramida)', opis: 'Podstawa i trójkąty ścian dookoła; zakładka na każdym trójkącie.', parametry: { boki: 4, bok: 60, wysokosc: 50 }, buduj: ostroslup },
-  walec: { nazwa: 'Walec', opis: 'Płaszcz z zakładkami do dna i wieka (koła z wielu krótkich boków – pasują długością do zakładek).', parametry: { srednica: 50, wysokosc: 80 }, buduj: walec },
-  stozek: { nazwa: 'Stożek', opis: 'Płaszcz – wycinek koła – z zakładkami do dna; kąt rozwinięcia liczony z wysokości i średnicy.', parametry: { srednica: 60, wysokosc: 70 }, buduj: stozek },
-  stozek_sciety: { nazwa: 'Stożek ścięty (np. kubek, abażur)', opis: 'Płaszcz – wycinek pierścienia – z zakładkami do dna i wieka.', parametry: { srednica_dolu: 70, srednica_gory: 45, wysokosc: 60 }, buduj: stozekSciety },
-  kula: { nazwa: 'Kula z klinów (globus)', opis: 'Kliny od bieguna do bieguna (4–24) – każdy przykleja się zakładkami do następnego; im więcej klinów, tym okrąglej.', parametry: { srednica: 80, kliny: 8 }, buduj: kula },
-  wazon: { nazwa: 'Wazon (bryła obrotowa)', opis: 'Profil obrócony w segmentach (6–32): pasy ścian z zakładkami i płaskie dno – rozłożone automatycznie; góra otwarta.', parametry: { srednica: 50, wysokosc: 110, segmenty: 12 }, buduj: wazon },
-  zolw: { nazwa: 'Żółw (zwierzę z siatki 3D)', opis: 'Skorupa z segmentów, głowa, cztery łapy i ogon – bryły rozłożone automatycznie; głowę, łapy i ogon doklej pod skorupę.', parametry: { dlugosc: 140 }, buduj: zolw },
-  domek: { nazwa: 'Domek z dachem dwuspadowym', opis: 'Ściany i dach jako jedna bryła rozłożona automatycznie – szczyty, połacie i ściany z zakładkami i numerami.', parametry: { szerokosc: 60, wysokosc: 45, dach: 30, glebokosc: 70 }, buduj: domek },
-  samochod: { nazwa: 'Samochód (sylwetka)', opis: 'Nadwozie z maską, kabiną i bagażnikiem – bryła z sylwetki rozłożona automatycznie (koła dorysuj albo doklej osobno).', parametry: { dlugosc: 120, wysokosc: 45, szerokosc: 50 }, buduj: samochod },
-  popup_platforma: { nazwa: 'Kartka pop-up z platformą (wklejana)', opis: 'Kartka i pasek przyklejony zakładkami po obu stronach grzbietu – po otwarciu stoi jak pudełko, po zamknięciu leży płasko w środku.', parametry: { szerokosc: 100, wysokosc: 140, glebokosc: 35, wysokosc_pudelka: 30, szerokosc_pudelka: 60, warstwy: 2 }, buduj: popupPlatforma },
-  popup_v: { nazwa: 'Kartka pop-up ze zgięciem V', opis: 'Trójkąt przyklejony skośnie po obu stronach grzbietu – na rozłożonej kartce leży płasko, przy zamykaniu wstaje i składa się w środku.', parametry: { szerokosc: 100, wysokosc: 140, ramie: 60, kat: 45 }, buduj: popupV },
-  popup: { nazwa: 'Kartka pop-up (wycinanka)', opis: 'Jeden arkusz: nacięcia i zgięcia – po otwarciu kartki pod kątem prostym pudełka wyskakują ze środka. Nic nie wystaje po zamknięciu (nacięcia kończą się przed brzegiem).', parametry: { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }, buduj: popupWycinanka },
-  przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: 'Do pudełka o podanych wymiarach: dwie płytki ze szczelinami do połowy – wsuwasz jedną w drugą i wkładasz do środka.', parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
+  prostopadloscian: { nazwa: 'Prostopadłościan (kostka)', opis: tt('skladankaSzablony.jednaCzescPasCzterech'), parametry: { dlugosc: 60, szerokosc: 40, wysokosc: 30 }, buduj: prostopadloscian },
+  pudelko_klapa: { nazwa: 'Pudełko z klapą wsuwaną', opis: tt('skladankaSzablony.mechanizmWiekoNaZawiasie'), parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZKlapa },
+  pudelko_zatrzask: { nazwa: 'Pudełko z zatrzaskiem', opis: tt('skladankaSzablony.mechanizmWiekoZJezykiem'), parametry: { dlugosc: 80, szerokosc: 50, wysokosc: 40 }, buduj: pudelkoZZatrzaskiem },
+  kolo_obrotowe: { nazwa: 'Koło obrotowe (do książek)', opis: tt('skladankaSzablony.elementRuchomyDwaKrazki'), parametry: { srednica: 120, pola: 6 }, buduj: koloObrotowe },
+  poduszka: { nazwa: 'Pudełko-poduszka (zgięcia po łuku)', opis: tt('skladankaSzablony.dwieScianyZLukami'), parametry: { szerokosc: 70, dlugosc: 120, glebokosc: 18 }, buduj: pudelkoPoduszka },
+  klapki: { nazwa: 'Klapki (lift-the-flap, do książek)', opis: tt('skladankaSzablony.okienkaWycieteZTrzech'), parametry: { szerokosc: 100, wysokosc: 140, klapki: 4, szerokosc_klapki: 30, wysokosc_klapki: 40 }, buduj: klapki },
+  suwak: { nazwa: 'Suwak (pull-tab, do książek)', opis: tt('skladankaSzablony.elementRuchomyPasekPrzelozony'), parametry: { szerokosc: 100, wysokosc: 140, szerokosc_paska: 25, ruch: 50 }, buduj: suwak },
+  tacka: { nazwa: 'Tacka (pudełko bez wieka)', opis: tt('skladankaSzablony.dnoICzteryScianki'), parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 30 }, buduj: (p) => [tacka(p)] },
+  pudelko: { nazwa: 'Pudełko z wieczkiem nakładanym', opis: tt('skladankaSzablony.dwieCzesciPudelkoI'), parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40, wieczko: 15 }, buduj: pudelkoZWieczkiem },
+  graniastoslup: { nazwa: 'Graniastosłup (np. sześciokątny)', opis: tt('skladankaSzablony.pasScianIDwie'), parametry: { boki: 6, bok: 25, wysokosc: 60 }, buduj: graniastoslup },
+  ostroslup: { nazwa: 'Ostrosłup (piramida)', opis: tt('skladankaSzablony.podstawaITrojkatyScian'), parametry: { boki: 4, bok: 60, wysokosc: 50 }, buduj: ostroslup },
+  walec: { nazwa: 'Walec', opis: tt('skladankaSzablony.plaszczZZakladkamiDo'), parametry: { srednica: 50, wysokosc: 80 }, buduj: walec },
+  stozek: { nazwa: 'Stożek', opis: tt('skladankaSzablony.plaszczWycinekKolaZ'), parametry: { srednica: 60, wysokosc: 70 }, buduj: stozek },
+  stozek_sciety: { nazwa: 'Stożek ścięty (np. kubek, abażur)', opis: tt('skladankaSzablony.plaszczWycinekPierscieniaZ'), parametry: { srednica_dolu: 70, srednica_gory: 45, wysokosc: 60 }, buduj: stozekSciety },
+  kula: { nazwa: 'Kula z klinów (globus)', opis: tt('skladankaSzablony.klinyOdBiegunaDo'), parametry: { srednica: 80, kliny: 8 }, buduj: kula },
+  wazon: { nazwa: 'Wazon (bryła obrotowa)', opis: tt('skladankaSzablony.profilObroconyWSegmentach'), parametry: { srednica: 50, wysokosc: 110, segmenty: 12 }, buduj: wazon },
+  zolw: { nazwa: 'Żółw (zwierzę z siatki 3D)', opis: tt('skladankaSzablony.skorupaZSegmentowGlowa'), parametry: { dlugosc: 140 }, buduj: zolw },
+  domek: { nazwa: 'Domek z dachem dwuspadowym', opis: tt('skladankaSzablony.scianyIDachJako'), parametry: { szerokosc: 60, wysokosc: 45, dach: 30, glebokosc: 70 }, buduj: domek },
+  samochod: { nazwa: 'Samochód (sylwetka)', opis: tt('skladankaSzablony.nadwozieZMaskaKabina'), parametry: { dlugosc: 120, wysokosc: 45, szerokosc: 50 }, buduj: samochod },
+  popup_platforma: { nazwa: 'Kartka pop-up z platformą (wklejana)', opis: tt('skladankaSzablony.kartkaIPasekPrzyklejony'), parametry: { szerokosc: 100, wysokosc: 140, glebokosc: 35, wysokosc_pudelka: 30, szerokosc_pudelka: 60, warstwy: 2 }, buduj: popupPlatforma },
+  popup_v: { nazwa: 'Kartka pop-up ze zgięciem V', opis: tt('skladankaSzablony.trojkatPrzyklejonySkosniePo'), parametry: { szerokosc: 100, wysokosc: 140, ramie: 60, kat: 45 }, buduj: popupV },
+  popup: { nazwa: 'Kartka pop-up (wycinanka)', opis: tt('skladankaSzablony.jedenArkuszNacieciaI'), parametry: { szerokosc: 100, wysokosc: 140, pudelka: 2, glebokosc: 25, wysokosc_pudelka: 30 }, buduj: popupWycinanka },
+  przegrodki: { nazwa: 'Przegródki wsuwane na krzyż', opis: tt('skladankaSzablony.doPudelkaOPodanych'), parametry: { dlugosc: 100, szerokosc: 70, wysokosc: 40 }, buduj: przegrodki },
 };
 
 export const OPISY_PARAMETROW = { klapki: 'Liczba klapek', szerokosc_klapki: 'Szerokość klapki (mm)', wysokosc_klapki: 'Wysokość klapki (mm)', szerokosc_paska: 'Szerokość paska (mm)', ruch: 'Ruch paska (mm)', pola: 'Liczba pól (3–12)', ramie: 'Ramię trójkąta (mm)', kat: 'Kąt do grzbietu (15–75°)', warstwy: 'Warstwy (1–2)', szerokosc_pudelka: 'Szerokość pudełka (mm)', segmenty: 'Liczba segmentów (6–32)', dach: 'Wysokość dachu (mm)', kliny: 'Liczba klinów (4–24)', srednica: 'Średnica (mm)', srednica_dolu: 'Średnica dołu (mm)', srednica_gory: 'Średnica góry (mm)', pudelka: 'Liczba pudełek (1–4)', glebokosc: 'Głębokość pudełka (mm)', wysokosc_pudelka: 'Wysokość pudełka (mm)', dlugosc: 'Długość (mm)', szerokosc: 'Szerokość (mm)', wysokosc: 'Wysokość (mm)', wieczko: 'Wysokość wieczka (mm)', boki: 'Liczba boków podstawy', bok: 'Bok podstawy (mm)' };

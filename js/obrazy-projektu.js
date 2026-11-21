@@ -13,6 +13,7 @@ import { uid } from './projekt.js';
 import { blobZasobu, naDataUrl, dataUrlZasobu, usunPlikZasobu } from './zasoby.js';
 import { pelnaNazwa, obrazZNazwy } from './nazwy-obrazow.js';
 import { wymiaryObrazu, wolnaNazwaWsrod, grupujPowtorzenia, LIMIT_OBRAZOW_W_PROJEKCIE } from './obrazy-wspolne.js';
+import { t as tt } from './jezyk.js';
 
 const czcionki = (p) => new Set((p?.czcionki || []).map((c) => c.id));
 
@@ -164,7 +165,7 @@ export function opisUzycia(u) {
   const lista = (t) => (t.length > 6 ? `${t.slice(0, 6).join(', ')}…` : t.join(', '));
   if (u.strony.length) czesci.push(`${u.strony.length === 1 ? 'strona' : 'strony'} ${lista(u.strony)}`);
   if (u.wzorce.length) czesci.push(`${u.wzorce.length === 1 ? 'wzorzec' : 'wzorce'} ${u.wzorce.map((n) => `„${n}”`).join(', ')}`);
-  if (u.dane.length) czesci.push(`w danych (${u.dane.map((n) => `„${n}”`).join(', ')})`);
+  if (u.dane.length) czesci.push(tt('obrazyProjektu.wDanych', { join: u.dane.map((n) => `„${n}”`).join(', ') }));
   return czesci.join(' · ') || 'nieużywany';
 }
 

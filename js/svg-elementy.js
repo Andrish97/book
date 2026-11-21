@@ -12,6 +12,7 @@ import { blobZasobu } from './zasoby.js';
 import { rozmiarOryginalu, przygotujKopie } from './obrazy.js';
 import { zrodloObrazu } from './zlozenie.js';
 import { uid } from './projekt.js';
+import { t as tt } from './jezyk.js';
 
 // Czy obraz jest rysunkiem SVG.
 export function toRysunekSvg(projekt, obj) {
@@ -129,7 +130,7 @@ function wzorJakoKafelki(svg, el, wzor, nr) {
   const kafelki = (i1 - i0) * (j1 - j0);
   const tresc = [...wzor.children].filter((d) => !d.matches(DEFINICJE));
   if (!tresc.length || kafelki > 400 || kafelki * wzor.querySelectorAll('*').length > 1500) return false;
-  const skalaTresci = wzor.getAttribute('patternContentUnits') === 'objectBoundingBox' ? ` scale(${bb.width} ${bb.height})` : '';
+  const skalaTresci = wzor.getAttribute('patternContentUnits') === 'objectBoundingBox' ? tt('svgElementy.scale', { width: bb.width, height: bb.height }) : '';
   const cp = document.createElementNS(SVG_NS, 'clipPath');
   cp.id = `rozklad-wzor-${nr}`;
   const ksztalt = el.cloneNode(false);
@@ -519,7 +520,7 @@ export async function rozlozRysunek(projekt, obj) {
   const napisy = pary.filter(([o]) => typeof o.text === 'string');
   // Czy kształty z rozkładu wyglądają jak rysunek (napisów nie porównujemy: obraz rysuje je czcionką systemu).
   const brak = NIEOBSLUGIWANE.exec(efekty.kod.replace(/<defs\b[\s\S]*?<\/defs>/gi, ''));
-  let uwaga = brak ? `Rysunek używa elementu „${brak[1] || brak[0]}”, którego edytor nie ma – wygląd mógł się zmienić.` : '';
+  let uwaga = brak ? tt('svgElementy.rysunekUzywaElementuKtorego', { x: brak[1] || brak[0] }) : '';
   const zdjecia = pary.filter(([o]) => o.type === 'image');
   // Porównanie z rysunkiem robi ten sam kod co PDF wektorowy – wczytywany dopiero tu (razem z resztą zapisu PDF).
   if (!uwaga && !napisy.length && !zdjecia.length && !efekty.obrazy) {

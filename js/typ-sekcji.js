@@ -21,7 +21,7 @@ export const TYPY_SEKCJI = {
   kalendarz: { nazwa: 'Kalendarz roczny (daty)', opis: t('typSekcji.stronaNaMiesiacTydzien'), ikona: 'kalendarz', rodzaj: 'kalendarz', rola: 'blok' },
   trojdzielny: { nazwa: 'Kalendarz trójdzielny', opis: t('typSekcji.glowkaITrzyKalendaria'), ikona: 'planer', rodzaj: 'trojdzielny', rola: 'osobny' },
   wykrojnik: { nazwa: 'Wykrojnik', opis: t('typSekcji.kopertaTeczkaZKieszenia'), ikona: 'ksztalty', rodzaj: 'wykrojnik', rola: 'osobny' },
-  skladanka: { nazwa: 'Składanka / wycinanka', opis: 'Model z papieru albo kartonu z wielu części na kilku arkuszach: zakładki klejowe, zgięcia, miejsca klejenia z numerami, szczeliny.', ikona: 'ksztalty', rodzaj: 'skladanka', rola: 'osobny' },
+  skladanka: { nazwa: 'Składanka / wycinanka', opis: t('typSekcji.modelZPapieruAlbo'), ikona: 'ksztalty', rodzaj: 'skladanka', rola: 'osobny' },
   arkusz: { nazwa: 'Arkusz użytków', opis: t('typSekcji.wizytowkiNaklejkiEtykietyJeden'), ikona: 'siatka', rodzaj: 'arkusz', rola: 'osobny' },
 };
 

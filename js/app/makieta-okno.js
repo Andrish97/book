@@ -6,7 +6,7 @@
 // obwoluta i makiety sekcji specjalnych (ulotka, koperta, pudełko, kalendarz trójdzielny).
 
 import { MATERIALY, teksturaOkleiny } from '../materialy.js';
-import { $, powiadom, bezpiecznaNazwa, odmiana } from '../ui.js';
+import { $, powiadom, bezpiecznaNazwa } from '../ui.js';
 import { postep } from '../postep.js';
 // Składanie stron (Fabric) – dopiero u właściciela; gość z linku (#188) dostaje gotowe obrazy stron.
 const zlozenie = () => import('../zlozenie.js');
@@ -536,22 +536,22 @@ function ustawModel(model, { kamera = true } = {}) {
   // Broszura zeszytowa (#322): arkusze składane na pół – strony w wielokrotności 4; zszywki spinają cienki zeszyt.
   if (model === 'ksiazka_zeszytowa') {
     const stron = st.kartki.length * 2;
-    if (stron % 4) uwagi.push(`Broszura zeszytowa ma ${stron} stron – arkusze składa się na pół, więc liczba stron musi być wielokrotnością 4. Brakujące strony będą puste.`);
-    if (stron > 64 || T > 6) uwagi.push(`Broszura ma ${stron} stron (ok. ${T.toFixed(1)} mm) – zszywki zwykle spinają do ok. 64 stron. Grubszą publikację lepiej oprawić klejem (miękka oprawa).`);
+    if (stron % 4) uwagi.push(tt('makietaOkno.broszuraZeszytowaMaStron', { stron }));
+    if (stron > 64 || T > 6) uwagi.push(tt('makietaOkno.broszuraMaStronOk', { stron, toFixed: T.toFixed(1) }));
   }
-  if (spirala && wo.zaGruby) uwagi.push(`Blok ma ok. ${Math.round(T)} mm grubości – więcej niż mieści największy pierścień Wire-O (${wo.maks} mm). Makieta pokazuje największą spiralę; do druku podziel projekt na tomy albo wybierz oprawę klejoną.`);
+  if (spirala && wo.zaGruby) uwagi.push(tt('makietaOkno.blokMaOkMm', { round: Math.round(T), maks: wo.maks }));
   // Sekcja środka w innym formacie niż reszta bloku (#185) – np. wyklejka A4 bez ustawionego typu. Takiej strony
   // nie da się poprawnie złożyć w książkę: makieta mówi to wprost i prowadzi do ustawienia typu sekcji.
   const obce = st.gosc || model === 'kartka' || MODELE_SPECJALNE.includes(model) ? [] : niepasujaceSekcje(st.projekt, st.ciag);
   // Rodzaj spoza pasujących (#215): co nie pasuje i co zrobić.
   if (renderer?.uproszczony) uwagi.push('To urządzenie nie pokazuje grafiki 3D – makieta jest narysowana w wersji uproszczonej (bez cieni rzucanych i połysku). Obracanie i kartkowanie działają tak samo.');
   if (oszczedny) uwagi.push('Poprzednio makieta zamknęła się nieoczekiwanie (zwykle brakuje pamięci w telefonie) – teraz działa w trybie oszczędnym: mniej stron naraz i mniejsza rozdzielczość stron.');
-  if (st.inne?.includes(model)) uwagi.unshift(`${MODELE[model]} nie pasuje do tego projektu. ${powodNiepasowania(model, st.projekt)}`);
+  if (st.inne?.includes(model)) uwagi.unshift(tt('makietaOkno.niePasujeDoTego', { x: MODELE[model], powodNiepasowania: powodNiepasowania(model, st.projekt) }));
   uwaga.replaceChildren();
   for (const t of uwagi) { const p = document.createElement('p'); p.textContent = t; uwaga.append(p); }
   for (const o of obce) {
     const p = document.createElement('p');
-    p.textContent = `Sekcja „${o.sekcja.nazwa}” ma format ${o.w} × ${o.h} mm, a środek ${o.wb} × ${o.hb} mm – takich stron nie da się złożyć w książkę i makieta pokaże je źle. Jeśli to wyklejka, okładka albo inna część publikacji, ustaw jej typ. `;
+    p.textContent = tt('makietaOkno.sekcjaMaFormatMm', { nazwa: o.sekcja.nazwa, w: o.w, h: o.h, wb: o.wb, hb: o.hb });
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'przycisk maly';
@@ -636,7 +636,7 @@ function pokazBrak3D() {
   k.hidden = Boolean(renderer);
   // Nie da się rysować wcale (ani 3D, ani 2D) – spokojna informacja, bez komunikatu o błędzie (zgłoszenie 19.11).
   dlg.classList.toggle('makieta-czeka-tryb', !renderer);
-  if (!renderer) { k.classList.remove('blad'); k.textContent = 'Ta przeglądarka nie może teraz pokazać makiety. Zamknij okno makiety i otwórz je jeszcze raz.'; }
+  if (!renderer) { k.classList.remove('blad'); k.textContent = tt('makietaOkno.taPrzegladarkaNieMoze'); }
 }
 
 // Utrata kontekstu WebGL (#157): telefon odbiera go np. przy przejściu aplikacji w tło. Bez preventDefault
@@ -1076,12 +1076,12 @@ function pokazZapisane() {
     x.className = 'przycisk-ikona';
     x.dataset.usunUjecie = u.id;
     x.title = tt('makietaOkno.usunUjecie');
-    x.setAttribute('aria-label', `Usuń ujęcie ${u.nazwa}`);
+    x.setAttribute('aria-label', tt('makietaOkno.usunUjecie2', { nazwa: u.nazwa }));
     x.innerHTML = ikona('kosz', { rozmiar: 18 });
     li.append(b, x);
     return li;
   }));
-  $('#makieta-zapisane-ile').textContent = lista.length ? `${lista.length} ${odmiana(lista.length, 'ujęcie', 'ujęcia', 'ujęć')}` : '';
+  $('#makieta-zapisane-ile').textContent = lista.length ? tt('makietaOkno.tekst', { listaIle: lista.length }) : '';
   $('#makieta-brak-ujec').hidden = lista.length > 0;
   if (lista.length) $('#makieta-zapisane').open = true;
 }

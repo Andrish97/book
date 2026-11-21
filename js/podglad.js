@@ -107,7 +107,7 @@ export class Podglad {
       odcisk: odcisk ? (strona) => odcisk(poKluczu.get(strona.id), ciag) : null,
       projekt,
       klikalne: true,
-      opis: 'podgląd bez edycji',
+      opis: tt('podglad.podgladBezEdycji'),
     };
   }
 
@@ -508,7 +508,7 @@ export class Podglad {
       if (k) for (const s of k.strony) if (s) this._obrazPrezentacji(s, szer);
     }
     const numery = strony.filter(Boolean).map((s) => s.nr ?? '–').join('–');
-    p.el.querySelector('.prezentacja-licznik').textContent = `${sekcja.nazwa} · str. ${numery} · ${p.i + 1} z ${p.kroki.length}`;
+    p.el.querySelector('.prezentacja-licznik').textContent = tt('podglad.strZ', { nazwa: sekcja.nazwa, numery, x: p.i + 1, krokiIle: p.kroki.length });
     for (const b of p.el.querySelectorAll('.wstecz')) b.disabled = p.i === 0;
     for (const b of p.el.querySelectorAll('.dalej')) b.disabled = p.i === p.kroki.length - 1;
   }

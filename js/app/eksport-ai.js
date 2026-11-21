@@ -106,7 +106,7 @@ export async function wykonajZTrasy(id) {
   try { z = await rpc('zlecenie_eksportu', { p_id: id }); } catch { z = null; }
   if (!z) { powiadom(t('eksportAi.nieMaTakiegoZlecenia'), true); return; }
   if (z.stan === 'gotowe') {
-    powiadom(`Plik „${z.nazwa}” jest już gotowy – AI poda link do pobrania.`, false, { etykieta: t('eksportAi.pobierz'), fn: () => pobierzGotowy(z) });
+    powiadom(t('eksportAi.plikJestJuzGotowy', { nazwa: z.nazwa }), false, { etykieta: t('eksportAi.pobierz'), fn: () => pobierzGotowy(z) });
     return;
   }
   if (z.stan === 'w_toku' && !(await rpc('eksporty_czekajace')).some((x) => x.id === id)) {
@@ -121,7 +121,7 @@ async function pobierzGotowy(z) {
   try {
     const blob = await chmura.r2.pobierz('zasoby', `${konto || stan.uzytkownik?.id}/_eksporty/${z.id}.${z.rodzaj === 'png' ? 'png' : 'pdf'}`);
     pobierz(z.nazwa || `eksport.${z.rodzaj}`, URL.createObjectURL(blob));
-  } catch (e) { powiadom(`Nie udało się pobrać pliku: ${e.message}`, true); }
+  } catch (e) { powiadom(t('eksportAi.nieUdaloSiePobrac', { message: e.message }), true); }
 }
 
 // ---------- Robienie pliku ----------
@@ -135,7 +135,7 @@ async function projektZlecenia(id, pasek) {
   }
   const wpis = (await wpisyProjektow()).find((w) => w.id === id);
   if (!wpis) throw new Error('Nie ma tego projektu na liście konta.');
-  pasek.opis(`AI zleciło eksport – wczytywanie „${wpis.nazwa}”…`);
+  pasek.opis(t('eksportAi.aiZleciloEksportWczytywanie', { nazwa: wpis.nazwa }));
   const p = await wczytajProjektZWpisu(wpis);
   if (!p) throw new Error('Nie udało się wczytać projektu.');
   const { normalizuj } = await import('../projekt.js');
@@ -153,11 +153,11 @@ export { opcjePdf };
 
 async function wykonaj(z) {
   const rodzaj = z.rodzaj === 'png' ? 'PNG' : 'PDF';
-  const pasek = postep(`AI zleciło eksport ${rodzaj}…`, { opoznienie: 0 });
+  const pasek = postep(t('eksportAi.aiZleciloEksport', { rodzaj }), { opoznienie: 0 });
   const uid = konto || stan.uzytkownik?.id;
   try {
     const projekt = await projektZlecenia(z.projekt_id, pasek);
-    pasek.opis(`AI zleciło eksport ${rodzaj} – „${projekt.nazwa}”`);
+    pasek.opis(t('eksportAi.aiZleciloEksport2', { rodzaj, nazwa: projekt.nazwa }));
     const { rozwin } = await import('../serie.js');
     const { sprawdzProjekt } = await import('../kontrola.js');
     const ciag = rozwin(projekt);
@@ -186,8 +186,8 @@ async function wykonaj(z) {
       nazwa = wynik.nazwa;
       const { wybierzEgzemplarze } = await import('../eksport.js');
       strony = wybierzEgzemplarze(ciag, opcje).length;
-      for (const [powod, n] of wynik.uwagi || []) uwagi.push(`Zapisane jako obraz (${n}): ${powod}`);
-      for (const [czcionka, n] of wynik.krzywe || []) uwagi.push(`Tekst jako krzywe (${n}): ${czcionka}`);
+      for (const [powod, n] of wynik.uwagi || []) uwagi.push(t('eksportAi.zapisaneJakoObraz', { n, powod }));
+      for (const [czcionka, n] of wynik.krzywe || []) uwagi.push(t('eksportAi.tekstJakoKrzywe', { n, czcionka }));
     }
     pasek.opis(t('eksportAi.aiZleciloEksportWysylanie'));
     pasek.razem(null);
@@ -197,11 +197,11 @@ async function wykonaj(z) {
       p_id: z.id, p_karta: KARTA, p_plik: plik, p_nazwa: nazwa, p_typ: blob.type || (z.rodzaj === 'png' ? 'image/png' : 'application/pdf'),
       p_rozmiar: blob.size, p_strony: strony, p_uwagi: uwagi.slice(0, 40), p_blad: null,
     });
-    powiadom(`Gotowy plik „${nazwa}” zlecony przez AI – AI dostało link do pobrania.`, false, { etykieta: t('eksportAi.pobierz'), fn: () => pobierz(nazwa, URL.createObjectURL(blob)) });
+    powiadom(t('eksportAi.gotowyPlikZleconyPrzez', { nazwa }), false, { etykieta: t('eksportAi.pobierz'), fn: () => pobierz(nazwa, URL.createObjectURL(blob)) });
   } catch (e) {
     const opis = e?.message || String(e);
     try { await rpc('zakoncz_eksport', { p_id: z.id, p_karta: KARTA, p_plik: null, p_nazwa: null, p_typ: null, p_rozmiar: null, p_strony: null, p_uwagi: [], p_blad: opis }); } catch { /* zostaje w toku – inna karta przejmie po 5 min */ }
-    powiadom(`Nie udało się zrobić pliku zleconego przez AI: ${opis}`, true);
+    powiadom(t('eksportAi.nieUdaloSieZrobic', { opis }), true);
   } finally {
     pasek.koniec();
   }

@@ -6,7 +6,7 @@
 // i „Wstaw” albo „Podmień” używa obrazu, który już jest w projekcie, bez kopii.
 
 import {
-  $, powiadom, potwierdz, zapytajONazwe, odmiana, zamknijMenu,
+  $, powiadom, potwierdz, zapytajONazwe, zamknijMenu,
 } from '../ui.js';
 import { wstawIkony } from '../ikony.js';
 import { adresZasobu } from '../zasoby.js';
@@ -103,7 +103,7 @@ function rysuj() {
   $('#obrazy-pusto').hidden = obrazy.length > 0;
   const b = $('#obrazy-usun-nieuzywane');
   b.hidden = Boolean(wybor) || nieuzywane === 0;
-  b.textContent = `Usuń nieużywane (${nieuzywane})`;
+  b.textContent = tt('obrazyOkno.usunNieuzywane', { nieuzywane });
   odswiezZaznaczenie();
   nastepnaMiniatura(); // także pusta lista: postęp poprzednich miniatur się zamyka
   sprawdzPowtorzenia();
@@ -122,9 +122,9 @@ async function sprawdzPowtorzenia() {
   const nazwy = w.nazwy.reduce((n, [, k]) => n + k.length, 0);
   pasek.hidden = !kopie && !nazwy;
   const czesci = [];
-  if (kopie) czesci.push(`${kopie} ${odmiana(kopie, 'kopię pliku, który już jest', 'kopie plików, które już są', 'kopii plików, które już są')}`);
-  if (nazwy) czesci.push(`${nazwy} ${odmiana(nazwy, 'obraz o zajętej nazwie', 'obrazy o zajętych nazwach', 'obrazów o zajętych nazwach')}`);
-  $('#obrazy-porzadek-opis').textContent = `Ten projekt ma powtórzone obrazy sprzed tego okna: ${czesci.join(' i ')}.`;
+  if (kopie) czesci.push(tt('obrazyOkno.tekst', { kopie }));
+  if (nazwy) czesci.push(tt('obrazyOkno.tekst2', { nazwy }));
+  $('#obrazy-porzadek-opis').textContent = tt('obrazyOkno.tenProjektMaPowtorzone', { join: czesci.join(' i ') });
 }
 
 async function uporzadkuj() {
@@ -154,9 +154,9 @@ async function uporzadkuj() {
       for (const [stare, nowe] of przemianowane) przepnij(s, stare, nowe);
     }, async (pp) => { for (const id of zbedne) await usunObraz(pp, id, usunZKonta); });
     const ileKopii = kopie.reduce((n, [, k]) => n + k.length, 0);
-    powiadom(`Uporządkowano obrazy: ${[ileKopii ? `scalone kopie: ${ileKopii}` : '', przemianowane.length ? `nowe nazwy: ${przemianowane.length}` : ''].filter(Boolean).join(', ')}.`);
+    powiadom(tt('obrazyOkno.uporzadkowanoObrazy', { join: [ileKopii ? tt('obrazyOkno.scaloneKopie', { ileKopii }) : '', przemianowane.length ? tt('obrazyOkno.noweNazwy', { przemianowaneIle: przemianowane.length }) : ''].filter(Boolean).join(', ') }));
   } catch (e) {
-    powiadom(`Nie udało się uporządkować obrazów: ${e.message}`, true);
+    powiadom(tt('obrazyOkno.nieUdaloSieUporzadkowac', { message: e.message }), true);
   } finally {
     pasek.koniec();
   }
@@ -249,7 +249,7 @@ async function zrobMiniature(li, id, z, rozmiar) {
   const img = li.querySelector('img');
   const wymiary = li.querySelector('.obraz-wymiary');
   const m = await miniaturaZasobu(z);
-  if (!m) { wymiary.textContent = 'brak pliku na tym urządzeniu'; li.classList.add('brak'); return; }
+  if (!m) { wymiary.textContent = tt('obrazyOkno.brakPlikuNaTym'); li.classList.add('brak'); return; }
   const gotowa = new Promise((ok) => { img.addEventListener('load', ok, { once: true }); img.addEventListener('error', ok, { once: true }); });
   img.src = m.url;
   await gotowa;
@@ -270,13 +270,13 @@ function odswiezZaznaczenie() {
   const n = zaznaczone.size;
   if (wybor) {
     $('#obrazy-wybierz').disabled = n !== 1;
-    $('#obrazy-zaznaczone').textContent = n ? `Wybrany: ${stan.projekt.zasoby[[...zaznaczone][0]]?.nazwa}` : `Stuknij obraz, a potem „${wybor.etykieta}” (albo kliknij go dwa razy).`;
+    $('#obrazy-zaznaczone').textContent = n ? tt('obrazyOkno.wybrany', { x: stan.projekt.zasoby[[...zaznaczone][0]]?.nazwa }) : tt('obrazyOkno.stuknijObrazAPotem', { etykieta: wybor.etykieta });
     for (const id of ['#obrazy-kopiuj-nazwy', '#obrazy-usun-zaznaczone', '#obrazy-odznacz', '#obrazy-tryb-zaznaczania']) $(id).hidden = true;
     return;
   }
   $('#obrazy-zaznaczone').textContent = n
-    ? `Zaznaczone: ${n}`
-    : (trybZaznaczania ? tt('obrazyOkno.stukajObrazyZebyJe') : 'Kliknij obraz, żeby go zaznaczyć (Ctrl – kilka, Shift – zakres; na telefonie przytrzymaj).');
+    ? tt('obrazyOkno.zaznaczone', { n })
+    : (trybZaznaczania ? tt('obrazyOkno.stukajObrazyZebyJe') : tt('obrazyOkno.kliknijObrazZebyGo'));
   for (const id of ['#obrazy-kopiuj-nazwy', '#obrazy-usun-zaznaczone', '#obrazy-odznacz']) $(id).hidden = n === 0;
   const t = $('#obrazy-tryb-zaznaczania');
   t.hidden = n > 0;
@@ -323,8 +323,8 @@ async function doSchowka(tekst) {
 async function kopiujNazwy(ids) {
   const nazwy = ids.map((id) => stan.projekt.zasoby[id]?.nazwa).filter(Boolean);
   if (!nazwy.length) return;
-  if (!await doSchowka(nazwy.join('\n'))) { powiadom('Nie udało się skopiować – przeglądarka nie pozwoliła na dostęp do schowka.', true); return; }
-  powiadom(nazwy.length === 1 ? `Skopiowano nazwę „${nazwy[0]}”.` : `Skopiowano ${nazwy.length} ${odmiana(nazwy.length, 'nazwę', 'nazwy', 'nazw')} – wklej je w kolumnę tabeli (każda w osobnym wierszu).`);
+  if (!await doSchowka(nazwy.join('\n'))) { powiadom(tt('obrazyOkno.nieUdaloSieSkopiowac'), true); return; }
+  powiadom(nazwy.length === 1 ? tt('obrazyOkno.skopiowanoNazwe', { x: nazwy[0] }) : tt('obrazyOkno.skopiowanoWklejJeW', { nazwyIle: nazwy.length }));
 }
 
 // ---------- Zmiany obejmujące strony (przepięcie elementów) ----------
@@ -404,16 +404,16 @@ async function zmienNazwe(id) {
   const nowa = await zapytajONazwe(tt('obrazyOkno.zmienNazweObrazu'), tt('obrazyOkno.nazwaPlikuZRozszerzeniem'), z.nazwa);
   if (!nowa || nowa === z.nazwa) return;
   const kolizja = poNazwie(p, nowa, id);
-  if (kolizja) { powiadom(`Obraz „${p.zasoby[kolizja].nazwa}” ma już tę nazwę. Dane wskazują obrazy nazwą, więc nazwy muszą być różne.`, true); return; }
+  if (kolizja) { powiadom(tt('obrazyOkno.obrazMaJuzTe', { nazwa: p.zasoby[kolizja].nazwa }), true); return; }
   const u = uzycia(p, id);
-  if (u.dane.length && !await potwierdz(tt('obrazyOkno.zmienicNazweObrazuZ'), `Tabele danych (${u.dane.map((n) => `„${n}”`).join(', ')}) wskazują ten obraz nazwą „${z.nazwa}”. Te komórki dostaną nową nazwę „${nowa}”.`, tt('obrazyOkno.zmienNazwe'))) return;
+  if (u.dane.length && !await potwierdz(tt('obrazyOkno.zmienicNazweObrazuZ'), tt('obrazyOkno.tabeleDanychWskazujaTen', { join: u.dane.map((n) => `„${n}”`).join(', '), nazwa: z.nazwa, nowa }), tt('obrazyOkno.zmienNazwe'))) return;
   try {
     const noweId = await nowaWersja(p, id, { nazwa: nowa });
     // Komórki liczone bez nowego wpisu – żeby nazwa bez rozszerzenia nie stała się chwilowo niejednoznaczna.
     const komorki = (s) => komorkiObrazu({ ...s, zasoby: Object.fromEntries(Object.entries(s.zasoby).filter(([k]) => k !== noweId)) }, id);
     await zmienWszedzie((s) => { const k = komorki(s); przepnij(s, id, noweId); przepiszDane(s, k, nowa); }, (pp) => usunObraz(pp, id, usunZKonta));
     if (zaznaczone.delete(id)) zaznaczone.add(noweId);
-    powiadom(`Nazwa zmieniona na „${nowa}”.`);
+    powiadom(tt('obrazyOkno.nazwaZmienionaNa', { nowa }));
   } catch (e) {
     powiadom(e.message, true);
   }
@@ -439,7 +439,7 @@ async function usun(ids, { tytulZbiorczy = null } = {}) {
   const wolne = ids.filter((id) => !uzyte.some(([x]) => x === id));
   const opisUzytych = uzyte.map(([id, u]) => `„${p.zasoby[id].nazwa}” (${opisUzycia(u)})`).join(', ');
   if (!wolne.length) {
-    const tresc = `${uzyte.length === 1 ? 'Ten obraz jest użyty' : 'Te obrazy są użyte'}: ${opisUzytych}. Najpierw usuń go ze stron albo z tabeli danych – albo podmień plik, jeśli chcesz inny obraz w tych samych miejscach.`;
+    const tresc = tt('obrazyOkno.najpierwUsunGoZe', { x: uzyte.length === 1 ? tt('obrazyOkno.tenObrazJestUzyty') : tt('obrazyOkno.teObrazySaUzyte'), opisUzytych });
     const [id, u] = uzyte[0];
     if (uzyte.length === 1 && u.pierwsze) {
       if (await potwierdz(tt('obrazyOkno.obrazJestWUzyciu'), tresc, tt('obrazyOkno.pokaz'), false, tt('obrazyOkno.zamknij'))) await pokaz(id);
@@ -447,14 +447,14 @@ async function usun(ids, { tytulZbiorczy = null } = {}) {
     return;
   }
   const wHist = wolne.some((id) => wHistorii(historia, id));
-  const czesci = [`${wolne.length === 1 ? 'Plik zniknie' : 'Pliki znikną'} z projektu, z tego urządzenia i z konta.`];
-  if (uzyte.length) czesci.push(`W użyciu ${uzyte.length === 1 ? 'jest i zostaje' : 'są i zostają'}: ${opisUzytych}.`);
+  const czesci = [tt('obrazyOkno.zProjektuZTego', { x: wolne.length === 1 ? tt('obrazyOkno.plikZniknie') : tt('obrazyOkno.plikiZnikna') })];
+  if (uzyte.length) czesci.push(tt('obrazyOkno.wUzyciu2', { x: uzyte.length === 1 ? tt('obrazyOkno.jestIZostaje') : tt('obrazyOkno.saIZostaja'), opisUzytych }));
   if (wHist) czesci.push('Część była niedawno na stronach: cofnięcie (Ctrl+Z) przywróci tam elementy, ale już bez obrazów.');
-  const tytul = tytulZbiorczy || (wolne.length === 1 ? `Usunąć obraz „${p.zasoby[wolne[0]].nazwa}”?` : `Usunąć ${wolne.length} ${odmiana(wolne.length, 'obraz', 'obrazy', 'obrazów')}?`);
+  const tytul = tytulZbiorczy || (wolne.length === 1 ? tt('obrazyOkno.usunacObraz', { nazwa: p.zasoby[wolne[0]].nazwa }) : tt('obrazyOkno.usunac', { wolneIle: wolne.length }));
   if (!await potwierdz(tytul, czesci.join(' '), tt('obrazyOkno.usun'), true)) return;
   for (const id of wolne) { await usunObraz(p, id, usunZKonta); zaznaczone.delete(id); }
   zaplanujZapis({ historia: false });
-  powiadom(`Usunięto ${wolne.length} ${odmiana(wolne.length, 'obraz', 'obrazy', 'obrazów')}.${uzyte.length ? ` ${uzyte.length} w użyciu ${uzyte.length === 1 ? 'został' : 'zostały'}.` : ''}`);
+  powiadom(tt('obrazyOkno.usunieto', { wolneIle: wolne.length, x: uzyte.length ? tt('obrazyOkno.wUzyciu', { uzyteIle: uzyte.length, x: uzyte.length === 1 ? tt('obrazyOkno.zostal') : tt('obrazyOkno.zostaly') }) : '' }));
   rysuj();
 }
 
@@ -462,7 +462,7 @@ function usunNieuzywane() {
   const p = stan.projekt;
   const wszystkie = uzyciaWszystkich(p);
   const ids = obrazyProjektu(p).filter(([id]) => !uzycia(p, id, wszystkie).uzyty).map(([id]) => id);
-  if (ids.length) usun(ids, { tytulZbiorczy: `Usunąć ${ids.length} ${odmiana(ids.length, 'nieużywany obraz', 'nieużywane obrazy', 'nieużywanych obrazów')}?` });
+  if (ids.length) usun(ids, { tytulZbiorczy: tt('obrazyOkno.usunac2', { idsIle: ids.length }) });
 }
 
 function zatwierdzWybor(id = [...zaznaczone][0]) {
@@ -478,11 +478,11 @@ function zatwierdzWybor(id = [...zaznaczone][0]) {
 function zapytajODuplikat(istniejacy, plik, zostalo) {
   const dlg = $('#dlg-obraz-duplikat');
   const z = stan.projekt.zasoby[istniejacy];
-  $('#duplikat-opis').textContent = `W projekcie jest już obraz „${z.nazwa}”, a plik „${plik.name}” ma tę samą nazwę i inną treść. Dane wskazują obrazy nazwą, więc dwa obrazy nie mogą nazywać się tak samo.`;
+  $('#duplikat-opis').textContent = tt('obrazyOkno.wProjekcieJestJuz', { nazwa: z.nazwa, name: plik.name });
   $('#duplikat-stary').src = kopiaRobocza(z) || adresZasobu(z) || '';
   const nowy = URL.createObjectURL(plik);
   $('#duplikat-nowy').src = nowy;
-  $('#duplikat-oba').textContent = `Zachowaj oba (nowy jako „${wolnaNazwa(stan.projekt, plik.name)}”)`;
+  $('#duplikat-oba').textContent = tt('obrazyOkno.zachowajObaNowyJako', { wolnaNazwa: wolnaNazwa(stan.projekt, plik.name) });
   const pole = $('#duplikat-wszystkie');
   pole.checked = false;
   pole.closest('label').hidden = zostalo === 0;
@@ -503,10 +503,10 @@ async function rozpakujArchiwa(pliki) {
     if (!czyArchiwum(f)) { wynik.push(f); continue; }
     try {
       const { pliki: zeSrodka } = await rozpakujZip(new Uint8Array(await f.arrayBuffer()));
-      if (!zeSrodka.length) powiadom(`W archiwum „${f.name}” nie ma obrazów PNG, JPEG, WebP, GIF ani SVG.`, true);
+      if (!zeSrodka.length) powiadom(tt('obrazyOkno.wArchiwumNieMa', { name: f.name }), true);
       for (const x of zeSrodka) wynik.push(new File([x.bajty], x.nazwa, { type: TYPY[x.nazwa.split('.').pop().toLowerCase()] }));
     } catch (e) {
-      powiadom(`Archiwum „${f.name}”: ${e.message}`, true);
+      powiadom(tt('obrazyOkno.archiwum', { name: f.name, message: e.message }), true);
     }
   }
   return wynik;
@@ -554,12 +554,12 @@ async function wgrajObrazyZPostepem(p, wybrane, pasek) {
     zaplanujZapis({ historia: false });
   }
   const czesci = [];
-  if (wynik.dodane.length) czesci.push(`Wgrano ${wynik.dodane.length} ${odmiana(wynik.dodane.length, 'obraz', 'obrazy', 'obrazów')}${wynik.dodane.length === 1 ? ` („${wynik.dodane[0][0]}”)` : ''}.`);
-  if (wynik.zastapione.length) czesci.push(`Zastąpiono ${wynik.zastapione.length}.`);
-  if (wynik.takieSame.length === 1) czesci.push(`Ten obraz już jest jako „${wynik.takieSame[0][1]}” – nie dodano drugiej kopii.`);
-  else if (wynik.takieSame.length) czesci.push(`${wynik.takieSame.length} ${odmiana(wynik.takieSame.length, 'obraz już był', 'obrazy już były', 'obrazów już było')} w projekcie – nie dodano kopii.`);
-  if (wynik.pominiete.length) czesci.push(`Pominięto ${wynik.pominiete.length}.`);
-  if (obrazy.length < pliki.length) czesci.push(`${pliki.length - obrazy.length} ${odmiana(pliki.length - obrazy.length, 'plik nie jest', 'pliki nie są', 'plików nie jest')} obrazem.`);
+  if (wynik.dodane.length) czesci.push(tt('obrazyOkno.wgrano', { dodaneIle: wynik.dodane.length, x: wynik.dodane.length === 1 ? ` („${wynik.dodane[0][0]}”)` : '' }));
+  if (wynik.zastapione.length) czesci.push(tt('obrazyOkno.zastapiono', { zastapioneIle: wynik.zastapione.length }));
+  if (wynik.takieSame.length === 1) czesci.push(tt('obrazyOkno.tenObrazJuzJest', { x: wynik.takieSame[0][1] }));
+  else if (wynik.takieSame.length) czesci.push(tt('obrazyOkno.wProjekcieNieDodano', { takieSameIle: wynik.takieSame.length }));
+  if (wynik.pominiete.length) czesci.push(tt('obrazyOkno.pominieto', { pominieteIle: wynik.pominiete.length }));
+  if (obrazy.length < pliki.length) czesci.push(tt('obrazyOkno.obrazem', { x: pliki.length - obrazy.length }));
   if (czesci.length) powiadom(czesci.join(' '));
   if (okno.open) {
     // Nowo wgrane (i te, które już były) zostają zaznaczone – „Kopiuj nazwy” od razu da ich nazwy.
@@ -648,7 +648,7 @@ plikPodmien.addEventListener('change', async (e) => {
   // Nazwa zostaje (dane dalej pasują) – także gdy nowy plik jest innego rodzaju (np. PNG zamiast JPG).
   try {
     await podmienNa(id, new File([plik], stara, { type: plik.type }));
-    powiadom(`Podmieniono plik obrazu „${stara}”.`);
+    powiadom(tt('obrazyOkno.podmienionoPlikObrazu', { stara }));
   } catch (err) {
     powiadom(err.message, true);
   }

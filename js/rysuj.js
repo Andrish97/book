@@ -12,6 +12,7 @@ import { podlaczZasoby } from './zasoby.js';
 import { przeliczOkladki } from './okladka.js';
 import { przygotujPublikacje } from './publikacja-linku.js';
 import { publikujDoMagazynu } from './publikacja-magazyn.js';
+import { t as tt } from './jezyk.js';
 
 const zBase64 = (b64, typ) => {
   const bin = atob(b64);
@@ -90,8 +91,8 @@ window.makietkaRysuj.eksportuj = async ({ projekt, rodzaj = 'pdf', ustawienia = 
   // Opcje z okna „Eksportuj do PDF” (#338) – jak w aplikacji, bez własnego profilu ICC; zlecenie AI – z ustawień.
   const opcje = opcjeOkna ? { ...opcjeOkna, profilWlasny: null } : opcjePdf(p, u);
   const wynik = await eksportujPdf(p, { ...opcje, postep: (i, n) => window.__mkPostep?.(i, n) });
-  for (const [powod, n] of wynik.uwagi || []) uwagi.push(`Zapisane jako obraz (${n}): ${powod}`);
-  for (const [czcionka, n] of wynik.krzywe || []) uwagi.push(`Tekst jako krzywe (${n}): ${czcionka}`);
+  for (const [powod, n] of wynik.uwagi || []) uwagi.push(tt('rysuj.zapisaneJakoObraz', { n, powod }));
+  for (const [czcionka, n] of wynik.krzywe || []) uwagi.push(tt('rysuj.tekstJakoKrzywe', { n, czcionka }));
   uwagi = uwagi.slice(0, 40);
   return { b64: await doBase64(wynik.blob), typ: wynik.blob.type || 'application/pdf', nazwa: wynik.nazwa, strony: wybierzEgzemplarze(ciag, opcje).length, uwagi };
 };

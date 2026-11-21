@@ -64,7 +64,7 @@ async function idzDo(i) {
   } else if (t.gdzie === 'wzorzec') {
     if (stan.tryb !== 'wzorzec' || stan.idWzorca !== t.cel) await edytujWzorzec(t.cel);
   } else {
-    if (t.gdzie === 'dane') powiadom(`W danych: ${t.nazwaCelu}. Otwórz okno „Dane”, żeby zobaczyć komórkę.`);
+    if (t.gdzie === 'dane') powiadom(tt('znajdzOkno.wDanychOtworzOkno', { nazwaCelu: t.nazwaCelu }));
     return;
   }
   edytor.zaznacz(t.element);
@@ -96,7 +96,7 @@ async function zamienTrafienia(lista2) {
   if (zaznaczony) edytor.zaznacz(zaznaczony);
   renderujListe();
   zaplanujZapis();
-  powiadom(`Zamieniono: ${zm.liczba}.`);
+  powiadom(tt('znajdzOkno.zamieniono', { liczba: zm.liczba }));
   pokaz();
 }
 

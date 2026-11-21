@@ -15,6 +15,7 @@ import { normalizujWykonczenie } from './materialy.js';
 import { rozwin } from './serie.js';
 import { typSekcji, wBloku } from './typ-sekcji.js';
 import { poPrzeliczeniu } from './przeliczenia-okladek.js';
+import { t as tt } from './jezyk.js';
 
 export { poPrzeliczeniu };
 
@@ -447,6 +448,6 @@ export function bilansSkladki(sekcja, ciag) {
 // Tekst do licznika stron: „46 z 48 – brakuje 2 do pełnej składki”.
 export function opisSkladki(b) {
   if (!b) return '';
-  if (!b.brakuje) return `${b.stron} stron – ${b.skladek} ${b.skladek === 1 ? 'pełna składka' : (b.skladek % 10 >= 2 && b.skladek % 10 <= 4 && (b.skladek % 100 < 10 || b.skladek % 100 >= 20) ? 'pełne składki' : 'pełnych składek')} po ${b.skladka}`;
-  return `${b.stron} z ${b.doPelnej} – brakuje ${b.brakuje} do pełnej składki (×${b.skladka})`;
+  if (!b.brakuje) return tt('okladka.stronPo', { stron: b.stron, skladek: b.skladek, x: b.skladek === 1 ? tt('okladka.pelnaSkladka') : (b.skladek % 10 >= 2 && b.skladek % 10 <= 4 && (b.skladek % 100 < 10 || b.skladek % 100 >= 20) ? tt('okladka.pelneSkladki') : tt('okladka.pelnychSkladek')), skladka: b.skladka });
+  return tt('okladka.zBrakujeDoPelnej', { stron: b.stron, doPelnej: b.doPelnej, brakuje: b.brakuje, skladka: b.skladka });
 }

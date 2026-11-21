@@ -11,12 +11,6 @@ import { wpiszNazwe, t } from './jezyk.js';
 const liczba = (x) => Number(x) || 0;
 const procent = (x) => `${Math.min(100, Math.round(x * 100))}%`;
 const data = (d) => (d ? new Date(d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
-const odmiana = (n, jeden, kilka, wiele) => {
-  if (n === 1) return jeden;
-  const j = n % 10;
-  const d = n % 100;
-  return j >= 2 && j <= 4 && (d < 12 || d > 14) ? kilka : wiele;
-};
 
 let ostatnie = null; // { m, uzycie } – do ponownego sortowania bez pytania bazy
 let sortowanie = 'rozmiar';
@@ -42,12 +36,12 @@ function wierszProjektu(p, najwiekszy, { cudzy = false } = {}) {
   li.dataset.id = p.id;
   const meta = [
     cudzy ? `właściciel: ${p.wlasciciel || '—'} · ${p.rola === 'odczyt' ? 'oglądasz' : 'edytujesz'}` : rozmiar(p.bajty),
-    `${p.obrazy} ${odmiana(p.obrazy, 'obraz', 'obrazy', 'obrazów')}`,
-    `${p.strony} ${odmiana(p.strony, 'strona', 'strony', 'stron')}`,
+    t('uzycieKonta.tekst', { obrazy: p.obrazy }),
+    t('uzycieKonta.tekst2', { strony: p.strony }),
     `zmieniono ${data(p.zmieniono)}`,
   ];
   const dodatki = [];
-  if (!cudzy && p.klucze_ai) dodatki.push(`${p.klucze_ai} ${odmiana(p.klucze_ai, 'klucz AI', 'klucze AI', 'kluczy AI')}`);
+  if (!cudzy && p.klucze_ai) dodatki.push(t('uzycieKonta.tekst3', { klucze_ai: p.klucze_ai }));
   if (!cudzy && (p.link || p.link_chroniony)) dodatki.push(p.link_chroniony ? 'link z hasłem' : 'link do podglądu');
   li.innerHTML = `
     <div class="uzycie-opis"><strong></strong><span class="ciche uzycie-meta"></span></div>
@@ -95,7 +89,7 @@ function rysuj() {
   $('#uzycie-pusto').hidden = wlasne.length > 0;
   const klucze = wlasne.reduce((s, p) => s + liczba(p.klucze_ai), 0);
   const linki = wlasne.filter((p) => p.link || p.link_chroniony).length;
-  $('#uzycie-dodatki').textContent = `Aktywne klucze AI: ${klucze}. Linki do podglądu: ${linki}.`;
+  $('#uzycie-dodatki').textContent = t('uzycieKonta.aktywneKluczeAiLinki', { klucze, linki });
   const uInnych = (uzycie.u_innych || []).map((p) => ({ ...p, obrazy: liczba(p.obrazy), strony: liczba(p.strony) }));
   const inni = $('#uzycie-u-innych');
   inni.hidden = !uInnych.length;

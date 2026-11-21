@@ -244,7 +244,7 @@ export const WZORCE_STANDARDOWE = [
   },
   // ---------- Kalendarz i planer ----------
   {
-    klucz: 'zakladka', grupa: 'Kalendarz i planer', nazwa: 'Zakładka na brzegu', opis: 'Kolorowa zakładka przy zewnętrznej krawędzi; na powielonych stronach serii przesuwa się w dół (6 pozycji).', lustro: true, slowa: 'zakladka indeks brzeg seria planer',
+    klucz: 'zakladka', grupa: 'Kalendarz i planer', nazwa: 'Zakładka na brzegu', opis: tt('wzorceStandardowe.kolorowaZakladkaPrzyZewnetrznej'), lustro: true, slowa: 'zakladka indeks brzeg seria planer',
     obiekty: (w, m) => {
       const wys = Math.min(30, (w.wysokosc_mm - 2 * w.marginesy.gora) / 6);
       return [{

@@ -65,7 +65,7 @@ export function podpowiedzNazwy(pole, el) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'link';
-      b.textContent = `Weź „${w.propozycja}”`;
+      b.textContent = tt('nazwaUzytkownika.wez', { propozycja: w.propozycja });
       b.addEventListener('click', () => { pole.value = w.propozycja; sprawdz(); pole.focus(); });
       el.append(b);
     }
@@ -116,7 +116,7 @@ async function oknoNazwy(uzytkownik) {
       e.preventDefault();
       const przycisk = form.querySelector('button[type="submit"]');
       komunikat.textContent = '';
-      if (!poprawnaNazwa(pole.value.trim())) { komunikat.textContent = `Nazwa: ${ZASADY_NAZWY}`; return; }
+      if (!poprawnaNazwa(pole.value.trim())) { komunikat.textContent = tt('nazwaUzytkownika.nazwa', { ZASADY_NAZWY }); return; }
       przycisk.disabled = true;
       try {
         const u = await ustawNazwe(pole.value);

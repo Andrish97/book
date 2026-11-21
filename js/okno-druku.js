@@ -117,8 +117,8 @@ function opisSkali(egz, plan, o) {
   const proc = Math.round(a.skala * 100);
   if (proc === 100) return '';
   return proc < 100
-    ? `Strony będą zmniejszone do ${proc}%, żeby zmieściły się na kartce z marginesem 5 mm (tyle przy brzegu drukarka zwykle nie zadrukuje).`
-    : `Strony będą powiększone do ${proc}% (Dopasuj do kartki).`;
+    ? tt('oknoDruku.stronyBedaZmniejszoneDo', { proc })
+    : tt('oknoDruku.stronyBedaPowiekszoneDo', { proc });
 }
 
 export class OknoDruku {
@@ -187,7 +187,7 @@ export class OknoDruku {
     this.kartek = kartek;
     $('#druk-opis').textContent = o.uklad === 'jedna'
       ? `${egz.length} ${egz.length === 1 ? 'strona' : 'stron'} na ${o.papier}, ${o.dopasowanie === 'dopasuj' ? 'dopasowane do kartki' : 'w rzeczywistym rozmiarze (zmniejszone tylko, gdy się nie mieszczą)'}.`
-      : `${opisPlanu(egz.length, plan)} Papier ${o.papier}.`;
+      : tt('oknoDruku.papier', { opisPlanu: opisPlanu(egz.length, plan), papier: o.papier });
     $('#druk-skala').textContent = opisSkali(egz, plan, o);
     const uwagaStron = o.zakres === 'strony' ? uwagaZakresu(o.strony, this.ciag.egzemplarze.length) : null;
     if (uwagaStron) $('#druk-opis').textContent = `${uwagaStron} ${$('#druk-opis').textContent}`;
@@ -218,7 +218,7 @@ export class OknoDruku {
       }
       this.ostatni = { blob, url };
     } catch (e) {
-      $('#druk-komunikat').textContent = `Nie udało się przygotować wydruku: ${e.message}`;
+      $('#druk-komunikat').textContent = tt('oknoDruku.nieUdaloSiePrzygotowac', { message: e.message });
     } finally {
       pasek.koniec();
       przyciski.forEach((b) => { b.disabled = false; });

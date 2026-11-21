@@ -13,9 +13,9 @@ import { NAGLOWKI, BLOKI, INFOGRAFIKI, FORMULARZE, OKOLICZNOSCIOWE, ILUSTRACJE, 
 // Kształty z js/ksztalty-biblioteka.js w kategoriach okna; grupa kształtu (k.kategoria) to nagłówek w kategorii
 // (#155). Nazwa grupy w oknie może być krótsza („Ramki proste” → „Proste”).
 const NAZWY_GRUP = {
-  'Ramki proste': 'Proste', 'Ramki zaokrąglone': 'Zaokrąglone', 'Ramki podwójne i przerywane': 'Podwójne i przerywane',
-  'Ramki ozdobne': 'Ozdobne', 'Ramki z tytułem': 'Z miejscem na tytuł', 'Ramki w kształcie': 'W kształcie',
-  'Na zdjęcie': 'Na zdjęcie – wstaw obraz do środka', Notatki: 'Siatki do notatek',
+  'Ramki proste': tt('bibliotekaElementy.proste'), 'Ramki zaokrąglone': tt('bibliotekaElementy.zaokraglone'), 'Ramki podwójne i przerywane': tt('bibliotekaElementy.podwojneIPrzerywane'),
+  'Ramki ozdobne': tt('bibliotekaElementy.ozdobne'), 'Ramki z tytułem': tt('bibliotekaElementy.zMiejscemNaTytul'), 'Ramki w kształcie': tt('bibliotekaElementy.wKsztalcie'),
+  'Na zdjęcie': tt('bibliotekaElementy.naZdjecieWstawObraz'), Notatki: tt('bibliotekaElementy.siatkiDoNotatek'),
 };
 const ksztaltyZ = (...grupy) => () => grupy.flatMap((g) => KSZTALTY.filter((k) => k.kategoria === g)).map((k) => ({
   id: k.id, nazwa: k.nazwa, slowa: `${k.slowa} ${k.kategoria}`, podglad: svgKsztaltu(k), grupa: NAZWY_GRUP[k.kategoria] || k.kategoria,
@@ -30,22 +30,22 @@ export const GRUPY_KATEGORII = {
   ozdobniki: ['Wstęgi i banery', 'Narożniki', 'Rozety i ornamenty'],
   etykiety: ['Etykiety'],
 };
-zarejestrujKategorie({ id: 'ksztalty', nazwa: 'Kształty', ikona: 'ksztalty', kolejnosc: 10, elementy: ksztaltyZ(...GRUPY_KATEGORII.ksztalty) });
-zarejestrujKategorie({ id: 'strzalki', nazwa: 'Strzałki i dymki', ikona: 'strzalka', kolejnosc: 20, elementy: ksztaltyZ(...GRUPY_KATEGORII.strzalki) });
+zarejestrujKategorie({ id: 'ksztalty', nazwa: tt('bibliotekaElementy.ksztalty'), ikona: 'ksztalty', kolejnosc: 10, elementy: ksztaltyZ(...GRUPY_KATEGORII.ksztalty) });
+zarejestrujKategorie({ id: 'strzalki', nazwa: tt('bibliotekaElementy.strzalkiIDymki'), ikona: 'strzalka', kolejnosc: 20, elementy: ksztaltyZ(...GRUPY_KATEGORII.strzalki) });
 zarejestrujKategorie({ id: 'ramki', nazwa: tt('bibliotekaElementy.ramki'), ikona: 'ramka', kolejnosc: 25, elementy: ksztaltyZ(...GRUPY_KATEGORII.ramki) });
-zarejestrujKategorie({ id: 'ozdobniki', nazwa: 'Ozdobniki', ikona: 'ozdobnik', kolejnosc: 30, elementy: ksztaltyZ(...GRUPY_KATEGORII.ozdobniki) });
-zarejestrujKategorie({ id: 'etykiety', nazwa: 'Etykiety i plakietki', ikona: 'etykieta', kolejnosc: 35, elementy: ksztaltyZ(...GRUPY_KATEGORII.etykiety) });
+zarejestrujKategorie({ id: 'ozdobniki', nazwa: tt('bibliotekaElementy.ozdobniki'), ikona: 'ozdobnik', kolejnosc: 30, elementy: ksztaltyZ(...GRUPY_KATEGORII.ozdobniki) });
+zarejestrujKategorie({ id: 'etykiety', nazwa: tt('bibliotekaElementy.etykietyIPlakietki'), ikona: 'etykieta', kolejnosc: 35, elementy: ksztaltyZ(...GRUPY_KATEGORII.etykiety) });
 
 // Linie i separatory (#143): zwykłe linie – rodzaj, grubość i kolor zmienia się potem w panelu „Linia”.
 const LINIE = [
-  ['ciagla', 'Linia ciągła', 'linia prosta kreska', { grubosc: 0.5 }],
-  ['cienka', 'Linia cienka', 'linia cienka wloskowa', { grubosc: 0.2 }],
-  ['gruba', 'Linia gruba', 'linia gruba pogrubiona', { grubosc: 1.5 }],
-  ['przerywana', 'Linia przerywana', 'linia przerywana kreski ciecie', { grubosc: 0.5, kreski: 'przerywana' }],
-  ['kropkowana', 'Linia kropkowana', 'linia kropkowana kropki wypelnienie', { grubosc: 0.6, kreski: 'kropkowana' }],
-  ['kreska-kropka', 'Linia kreska – kropka', 'linia kreska kropka os', { grubosc: 0.5, kreski: 'kreska-kropka' }],
-  ['podwojna', 'Linia podwójna', 'linia podwojna separator', { grubosc: 0.3, podwojna: true }],
-  ['pionowa', 'Linia pionowa', 'linia pionowa kolumna separator', { grubosc: 0.5, pionowa: true }],
+  ['ciagla', tt('bibliotekaElementy.liniaCiagla'), 'linia prosta kreska', { grubosc: 0.5 }],
+  ['cienka', tt('bibliotekaElementy.liniaCienka'), 'linia cienka wloskowa', { grubosc: 0.2 }],
+  ['gruba', tt('bibliotekaElementy.liniaGruba'), 'linia gruba pogrubiona', { grubosc: 1.5 }],
+  ['przerywana', tt('bibliotekaElementy.liniaPrzerywana'), 'linia przerywana kreski ciecie', { grubosc: 0.5, kreski: 'przerywana' }],
+  ['kropkowana', tt('bibliotekaElementy.liniaKropkowana'), 'linia kropkowana kropki wypelnienie', { grubosc: 0.6, kreski: 'kropkowana' }],
+  ['kreska-kropka', tt('bibliotekaElementy.liniaKreskaKropka'), 'linia kreska kropka os', { grubosc: 0.5, kreski: 'kreska-kropka' }],
+  ['podwojna', tt('bibliotekaElementy.liniaPodwojna'), 'linia podwojna separator', { grubosc: 0.3, podwojna: true }],
+  ['pionowa', tt('bibliotekaElementy.liniaPionowa'), 'linia pionowa kolumna separator', { grubosc: 0.5, pionowa: true }],
 ];
 const svgLinii = ({ grubosc = 0.5, kreski = 'ciagla', podwojna, pionowa }) => {
   const g = Math.max(0.6, grubosc * 3);
@@ -58,7 +58,7 @@ const svgLinii = ({ grubosc = 0.5, kreski = 'ciagla', podwojna, pionowa }) => {
   return `<svg viewBox="0 0 70 52" aria-hidden="true"><path d="${d}" class="linia-biblioteki" style="${styl}"/></svg>`;
 };
 zarejestrujKategorie({
-  id: 'linie', nazwa: 'Linie i separatory', ikona: 'separator', kolejnosc: 32,
+  id: 'linie', nazwa: tt('bibliotekaElementy.linieISeparatory'), ikona: 'separator', kolejnosc: 32,
   elementy: () => [
     ...LINIE.map(([id, nazwa, slowa, opis]) => ({ id, nazwa, slowa: `${slowa} separator`, podglad: svgLinii(opis), grupa: tt('bibliotekaElementy.linie'), wstaw: (e, punkt) => e.dodajLinieZBiblioteki({ ...opis, nazwa }, punkt) })),
     ...ksztaltyZ('Separatory ozdobne')(),
@@ -73,7 +73,7 @@ const tabelaSzablonu = (s) => ({
 // Planer (#143, #155): gotowe tabele (lista zadań, tracker nawyków, plan tygodnia…) i siatki do notatek
 // (kratka, kropki, linie). Luźne kształty (pola wyboru itp.) są w Kształtach → Znaki.
 zarejestrujKategorie({
-  id: 'planer', nazwa: 'Planer', ikona: 'planer', kolejnosc: 45,
+  id: 'planer', nazwa: tt('bibliotekaElementy.planer'), ikona: 'planer', kolejnosc: 45,
   elementy: () => [
     ...SZABLONY.filter((s) => s.grupa === 'Gotowe tabele').map(tabelaSzablonu),
     ...PLANER_SKLADY.map((el) => elementZeSkladu(el)),
@@ -85,42 +85,42 @@ zarejestrujKategorie({
 // Kalendarze: ten sam element w trzech gotowych ustawieniach.
 const KALENDARZE = [
   ['zwykly', tt('bibliotekaElementy.kalendarzMiesiaca'), 'siatka dni swieta', {}],
-  ['notatki', 'Kalendarz z miejscem na notatki', 'planer notatki duzy', { notatki: true, wiersz_dnia: 18 }],
-  ['tygodnie', 'Kalendarz z numerami tygodni', 'tydzien numery tygodni', { tygodnie: true, nazwy: 'litery' }],
+  ['notatki', tt('bibliotekaElementy.kalendarzZMiejscemNa'), 'planer notatki duzy', { notatki: true, wiersz_dnia: 18 }],
+  ['tygodnie', tt('bibliotekaElementy.kalendarzZNumeramiTygodni'), 'tydzien numery tygodni', { tygodnie: true, nazwy: 'litery' }],
 ];
 const podgladKalendarza = (notatki) => `<svg viewBox="0 0 70 52" aria-hidden="true"><rect x="2" y="2" width="66" height="48" rx="2" class="tlo"/><rect x="2" y="2" width="66" height="9" class="pasek"/>${
   Array.from({ length: 35 }, (_, i) => `<rect x="${4 + (i % 7) * 9}" y="${13 + Math.floor(i / 7) * 7.2}" width="${notatki ? 8 : 6}" height="${notatki ? 6.4 : 4}" rx="0.6" class="${i % 7 === 6 ? 'nd' : 'dz'}"/>`).join('')}</svg>`;
 zarejestrujKategorie({
-  id: 'kalendarze', nazwa: 'Kalendarze', ikona: 'kalendarz', kolejnosc: 40,
+  id: 'kalendarze', nazwa: tt('bibliotekaElementy.kalendarze'), ikona: 'kalendarz', kolejnosc: 40,
   elementy: () => KALENDARZE.map(([id, nazwa, slowa, opis]) => ({
     id, nazwa, slowa: `kalendarz miesiac ${slowa}`, duzy: true, podglad: podgladKalendarza(opis.notatki),
-    opis: 'Miesiąc stały albo z kolumny danych, polskie święta', wstaw: (e, punkt) => e.dodajKalendarz(opis, punkt),
+    opis: tt('bibliotekaElementy.miesiacStalyAlboZ'), wstaw: (e, punkt) => e.dodajKalendarz(opis, punkt),
   })),
 });
 
 // Wykresy: rodzaje; dane z pierwszej tabeli projektu (zmienia się w panelu).
 const WYKRESY = [
   ['slupki', tt('bibliotekaElementy.wykresSlupkowy'), '<path d="M8 44h54"/><rect x="12" y="24" width="9" height="20"/><rect x="27" y="12" width="9" height="32"/><rect x="42" y="18" width="9" height="26"/>'],
-  ['poziome', 'Wykres poziomy', '<path d="M10 6v40"/><rect x="10" y="9" width="40" height="8"/><rect x="10" y="21" width="28" height="8"/><rect x="10" y="33" width="48" height="8"/>'],
-  ['linia', 'Wykres liniowy', '<path d="M8 44h54"/><path d="M10 36 24 22l12 8 22-20" class="linia"/>'],
-  ['kolo', 'Wykres kołowy', '<path d="M35 26V6a20 20 0 1 1-17.3 30z"/><path d="M35 26 17.7 36A20 20 0 0 1 35 6z" class="drugi"/>'],
-  ['pierscien', 'Wykres pierścieniowy', '<path d="M35 6a20 20 0 1 1-17.3 30l7.8-4.5A11 11 0 1 0 35 15z"/><path d="M17.7 36A20 20 0 0 1 35 6v9a11 11 0 0 0-9.5 16.5z" class="drugi"/>'],
+  ['poziome', tt('bibliotekaElementy.wykresPoziomy'), '<path d="M10 6v40"/><rect x="10" y="9" width="40" height="8"/><rect x="10" y="21" width="28" height="8"/><rect x="10" y="33" width="48" height="8"/>'],
+  ['linia', tt('bibliotekaElementy.wykresLiniowy'), '<path d="M8 44h54"/><path d="M10 36 24 22l12 8 22-20" class="linia"/>'],
+  ['kolo', tt('bibliotekaElementy.wykresKolowy'), '<path d="M35 26V6a20 20 0 1 1-17.3 30z"/><path d="M35 26 17.7 36A20 20 0 0 1 35 6z" class="drugi"/>'],
+  ['pierscien', tt('bibliotekaElementy.wykresPierscieniowy'), '<path d="M35 6a20 20 0 1 1-17.3 30l7.8-4.5A11 11 0 1 0 35 15z"/><path d="M17.7 36A20 20 0 0 1 35 6v9a11 11 0 0 0-9.5 16.5z" class="drugi"/>'],
 ];
 let opisWykresuDomyslny = () => ({});
 export function ustawDomyslneDaneWykresu(fn) { opisWykresuDomyslny = fn; }
 zarejestrujKategorie({
-  id: 'wykresy', nazwa: 'Wykresy', ikona: 'wykres', kolejnosc: 50,
+  id: 'wykresy', nazwa: tt('bibliotekaElementy.wykresy'), ikona: 'wykres', kolejnosc: 50,
   elementy: () => WYKRESY.map(([rodzaj, nazwa, svg]) => ({
     id: rodzaj, nazwa, slowa: 'wykres dane liczby diagram', duzy: true,
     podglad: `<svg viewBox="0 0 70 52" aria-hidden="true" class="podglad-wykresu">${svg}</svg>`,
-    opis: 'Z tabeli danych projektu', wstaw: (e, punkt) => e.dodajWykres({ ...opisWykresuDomyslny(), rodzaj }, punkt),
+    opis: tt('bibliotekaElementy.zTabeliDanychProjektu'), wstaw: (e, punkt) => e.dodajWykres({ ...opisWykresuDomyslny(), rodzaj }, punkt),
   })),
 });
 
 zarejestrujKategorie({
-  id: 'kolaze', nazwa: 'Kolaże zdjęć', ikona: 'kolaz', kolejnosc: 60,
+  id: 'kolaze', nazwa: tt('bibliotekaElementy.kolazeZdjec'), ikona: 'kolaz', kolejnosc: 60,
   elementy: () => KOLAZE.map((k) => ({
-    id: k.id, nazwa: `Kolaż: ${k.nazwa}`, slowa: 'kolaz zdjecia siatka zdjec fotografie', podglad: svgKolazu(k.id),
+    id: k.id, nazwa: tt('bibliotekaElementy.kolaz', { nazwa: k.nazwa }), slowa: 'kolaz zdjecia siatka zdjec fotografie', podglad: svgKolazu(k.id),
     wstaw: (e, punkt) => e.dodajKolaz(k.id, { punkt }),
   })),
 });
@@ -145,10 +145,10 @@ function podgladEAN() {
 const PODGLAD_QR = podgladQR();
 const PODGLAD_EAN = podgladEAN();
 zarejestrujKategorie({
-  id: 'kody', nazwa: 'Kody', ikona: 'kod', kolejnosc: 70,
+  id: 'kody', nazwa: tt('bibliotekaElementy.kody'), ikona: 'kod', kolejnosc: 70,
   elementy: () => [
-    { id: 'qr', nazwa: tt('bibliotekaElementy.kodQr'), slowa: 'kod qr adres strona link wifi telefon e-mail', duzy: true, podglad: PODGLAD_QR, opis: 'Adres, tekst, e-mail, telefon, Wi-Fi – także z danych', wstaw: (e) => e.dodajKod('qr') },
-    { id: 'ean', nazwa: 'Kod kreskowy EAN / ISBN', slowa: 'kod kreskowy ean isbn ksiazka okladka', duzy: true, podglad: PODGLAD_EAN, opis: 'Np. ISBN na okładkę książki', wstaw: (e) => e.dodajKod('ean') },
+    { id: 'qr', nazwa: tt('bibliotekaElementy.kodQr'), slowa: 'kod qr adres strona link wifi telefon e-mail', duzy: true, podglad: PODGLAD_QR, opis: tt('bibliotekaElementy.adresTekstEMail'), wstaw: (e) => e.dodajKod('qr') },
+    { id: 'ean', nazwa: tt('bibliotekaElementy.kodKreskowyEanIsbn'), slowa: 'kod kreskowy ean isbn ksiazka okladka', duzy: true, podglad: PODGLAD_EAN, opis: tt('bibliotekaElementy.npIsbnNaOkladke'), wstaw: (e) => e.dodajKod('ean') },
   ],
 });
 
@@ -176,20 +176,20 @@ zarejestrujKategorie({
 
 // Teksty (#131B): gotowe napisy po łuku, w okręgu i wygięte – zwykły tekst z kształtem (panel „Kształt tekstu”).
 const TEKSTY = [
-  ['luk', 'Napis po łuku', 'NAPIS PO ŁUKU', { rodzaj: 'luk', zgiecie: 45 }, '<path d="M10 40 Q35 4 60 40" class="linia"/>'],
-  ['pieczec', 'Pieczęć – napis w okręgu', 'MAKIETKA • PIECZĘĆ • 2027 •', { rodzaj: 'okrag', strona: 'zewn' }, '<circle cx="35" cy="26" r="19" class="linia"/><circle cx="35" cy="26" r="12" class="linia"/>', 12],
-  ['usmiech', 'Łuk w dół', 'UŚMIECHNIJ SIĘ', { rodzaj: 'luk', zgiecie: -45 }, '<path d="M10 12 Q35 48 60 12" class="linia"/>'],
-  ['fala', 'Falisty baner', 'FALUJĄCY NAPIS', { rodzaj: 'fala', zgiecie: 60 }, '<path d="M6 26 C18 6 26 6 35 26 S52 46 64 26" class="linia"/>'],
+  ['luk', tt('bibliotekaElementy.napisPoLuku'), 'NAPIS PO ŁUKU', { rodzaj: 'luk', zgiecie: 45 }, '<path d="M10 40 Q35 4 60 40" class="linia"/>'],
+  ['pieczec', tt('bibliotekaElementy.pieczecNapisWOkregu'), 'MAKIETKA • PIECZĘĆ • 2027 •', { rodzaj: 'okrag', strona: 'zewn' }, '<circle cx="35" cy="26" r="19" class="linia"/><circle cx="35" cy="26" r="12" class="linia"/>', 12],
+  ['usmiech', tt('bibliotekaElementy.lukWDol'), 'UŚMIECHNIJ SIĘ', { rodzaj: 'luk', zgiecie: -45 }, '<path d="M10 12 Q35 48 60 12" class="linia"/>'],
+  ['fala', tt('bibliotekaElementy.falistyBaner'), 'FALUJĄCY NAPIS', { rodzaj: 'fala', zgiecie: 60 }, '<path d="M6 26 C18 6 26 6 35 26 S52 46 64 26" class="linia"/>'],
   ['flaga', tt('bibliotekaElementy.flaga'), 'NA WIETRZE', { rodzaj: 'flaga', zgiecie: 50 }, '<path d="M8 18 C20 8 30 28 42 18 S56 10 62 16 M8 34 C20 24 30 44 42 34 S56 26 62 32" class="linia"/>'],
-  ['wypukly', 'Wypukły tytuł', 'TYTUŁ', { rodzaj: 'wypuklosc', zgiecie: 60 }, '<path d="M8 16 Q35 2 62 16 M8 36 Q35 50 62 36" class="linia"/>'],
-  ['zwezenie', 'Zwężający się napis', 'PERSPEKTYWA', { rodzaj: 'zwezenie', zgiecie: 60 }, '<path d="M6 10 L64 20 M6 42 L64 32" class="linia"/>'],
+  ['wypukly', tt('bibliotekaElementy.wypuklyTytul'), 'TYTUŁ', { rodzaj: 'wypuklosc', zgiecie: 60 }, '<path d="M8 16 Q35 2 62 16 M8 36 Q35 50 62 36" class="linia"/>'],
+  ['zwezenie', tt('bibliotekaElementy.zwezajacySieNapis'), 'PERSPEKTYWA', { rodzaj: 'zwezenie', zgiecie: 60 }, '<path d="M6 10 L64 20 M6 42 L64 32" class="linia"/>'],
 ];
 zarejestrujKategorie({
-  id: 'teksty', nazwa: 'Teksty', ikona: 'tekst', kolejnosc: 62,
+  id: 'teksty', nazwa: tt('bibliotekaElementy.teksty'), ikona: 'tekst', kolejnosc: 62,
   elementy: () => TEKSTY.map(([id, nazwa, tresc, ksztalt, svg, pt]) => ({
     id, nazwa, slowa: `tekst napis ${nazwa} luk okrag fala wygiecie`, duzy: true,
     podglad: `<svg viewBox="0 0 70 52" aria-hidden="true" class="podglad-wykresu">${svg}</svg>`,
-    opis: 'Tekst po kształcie – zmienisz go w panelu „Kształt tekstu”',
+    opis: tt('bibliotekaElementy.tekstPoKsztalcieZmienisz'),
     wstaw: (e, punkt) => e.dodajTekstWKsztalcie(tresc, ksztalt, punkt, { rozmiarPt: pt || 20 }),
   })),
 });
@@ -230,7 +230,7 @@ zarejestrujKategorie({
     },
     akcje: [
       { ikona: 'olowek', nazwa: tt('bibliotekaElementy.zmienNazwe'), fn: () => MOJE.zmienNazwe?.(m) },
-      { ikona: 'kosz', nazwa: 'Usuń z biblioteki', fn: () => MOJE.usun?.(m) },
+      { ikona: 'kosz', nazwa: tt('bibliotekaElementy.usunZBiblioteki'), fn: () => MOJE.usun?.(m) },
     ],
   })),
 });
@@ -245,7 +245,7 @@ zarejestrujKategorie({
     const loga = (m?.loga || []).map((l) => ({
       id: `logo-${l.id}`, nazwa: l.nazwa, slowa: 'logo marka znak', duzy: true,
       podglad: l.podglad ? `<img src="${l.podglad.replace(/"/g, '&quot;')}" alt="">` : PODGLAD_MARKI,
-      opis: 'Logo z zestawu marki',
+      opis: tt('bibliotekaElementy.logoZZestawuMarki'),
       wstaw: async (e) => {
         const [{ plikLogo }, { przyjmijPlik }] = await Promise.all([import('./zestaw-marki.js'), import('./obrazy-projektu.js')]);
         const { blob, nazwa } = await plikLogo(l.id);
@@ -256,8 +256,8 @@ zarejestrujKategorie({
     }));
     return [
       ...loga,
-      { id: 'zastosuj', nazwa: tt('bibliotekaElementy.zastosujMarkeDoProjektu'), slowa: 'marka kolory czcionki zamien', duzy: true, podglad: PODGLAD_MARKI, opis: 'Kolory i czcionki projektu → marki', wstaw: async () => { (await import('./app/marka-zastosuj.js')).otworzZastosowanieMarki(); return null; } },
-      { id: 'edytuj', nazwa: tt('bibliotekaElementy.edytujZestawMarki'), slowa: 'marka zestaw kolory czcionki logo', duzy: true, podglad: PODGLAD_MARKI, opis: 'Kolory, czcionki i logo na koncie', wstaw: async () => { (await import('./marka-okno.js')).otworzMarke(); return null; } },
+      { id: 'zastosuj', nazwa: tt('bibliotekaElementy.zastosujMarkeDoProjektu'), slowa: 'marka kolory czcionki zamien', duzy: true, podglad: PODGLAD_MARKI, opis: tt('bibliotekaElementy.koloryICzcionkiProjektu'), wstaw: async () => { (await import('./app/marka-zastosuj.js')).otworzZastosowanieMarki(); return null; } },
+      { id: 'edytuj', nazwa: tt('bibliotekaElementy.edytujZestawMarki'), slowa: 'marka zestaw kolory czcionki logo', duzy: true, podglad: PODGLAD_MARKI, opis: tt('bibliotekaElementy.koloryCzcionkiILogo'), wstaw: async () => { (await import('./marka-okno.js')).otworzMarke(); return null; } },
     ];
   },
 });
@@ -266,9 +266,9 @@ zarejestrujKategorie({
 // Ikony liniowe: spójny zestaw 24 × 24 (js/ikony-biblioteki.js) w grupach tematycznych.
 const ROZMIAR_IKONY = 14;
 const ELEMENTY_IKON = Object.entries(IKONY).flatMap(([grupa, lista]) => lista.map(([id, nazwa, slowa, d]) => ({
-  id: `ikona-${id}`, nazwa, slowa: `ikona ${slowa} ${grupa}`, grupa, buduj: () => rysunek(d, ROZMIAR_IKONY, { nazwa: `Ikona: ${nazwa}` }),
+  id: `ikona-${id}`, nazwa, slowa: `ikona ${slowa} ${grupa}`, grupa, buduj: () => rysunek(d, ROZMIAR_IKONY, { nazwa: tt('bibliotekaElementy.ikona', { nazwa }) }),
 })).map((el) => elementZeSkladu(el)));
-zarejestrujKategorie({ id: 'ikony', nazwa: 'Ikony', ikona: 'ikony', kolejnosc: 12, elementy: () => ELEMENTY_IKON });
+zarejestrujKategorie({ id: 'ikony', nazwa: tt('bibliotekaElementy.ikony'), ikona: 'ikony', kolejnosc: 12, elementy: () => ELEMENTY_IKON });
 
 const kategoriaSkladow = (id, nazwa, ikona, kolejnosc, lista, grupa) => {
   const elementy = lista.map((el) => elementZeSkladu(el, grupa));
@@ -286,7 +286,7 @@ kategoriaSkladow('uklady', 'Układy stron', 'uklad', 64, duze(UKLADY), 'Całe st
 // Tabele formularzy dopisane do kategorii formularzy (zwykła tabela – jak w Planerze).
 {
   const formularze = [...FORMULARZE.map((el) => elementZeSkladu({ ...el, duzy: true }, 'Pola i podpisy')), ...SZABLONY_FORMULARZY.map(tabelaSzablonu)];
-  zarejestrujKategorie({ id: 'formularze', nazwa: 'Formularze do druku', ikona: 'formularz', kolejnosc: 47, elementy: () => formularze });
+  zarejestrujKategorie({ id: 'formularze', nazwa: tt('bibliotekaElementy.formularzeDoDruku'), ikona: 'formularz', kolejnosc: 47, elementy: () => formularze });
 }
 
 // Gotowe sekcje (#166) – kategoria w osobnym module.

@@ -72,7 +72,7 @@ function oknoSejfu(tryb) {
       await s.usun();
       fo.removeEventListener('submit', naSubmit);
       dlg.close('nie');
-      powiadom('Zapisane klucze usunięte – wklej je od nowa, a sejf założy się z nowym hasłem.');
+      powiadom(t('sejfAi.zapisaneKluczeUsunieteWklej'));
       ok(false);
     };
     dlg.addEventListener('close', () => { fo.removeEventListener('submit', naSubmit); if (dlg.returnValue !== 'tak') ok(false); }, { once: true });

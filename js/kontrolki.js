@@ -256,7 +256,7 @@ function ulepszSelect(sel) {
       }
       const w = widoczne();
       pasek.hidden = !filtr;
-      pasek.textContent = filtr ? `Szukaj: ${filtr}${w.length ? '' : ' – nic nie pasuje'}` : '';
+      pasek.textContent = filtr ? tt('kontrolki.szukaj', { filtr, x: w.length ? '' : tt('kontrolki.nicNiePasuje') }) : '';
       if (w.length) zaznacz(pozycje.indexOf(w.includes(pozycje[aktywna]) && !filtr ? pozycje[aktywna] : w[0]));
     };
     // Strzałki chodzą tylko po widocznych pozycjach.
@@ -402,7 +402,7 @@ function ulepszKolor(input) {
   const odswiez = () => {
     przycisk.firstElementChild.style.background = wartoscInput.get.call(input);
     przycisk.disabled = input.disabled;
-    przycisk.setAttribute('aria-label', `Kolor ${wartoscInput.get.call(input)} – zmień`);
+    przycisk.setAttribute('aria-label', tt('kontrolki.kolorZmien', { call: wartoscInput.get.call(input) }));
   };
   Object.defineProperty(input, 'value', { configurable: true, get() { return wartoscInput.get.call(this); }, set(v) { wartoscInput.set.call(this, v); odswiez(); } });
   new MutationObserver(odswiez).observe(input, { attributes: true, attributeFilter: ['disabled'] });
@@ -498,7 +498,7 @@ function ulepszKolor(input) {
         b.type = 'button';
         b.style.background = k;
         b.title = k;
-        b.setAttribute('aria-label', `Kolor ${k}`);
+        b.setAttribute('aria-label', tt('kontrolki.kolor', { k }));
         b.addEventListener('click', () => zKoloru(k));
         el.append(b);
       }
@@ -513,7 +513,7 @@ function ulepszKolor(input) {
       const p = okienko.querySelector('.kolor-tryb');
       p.hidden = false;
       const kto = sekBiez?.tryb_kolorow ? 'Sekcja' : 'Projekt';
-      p.textContent = tryb === 'szarosc' ? `${kto} w skali szarości: kolory pójdą do druku odcieniami czerni.` : `${kto} czarno-biały + 1 kolor: wybierz odcień czerni albo kolor dodatkowy.`;
+      p.textContent = tryb === 'szarosc' ? tt('kontrolki.wSkaliSzarosciKolory', { kto }) : tt('kontrolki.czarnoBialy1Kolor', { kto });
     }
     // Kolory dodatkowe (spot) z odcieniem – dokładny kod koloru, który PDF zamienia na osobną płytę.
     if (projekt) {
@@ -531,7 +531,7 @@ function ulepszKolor(input) {
         b.type = 'button';
         b.style.background = hexSpotu(sp, 1);
         b.title = sp.nazwa;
-        b.setAttribute('aria-label', `Kolor dodatkowy ${sp.nazwa}`);
+        b.setAttribute('aria-label', tt('kontrolki.kolorDodatkowy', { nazwa: sp.nazwa }));
         b.setAttribute('aria-pressed', String(sp === wybrany));
         b.addEventListener('click', () => {
           wybrany = sp;
@@ -570,9 +570,9 @@ function ulepszKolor(input) {
       const el = okienko.querySelector('.kolor-paleta.marki');
       paleta(el, marka.map((k) => k.kolor));
       [...el.children].forEach((b, i) => {
-        const opis = `${marka[i].nazwa ? `${marka[i].nazwa} · ` : ''}${marka[i].kolor} · kolor marki`;
+        const opis = tt('kontrolki.kolorMarki', { x: marka[i].nazwa ? `${marka[i].nazwa} · ` : '', kolor: marka[i].kolor });
         b.title = opis;
-        b.setAttribute('aria-label', `Kolor ${opis}`);
+        b.setAttribute('aria-label', tt('kontrolki.kolor2', { opis }));
       });
     }
     // W tej sekcji (#167): przy kilku sekcjach najpierw kolory stron bieżącej sekcji, potem reszta projektu.
@@ -580,10 +580,10 @@ function ulepszKolor(input) {
     if (wSekcji.length) {
       const blok = okienko.querySelector('.kolor-w-sekcji');
       blok.hidden = false;
-      blok.querySelector('.kolor-podpis').textContent = `W tej sekcji („${sekBiez.nazwa}”)`;
+      blok.querySelector('.kolor-podpis').textContent = tt('kontrolki.wTejSekcji', { nazwa: sekBiez.nazwa });
       const el = okienko.querySelector('.kolor-paleta.sekcji');
       paleta(el, wSekcji.map((k) => k.kolor));
-      [...el.children].forEach((b, i) => { const o = `${wSekcji[i].kolor} · ${wSekcji[i].ile} ${wSekcji[i].ile === 1 ? 'raz' : 'razy'} w tej sekcji`; b.title = o; b.setAttribute('aria-label', `Kolor ${o}`); });
+      [...el.children].forEach((b, i) => { const o = `${wSekcji[i].kolor} · ${wSekcji[i].ile} ${wSekcji[i].ile === 1 ? 'raz' : 'razy'} w tej sekcji`; b.title = o; b.setAttribute('aria-label', tt('kontrolki.kolor3', { o })); });
     }
     // Użyte w projekcie (#136): z liczbą użyć w podpowiedzi; kolor dodatkowy (Pantone) – z nazwą.
     const juz = new Set(wSekcji.map((k) => k.kolor));
@@ -598,9 +598,9 @@ function ulepszKolor(input) {
         const { kolor, ile: n } = wProjekcie[i];
         const spot = spoty.get(kolor);
         const nazwa = spot ? `${spot.nazwa}${spot.t < 1 ? ` ${Math.round(spot.t * 100)}%` : ''} · ` : '';
-        const opis = `${nazwa}${kolor} · ${n} ${n === 1 ? 'raz' : 'razy'} w projekcie`;
+        const opis = tt('kontrolki.wProjekcie', { nazwa, kolor, n, x: n === 1 ? 'raz' : 'razy' });
         b.title = opis;
-        b.setAttribute('aria-label', `Kolor ${opis}`);
+        b.setAttribute('aria-label', tt('kontrolki.kolor2', { opis }));
       });
     }
     okienko.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Escape') { e.preventDefault(); zamknijOkienko(); przycisk.focus(); } });
@@ -658,7 +658,7 @@ function ulepszDate(input) {
     przycisk.querySelector('.wybor-tekst').textContent = v ? dataSlownie(v) : tt('kontrolki.wybierzDzien');
     przycisk.classList.toggle('pusty', !v);
     przycisk.disabled = input.disabled;
-    przycisk.setAttribute('aria-label', `${przycisk.dataset.etykieta ? `${przycisk.dataset.etykieta}: ` : ''}${v ? dataSlownie(v) : 'nie wybrano'} – zmień`);
+    przycisk.setAttribute('aria-label', tt('kontrolki.zmien', { x: przycisk.dataset.etykieta ? `${przycisk.dataset.etykieta}: ` : '', x2: v ? dataSlownie(v) : tt('kontrolki.nieWybrano') }));
   };
   Object.defineProperty(input, 'value', { configurable: true, get() { return wartoscInput.get.call(this); }, set(v) { wartoscInput.set.call(this, v); odswiez(); } });
   new MutationObserver(odswiez).observe(input, { attributes: true, attributeFilter: ['disabled'] });
@@ -759,17 +759,17 @@ export function komunikatPola(pole) {
   const min = pole.getAttribute('min'); const max = pole.getAttribute('max');
   const zakres = () => {
     if (min != null && max != null) return `${nazwa}: od ${liczba(min)} do ${liczba(max)}${j}.`;
-    if (min != null) return `${nazwa}: co najmniej ${liczba(min)}${j}.`;
-    return `${nazwa}: najwyżej ${liczba(max)}${j}.`;
+    if (min != null) return tt('kontrolki.coNajmniej', { nazwa, liczba: liczba(min), j });
+    return tt('kontrolki.najwyzej', { nazwa, liczba: liczba(max), j });
   };
-  if (v.badInput) return `${nazwa}: wpisz liczbę.`;
-  if (v.valueMissing) return `Uzupełnij pole „${nazwa}”.`;
+  if (v.badInput) return tt('kontrolki.wpiszLiczbe', { nazwa });
+  if (v.valueMissing) return tt('kontrolki.uzupelnijPole', { nazwa });
   if (v.rangeUnderflow || v.rangeOverflow) return zakres();
-  if (v.stepMismatch) return `${nazwa}: wpisz wielokrotność ${liczba(pole.getAttribute('step'))}${j}.`;
-  if (v.tooShort) return `${nazwa}: co najmniej ${pole.getAttribute('minlength')} znaki.`;
-  if (v.tooLong) return `${nazwa}: najwyżej ${pole.getAttribute('maxlength')} znaków.`;
+  if (v.stepMismatch) return tt('kontrolki.wpiszWielokrotnosc', { nazwa, liczba: liczba(pole.getAttribute('step')), j });
+  if (v.tooShort) return tt('kontrolki.coNajmniejZnaki', { nazwa, getAttribute: pole.getAttribute('minlength') });
+  if (v.tooLong) return tt('kontrolki.najwyzejZnakow', { nazwa, getAttribute: pole.getAttribute('maxlength') });
   if (v.typeMismatch && pole.type === 'email') return 'Wpisz poprawny adres e-mail.';
-  return `Sprawdź pole „${nazwa}”.`;
+  return tt('kontrolki.sprawdzPole', { nazwa });
 }
 
 function pokazBlad(pole, tekst) {

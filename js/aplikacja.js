@@ -261,7 +261,7 @@ async function start() {
     }
   } catch (e) {
     pokazEkran('logowanie');
-    konto.komunikat(`Nie można połączyć się z serwerem: ${chmura.komunikatBledu(e)}`);
+    konto.komunikat(t('aplikacja.nieMoznaPolaczycSie', { komunikatBledu: chmura.komunikatBledu(e) }));
   }
 }
 
@@ -302,7 +302,7 @@ function pilnujNowejWersji(rejestracja) {
     if (!navigator.serviceWorker.controller) return; // pierwsza instalacja – włączy się sama
     czeka = sw;
     if (!stan.projekt) { wlacz(); return; }
-    powiadom('Wczytuję nową wersję aplikacji – zmiany są zapisane.', false);
+    powiadom(t('aplikacja.wczytujeNowaWersjeAplikacji'), false);
     const start = Date.now();
     const kiedyMozna = () => {
       const pisze = window.seriodruk?.edytor?.canvas?.getActiveObject?.()?.isEditing;
@@ -340,7 +340,7 @@ async function pokazWersje() {
   try {
     const kod = (await caches.keys()).filter((k) => k.startsWith('seriodruk-kod-')).map((k) => k.slice(14));
     const w = kod.find((x) => x !== 'rozwoj') || kod[0];
-    if (w) el.textContent = `Wersja aplikacji: ${w === 'rozwoj' ? 'robocza' : w.slice(0, 7)}`;
+    if (w) el.textContent = t('aplikacja.wersjaAplikacji', { x: w === 'rozwoj' ? 'robocza' : w.slice(0, 7) });
   } catch { /* bez pamięci – bez numeru */ }
 }
 
@@ -386,5 +386,5 @@ setTimeout(zakonczStart, 20000); // na wszelki wypadek – nigdy nie zostaje zas
 start().catch((e) => {
   console.error(e);
   pokazEkran('logowanie');
-  konto.komunikat(`Błąd startu: ${e.message}`);
+  konto.komunikat(t('aplikacja.bladStartu', { message: e.message }));
 }).finally(zakonczStart);

@@ -153,7 +153,7 @@ async function pokazDymek(o, b, x, y) {
   };
   const tytul = document.createElement('small');
   tytul.className = 'menu-pisowni-tytul';
-  tytul.textContent = `„${b.slowo}” – nie ma w słowniku`;
+  tytul.textContent = tt('pisowniaPlotno.nieMaWSlowniku', { slowo: b.slowo });
   const czeka = document.createElement('small');
   czeka.className = 'menu-pisowni-tytul';
   czeka.textContent = tt('pisowniaPlotno.szukamPodpowiedzi');

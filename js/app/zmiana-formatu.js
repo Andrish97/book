@@ -66,7 +66,7 @@ function odswiezPodglad() {
   $('#format-po').innerHTML = schemat(kopia.sekcje[0], kopia.strony[0]);
   const poza = elementyPozaStrona(kopia, [sekcja.id]).length;
   const uwagi = [];
-  if (poza) uwagi.push(`Na tej stronie ${poza} ${poza === 1 ? 'element wyjdzie' : 'elementy wyjdą'} poza stronę.`);
+  if (poza) uwagi.push(tt('zmianaFormatu.naTejStroniePoza', { poza, x: poza === 1 ? tt('zmianaFormatu.elementWyjdzie') : tt('zmianaFormatu.elementyWyjda') }));
   const okl = stan.projekt.sekcje.filter((s) => zakres.includes(s.id) && s.okladka);
   if (okl.length) uwagi.push('Okładka zmieni się sama – liczy się z formatu środka.');
   $('#format-uwagi').textContent = uwagi.join(' ');
@@ -91,8 +91,8 @@ export function otworzZmianeFormatu(zakresSekcji = null) {
   const ile = sekcjeZakresu().length;
   $('#format-tytul').textContent = zakresSekcji ? tt('zmianaFormatu.zmienFormatSekcji') : tt('zmianaFormatu.zmienFormatProjektu');
   $('#format-zakres').textContent = zakresSekcji
-    ? `Sekcja „${pierwsza.nazwa}” – ${projekt.strony.filter((s) => s.sekcja === pierwsza.id).length} str.`
-    : `Wszystkie sekcje projektu (${ile})${projekt.sekcje.some((s) => s.okladka) ? ' – okładka przeliczy się sama' : ''}.`;
+    ? tt('zmianaFormatu.sekcjaStr', { nazwa: pierwsza.nazwa, filterIle: projekt.strony.filter((s) => s.sekcja === pierwsza.id).length })
+    : tt('zmianaFormatu.wszystkieSekcjeProjektu', { ile, x: projekt.sekcje.some((s) => s.okladka) ? tt('zmianaFormatu.okladkaPrzeliczySieSama') : '' });
   odswiezPodglad();
   if (!dlg.open) dlg.showModal();
 }
@@ -114,7 +114,7 @@ async function zastosuj() {
   zaplanujZapis();
   const poza = elementyPozaStrona(projekt, wynik.sekcje).length;
   const nazwa = nazwaFormatu(o.szerokosc_mm, o.wysokosc_mm);
-  powiadom(`Nowy format: ${nazwa === 'wlasny' ? `${o.szerokosc_mm} × ${o.wysokosc_mm} mm` : nazwa} (${wynik.strony} str.${wynik.wzorce ? `, wzorce: ${wynik.wzorce}` : ''}).${poza ? ` Poza stroną: ${poza} – sprawdź ostrzeżenia.` : ''}`,
+  powiadom(tt('zmianaFormatu.nowyFormatStr', { x: nazwa === 'wlasny' ? `${o.szerokosc_mm} × ${o.wysokosc_mm} mm` : nazwa, strony: wynik.strony, x2: wynik.wzorce ? tt('zmianaFormatu.wzorce', { wzorce: wynik.wzorce }) : '', x3: poza ? tt('zmianaFormatu.pozaStronaSprawdzOstrzezenia', { poza }) : '' }),
     Boolean(poza), { etykieta: tt('zmianaFormatu.cofnij'), fn: () => cofnijKrok(-1) });
 }
 

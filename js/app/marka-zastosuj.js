@@ -74,7 +74,7 @@ function rysujMapowanie() {
   $('#marka-mapa-czcionki').replaceChildren(...czcionki.map((c) => wierszCzcionki(c.nazwa, c.ile, marka)));
   $('#marka-mapa-kolory').closest('fieldset').hidden = !kolory.length || !marka.kolory.length;
   $('#marka-mapa-czcionki').closest('fieldset').hidden = !czcionki.length || !(marka.czcionki.naglowek || marka.czcionki.tekst);
-  $('#marka-zastosuj-opis').textContent = 'Podpowiedź: każdy kolor dostał najbliższy kolor marki, najczęstsza czcionka – czcionkę tekstu, pozostałe – czcionkę nagłówków. Zmienisz to na listach.';
+  $('#marka-zastosuj-opis').textContent = tt('markaZastosuj.podpowiedzKazdyKolorDostal');
   // Style tekstu marki (#167): które zaktualizują styl projektu o tej samej nazwie, a które dojdą.
   const klucz = (t) => String(t || '').trim().toLocaleLowerCase('pl');
   const istniejace = new Set((stan.projekt.style || []).map((s) => klucz(s.nazwa)));
@@ -112,7 +112,7 @@ async function zastosuj() {
   await zaladujCel();
   if (!edytor.aktywny) panel.zbuduj();
   zaplanujZapis();
-  powiadom(`Zastosowano markę: ${n} ${n === 1 ? 'zmiana' : 'zmian'} kolorów, czcionek i stylów.`, false, { etykieta: tt('markaZastosuj.cofnij'), fn: () => cofnijKrok(-1) });
+  powiadom(tt('markaZastosuj.zastosowanoMarkeKolorowCzcionek', { n, x: n === 1 ? 'zmiana' : 'zmian' }), false, { etykieta: tt('markaZastosuj.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 dlg.addEventListener('close', () => { if (dlg.returnValue === 'ok') zastosuj(); dlg.returnValue = ''; });

@@ -52,8 +52,8 @@ export async function otworzWspolprace(projekt) {
   $('#wspolpraca-gotowe').hidden = true;
   $('#wspolpraca-stopka').hidden = otwarty.wlasciciel;
   $('#wspolpraca-opis').textContent = otwarty.wlasciciel
-    ? 'Zaproś osoby do tego projektu. „Może edytować” – zmienia projekt razem z Tobą, na żywo; „Cofnij” każdy ma swoje. „Może oglądać” – tylko podgląd. Dostęp możesz w każdej chwili zmienić albo odebrać.'
-    : `${udzial.nazwa || 'Właściciel'} udostępnia Ci ten projekt – ${udzial.rola === 'edycja' ? 'możesz go edytować razem z innymi, na żywo' : 'możesz go oglądać'}. Zapraszać i zmieniać dostęp może właściciel.`;
+    ? tt('wspolpraca.zaprosOsobyDoTego')
+    : tt('wspolpraca.udostepniaCiTenProjekt', { x: udzial.nazwa || tt('wspolpraca.wlasciciel'), x2: udzial.rola === 'edycja' ? tt('wspolpraca.mozeszGoEdytowacRazem') : tt('wspolpraca.mozeszGoOgladac') });
   $('#wspolpraca-email').value = '';
   $('#wspolpraca-rola').value = 'edycja';
   $('#wspolpraca-osoby').replaceChildren(Object.assign(document.createElement('li'), { className: 'szkielet-wiersza', textContent: tt('wspolpraca.wczytuje') }));
@@ -93,15 +93,15 @@ function wierszOsoby(o) {
   tytul.textContent = o.typ === 'zaproszenie' ? ktoZaproszony(o) : `${kto(o)}${o.ja ? ' (Ty)' : ''}`;
   const szczegoly = document.createElement('span');
   szczegoly.className = 'ciche';
-  if (o.typ === 'zaproszenie') szczegoly.textContent = `zaproszenie wysłane ${kiedy(o.od)} · ${opisRoli(o.rola)} · ważne do ${new Date(o.wazne_do).toLocaleDateString('pl-PL')}`;
-  else if (o.typ === 'wlasciciel') szczegoly.textContent = `${o.email ? `${o.email} · ` : ''}właściciel`;
+  if (o.typ === 'zaproszenie') szczegoly.textContent = tt('wspolpraca.zaproszenieWyslaneWazneDo', { kiedy: kiedy(o.od), opisRoli: opisRoli(o.rola), toLocaleDateString: new Date(o.wazne_do).toLocaleDateString('pl-PL') });
+  else if (o.typ === 'wlasciciel') szczegoly.textContent = tt('wspolpraca.wlasciciel2', { x: o.email ? `${o.email} · ` : '' });
   else szczegoly.textContent = `${o.email ? `${o.email} · ` : ''}${opisRoli(o.rola)}`;
   opis.append(tytul, szczegoly);
   const akcje = document.createElement('div');
   akcje.className = 'osoba-akcje';
   if (otwarty.wlasciciel && o.typ === 'wspolpracownik') {
     const rola = document.createElement('select');
-    rola.setAttribute('aria-label', `Rola: ${kto(o)}`);
+    rola.setAttribute('aria-label', tt('wspolpraca.rola', { kto: kto(o) }));
     rola.innerHTML = `<option value="edycja">${tt('wspolpraca.mozeEdytowac')}</option><option value="odczyt">${tt('wspolpraca.mozeOgladac')}</option>`;
     rola.value = o.rola;
     rola.addEventListener('change', async () => {
@@ -109,7 +109,7 @@ function wierszOsoby(o) {
       odswiezOsoby();
     });
     const odbierz = przycisk(tt('wspolpraca.odbierz'), 'niebezpieczny', async () => {
-      if (!await potwierdz(tt('wspolpraca.odebracDostep'), `${kto(o)} straci dostęp do projektu „${otwarty.nazwa}” od razu. Zmiany, które już zapisał(a), zostają.`, tt('wspolpraca.odbierz'), true)) return;
+      if (!await potwierdz(tt('wspolpraca.odebracDostep'), tt('wspolpraca.straciDostepDoProjektu', { kto: kto(o), nazwa: otwarty.nazwa }), tt('wspolpraca.odbierz'), true)) return;
       try { await wsp.usunZProjektu(otwarty.id, o.id); powiadom(tt('wspolpraca.dostepOdebrany')); } catch (e) { powiadom(komunikatBledu(e), true); }
       odswiezOsoby();
     });
@@ -119,7 +119,7 @@ function wierszOsoby(o) {
     if (o.kod) akcje.append(przyciskIkona('kopiuj', 'Kopiuj link zaproszenia', '', () => kopiuj(wsp.linkZaproszenia(o.kod), 'Link do zaproszenia skopiowany.')));
     akcje.append(przyciskIkona('wyslij', 'Wyślij e-mail z zaproszeniem ponownie', '', async () => {
       const m = await wsp.wyslijZaproszenieMailem(o.id);
-      if (m.wyslano) powiadom(o.email ? `Wysłano e-mail z zaproszeniem na adres ${o.email}.` : `Wysłano e-mail z zaproszeniem do ${ktoZaproszony(o)}.`);
+      if (m.wyslano) powiadom(o.email ? tt('wspolpraca.wyslanoEMailZ', { email: o.email }) : tt('wspolpraca.wyslanoEMailZ2', { ktoZaproszony: ktoZaproszony(o) }));
       else if (m.powod === 'adresat-wylaczyl') powiadom(BEZ_MAILA);
       else powiadom(m.powod === 'brak-konfiguracji' ? tt('wspolpraca.aplikacjaNieWysylaJeszcze') : (m.blad || tt('wspolpraca.eMailNieWyszedl')), true);
     }));
@@ -205,11 +205,11 @@ async function zapros(e) {
       $('#wspolpraca-gotowe-opis').textContent = m.powod === 'adresat-wylaczyl'
         ? BEZ_MAILA
         : m.wyslano
-        ? `Wysłano e-mail z zaproszeniem ${z.email ? `na adres ${z.email}` : `do ${ktoZaproszony(z)}`}. ${gdzie}`
+        ? tt('wspolpraca.wyslanoEMailZ3', { x: z.email ? tt('wspolpraca.naAdres', { email: z.email }) : `do ${ktoZaproszony(z)}`, gdzie })
         : m.powod === 'w-kolejce'
-          ? `E-mail z zaproszeniem czeka w kolejce i wyjdzie za chwilę ${z.email ? `na adres ${z.email}` : `do ${ktoZaproszony(z)}`}. ${gdzie}`
-          : `${powody[m.powod] || `E-mail nie wyszedł${m.blad ? ` (${m.blad})` : ''}`} – wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`;
-    }).catch(() => { $('#wspolpraca-gotowe-opis').textContent = `Wyślij link sam: skopiuj go albo użyj swojej poczty. ${gdzie}`; });
+          ? tt('wspolpraca.eMailZZaproszeniem', { x: z.email ? tt('wspolpraca.naAdres', { email: z.email }) : `do ${ktoZaproszony(z)}`, gdzie })
+          : tt('wspolpraca.wyslijLinkSamSkopiuj', { x: powody[m.powod] || tt('wspolpraca.eMailNieWyszedl2', { x: m.blad ? ` (${m.blad})` : '' }), gdzie });
+    }).catch(() => { $('#wspolpraca-gotowe-opis').textContent = tt('wspolpraca.wyslijLinkSamSkopiuj2', { gdzie }); });
     const mail = trescMaila(otwarty.nazwa, rola, link);
     // Zaproszenie po nazwie: adresu tej osoby nie znamy (i nie pokazujemy) – bez „Wyślij ze swojej poczty”.
     $('#wspolpraca-mail').hidden = !z.email;
@@ -219,7 +219,7 @@ async function zapros(e) {
     udostepnij.onclick = () => navigator.share({ title: mail.temat, text: mail.tresc }).catch(() => {});
     $('#wspolpraca-gotowe').hidden = false;
     pole.value = '';
-    powiadom(`Zaproszono ${z.email || ktoZaproszony(z)}.`);
+    powiadom(tt('wspolpraca.zaproszono', { x: z.email || ktoZaproszony(z) }));
   } catch (err) {
     powiadom(komunikatBledu(err), true);
   } finally {
@@ -293,7 +293,7 @@ export const kopiujLinkZaproszenia = () => kopiuj($('#wspolpraca-link').value, '
 export async function opuscProjekt(projekt = otwarty) {
   if (!projekt) return;
   const nazwa = projekt.nazwa || 'Bez nazwy';
-  if (!await potwierdz(`Opuścić „${nazwa}”?`, 'Projekt zniknie z Twojej listy. Właściciel i pozostałe osoby dalej go mają; wrócić możesz tylko z nowym zaproszeniem.', tt('wspolpraca.opuscProjekt'), true)) return;
+  if (!await potwierdz(tt('wspolpraca.opuscic', { nazwa }), tt('wspolpraca.projektZniknieZTwojej'), tt('wspolpraca.opuscProjekt'), true)) return;
   try {
     await wsp.usunZProjektu(projekt.id, stan.uzytkownik.id);
   } catch (e) {
@@ -302,7 +302,7 @@ export async function opuscProjekt(projekt = otwarty) {
   }
   if ($('#dlg-wspolpraca').open) zamknijWspolprace();
   await zalezne.usunKopieLokalna(projekt.id);
-  powiadom(`Opuszczono projekt „${nazwa}”.`);
+  powiadom(tt('wspolpraca.opuszczonoProjekt', { nazwa }));
   if (stan.projekt?.id === projekt.id) {
     stan.projekt = null;
     document.dispatchEvent(new CustomEvent('seriodruk:projekt', { detail: null }));
@@ -326,7 +326,7 @@ export async function odswiezZaproszenia() {
   const b = $('#przycisk-zaproszenia');
   b.hidden = mojeZaproszenia.length === 0;
   $('#liczba-zaproszen').textContent = mojeZaproszenia.length;
-  b.title = mojeZaproszenia.length === 1 ? tt('wspolpraca.maszZaproszenieDoProjektu') : `Masz zaproszenia do projektów (${mojeZaproszenia.length})`;
+  b.title = mojeZaproszenia.length === 1 ? tt('wspolpraca.maszZaproszenieDoProjektu') : tt('wspolpraca.maszZaproszeniaDoProjektow', { mojeZaproszeniaIle: mojeZaproszenia.length });
   if ($('#dlg-zaproszenia').open) rysujZaproszenia();
   return mojeZaproszenia;
 }
@@ -352,7 +352,7 @@ function rysujZaproszenia() {
     tytul.textContent = z.projekt || tt('wspolpraca.projekt');
     const szczegoly = document.createElement('span');
     szczegoly.className = 'ciche';
-    szczegoly.textContent = `${z.od} zaprasza · ${dlaMnie(z.rola)} · ${kiedy(z.utworzono)}`;
+    szczegoly.textContent = tt('wspolpraca.zaprasza', { od: z.od, dlaMnie: dlaMnie(z.rola), kiedy: kiedy(z.utworzono) });
     opis.append(tytul, szczegoly);
     const akcje = document.createElement('div');
     akcje.className = 'osoba-akcje';
@@ -372,7 +372,7 @@ async function przyjmij(kod, nazwa) {
   try {
     const w = await zPostepem(`Dołączanie do „${nazwa || 'projektu'}”…`, () => wsp.przyjmijZaproszenie(kod));
     for (const id of ['#dlg-zaproszenia', '#dlg-zaproszenie']) if ($(id).open) $(id).close();
-    powiadom(`Dołączono do projektu „${nazwa || 'Projekt'}” – ${dlaMnie(w.rola)}.`);
+    powiadom(tt('wspolpraca.dolaczonoDoProjektu', { x: nazwa || tt('wspolpraca.projekt'), dlaMnie: dlaMnie(w.rola) }));
     await odswiezZaproszenia();
     await zalezne.otworzProjektPoId(w.projekt_id);
   } catch (e) {
@@ -392,7 +392,7 @@ export async function pokazZaproszenieZLinku(kod) {
   try {
     info = await wsp.zaproszenieZKodu(kod);
   } catch (e) {
-    powiadom(`Nie udało się odczytać zaproszenia: ${komunikatBledu(e)}`, true);
+    powiadom(tt('wspolpraca.nieUdaloSieOdczytac', { komunikatBledu: komunikatBledu(e) }), true);
     return;
   }
   const komunikaty = {
@@ -402,14 +402,14 @@ export async function pokazZaproszenieZLinku(kod) {
     odrzucone: 'To zaproszenie zostało odrzucone.',
   };
   if (info.stan === 'wlasciciel' || info.stan === 'juz_masz') {
-    powiadom(info.stan === 'wlasciciel' ? tt('wspolpraca.toTwojProjekt') : `Masz już dostęp do „${info.projekt}”.`);
+    powiadom(info.stan === 'wlasciciel' ? tt('wspolpraca.toTwojProjekt') : tt('wspolpraca.maszJuzDostepDo', { projekt: info.projekt }));
     await zalezne.otworzProjektPoId(info.projekt_id);
     return;
   }
   if (info.stan !== 'ok') { powiadom(komunikaty[info.stan] || tt('wspolpraca.nieMoznaPrzyjacTego'), true); return; }
   $('#zaproszenie-tytul').textContent = `„${info.projekt}”`;
   const inny = info.email && stan.uzytkownik?.email && info.email.toLowerCase() !== stan.uzytkownik.email.toLowerCase();
-  $('#zaproszenie-opis').textContent = `${info.od} zaprasza Cię do wspólnej pracy nad projektem – ${dlaMnie(info.rola)}.${inny ? ` Zaproszenie poszło na adres ${info.email}; przyjmiesz je kontem ${stan.uzytkownik.email}.` : ''}`;
+  $('#zaproszenie-opis').textContent = tt('wspolpraca.zapraszaCieDoWspolnej', { od: info.od, dlaMnie: dlaMnie(info.rola), x: inny ? tt('wspolpraca.zaproszeniePoszloNaAdres', { email: info.email, email2: stan.uzytkownik.email }) : '' });
   const dlg = $('#dlg-zaproszenie');
   $('#zaproszenie-przyjmij').onclick = () => przyjmij(kod, info.projekt);
   $('#zaproszenie-odrzuc').onclick = async () => {
@@ -437,7 +437,7 @@ export async function wlaczWspolprace(uzytkownik) {
         for (const z of lista) znaneZaproszenia.add(z.id);
         if (nowe.length) {
           const z = nowe[0];
-          powiadom(`${z.od} zaprasza Cię do projektu „${z.projekt}”.`, false, { etykieta: tt('wspolpraca.pokaz'), fn: otworzZaproszenia });
+          powiadom(tt('wspolpraca.zapraszaCieDoProjektu', { od: z.od, projekt: z.projekt }), false, { etykieta: tt('wspolpraca.pokaz'), fn: otworzZaproszenia });
         }
       },
       naDostep: () => {

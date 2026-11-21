@@ -108,7 +108,7 @@ export function przejdzDoTrasy() {
     }
     if (stan.projekt) await zapiszTeraz();
     const wpis = (await wpisyProjektow()).find((w) => w.id === t.id);
-    const pasek = postep(`Otwieranie „${wpis?.nazwa || 'projektu'}”…`);
+    const pasek = postep(tt('trasy.otwieranie', { x: wpis?.nazwa || tt('trasy.projektu') }));
     try {
       const projekt = wpis && await wczytajProjektZWpisu(wpis, pasek).catch(() => null);
       if (!projekt) {
@@ -118,7 +118,7 @@ export function przejdzDoTrasy() {
         await pokazProjekty();
         return;
       }
-      pasek.opis(`Otwieranie „${projekt.nazwa}”…`);
+      pasek.opis(tt('trasy.otwieranie2', { nazwa: projekt.nazwa }));
       pasek.razem(null);
       await otworzProjekt(projekt, { strona: t.strona, wzorzec: t.wzorzec, podglad: !!t.podglad || projekt.wspolpraca_chmury?.rola === 'odczyt' });
     } finally {

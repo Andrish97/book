@@ -104,7 +104,7 @@ function renderujListeStron() {
         b.type = 'button';
         b.className = 'przycisk maly';
         b.textContent = t('listaStron.dopelnijPustymi');
-        b.title = `Dodaje ${skladka.brakuje} pustych stron na końcu sekcji`;
+        b.title = t('listaStron.dodajePustychStronNa', { brakuje: skladka.brakuje });
         b.addEventListener('click', (e) => { e.stopPropagation(); dopelnijSkladke(sekcja.id); });
         p.append(b);
       }
@@ -130,7 +130,7 @@ function renderujListeStron() {
         <button class="miniatura"></button>
         <span class="nazwa"></span>
         <button class="przycisk-ikona menu-miniatury" aria-label="${t('listaStron.opcjeStrony')}" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
-      $('.miniatura', li).setAttribute('aria-label', `Strona ${nr ?? ''} ${s.nazwa}`);
+      $('.miniatura', li).setAttribute('aria-label', t('listaStron.strona', { x: nr ?? '', nazwa: s.nazwa }));
       $('.miniatura', li).draggable = true; // przeciąganie zaczyna się zwykle na miniaturze
       if (aktywna) $('.miniatura', li).setAttribute('aria-current', 'page');
       $('.miniatura', li).append(obrazMiniatury(s.id, sekcja.wydruk));
@@ -141,8 +141,8 @@ function renderujListeStron() {
         znak.textContent = `×${ile}`;
         $('.miniatura', li).append(znak);
         $('.miniatura', li).title = ile
-          ? `Seria „${blok.seria.nazwa}”: ta strona wychodzi w wydruku ${ile} ${ile === 1 ? 'raz' : 'razy'}`
-          : `Seria „${blok.seria.nazwa}”: tej strony nie ma w wydruku – wszystkie jej wiersze są pomijane`;
+          ? t('listaStron.seriaTaStronaWychodzi', { nazwa: blok.seria.nazwa, ile, x: ile === 1 ? 'raz' : 'razy' })
+          : t('listaStron.seriaTejStronyNie', { nazwa: blok.seria.nazwa });
       }
       // Które wzorce leżą na stronie (#164): mały znak na miniaturze, nazwy w podpowiedzi.
       const wzStrony = wzorceStrony(projekt, s);
@@ -150,7 +150,7 @@ function renderujListeStron() {
         const znak = document.createElement('span');
         znak.className = 'znak-wzorcow';
         znak.innerHTML = `${ikona('wzorzec', { rozmiar: 11 })}${wzStrony.length > 1 ? `<span>${wzStrony.length}</span>` : ''}`;
-        znak.title = `Wzorce: ${wzStrony.map((w) => w.nazwa).join(', ')}`;
+        znak.title = t('listaStron.wzorce', { join: wzStrony.map((w) => w.nazwa).join(', ') });
         $('.miniatura', li).append(znak);
       }
       $('.nazwa', li).textContent = bok ? `${nr ?? '–'} · ${s.nazwa}` : s.nazwa;
@@ -175,7 +175,7 @@ function kafelekDodawania(sekcja, pusta) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'kafelek-dodaj';
-  const opis = pusta ? `Dodaj pierwszą stronę sekcji „${sekcja.nazwa}”` : 'Dodaj stronę';
+  const opis = pusta ? t('listaStron.dodajPierwszaStroneSekcji', { nazwa: sekcja.nazwa }) : 'Dodaj stronę';
   b.title = opis;
   b.setAttribute('aria-label', opis);
   b.innerHTML = `${ikona('plus', { rozmiar: 22 })}${pusta ? '<span>Dodaj pierwszą stronę</span>' : ''}`;
@@ -221,17 +221,17 @@ function renderujListeWzorcow() {
       </div>
       <button class="przycisk-ikona menu-miniatury" aria-label="${t('listaStron.opcjeWzorca')}" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
     $('.miniatura', li).append(obrazMiniatury(w.id, w.wydruk));
-    $('.miniatura', li).setAttribute('aria-label', `Wzorzec ${w.nazwa}`);
+    $('.miniatura', li).setAttribute('aria-label', t('listaStron.wzorzec', { nazwa: w.nazwa }));
     wpiszNazwe($('.nazwa', li), w.nazwa);
     $('small', li).textContent = `${n} str.${w.lustro ? ' · odbicie na lewych stronach' : ''}`;
     const [naStr, wSek] = [$('[data-op="strona"]', li), $('[data-op="sekcja"]', li)];
     naStr.hidden = !strona; wSek.hidden = !strona;
     if (strona) {
       const jest = naStronie.has(w.id);
-      naStr.textContent = jest ? '✓ Na tej stronie' : '+ Dodaj do tej strony';
+      naStr.textContent = jest ? t('listaStron.naTejStronie') : t('listaStron.dodajDoTejStrony');
       naStr.setAttribute('aria-pressed', String(jest));
       const wSekcji = sekcja.wzorce.includes(w.id);
-      wSek.textContent = wSekcji ? `✓ W sekcji „${sekcja.nazwa}”` : `+ Do całej sekcji „${sekcja.nazwa}”`;
+      wSek.textContent = wSekcji ? t('listaStron.wSekcji', { nazwa: sekcja.nazwa }) : t('listaStron.doCalejSekcji', { nazwa: sekcja.nazwa });
       wSek.setAttribute('aria-pressed', String(wSekcji));
     }
     $('.miniatura', li).addEventListener('click', () => edytujWzorzec(w.id));
@@ -284,7 +284,7 @@ export function generujMiniatury() {
       if (!pasek || !pokazPostep) return;
       const pr = Math.round((gotowe / brak) * 100);
       pasek.hidden = gotowe >= brak;
-      $('#postep-miniatur-tekst').textContent = `Miniatury stron: ${gotowe} z ${brak}`;
+      $('#postep-miniatur-tekst').textContent = t('listaStron.miniaturyStronZ', { gotowe, brak });
       pasek.querySelector('.postep-wypelnienie').style.width = `${pr}%`;
       pasek.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', String(pr));
     };
@@ -374,7 +374,7 @@ export function ostrzezOGrzbiecie(przed) {
       return egz.bok === 'lewa' ? (o.left || 0) + szer > w + b + 0.5 : (o.left || 0) < -b - 0.5;
     });
   });
-  if (zmienione.length) powiadom(`${zmienione.length === 1 ? `Strona „${zmienione[0].nazwa}” ma element` : `Strony ${zmienione.map((s) => `„${s.nazwa}”`).join(', ')} mają elementy`} przechodzące przez grzbiet, a obok leży teraz inna strona. Sprawdź, czy nadal do siebie pasują.`, true);
+  if (zmienione.length) powiadom(t('listaStron.przechodzacePrzezGrzbietA', { x: zmienione.length === 1 ? t('listaStron.stronaMaElement', { nazwa: zmienione[0].nazwa }) : t('listaStron.stronyMajaElementy', { join: zmienione.map((s) => `„${s.nazwa}”`).join(', ') }) }), true);
 }
 
 // ---------- Strony ----------
@@ -448,7 +448,7 @@ export async function ramkaNaNastepnejStronie() {
   zapiszBiezacyCel();
   renderujListe();
   zaplanujZapis();
-  powiadom(dodana ? `Dodano stronę „${nastepna.nazwa}” z ramką na ciąg dalszy tekstu.` : `Ramka z ciągiem dalszym jest na stronie „${nastepna.nazwa}”. Ustaw ją tam, gdzie ma być.`);
+  powiadom(dodana ? t('listaStron.dodanoStroneZRamka', { nazwa: nastepna.nazwa }) : t('listaStron.ramkaZCiagiemDalszym', { nazwa: nastepna.nazwa }));
 }
 
 // ---------- Dokładanie stron dla długiego tekstu (#212) ----------
@@ -516,7 +516,7 @@ async function dokladajTeraz() {
     generujMiniatury();
     zaplanujZapis();
     const netto = dodane - usuniete;
-    powiadom(netto >= 0 ? `Dodano ${netto} ${netto === 1 ? 'stronę' : netto < 5 ? 'strony' : 'stron'} – cały tekst się mieści.` : `Usunięto ${-netto} pustych stron na końcu tekstu.`);
+    powiadom(netto >= 0 ? t('listaStron.dodanoCalyTekstSie', { netto, x: netto === 1 ? t('listaStron.strone') : netto < 5 ? t('listaStron.strony') : t('listaStron.stron') }) : t('listaStron.usunietoPustychStronNa', { x: -netto }));
   }
   return dodane - usuniete;
 }
@@ -585,7 +585,7 @@ export async function duplikujStrone(i) {
 export async function usunStrone(i) {
   if (stan.projekt.strony.length <= 1) return;
   const s = stan.projekt.strony[i];
-  if (!await potwierdz(`Usunąć stronę „${s.nazwa}”?`, t('listaStron.wszystkieElementyZTej'), t('listaStron.usunStrone'), true)) return;
+  if (!await potwierdz(t('listaStron.usunacStrone', { nazwa: s.nazwa }), t('listaStron.wszystkieElementyZTej'), t('listaStron.usunStrone'), true)) return;
   zapiszBiezacyCel();
   const biezaca = biezacaStrona();
   zachowajTekstStrony(stan.projekt, s); // tekst płynący przez strony zostaje w pozostałych ramkach
@@ -595,7 +595,7 @@ export async function usunStrone(i) {
   stan.indeks = nowyIndeks >= 0 ? nowyIndeks : Math.min(i, stan.projekt.strony.length - 1);
   if (stan.tryb === 'strona') await zaladujCel(); else renderujListe();
   zaplanujZapis();
-  powiadom(`Usunięto stronę „${s.nazwa}”.`, false, { etykieta: t('listaStron.cofnij'), fn: () => cofnijKrok(-1) });
+  powiadom(t('listaStron.usunietoStrone', { nazwa: s.nazwa }), false, { etykieta: t('listaStron.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 // Po zmianie kolejności stron tekst płynący przez strony układa się w nowej kolejności stron.

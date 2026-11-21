@@ -3,7 +3,7 @@
 // zostają nagłówkami (większe, pogrubione), rozdziały (nagłówek 1) – od nowej strony; pogrubienia, kursywy
 // i podkreślenia fragmentów zostają.
 
-import { $, powiadom, odmiana } from '../ui.js';
+import { $, powiadom } from '../ui.js';
 import { biblioteka } from '../biblioteki.js';
 import { czytajPlikTekstu, tekstDoRamki } from '../import-tekstu.js';
 import { ptNaMm } from '../projekt.js';
@@ -23,12 +23,12 @@ export async function wstawTekstZPliku(plik) {
     const ramka = edytor.dodajDlugiTekst(text, styles, { rozmiarPt: 11 });
     edytor.zatwierdz?.();
     const pom = wynik.pominiete;
-    const pominiete = [pom.obrazy && `${pom.obrazy} ${odmiana(pom.obrazy, 'obraz', 'obrazy', 'obrazów')}`, pom.przypisy && `${pom.przypisy} ${odmiana(pom.przypisy, 'przypis', 'przypisy', 'przypisów')}`].filter(Boolean);
-    powiadom(`Wstawiono ${akapitow} ${odmiana(akapitow, 'akapit', 'akapity', 'akapitów')}${rozdzialow ? `, ${rozdzialow} ${odmiana(rozdzialow, 'rozdział', 'rozdziały', 'rozdziałów')} od nowej strony` : ''} – strony dochodzą same.${pominiete.length ? ` Bez: ${pominiete.join(', ')} (wstaw je osobno).` : ''}`);
+    const pominiete = [pom.obrazy && t('importTekstuOkno.tekst', { obrazy: pom.obrazy }), pom.przypisy && t('importTekstuOkno.tekst2', { przypisy: pom.przypisy })].filter(Boolean);
+    powiadom(t('importTekstuOkno.wstawionoStronyDochodzaSame', { akapitow, x: rozdzialow ? t('importTekstuOkno.odNowejStrony', { rozdzialow }) : '', x2: pominiete.length ? t('importTekstuOkno.bezWstawJeOsobno', { join: pominiete.join(', ') }) : '' }));
     setTimeout(() => dokladajStrony(), 50);
     return ramka;
   } catch (e) {
-    powiadom(`Nie udało się wczytać pliku: ${e.message}`, true);
+    powiadom(t('importTekstuOkno.nieUdaloSieWczytac', { message: e.message }), true);
     return null;
   }
 }

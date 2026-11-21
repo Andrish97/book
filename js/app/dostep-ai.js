@@ -32,7 +32,7 @@ const UPRAWNIENIA = [
 ];
 const KROTKO = { strony: 'stron', wzorce: 'wzorców i stylów', tabele: 'tabel i serii', obrazy: 'obrazów', eksport: 'PDF/PNG' };
 const opisUprawnien = (d) => (Array.isArray(d.uprawnienia)
-  ? (() => { const bez = UPRAWNIENIA.filter(([k]) => !d.uprawnienia.includes(k)).map(([k]) => KROTKO[k]); return bez.length ? ` · bez: ${bez.join(', ')}` : ''; })()
+  ? (() => { const bez = UPRAWNIENIA.filter(([k]) => !d.uprawnienia.includes(k)).map(([k]) => KROTKO[k]); return bez.length ? tt('dostepAi.bez', { join: bez.join(', ') }) : ''; })()
   : '');
 // Pola wyboru zakresów w kontenerze; zwraca funkcję czytającą wybór (null, gdy zaznaczone wszystko).
 function poleUprawnien(kontener, wybrane) {
@@ -79,7 +79,7 @@ function listaWyboru(kontener, zaznaczone) {
     if (p.wlasciciel) {
       const ciche = document.createElement('span');
       ciche.className = 'ciche';
-      ciche.textContent = ` – udostępnił(a): ${p.wlasciciel}${p.rola === 'odczyt' ? ' (tylko oglądasz, więc AI tylko czyta)' : ''}`;
+      ciche.textContent = tt('dostepAi.udostepnilA', { wlasciciel: p.wlasciciel, x: p.rola === 'odczyt' ? tt('dostepAi.tylkoOgladaszWiecAi') : '' });
       tekst.append(ciche);
     }
     l.append(pole, tekst);
@@ -111,7 +111,7 @@ function instrukcje(klucz) {
     },
   };
   $('#dostep-ai-claude-desktop').textContent = JSON.stringify(konfiguracja, null, 2);
-  $('#dostep-ai-claude-code').textContent = `claude mcp add --transport http makietka ${adresLacznika(klucz)}`;
+  $('#dostep-ai-claude-code').textContent = tt('dostepAi.claudeMcpAddTransport', { adresLacznika: adresLacznika(klucz) });
 }
 
 // Polecenie „Podłącz Makietkę” (#107, ten sam tekst co w instrukcji – js/polecenia-ai.js). adres – adres łącznika
@@ -142,7 +142,7 @@ function pokazPolecenia(adres = '') {
   const zw = $('#dostep-ai-polecenie-zwykly');
   if (zw) zw.textContent = adres ? polecenieZwyklegoCzatu(adres) : '';
   $('#dostep-ai-polecenie').textContent = polecenieZAdresem(adres);
-  $('#dostep-ai-polecenie-code').textContent = `claude mcp add --transport http makietka ${adres || ADRES_ZASTEPCZY}`;
+  $('#dostep-ai-polecenie-code').textContent = tt('dostepAi.claudeMcpAddTransport2', { x: adres || ADRES_ZASTEPCZY });
 }
 
 export async function kopiujPolecenieAi() {
@@ -157,16 +157,16 @@ export async function kopiujPolecenieAi() {
 export async function kopiujPolecenieZwykle() {
   try {
     await navigator.clipboard.writeText(polecenieZwyklegoCzatu(adresWOknie));
-    powiadom('Skopiowano – wklej w rozmowie ze zwykłym czatem.');
+    powiadom(tt('dostepAi.skopiowanoWklejWRozmowie'));
   } catch {
-    powiadom('Nie udało się skopiować – zaznacz tekst i skopiuj go ręcznie.', true);
+    powiadom(tt('dostepAi.nieUdaloSieSkopiowac2'), true);
   }
 }
 
 const opisZakresu = (d) => (d.zakres === 'pelny'
   ? 'pełny dostęp – wszystkie projekty, tworzenie i usuwanie'
   : (d.projekty?.length ? d.projekty.map((p) => `„${p.nazwa}”`).join(', ') : 'żadnego projektu (dodaj w „Zmień zakres”)'));
-const opisWaznosci = (d) => (d.wazny_do ? `ważny do ${new Date(d.wazny_do).toLocaleDateString('pl-PL')}` : 'bez terminu');
+const opisWaznosci = (d) => (d.wazny_do ? tt('dostepAi.waznyDo', { toLocaleDateString: new Date(d.wazny_do).toLocaleDateString('pl-PL') }) : 'bez terminu');
 
 function przyciskiZakresu(nazwa, zakres) {
   const w = document.createElement('div');
@@ -207,7 +207,7 @@ function pokazPusto() {
 }
 
 async function kopiujTekst(tekst, co) {
-  try { await navigator.clipboard.writeText(tekst); powiadom(`${co} skopiowany.`); } catch { powiadom('Nie udało się skopiować – zaznacz tekst i skopiuj go ręcznie.', true); }
+  try { await navigator.clipboard.writeText(tekst); powiadom(`${co} skopiowany.`); } catch { powiadom(tt('dostepAi.nieUdaloSieSkopiowac2'), true); }
 }
 
 // ---------- Edycja klucza – okienko (#248), spójne z dodawaniem ----------
@@ -285,15 +285,15 @@ export function edytujKluczAi(d) {
 
   // Ważność – od dziś.
   const wybor = el('select', { id: 'edytuj-klucz-dni' });
-  wybor.append(new Option('bez zmian', ''), ...DNI.map(([v, t]) => new Option(v === 'bez' ? t : `${t} od dziś`, v)));
+  wybor.append(new Option('bez zmian', ''), ...DNI.map(([v, t]) => new Option(v === 'bez' ? t : tt('dostepAi.odDzis', { t }), v)));
   tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: tt('dostepAi.waznosc') }),
-    el('label', { className: 'pole' }, el('span', { textContent: d.aktywny ? `Teraz: ${opisWaznosci(d)}` : 'Klucz wygasł – ustaw nowy czas' }), wybor)));
+    el('label', { className: 'pole' }, el('span', { textContent: d.aktywny ? tt('dostepAi.teraz', { opisWaznosci: opisWaznosci(d) }) : tt('dostepAi.kluczWygaslUstawNowy') }), wybor)));
 
   const blad = el('p', { className: 'blad-polaczenia', hidden: true });
   blad.setAttribute('role', 'alert');
   tresc.append(blad, el('div', { className: 'przyciski-dialogu' },
     przyciskAi(tt('dostepAi.odbierzKlucz'), async () => {
-      if (!await potwierdz(tt('dostepAi.odebracKlucz'), `Klucz „${d.opis || 'bez opisu'}” przestanie działać od razu – AI straci dostęp do wszystkich projektów tego klucza.`, tt('dostepAi.odbierz'), true)) return;
+      if (!await potwierdz(tt('dostepAi.odebracKlucz'), tt('dostepAi.kluczPrzestanieDzialacOd', { x: d.opis || tt('dostepAi.bezOpisu') }), tt('dostepAi.odbierz'), true)) return;
       try {
         await chmura.odwolajDostepAi(d.id);
         const s = sejfKonta();
@@ -335,7 +335,7 @@ function zapiszUstawieniaDostawcy(id, zmiany) {
 function polaPolaczenia(id, kluczFn) {
   const d = DOSTAWCY[id];
   const zapisane = ustawieniaCzatu().dostawcy?.[id] || {};
-  const model = el('input', { id: 'klucz-ai-model', autocomplete: 'off', spellcheck: false, value: zapisane.model || d.modele[0] || '', placeholder: 'nazwa modelu' });
+  const model = el('input', { id: 'klucz-ai-model', autocomplete: 'off', spellcheck: false, value: zapisane.model || d.modele[0] || '', placeholder: tt('dostepAi.nazwaModelu') });
   const lista = el('datalist', { id: 'klucz-ai-modele' });
   lista.append(...d.modele.map((m) => new Option(m, m)));
   model.setAttribute('list', 'klucz-ai-modele');
@@ -344,7 +344,7 @@ function polaPolaczenia(id, kluczFn) {
   wynik.setAttribute('role', 'status');
   const sprawdz = przyciskAi(tt('dostepAi.sprawdzPolaczenie'), async () => {
     const klucz = kluczFn();
-    if (!klucz) { wynik.textContent = 'Najpierw wklej klucz.'; wynik.hidden = false; return; }
+    if (!klucz) { wynik.textContent = tt('dostepAi.najpierwWklejKlucz'); wynik.hidden = false; return; }
     sprawdz.disabled = true;
     wynik.textContent = tt('dostepAi.sprawdzam');
     wynik.hidden = false;
@@ -353,7 +353,7 @@ function polaPolaczenia(id, kluczFn) {
       const modele = await modeleDostawcy(id, { klucz, adres: adres?.value.trim() || '' });
       lista.replaceChildren(...modele.map((m) => new Option(m, m)));
       const jest = !modele.length || modele.includes(model.value.trim());
-      wynik.textContent = `Działa – dostawca przyjął klucz${modele.length ? ` (modeli: ${modele.length})` : ''}.${jest ? '' : ' Wybranego modelu nie ma na liście – wybierz inny.'}`;
+      wynik.textContent = tt('dostepAi.dzialaDostawcaPrzyjalKlucz', { x: modele.length ? tt('dostepAi.modeli', { modeleIle: modele.length }) : '', x2: jest ? '' : tt('dostepAi.wybranegoModeluNieMa') });
       wynik.classList.add(jest ? 'dobrze' : 'blad');
     } catch (e) {
       wynik.textContent = e.message;
@@ -371,24 +371,24 @@ function edytujKluczDostawcy(id) {
   const d = DOSTAWCY[id];
   const { dlg, tresc } = oknoEdycji(`Klucz API: ${d.nazwa}`);
   const s = sejfKonta();
-  tresc.append(el('p', { className: 'podpowiedz', textContent: `Do Asystenta AI w edytorze. Zaszyfrowany Twoim hasłem do kluczy (…${s.klucz(id).slice(-4)}).` }));
+  tresc.append(el('p', { className: 'podpowiedz', textContent: tt('dostepAi.doAsystentaAiW', { slice: s.klucz(id).slice(-4) }) }));
   tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: tt('dostepAi.klucz') }), miejsceKlucza(async () => ({
     tekst: s.klucz(id), przyciski: [przyciskAi(tt('dostepAi.kopiuj'), () => kopiujTekst(s.klucz(id), 'Klucz'))],
   }))));
-  const nowy = el('input', { type: 'password', id: 'edytuj-klucz-dostawcy', autocomplete: 'off', spellcheck: false, placeholder: 'Wklej nowy klucz, żeby zamienić' });
+  const nowy = el('input', { type: 'password', id: 'edytuj-klucz-dostawcy', autocomplete: 'off', spellcheck: false, placeholder: tt('dostepAi.wklejNowyKluczZeby') });
   const gdzie = d.kluczUrl ? el('a', { href: d.kluczUrl, target: '_blank', rel: 'noopener', textContent: tt('dostepAi.gdzieWziacKlucz') }) : '';
   tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: tt('dostepAi.zamienKlucz') }), el('label', { className: 'pole' }, el('span', { textContent: tt('dostepAi.nowyKluczApi') }), nowy), el('p', { className: 'podpowiedz' }, gdzie)));
   const polaczenie = polaPolaczenia(id, () => nowy.value.trim() || s.klucz(id));
   tresc.append(polaczenie.pole);
   tresc.append(el('div', { className: 'przyciski-dialogu' },
     przyciskAi(tt('dostepAi.usunKlucz'), async () => {
-      if (!await potwierdz(`Usunąć klucz ${d.nazwa}?`, 'Asystent AI nie będzie mógł używać tego dostawcy, dopóki nie wkleisz klucza od nowa.', tt('dostepAi.usun'), true)) return;
+      if (!await potwierdz(tt('dostepAi.usunacKlucz', { nazwa: d.nazwa }), tt('dostepAi.asystentAiNieBedzie'), tt('dostepAi.usun'), true)) return;
       await s.ustaw(id, '');
       dlg.close();
     }, 'niebezpieczny'),
     przyciskAi(tt('dostepAi.zapisz'), async () => {
       const v = nowy.value.trim();
-      if (v) { await s.ustaw(id, v); powiadom(`Klucz ${d.nazwa} zamieniony.`); }
+      if (v) { await s.ustaw(id, v); powiadom(tt('dostepAi.kluczZamieniony', { nazwa: d.nazwa })); }
       polaczenie.zapisz();
       dlg.close();
     }, 'glowny')));
@@ -445,7 +445,7 @@ async function rysujDostawcow() {
   }
   akcje.replaceChildren(...(st === 'otwarty'
     ? [przyciskAi(tt('dostepAi.zamknijKluczeNaTym'), async () => { await s.zamknij(); rysujDostawcow(); }),
-      przyciskAi(tt('dostepAi.usunWszystkieZaszyfrowaneKlucze'), async () => { if (await potwierdz('Usunąć zapisane klucze?', 'Wszystkie klucze API dostawców i zapamiętane klucze dostępu znikną z sejfu (także na innych urządzeniach). Hasło do kluczy przestanie być potrzebne.', tt('dostepAi.usun'), true)) { await s.usun(); rysujDostawcow(); } })]
+      przyciskAi(tt('dostepAi.usunWszystkieZaszyfrowaneKlucze'), async () => { if (await potwierdz(tt('dostepAi.usunacZapisaneKlucze'), tt('dostepAi.wszystkieKluczeApiDostawcow'), tt('dostepAi.usun'), true)) { await s.usun(); rysujDostawcow(); } })]
     : []));
   pokazPusto();
 }
@@ -522,7 +522,7 @@ export async function zapiszKluczDostawcy() {
   await sejf.ustaw(id, v);
   polaczenieNowego?.zapisz();
   pole.value = '';
-  powiadom(`Klucz ${DOSTAWCY[id].nazwa} zapisany – zaszyfrowany Twoim hasłem do kluczy.`);
+  powiadom(tt('dostepAi.kluczZapisanyZaszyfrowanyTwoim', { nazwa: DOSTAWCY[id].nazwa }));
   zamknijDodawanie();
 }
 
@@ -533,11 +533,11 @@ async function zapamietaj(id, klucz) {
   const st = await s.stan().catch(() => 'brak');
   if (st === 'otwarty') { await s.ustaw(wSejfie(id), klucz).catch(() => {}); return; }
   const box = Object.assign(document.createElement('div'), { id: 'dostep-ai-zapamietaj', className: 'rzad-przyciskow' });
-  box.append(przyciskAi(st === 'brak' ? 'Zapamiętaj klucz (ustaw hasło do kluczy)' : 'Zapamiętaj klucz (hasło do kluczy)', async () => {
+  box.append(przyciskAi(st === 'brak' ? tt('dostepAi.zapamietajKluczUstawHaslo') : tt('dostepAi.zapamietajKluczHasloDo'), async () => {
     const sejf = await otwartySejf();
     if (!sejf) return;
     await sejf.ustaw(wSejfie(id), klucz);
-    box.replaceChildren(Object.assign(document.createElement('p'), { className: 'podpowiedz', textContent: 'Zapamiętany – „Pokaż klucz” na liście pokaże go jeszcze raz.' }));
+    box.replaceChildren(Object.assign(document.createElement('p'), { className: 'podpowiedz', textContent: tt('dostepAi.zapamietanyPokazKluczNa') }));
   }));
   $('#dostep-ai-gotowy legend').after(box);
 }
@@ -554,7 +554,7 @@ function przeniesPanel(doOkna) {
 // Otwiera panel kluczy. zakladka – 'czat' | 'lacznik' | 'zwykly' od razu otwiera okienko nowego klucza tego rodzaju;
 // projektId – projekt zaznaczony na liście nowego klucza.
 export async function otworzDostepAi({ projektId = null, zakladka = null } = {}) {
-  if (!stan.uzytkownik) { powiadom('Ustawienia sztucznej inteligencji wymagają zalogowania.', true); return; }
+  if (!stan.uzytkownik) { powiadom(tt('dostepAi.ustawieniaSztucznejInteligencjiWymagaja'), true); return; }
   const wOknie = !wUstawieniach();
   przeniesPanel(wOknie);
   projektWybrany = projektId;
@@ -613,7 +613,7 @@ async function kopiuj(pole, co) {
     powiadom(`${co[0].toUpperCase()}${co.slice(1)} skopiowany.`);
   } catch {
     pole.select();
-    powiadom(`Zaznaczyłem ${co} – skopiuj go skrótem Ctrl+C.`);
+    powiadom(tt('dostepAi.zaznaczylemSkopiujGoSkrotem', { co }));
   }
 }
 
@@ -642,7 +642,7 @@ async function wypelnijProjektyKopiuj() {
 }
 export function otworzZAsystentemKopiuj() {
   const id = $('#ai-kopiuj-projekt').value;
-  if (!id) { powiadom('Najpierw utwórz projekt – Asystent AI pracuje w otwartym projekcie.', true); return; }
+  if (!id) { powiadom(tt('dostepAi.najpierwUtworzProjektAsystent'), true); return; }
   if ($('#dlg-dostep-ai').open) zamknijDostepAi();
   location.hash = `#/p/${encodeURIComponent(id)}/asystent`;
 }
@@ -676,7 +676,7 @@ export async function podsumowanieKluczy() {
   try {
     const aktywne = (await chmura.dostepyAi()).filter((d) => d.aktywny);
     el.textContent = aktywne.length
-      ? `Aktywne klucze: ${aktywne.length} – ${aktywne.slice(0, 3).map((d) => `„${d.opis || 'bez opisu'}” (${d.zakres === 'pelny' ? 'pełny dostęp' : `projekty: ${d.projekty.length}`})`).join(', ')}${aktywne.length > 3 ? '…' : ''}.`
+      ? tt('dostepAi.aktywneKlucze', { aktywneIle: aktywne.length, join: aktywne.slice(0, 3).map((d) => `„${d.opis || tt('dostepAi.bezOpisu')}” (${d.zakres === 'pelny' ? tt('dostepAi.pelnyDostep') : tt('dostepAi.projekty', { projektyIle: d.projekty.length })})`).join(', '), x: aktywne.length > 3 ? '…' : '' })
       : tt('dostepAi.nieMaszJeszczeZadnego');
   } catch { el.textContent = ''; }
 }

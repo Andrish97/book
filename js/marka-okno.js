@@ -168,7 +168,7 @@ function rysujZestawy() {
   $('#marka-zestaw-usun').disabled = lista.length <= 1;
   $('#marka-zestaw-opis').textContent = wProjekcie()
     ? tt('markaOkno.tenZestawJestMarka')
-    : 'Zestaw w użyciu: marka projektów, które nie mają własnego zestawu. Każdy projekt może mieć swój – wybierz go tu przy otwartym projekcie.';
+    : tt('markaOkno.zestawWUzyciuMarka');
 }
 function zaladujRobocza() {
   robocza = normalizujMarke(JSON.parse(JSON.stringify(biezacaMarka())));
@@ -236,7 +236,7 @@ $('#marka-plik-logo').addEventListener('change', async (e) => {
   e.target.value = '';
   for (const plik of pliki) {
     try {
-      komunikat(`Wysyłanie „${plik.name}”…`);
+      komunikat(tt('markaOkno.wysylanie', { name: plik.name }));
       robocza = normalizujMarke({ ...robocza, loga: (await dodajLogo(plik, plik.name, await podgladLogo(plik))).loga });
       rysujLoga();
       komunikat('');
@@ -264,7 +264,7 @@ export async function pokazPodsumowanieMarki() {
   const m = biezacaMarka();
   const wiersz = document.querySelector('#ekran-konta [data-podsumowanie="marka"]');
   const zestawy = listaZestawow();
-  const ile = zestawy.length > 1 ? ` · ${zestawy.length} zestawy` : '';
+  const ile = zestawy.length > 1 ? tt('markaOkno.zestawy', { zestawyIle: zestawy.length }) : '';
   if (wiersz) wiersz.textContent = (markaPusta(m) ? 'pusty' : `${m.kolory.length} kol. · ${m.style.length} styl. · ${m.loga.length} logo`) + ile;
   if (!el) return;
   const naglowek = zestawy.length > 1

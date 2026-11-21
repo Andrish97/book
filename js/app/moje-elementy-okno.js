@@ -19,7 +19,7 @@ MOJE.zmienNazwe = async (m) => {
 };
 
 MOJE.usun = async (m) => {
-  if (!await potwierdz(t('mojeElementyOkno.usunacZBiblioteki'), `„${m.nazwa}” zniknie z „Moich elementów” we wszystkich projektach. Elementy już wstawione na strony zostają.`, t('mojeElementyOkno.usun'), true)) return;
+  if (!await potwierdz(t('mojeElementyOkno.usunacZBiblioteki'), t('mojeElementyOkno.zniknieZMoichElementow', { nazwa: m.nazwa }), t('mojeElementyOkno.usun'), true)) return;
   try { await usunMojElement(m.id); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
 };
 
@@ -35,9 +35,9 @@ export async function zapiszWBibliotece() {
   if (!nazwa) return;
   try {
     await zapiszMojElement({ nazwa, obiekty: dane.obiekty, szer: dane.szer, wys: dane.wys, podglad: dane.podglad }, stan.projekt);
-    powiadom(`„${nazwa}” jest w Bibliotece → Moje elementy – w każdym projekcie.`);
+    powiadom(t('mojeElementyOkno.jestWBiblioteceMoje', { nazwa }));
     otworzBiblioteke('moje');
   } catch (e) {
-    powiadom(`Nie udało się zapisać: ${chmura.komunikatBledu(e)}`, true);
+    powiadom(t('mojeElementyOkno.nieUdaloSieZapisac', { komunikatBledu: chmura.komunikatBledu(e) }), true);
   }
 }

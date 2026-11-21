@@ -41,11 +41,11 @@ export async function pokazZgode(id) {
   trasa.ustaw('projekty', { zastap: true });
   let info;
   try { info = await chmura.oauthZadanie(id); } catch (e) { powiadom(chmura.komunikatBledu(e), true); return; }
-  if (!info) { powiadom('Ta prośba o połączenie wygasła albo już ją obsłużono. Zacznij łączenie od nowa w aplikacji AI.', true); return; }
+  if (!info) { powiadom(t('polaczAi.taProsbaOPolaczenie'), true); return; }
   const dlg = okno();
   const f = dlg.querySelector('form');
   f.reset();
-  dlg.querySelector('.polacz-kto').textContent = `„${info.klient}” (${info.host}) prosi o dostęp do Twoich projektów w Makietce. Wybierz, co może.`;
+  dlg.querySelector('.polacz-kto').textContent = t('polaczAi.prosiODostepDo', { klient: info.klient, host: info.host });
   const blad = dlg.querySelector('.blad-polaczenia');
   blad.hidden = true;
   f.querySelector('.polacz-projekty').hidden = false;
@@ -64,7 +64,7 @@ export async function pokazZgode(id) {
       const dni = f.elements.dni.value;
       const w = await chmura.oauthZatwierdz(id, { rola: f.elements.rola.value, dni: dni === 'bez' ? null : Number(dni), zakres, projekty: zakres === 'pelny' ? [] : wybor() });
       dlg.close();
-      powiadom(`Połączono „${info.klient}” z Makietką – wracam do aplikacji AI.`);
+      powiadom(t('polaczAi.polaczonoZMakietkaWracam', { klient: info.klient }));
       location.href = w.adres;
     } catch (er) {
       blad.textContent = chmura.komunikatBledu(er);

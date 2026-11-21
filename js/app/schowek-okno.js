@@ -13,7 +13,7 @@ import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { generujMiniatury, renderujListe, ustawZakladke } from './lista-stron.js';
 import { t } from '../jezyk.js';
 
-const skad = (wpis) => (stan.projekt && wpis.projekt !== stan.projekt.id ? ` z projektu „${wpis.nazwaProjektu}”` : '');
+const skad = (wpis) => (stan.projekt && wpis.projekt !== stan.projekt.id ? t('schowekOkno.zProjektu', { nazwaProjektu: wpis.nazwaProjektu }) : '');
 
 // Kopiuj (Ctrl+C, Wytnij, przycisk) → także schowek urządzenia. Zaznaczenie czytane od razu (Wytnij zaraz je usuwa).
 edytor.addEventListener('schowek', () => {
@@ -38,7 +38,7 @@ export async function wklejElementy() {
   if (!wpis || wpis.rodzaj !== 'elementy' || !stan.projekt) { if (edytor.maSchowek) edytor.wklej(); return Boolean(edytor.maSchowek); }
   const mapa = await przyjmijZasoby(stan.projekt, wpis);
   await edytor.wstawElementZBiblioteki({ ...wpis.dane, obiekty: przemapujZasoby(wpis.dane.obiekty, mapa) }, stan.projekt.zasoby);
-  if (zInnego) powiadom(`Wklejono ${wpis.opis}${skad(wpis)}.`);
+  if (zInnego) powiadom(t('schowekOkno.wklejono', { opis: wpis.opis, skad: skad(wpis) }));
   return true;
 }
 
@@ -47,16 +47,16 @@ export async function wklejElementy() {
 export async function kopiujStroneDoSchowka(i) {
   zapiszBiezacyCel();
   const s = stan.projekt.strony[i];
-  await zapiszDoSchowka(stan.projekt, { rodzaj: 'strony', opis: `strona „${s.nazwa}”`, dane: { strony: [s] } });
-  powiadom(`Strona „${s.nazwa}” jest w schowku – wklej ją tu albo w innym projekcie: menu strony → „Wklej strony ze schowka”.`);
+  await zapiszDoSchowka(stan.projekt, { rodzaj: 'strony', opis: t('schowekOkno.strona', { nazwa: s.nazwa }), dane: { strony: [s] } });
+  powiadom(t('schowekOkno.stronaJestWSchowku', { nazwa: s.nazwa }));
 }
 
 export async function kopiujSekcjeDoSchowka(id) {
   zapiszBiezacyCel();
   const sekcja = stan.projekt.sekcje.find((s) => s.id === id);
   const strony = stan.projekt.strony.filter((s) => s.sekcja === id);
-  await zapiszDoSchowka(stan.projekt, { rodzaj: 'sekcja', opis: `sekcja „${sekcja.nazwa}” (${strony.length} str.)`, dane: { sekcja, strony } });
-  powiadom(`Sekcja „${sekcja.nazwa}” jest w schowku – wklej ją tu albo w innym projekcie: menu sekcji → „Wklej sekcję ze schowka”.`);
+  await zapiszDoSchowka(stan.projekt, { rodzaj: 'sekcja', opis: t('schowekOkno.sekcjaStr', { nazwa: sekcja.nazwa, stronyIle: strony.length }), dane: { sekcja, strony } });
+  powiadom(t('schowekOkno.sekcjaJestWSchowku', { nazwa: sekcja.nazwa }));
 }
 
 // Opis do menu: co leży w schowku (strony albo sekcja), skąd. null – nic do wklejenia tym poleceniem.

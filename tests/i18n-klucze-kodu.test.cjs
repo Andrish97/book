@@ -66,3 +66,32 @@ test('klucze w kodzie: Biblioteka po angielsku – nazwy kształtów i kategorii
   assert.ok(nazwy[1][0] !== 'Romb', JSON.stringify(nazwy));
   assert.deepEqual(bledy, []);
 });
+
+// #356: odmiana w kluczach (zapis jak ICU): polski i ukraiński – trzy formy, angielski – dwie; zmienne w zdaniu.
+test('klucze w kodzie: odmiana po liczbie w pl, en i uk', async (t) => {
+  const { strona, bledy } = await otworz(t, { tryb: 'atrapa' });
+  const wynik = await strona.evaluate(async () => {
+    const { formatuj } = await import('./js/jezyk.js');
+    const pl = 'Usunięto {n, plural, one {# obraz} few {# obrazy} many {# obrazów} other {# obrazu}} z „{nazwa}”.';
+    const en = 'Deleted {n, plural, =0 {nothing} one {# image} other {# images}}.';
+    const uk = '{n, plural, one {# сторінка} few {# сторінки} many {# сторінок} other {# сторінки}}';
+    return {
+      pl: [1, 2, 5, 12, 22].map((n) => formatuj(pl, { n, nazwa: 'Okładka' }, 'pl')),
+      en: [0, 1, 3].map((n) => formatuj(en, { n }, 'en')),
+      uk: [1, 3, 5, 21].map((n) => formatuj(uk, { n }, 'uk')),
+      bezZmiennej: formatuj('Pole {imie} i {n}', { n: 2 }, 'pl'),
+    };
+  });
+  assert.deepEqual(wynik.pl, ['Usunięto 1 obraz z „Okładka”.', 'Usunięto 2 obrazy z „Okładka”.', 'Usunięto 5 obrazów z „Okładka”.', 'Usunięto 12 obrazów z „Okładka”.', 'Usunięto 22 obrazy z „Okładka”.']);
+  assert.deepEqual(wynik.en, ['Deleted nothing.', 'Deleted 1 image.', 'Deleted 3 images.']);
+  assert.deepEqual(wynik.uk, ['1 сторінка', '3 сторінки', '5 сторінок', '21 сторінка']);
+  assert.equal(wynik.bezZmiennej, 'Pole {imie} i 2');
+  // W kodzie nie ma już ręcznej odmiany – wszystko idzie przez klucze.
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const reczna = [];
+  const zbierz = (d) => { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) { if (!/zewnetrzne|jezyki/.test(p)) zbierz(p); } else if (f.endsWith('.js') && f !== 'ui.js' && /\bodmiana\(/.test(fs.readFileSync(p, 'utf8'))) reczna.push(f); } };
+  zbierz(path.join(__dirname, '..', 'js'));
+  assert.deepEqual(reczna, []);
+  assert.deepEqual(bledy, []);
+});

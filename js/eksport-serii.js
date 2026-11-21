@@ -12,6 +12,7 @@ import { obrazZNazwy } from './nazwy-obrazow.js';
 import { dataUrlZasobu } from './zasoby.js';
 import { zPolamiSzablonu } from './zlozenie.js';
 import { Raport } from './raport-przeniesienia.js';
+import { t } from './jezyk.js';
 
 export const PROGRAMY_SERII = {
   indesign: { nazwa: 'InDesign / Affinity Publisher', plik: 'idml', znacznik: (n) => `<<${n}>>` },
@@ -75,27 +76,8 @@ InDesign: otwórz szablon.idml, Okno → Narzędzia → Scalanie danych → Wybi
   (obrazy: zaznacz ramkę i kliknij pole z @). Potem „Utwórz scalony dokument”.
 Affinity Publisher: otwórz szablon.idml, Okno → Scalanie danych (Data Merge Manager) → dodaj dane.csv,
   wstaw pola w miejsce znaczników <<pole>> i wygeneruj dokument.`,
-  scribus: (pola) => `Szablon i dane dla Scribusa z wtyczką ScribusGenerator (korespondencja seryjna).
-
-Pliki:
-  szablon.sla – strony projektu, każda raz; w miejscu pól stoją zmienne ${pola}
-  dane.csv    – dane (UTF-8, przecinek); kolumny obrazów zawierają ścieżki obrazy/…
-  obrazy/     – obrazy z danych
-
-W Scribusie: Skrypty → Wykonaj skrypt → ScribusGenerator, wskaż szablon.sla i dane.csv, separator „,”.
-Zmienne %VAR_kolumna% w tekstach zastąpią się wartościami z kolejnych wierszy.`,
-  word: (pola) => `Szablon i dane do korespondencji seryjnej w Wordzie (a także w Publisherze, który go jeszcze ma).
-
-Pliki:
-  szablon.docx – strony projektu z układem (ramki tekstu, obrazy, kształty na swoich miejscach) i polami scalania ${pola}
-  dane.xlsx    – dane (arkusz „Dane”); to samo w dane.csv
-
-Word: otwórz szablon.docx → Korespondencja → Wybierz adresatów → Użyj istniejącej listy → dane.xlsx →
-  Zakończ i scal. Pola już są w tekście (MERGEFIELD).
-Publisher: Korespondencja → Korespondencja seryjna → Użyj istniejącej listy → dane.xlsx, potem wstaw pola z listy.
-
-Ramki tekstu są polami tekstowymi Worda zakotwiczonymi do strony – po scaleniu każdy wiersz danych to kolejna strona
-z tym samym układem. Tabele, kalendarze i elementy z efektami są obrazami.`,
+  scribus: (pola) => t('eksportSerii.szablonIDaneDla', { pola }),
+  word: (pola) => t('eksportSerii.szablonIDaneDo', { pola }),
 };
 
 // Pakiet ZIP „szablon + dane” dla programu. Zwraca { blob, nazwa, pola, wierszy }.

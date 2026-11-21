@@ -57,7 +57,7 @@ function zrodloLinku({ manifest, adresObrazu }) {
     odcisk: manifest.skroty ? (strona) => manifest.skroty[strona.id] : null,
     stale: true,
     klikalne: false,
-    opis: `stan z ${kiedyStan}`,
+    opis: tt('udostepnione.stanZ', { kiedyStan }),
   };
 }
 
@@ -78,8 +78,8 @@ function pokazPrzygotowanie(manifest) {
     el.setAttribute('role', 'status');
     document.querySelector('#podglad-tresc')?.before(el);
   }
-  const ile = Number.isFinite(manifest.wszystkie) ? ` (gotowe ${manifest.gotowe ?? 0} z ${manifest.wszystkie})` : '';
-  el.textContent = `Podgląd jest w przygotowaniu${ile} – strony pojawiają się po kolei, sama strona odświeża się co kilka sekund.`;
+  const ile = Number.isFinite(manifest.wszystkie) ? tt('udostepnione.gotoweZ', { x: manifest.gotowe ?? 0, wszystkie: manifest.wszystkie }) : '';
+  el.textContent = tt('udostepnione.podgladJestWPrzygotowaniu', { ile });
 }
 
 export async function otworzMakieteLinku() {
@@ -164,7 +164,7 @@ function pokazPoleHasla(t) {
       pokazStronyLinku({ ...(await chmura.wczytajPodgladChroniony(t.konto, t.projekt, t.kod, haslo)), chroniony: true }, t, haslo);
     } catch (blad) {
       if (blad.stanLinku === 'wygasl' || blad.stanLinku === 'brak') { pokazBladLinku(blad); return; }
-      komunikat.textContent = blad.stanLinku ? blad.message : `Nie udało się wczytać podglądu: ${chmura.komunikatBledu(blad)}`;
+      komunikat.textContent = blad.stanLinku ? blad.message : tt('udostepnione.nieUdaloSieWczytac', { komunikatBledu: chmura.komunikatBledu(blad) });
       form.elements.haslo.select();
     } finally {
       przycisk.disabled = false;

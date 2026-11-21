@@ -36,7 +36,7 @@ function zapytajOZgode(opis) {
     const koniec = (wolno, zawsze = false) => {
       if (zawsze) zawszePozwalaj = true;
       rzad.remove();
-      li.append(Object.assign(document.createElement('span'), { className: 'zgoda-wynik', textContent: wolno ? (zawsze ? ' – pozwolono (do końca rozmowy)' : ' – pozwolono') : ' – nie pozwolono' }));
+      li.append(Object.assign(document.createElement('span'), { className: 'zgoda-wynik', textContent: wolno ? (zawsze ? tt('czatAi.pozwolonoDoKoncaRozmowy') : tt('czatAi.pozwolono')) : tt('czatAi.niePozwolono') }));
       gotowe(wolno);
     };
     const przycisk = (tekst, klasa, fn) => { const b = Object.assign(document.createElement('button'), { type: 'button', className: `przycisk maly ${klasa}`, textContent: tekst }); b.addEventListener('click', fn); return b; };
@@ -58,7 +58,7 @@ function rysujZalaczniki() {
     const li = document.createElement('li');
     const img = Object.assign(document.createElement('img'), { src: z.url, alt: '' });
     const usun = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk-ikona maly', textContent: '×', title: tt('czatAi.usun') });
-    usun.setAttribute('aria-label', `Usuń ${z.plik.name}`);
+    usun.setAttribute('aria-label', tt('czatAi.usun2', { name: z.plik.name }));
     usun.addEventListener('click', () => { URL.revokeObjectURL(z.url); zalaczniki.splice(i, 1); rysujZalaczniki(); });
     li.append(img, Object.assign(document.createElement('span'), { textContent: z.plik.name }), usun);
     return li;
@@ -67,7 +67,7 @@ function rysujZalaczniki() {
 $('#czat-ai-zalacz').addEventListener('click', () => $('#czat-ai-plik').click());
 $('#czat-ai-plik').addEventListener('change', (e) => {
   for (const plik of e.target.files) {
-    if (plik.size > MAKS_ZALACZNIK) { powiadom(`„${plik.name}” ma ponad 5 MB – wgraj go w oknie „Obrazy projektu”.`, true); continue; }
+    if (plik.size > MAKS_ZALACZNIK) { powiadom(tt('czatAi.maPonad5Mb', { name: plik.name }), true); continue; }
     zalaczniki.push({ plik, url: URL.createObjectURL(plik) });
   }
   e.target.value = '';
@@ -94,14 +94,14 @@ async function przygotujZalaczniki(n, { podglad = true } = {}) {
     try {
       const r = await n.wolaj('tools/call', { name: 'wgraj_obraz', arguments: { nazwa: z.plik.name, dane_base64: await base64Pliku(z.plik) } });
       const t = (r?.content || []).map((c) => c.text || '').join(' ').replace(/\s+/g, ' ').slice(0, 300);
-      linie.push(r?.isError ? `„${z.plik.name}” – nie udało się wgrać: ${t}` : `„${z.plik.name}” – wgrany do projektu: ${t}`);
-    } catch (e) { linie.push(`„${z.plik.name}” – nie udało się wgrać: ${e.message}`); }
+      linie.push(r?.isError ? tt('czatAi.nieUdaloSieWgrac', { name: z.plik.name, t }) : tt('czatAi.wgranyDoProjektu', { name: z.plik.name, t }));
+    } catch (e) { linie.push(tt('czatAi.nieUdaloSieWgrac2', { name: z.plik.name, message: e.message })); }
     if (podglad) podglady.push(await podgladDlaAi(z).catch(() => null));
     URL.revokeObjectURL(z.url);
   }
   zalaczniki = [];
   rysujZalaczniki();
-  return { opis: linie.length ? `\n\n[Dołączone zdjęcia – Makietka wgrała je do projektu (obrazy_projektu); wstawisz je narzędziem wstaw_obraz:\n${linie.join('\n')}]` : '', podglady: podglady.filter(Boolean) };
+  return { opis: linie.length ? tt('czatAi.dolaczoneZdjeciaMakietkaWgrala', { join: linie.join('\n') }) : '', podglady: podglady.filter(Boolean) };
 }
 
 // Wynik narzędzia, gdy użytkownik nie pozwolił – AI dostaje go jak błąd i ma zapytać, co dalej.
@@ -138,7 +138,7 @@ function wypelnijDostawce() {
   const d = DOSTAWCY[id];
   const ust = ustDostawcy(u, id);
   f.elements.klucz.value = ust.klucz || '';
-  f.elements.klucz.placeholder = ust.klucz ? '' : 'Klucz od dostawcy (zaszyfrowany Twoim hasłem do kluczy)';
+  f.elements.klucz.placeholder = ust.klucz ? '' : tt('czatAi.kluczOdDostawcyZaszyfrowany');
   f.elements.model.value = ust.model || '';
   f.elements.adres.value = ust.adres || '';
   $('#czat-ai-adres-pole').hidden = !d.wlasnyAdres;
@@ -177,7 +177,7 @@ f.addEventListener('change', async (e) => {
     const id = f.elements.dostawca.value;
     const wartosc = f.elements.klucz.value.trim();
     const s = await otwartySejf();
-    if (!s) { f.elements.klucz.value = ''; powiadom('Klucz nie został zapisany – bez hasła do kluczy nie da się go zaszyfrować.', true); return; }
+    if (!s) { f.elements.klucz.value = ''; powiadom(tt('czatAi.kluczNieZostalZapisany'), true); return; }
     await s.ustaw(id, wartosc);
     rozmowa = null;
     zapamietajPola();
@@ -257,7 +257,7 @@ function dopiszDoSkopiowania(rodzaj, opis, tresc) {
   const li = dopisz(rodzaj, opis);
   const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly', textContent: tt('czatAi.kopiuj') });
   b.addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(tresc); b.textContent = tt('czatAi.skopiowano'); } catch { powiadom('Przeglądarka nie pozwoliła skopiować – zaznacz tekst ręcznie.', true); }
+    try { await navigator.clipboard.writeText(tresc); b.textContent = tt('czatAi.skopiowano'); } catch { powiadom(tt('czatAi.przegladarkaNiePozwolilaSkopiowac'), true); }
   });
   const pre = Object.assign(document.createElement('pre'), { className: 'czat-ai-do-skopiowania', textContent: tresc });
   li.append(b, pre);
@@ -306,13 +306,13 @@ async function wyslijPrzezSchowek(tekst) {
       for (const w of wywolania) {
         dopisz('narzedzie', `🔧 ${w.nazwa}`);
         const opisZgody = wymagaZgody(w.nazwa, w.argumenty);
-        if (opisZgody && !await zapytajOZgode(opisZgody)) { wyniki.push(`BŁĄD ${w.nazwa}:\n${ODMOWA}`); continue; }
+        if (opisZgody && !await zapytajOZgode(opisZgody)) { wyniki.push(tt('czatAi.blad', { nazwa: w.nazwa, ODMOWA })); continue; }
         try {
           const r = await n.wolaj('tools/call', { name: w.nazwa, arguments: w.argumenty });
           const t = (r?.content || []).map((c) => c.text || '').join('\n') || '(brak treści)';
           wyniki.push(`${r?.isError ? 'BŁĄD' : 'WYNIK'} ${w.nazwa}:\n${t}`);
           if (!r?.isError && !/^(czytaj|przeglad|projekty|obrazy_projektu|komentarze|stan_eksportu|opis_formatu|kontrola)/.test(w.nazwa)) zmiany = true;
-        } catch (e) { wyniki.push(`BŁĄD ${w.nazwa}:\n${e.message}`); }
+        } catch (e) { wyniki.push(tt('czatAi.blad2', { nazwa: w.nazwa, message: e.message })); }
       }
       if (zmiany) sprawdzKonto();
       dopiszDoSkopiowania('ai', 'Wykonane. Wyniki są w schowku – wklej je czatowi AI, żeby wiedział, co się udało (i ewentualnie zrobił resztę).', `Wyniki z Makietki:\n\n${wyniki.join('\n\n')}`);
@@ -389,11 +389,11 @@ async function wyslij(tekst) {
         if (k.wywolania.length) { dymek = null; if (!czeka.isConnected) lista.append(czeka); }
       },
       wykonaj: async (nazwa, argumenty) => {
-        czeka.textContent = `Narzędzie: ${nazwa}…`;
+        czeka.textContent = tt('czatAi.narzedzie', { nazwa });
         dopisz('narzedzie', `🔧 ${nazwa}`);
         const opisZgody = wymagaZgody(nazwa, argumenty);
         if (opisZgody) {
-          czeka.textContent = 'Czekam na Twoją zgodę…';
+          czeka.textContent = tt('czatAi.czekamNaTwojaZgode');
           if (!await zapytajOZgode(opisZgody)) return { tekst: ODMOWA, blad: true };
         }
         const r = await n.wolaj('tools/call', { name: nazwa, arguments: argumenty });

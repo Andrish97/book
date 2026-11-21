@@ -67,8 +67,8 @@ export function odswiezPrzyciskiMotywu(ikona) {
   for (const b of document.querySelectorAll('[data-akcja="motyw"]')) {
     b.querySelector(':scope > svg.ikona')?.remove();
     b.insertAdjacentHTML('afterbegin', ikona(ik));
-    b.title = `Motyw: ${nazwa.toLowerCase()}`;
-    b.setAttribute('aria-label', `Motyw: ${nazwa.toLowerCase()} – zmień`);
+    b.title = t('motyw.motyw2', { toLowerCase: nazwa.toLowerCase() });
+    b.setAttribute('aria-label', t('motyw.motywZmien', { toLowerCase: nazwa.toLowerCase() }));
     b.setAttribute('aria-haspopup', 'menu');
   }
 }

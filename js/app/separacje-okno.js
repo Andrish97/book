@@ -39,7 +39,7 @@ async function przelicz() {
 async function przeliczZPaskiem(nr, pasek) {
   const { projekt, ciag } = stan;
   const egz = ciag.egzemplarze[stan.i];
-  $('#separacje-numer').textContent = `Strona ${stan.i + 1} z ${ciag.egzemplarze.length}`;
+  $('#separacje-numer').textContent = tt('separacjeOkno.stronaZ', { x: stan.i + 1, egzemplarzeIle: ciag.egzemplarze.length });
   $('#separacje-wynik').textContent = tt('separacjeOkno.liczePlyty');
   const odczyt = (p) => p.getContext().getImageData(0, 0, p.getWidth(), p.getHeight());
   const opcje = { szerokoscPx: SZEROKOSC, spad: true, ciag, oryginaly: false };
@@ -97,7 +97,7 @@ function pokazListe() {
     const k = kolory.get(id) || [0, 0, 0];
     const nazwa = PLYTY_CMYK.find((p) => p.id === id)?.nazwa || id;
     l.innerHTML = `<input type="checkbox" value="${id}"><span class="probka-plyty" style="background: rgb(${k.join(',')})"></span><span></span>`;
-    l.querySelector('span:last-child').textContent = uszl.has(id) ? `${nazwa} (uszlachetnienie, nadruk)` : nazwa;
+    l.querySelector('span:last-child').textContent = uszl.has(id) ? tt('separacjeOkno.uszlachetnienieNadruk', { nazwa }) : nazwa;
     const pole = l.querySelector('input');
     pole.checked = stan.wlaczone.has(id);
     pole.addEventListener('change', () => { if (pole.checked) stan.wlaczone.add(id); else stan.wlaczone.delete(id); rysuj(); });
@@ -118,7 +118,7 @@ function rysuj() {
   plotno.getContext("2d").putImageData(new window.ImageData(piksele, rozbite.w, rozbite.h), 0, 0);
   const ponad = [...rozbite.tac].filter((v) => v > limit + 0.5).length;
   const procent = (ponad / (rozbite.w * rozbite.h)) * 100;
-  $('#separacje-wynik').textContent = `Największe pokrycie farbą na tej stronie: ${rozbite.tacMax}%.${ponad ? ` Ponad ${limit}%: ${procent < 0.1 ? 'pojedyncze miejsca' : `${procent.toFixed(1).replace('.', ',')}% strony`} – drukarnia może prosić o jaśniejsze kolory albo czerń bez domieszek.` : ` Mieści się w limicie ${limit}%.`}`;
+  $('#separacje-wynik').textContent = tt('separacjeOkno.najwiekszePokrycieFarbaNa', { tacMax: rozbite.tacMax, x: ponad ? tt('separacjeOkno.ponadDrukarniaMozeProsic', { limit, x: procent < 0.1 ? tt('separacjeOkno.pojedynczeMiejsca') : tt('separacjeOkno.strony', { replace: procent.toFixed(1).replace('.', ',') }) }) : tt('separacjeOkno.miesciSieWLimicie', { limit }) });
 }
 
 // Otwiera okno na stronie o kluczu `klucz` (egzemplarz widoczny w podglądzie).
@@ -127,7 +127,7 @@ export function otworzSeparacje(projekt, klucz = null) {
   const i = Math.max(0, ciag.egzemplarze.findIndex((e) => e.klucz === klucz));
   stan = { projekt, ciag, i, rozbite: null, wlaczone: null };
   if (!dlg.open) dlg.showModal();
-  przelicz().catch((e) => { $('#separacje-wynik').textContent = `Nie udało się policzyć płyt: ${e.message}`; });
+  przelicz().catch((e) => { $('#separacje-wynik').textContent = tt('separacjeOkno.nieUdaloSiePoliczyc', { message: e.message }); });
 }
 export const zamknijSeparacje = () => dlg.close();
 // Stan okna – dla testów.

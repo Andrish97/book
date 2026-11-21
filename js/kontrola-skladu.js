@@ -7,11 +7,11 @@ import { tekstyEgzemplarza, tabeleEgzemplarza } from './zlozenie.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { uwagiSkladuTekstu } from './zasady-skladu.js';
 import { sprawdzProjekt } from './kontrola.js';
-import { odmiana } from './ui.js';
+import { t as tt } from './jezyk.js';
 
 const lista = (numery, ile = 8) => {
   const n = [...new Set(numery)].sort((a, b) => a - b);
-  return n.length > ile ? `${n.slice(0, ile).join(', ')} i ${n.length - ile} ${odmiana(n.length - ile, 'innej', 'innych', 'innych')}` : n.join(', ').replace(/, (\d+)$/, ' i $1');
+  return n.length > ile ? tt('kontrolaSkladu.i', { join: n.slice(0, ile).join(', '), x: n.length - ile }) : n.join(', ').replace(/, (\d+)$/, ' i $1');
 };
 
 // Uwagi o tekstach, które nie mieszczą się w ramce: [{ rodzaj: 'nie_miesci_sie', opis, strony, idStrony, idObiektu }],
@@ -57,13 +57,13 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
   }
   return [...[...wystapienia].map(([idObiektu, w]) => ({
     rodzaj: 'nie_miesci_sie', strony: w.strony, idStrony: w.idStrony, idObiektu,
-    opis: `Tekst „${w.nazwa}”${w.zWzorca ? ' (ze wzorca)' : ''} nie mieści się w ramce – ${odmiana(new Set(w.strony).size, 'strona', 'strony', 'strony')} ${lista(w.strony)}.`,
+    opis: tt('kontrolaSkladu.tekstNieMiesciSie', { nazwa: w.nazwa, x: w.zWzorca ? tt('kontrolaSkladu.zeWzorca') : '', size: new Set(w.strony).size, lista: lista(w.strony) }),
   })), ...[...tabele].map(([idObiektu, t]) => ({
     rodzaj: 'tabela_poza_strona', strony: t.strony, idStrony: t.idStrony, idObiektu,
-    opis: `Tabela${t.nazwa ? ` „${t.nazwa}”` : ''}${t.zWzorca ? ' (ze wzorca)' : ''} po wypełnieniu danymi wychodzi poza stronę (nawet o ${String(Math.round(t.ile * 10) / 10).replace('.', ',')} mm) – ${odmiana(new Set(t.strony).size, 'strona', 'strony', 'strony')} ${lista(t.strony)}.`,
+    opis: tt('kontrolaSkladu.tabelaPoWypelnieniuDanymi', { x: t.nazwa ? ` „${t.nazwa}”` : '', x2: t.zWzorca ? tt('kontrolaSkladu.zeWzorca') : '', replace: String(Math.round(t.ile * 10) / 10).replace('.', ','), size: new Set(t.strony).size, lista: lista(t.strony) }),
   })), ...[...sklad].map(([idObiektu, s]) => ({
     rodzaj: 'sklad_pl', strony: s.strony, idStrony: s.idStrony, idObiektu,
-    opis: `Tekst „${s.nazwa}”${s.zWzorca ? ' (ze wzorca)' : ''} – skład niezgodny z polskimi zasadami: ${[...s.powody].map(([o, p]) => (p ? `${o} („${p}”)` : o)).join('; ')} – ${odmiana(new Set(s.strony).size, 'strona', 'strony', 'strony')} ${lista(s.strony)}.`,
+    opis: tt('kontrolaSkladu.tekstSkladNiezgodnyZ', { nazwa: s.nazwa, x: s.zWzorca ? tt('kontrolaSkladu.zeWzorca') : '', join: [...s.powody].map(([o, p]) => (p ? `${o} („${p}”)` : o)).join('; '), size: new Set(s.strony).size, lista: lista(s.strony) }),
   }))];
 }
 

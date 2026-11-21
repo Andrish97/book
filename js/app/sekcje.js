@@ -113,7 +113,7 @@ export function otworzUstawieniaSekcji(id) {
     label.innerHTML = '<input type="checkbox" name="wzorce"><span></span>';
     $('input', label).value = x.id;
     $('input', label).checked = wybrane.has(x.id);
-    $('span', label).textContent = tenSamRozmiar(x.wydruk, w) ? x.nazwa : `${x.nazwa} (inny rozmiar)`;
+    $('span', label).textContent = tenSamRozmiar(x.wydruk, w) ? x.nazwa : tt('sekcje.innyRozmiar', { nazwa: x.nazwa });
     lista.append(label);
   }
   odswiezPolaSekcji();
@@ -259,7 +259,7 @@ function wypelnijOkladke(f, sekcja, jakoOkladka = false) {
   f.elements.ok_material.value = wyk.material;
   f.elements.ok_folia.replaceChildren(...Object.entries(FOLIE_OKLADKI).map(([k, n]) => new Option(n, k)));
   f.elements.ok_folia.value = wyk.folia || 'mat';
-  f.elements.ok_rogi.replaceChildren(...ROGI.map((r) => new Option(r ? `zaokrąglone ${r} mm` : 'proste', String(r))));
+  f.elements.ok_rogi.replaceChildren(...ROGI.map((r) => new Option(r ? tt('sekcje.zaokragloneMm', { r }) : 'proste', String(r))));
   f.elements.ok_rogi.value = String(ROGI.includes(wyk.rogi_mm) ? wyk.rogi_mm : 0);
   odswiezMaterial(f, wyk.kolor);
   f.elements.ok_tasiemka.checked = Boolean(o.tasiemka);
@@ -297,8 +297,8 @@ function odswiezMaterial(f, kolor = null) {
   }
   $('#pole-ok-kolor-wlasny').hidden = m.druk || f.elements.ok_kolor_materialu.value !== 'wlasny';
   $('#opis-materialu').textContent = m.druk
-    ? 'Nadruk na kartonie, zabezpieczony folią. Złocenie, lakier UV i tłoczenie ustawisz przy elementach (Kolory do druku → Uszlachetnienie).'
-    : `${m.opis} Grafika okładki się nie drukuje – na okleinie zostają elementy ze złoceniem albo tłoczeniem (Kolory do druku → Uszlachetnienie). Makieta 3D pokazuje okleinę w wybranym kolorze.`;
+    ? tt('sekcje.nadrukNaKartonieZabezpieczony')
+    : tt('sekcje.grafikaOkladkiSieNie', { opis: m.opis });
 }
 function wykonczenieZPol(f) {
   const material = f.elements.ok_material.value;
@@ -364,7 +364,7 @@ function rysujOkladke() {
   }));
   const zeszyt = g.oprawa === 'zeszytowa';
   const b = document.createElement('strong');
-  b.textContent = `${zeszyt ? 'Bez grzbietu' : `Grzbiet ${liczba(g.grzbiet)} mm`} · Okładka ${liczba(g.szerokosc)} × ${liczba(g.wysokosc)} mm`;
+  b.textContent = tt('sekcje.okladkaMm', { x: zeszyt ? tt('sekcje.bezGrzbietu') : tt('sekcje.grzbietMm2', { liczba: liczba(g.grzbiet) }), liczba: liczba(g.szerokosc), liczba2: liczba(g.wysokosc) });
   const m = document.createElement('small');
   m.textContent = `Środek: ${g.stron} stron (${g.kartek} kartek × ${String(g.kartka_mm).replace('.', ',')} mm), strona ${liczba(g.strona.sz)} × ${liczba(g.strona.wy)} mm.`
     + (zeszyt && g.stron % 4 ? ' Oprawa zeszytowa potrzebuje liczby stron podzielnej przez 4.' : '');
@@ -386,7 +386,7 @@ function opiszSkladke() {
   const skladka = normalizujSkladke(f.elements.skladka.value);
   let tekst = '';
   if (skladka && sekcja) tekst = `${opisSkladki(bilansSkladki({ ...sekcja, skladka }, rozwin(stan.projekt)))}.`;
-  else if (skladka) tekst = `Sekcja będzie pilnować liczby stron: wielokrotność ${skladka}.`;
+  else if (skladka) tekst = tt('sekcje.sekcjaBedziePilnowacLiczby', { skladka });
   $('#opis-skladki').textContent = tekst;
 }
 
@@ -647,8 +647,8 @@ export async function usunSekcje(id) {
     return;
   }
   const ok = await potwierdz(
-    `Usunąć sekcję „${sekcja.nazwa}”?`,
-    strony.length ? `Razem z nią zostanie usuniętych ${strony.length} stron.` : tt('sekcje.sekcjaJestPusta'),
+    tt('sekcje.usunacSekcje', { nazwa: sekcja.nazwa }),
+    strony.length ? tt('sekcje.razemZNiaZostanie', { stronyIle: strony.length }) : tt('sekcje.sekcjaJestPusta'),
     tt('sekcje.usunSekcje'),
     true,
   );
@@ -662,7 +662,7 @@ export async function usunSekcje(id) {
   stan.miniatury.clear();
   await zaladujCel();
   zaplanujZapis();
-  powiadom(`Usunięto sekcję „${sekcja.nazwa}”.`, false, { etykieta: tt('sekcje.cofnij'), fn: () => cofnijKrok(-1) });
+  powiadom(tt('sekcje.usunietoSekcje', { nazwa: sekcja.nazwa }), false, { etykieta: tt('sekcje.cofnij'), fn: () => cofnijKrok(-1) });
 }
 
 // „Zamień na okładkę” (#119): okno ustawień od razu z rodzajem „Okładka” – elementy zostają i przesuwają się
@@ -689,7 +689,7 @@ export async function dopelnijSkladke(id) {
   await zaladujCel();
   zaplanujZapis();
   const ile = b.brakuje === 1 ? 'pustą stronę' : (b.brakuje < 5 ? 'puste strony' : 'pustych stron');
-  powiadom(`Dodano ${b.brakuje} ${ile} – sekcja „${sekcja.nazwa}” ma ${b.doPelnej} stron.`, false, { etykieta: tt('sekcje.cofnij'), fn: () => cofnijKrok(-1) });
+  powiadom(tt('sekcje.dodanoSekcjaMaStron', { brakuje: b.brakuje, ile, nazwa: sekcja.nazwa, doPelnej: b.doPelnej }), false, { etykieta: tt('sekcje.cofnij'), fn: () => cofnijKrok(-1) });
   return b.brakuje;
 }
 

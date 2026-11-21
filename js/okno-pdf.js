@@ -1,7 +1,7 @@
 // Okno „Eksport do PDF”: zakres stron, jakość, spady i podział na pliki.
 
 import { uzyteKoloryDruku, trybKolorow, trybyWSekcjach, TRYBY_KOLOROW } from './kolory-druku.js';
-import { $, pobierz, powiadom, odmiana } from './ui.js';
+import { $, pobierz, powiadom } from './ui.js';
 import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
@@ -60,7 +60,7 @@ export class OknoPdf {
     const pokazUwagi = (uwagi) => {
       blok.hidden = !uwagi.length;
       blok.open = uwagi.length > 0 && uwagi.length <= 3;
-      blok.querySelector('summary').textContent = `Do sprawdzenia przed drukiem: ${uwagi.length} ${odmiana(uwagi.length, 'uwaga', 'uwagi', 'uwag')}`;
+      blok.querySelector('summary').textContent = tt('oknoPdf.doSprawdzeniaPrzedDrukiem', { uwagiIle: uwagi.length });
       blok.querySelector('ul').replaceChildren(...uwagi.map((u) => Object.assign(document.createElement('li'), { textContent: u.opis })));
     };
     const uwagi = sprawdzProjekt(this.zrodlo.projekt(), this.ciag);
@@ -123,16 +123,16 @@ export class OknoPdf {
     $('#pdf-etykieta-dpi').textContent = wektor ? tt('oknoPdf.jakoscElementowZapisanychJako') : tt('oknoPdf.jakosc');
     $('#pdf-opis-trybu').textContent = wektor
       ? (o.krzywe
-        ? 'Tekst jest zamieniony na kształty liter: wygląda identycznie wszędzie i drukarnia nie potrzebuje czcionek, ale nie da się go zaznaczyć ani poprawić. Zdjęcia idą w oryginalnej rozdzielczości.'
-        : 'Tekst jest prawdziwym tekstem z osadzonymi czcionkami (da się go zaznaczyć i wyszukać), kształty są wektorami, zdjęcia idą w oryginalnej rozdzielczości. Elementy z cieniem trafiają do pliku jako obraz, a tekst czcionką, której nie da się osadzić (plik WOFF2, czcionka zmienna, kursywa bez własnego pliku) – jako krzywe; po eksporcie zobaczysz ich listę.')
-      : 'Każda strona jest jednym obrazem w wybranej rozdzielczości – tekst wygląda tak samo na każdym komputerze, ale nie da się go zaznaczyć, a plik jest większy.';
+        ? tt('oknoPdf.tekstJestZamienionyNa')
+        : tt('oknoPdf.tekstJestPrawdziwymTekstem'))
+      : tt('oknoPdf.kazdaStronaJestJednym');
     // Kolory do druku (#127): uszlachetnienia i kolory dodatkowe – tylko w pliku wektorowym.
     const druk = uzyteKoloryDruku(this.zrodlo.projekt());
     const tryb = trybKolorow(this.zrodlo.projekt());
     $('#pdf-pole-uszl').hidden = !druk.uszlachetnienia.length;
     const opisKolorow = [
       druk.spoty.length ? `Kolory dodatkowe na osobnych płytach: ${druk.spoty.map((x) => x.nazwa).join(', ')}.` : '',
-      druk.uszlachetnienia.length ? `Uszlachetnienia: ${druk.uszlachetnienia.map((x) => `${x.etykieta} (płyta ${x.plyta})`).join(', ')} – z nadrukiem, bez wybijania farby pod spodem.` : '',
+      druk.uszlachetnienia.length ? `Uszlachetnienia: ${druk.uszlachetnienia.map((x) => tt('oknoPdf.plyta', { etykieta: x.etykieta, plyta: x.plyta })).join(', ')} – z nadrukiem, bez wybijania farby pod spodem.` : '',
       tryb === 'szarosc' ? 'Projekt w skali szarości: wszystko jedną czarną farbą, zdjęcia w odcieniach szarości.' : '',
       tryb === 'czb1' ? 'Projekt czarno-biały + 1 kolor: czerń i jedna płyta koloru dodatkowego, zdjęcia w odcieniach szarości.' : '',
       trybyWSekcjach(this.zrodlo.projekt()) ? `Sekcje z własnym trybem kolorów: ${this.zrodlo.projekt().sekcje.filter((s) => s.tryb_kolorow).map((s) => `„${s.nazwa}” – ${TRYBY_KOLOROW.find((t) => t.id === s.tryb_kolorow).nazwa.toLowerCase()}`).join(', ')}.` : '',
@@ -153,7 +153,7 @@ export class OknoPdf {
           ? 'Obrazy stron są przeliczone na CMYK przez ten profil. Czarny i szary tekst, kształty i cienie idą samą czarną farbą (także gdy leżą na zdjęciu) i są zapisane bez strat, więc litery są ostre; same zdjęcia – czterema farbami, jak wynika z profilu, jako JPEG. Plik jest większy niż zwykłe obrazy stron.'
           : 'Obrazy stron zostają w RGB z opisem sRGB – na farby drukarskie przeliczy je drukarnia według dołączonego profilu.')
         : `${o.cmyk ? 'Tekst i kształty są przeliczone na CMYK przez ten profil (czerń i szarości samą czarną farbą).' : 'Tekst i kształty zostają w RGB z opisem sRGB.'} ${o.zdjeciaCmyk ? 'Zdjęcia są przeliczone na CMYK przez ten profil, w rozdzielczości z pola „Jakość” (zdjęcia JPEG zostają JPEG-iem w czterech farbach, pozostałe obrazy bez strat) – plik będzie większy.' : 'Zdjęcia zostają w RGB z opisem sRGB – na farby przeliczy je drukarnia według dołączonego profilu (to zgodne z PDF/X-4).'}`;
-      opisPdfx.textContent = `Plik PDF/X-4: zawiera profil barwny (${papier}) i oznaczenia, po których programy drukarni rozpoznają standard. ${kolory}${o.pdfx === 'fogra39' ? ' Profil papieru powlekanego dodaje do pliku ok. 8 MB.' : ''} Przed pierwszym zleceniem wyślij drukarni próbny plik.`;
+      opisPdfx.textContent = tt('oknoPdf.plikPdfX4', { papier, kolory, x: o.pdfx === 'fogra39' ? tt('oknoPdf.profilPapieruPowlekanegoDodaje') : '' });
     }
     // Układ arkuszy (#131C): broszura, składki, 2 albo 4 strony na arkuszu.
     const arkusze = o.uklad !== 'zwykly';
@@ -167,14 +167,14 @@ export class OknoPdf {
     const projekt = this.zrodlo.projekt();
     const egz = wybierzEgzemplarze(this.ciag, o);
     if (arkusze) {
-      $('#pdf-opis-arkuszy').textContent = `${opisPlanu(egz.length, o)} Strony stoją równo do formatu (bez spadu)${o.formatArkusza === 'auto' ? '' : ' i w razie potrzeby są zmniejszone'}; znaki cięcia${o.uklad === 'broszura' || o.uklad === 'skladki' ? ' i złamu (przerywane)' : ''} – przy „Do drukarni”.`;
+      $('#pdf-opis-arkuszy').textContent = tt('oknoPdf.stronyStojaRownoDo', { opisPlanu: opisPlanu(egz.length, o), x: o.formatArkusza === 'auto' ? '' : tt('oknoPdf.iWRaziePotrzeby'), x2: o.uklad === 'broszura' || o.uklad === 'skladki' ? tt('oknoPdf.iZlamuPrzerywane') : '' });
       pokazPlanArkuszy($('#pdf-plan-arkuszy'), egz, o);
     }
     const pliki = planPlikow(projekt, egz, o);
     const powielone = egz.filter((e) => e.nrEgz > 1).length;
-    const stron = `${egz.length} ${odmiana(egz.length, 'strona', 'strony', 'stron')}`;
+    const stron = tt('oknoPdf.tekst', { egzIle: egz.length });
     $('#pdf-podsumowanie').textContent = egz.length
-      ? `Do eksportu: ${stron}${powielone ? ` (w tym ${powielone} z powieleń serii)` : ''}${pliki.length > 1 ? `, ${pliki.length} ${odmiana(pliki.length, 'plik', 'pliki', 'plików')} PDF w jednym archiwum ZIP` : ''}.`
+      ? tt('oknoPdf.doEksportu', { stron, x: powielone ? tt('oknoPdf.wTymZPowielen', { powielone }) : '', x2: pliki.length > 1 ? tt('oknoPdf.pdfWJednymArchiwum', { plikiIle: pliki.length }) : '' })
       : tt('oknoPdf.wWybranymZakresieNie');
     const uwagaStron = o.zakres === 'strony' ? uwagaZakresu(o.strony, this.ciag.egzemplarze.length) : null;
     if (uwagaStron) $('#pdf-podsumowanie').textContent = `${uwagaStron} ${$('#pdf-podsumowanie').textContent}`;
@@ -195,10 +195,10 @@ export class OknoPdf {
     // Wspólny wskaźnik postępu (js/postep.js): pasek „strona i z n” i „Anuluj”, jak przy innych dłuższych czynnościach.
     const pasek = postep(tt('oknoPdf.eksportDoPdf'), { anuluj: () => { this.przerwane = true; } });
     try {
-      const krok = (i, n) => { komunikat.textContent = `Strona ${i} z ${n}…`; pasek.krok(i, n); };
+      const krok = (i, n) => { komunikat.textContent = tt('oknoPdf.stronaZ', { i, n }); pasek.krok(i, n); };
       // Duży projekt (#338): plik robi serwer – urządzenie nie mieli setek stron; przy kłopocie z serwerem – jak dotąd.
       const wynik = await pdfNaSerwerze(this.zrodlo.projekt(), this.opcje(), {
-        postep: krok, przerwij: () => this.przerwane, start: () => { pasek.opis('Eksport do PDF – plik robi serwer Makietki'); komunikat.textContent = 'Plik robi serwer Makietki…'; },
+        postep: krok, przerwij: () => this.przerwane, start: () => { pasek.opis(tt('oknoPdf.eksportDoPdfPlik')); komunikat.textContent = tt('oknoPdf.plikRobiSerwerMakietki'); },
       }) || await eksportujPdf(this.zrodlo.projekt(), {
         ...this.opcje(),
         postep: krok,
@@ -216,8 +216,8 @@ export class OknoPdf {
       const ile = suma(jakoObraz);
       const ileKrzywych = suma(jakoKrzywe);
       const czesci = [`Gotowe: ${wynik.nazwa}${ile || ileKrzywych ? '.' : ''}`];
-      if (ile) czesci.push(`Jako obraz ${odmiana(ile, 'zapisany został', 'zapisane zostały', 'zapisanych zostało')} ${ile} ${odmiana(ile, 'element', 'elementy', 'elementów')}: ${lista(jakoObraz)}.`);
-      if (ileKrzywych) czesci.push(`Tekst jako krzywe (nie da się go zaznaczyć) w ${ileKrzywych} ${odmiana(ileKrzywych, 'elemencie', 'elementach', 'elementach')}: ${lista(jakoKrzywe)}.`);
+      if (ile) czesci.push(tt('oknoPdf.jakoObraz', { ile, lista: lista(jakoObraz) }));
+      if (ileKrzywych) czesci.push(tt('oknoPdf.tekstJakoKrzyweNie', { ileKrzywych, lista: lista(jakoKrzywe) }));
       powiadom(czesci.join(' '));
     } catch (blad) {
       komunikat.textContent = blad instanceof Przerwano ? tt('oknoPdf.eksportPrzerwany') : (blad.message || tt('oknoPdf.nieUdaloSiePrzygotowac'));
@@ -269,7 +269,7 @@ export function pokazPlanArkuszy(lista, egz, o) {
   const pozycje = plan.strony.slice(0, 12).map((a, k) => {
     const li = document.createElement('li');
     li.className = `arkusz-planu${a.wiersze > 1 ? ' cztery' : ''}${a.falc ? ' falc' : ''}`;
-    li.title = broszura ? `Arkusz ${Math.floor(k / 2) + 1}, ${k % 2 ? 'tył' : 'przód'}` : `Arkusz ${k + 1}`;
+    li.title = broszura ? tt('oknoPdf.arkusz', { x: Math.floor(k / 2) + 1, x2: k % 2 ? tt('oknoPdf.tyl') : tt('oknoPdf.przod') }) : tt('oknoPdf.arkusz2', { x: k + 1 });
     li.innerHTML = a.pola.map((i) => `<span class="${i === null ? 'pusta' : ''}">${numer(i)}</span>`).join('') + (broszura ? `<small>${Math.floor(k / 2) + 1}${k % 2 ? ' tył' : ' przód'}</small>` : '');
     return li;
   });

@@ -11,6 +11,7 @@
 // widać efekt (połysk, metal, tłoczenie, biel na szachownicy) – przełącznik „Pokaż uszlachetnienia”.
 
 // ---------- Uszlachetnienia ----------
+import { t as tt } from './jezyk.js';
 
 export const USZLACHETNIENIA = [
   { id: 'uv', nazwa: 'Lakier UV wybiórczy', plyta: 'Spot_UV', alt: [0.5, 0, 0, 0] },
@@ -39,7 +40,7 @@ export function plytaUszlachetnienia(o) {
   if (!id) return null;
   if (id === 'folia') {
     const f = FOLIE[o.folia] || FOLIE.zloto;
-    return { id, folia: FOLIE[o.folia] ? o.folia : 'zloto', plyta: f.plyta, alt: f.alt, etykieta: `Złocenie – ${f.nazwa.toLowerCase()}` };
+    return { id, folia: FOLIE[o.folia] ? o.folia : 'zloto', plyta: f.plyta, alt: f.alt, etykieta: tt('koloryDruku.zlocenie', { toLowerCase: f.nazwa.toLowerCase() }) };
   }
   const u = USZLACHETNIENIA.find((x) => x.id === id);
   return u ? { id, plyta: u.plyta, alt: u.alt, etykieta: u.nazwa, ...(u.techniczna ? { techniczna: true, kolor: u.kolor, kreska: u.kreska } : {}) } : null;
@@ -335,15 +336,15 @@ export function uzyteKoloryDruku(projekt) {
 export function uwagiKolorowDruku(projekt, { numerStrony = () => null } = {}) {
   const uwagi = [];
   const { spoty, uszlachetnienia } = uzyteKoloryDruku(projekt);
-  if (spoty.length) uwagi.push({ rodzaj: 'kolory_dodatkowe', strony: [], opis: `Kolory dodatkowe w projekcie (osobne płyty w PDF wektorowym): ${spoty.map((s) => `„${s.nazwa}”`).join(', ')}. Potwierdź je z drukarnią.` });
-  if (uszlachetnienia.length) uwagi.push({ rodzaj: 'uszlachetnienia', strony: [], opis: `Uszlachetnienia w projekcie: ${uszlachetnienia.map((u) => `${u.etykieta} (płyta ${u.plyta}, ${u.ile} ${u.ile === 1 ? 'element' : 'elem.'})`).join(', ')}. Każde idzie na osobną płytę z nadrukiem.` });
+  if (spoty.length) uwagi.push({ rodzaj: 'kolory_dodatkowe', strony: [], opis: tt('koloryDruku.koloryDodatkoweWProjekcie', { join: spoty.map((s) => `„${s.nazwa}”`).join(', ') }) });
+  if (uszlachetnienia.length) uwagi.push({ rodzaj: 'uszlachetnienia', strony: [], opis: tt('koloryDruku.uszlachetnieniaWProjekcieKazde', { join: uszlachetnienia.map((u) => tt('koloryDruku.plyta', { etykieta: u.etykieta, plyta: u.plyta, ile: u.ile, x: u.ile === 1 ? tt('koloryDruku.element') : 'elem.' })).join(', ') }) });
   const zle = koloryPozaTrybem(projekt);
   if (zle.length) {
     const tryb = trybyWSekcjach(projekt) ? 'Tryb kolorów sekcji' : `Tryb „${TRYBY_KOLOROW.find((t) => t.id === trybKolorow(projekt)).nazwa}”`;
-    uwagi.push({ rodzaj: 'kolor_spoza_trybu', strony: [], naprawa: 'kolory_trybu', opis: `${tryb}: ${zle.length} ${zle.length === 1 ? 'kolor nie pasuje' : 'kolorów nie pasuje'} do trybu (np. ${zle.slice(0, 3).join(', ')}). W PDF pójdą jako odcienie czerni – albo zamień je na najbliższe dozwolone.` });
+    uwagi.push({ rodzaj: 'kolor_spoza_trybu', strony: [], naprawa: 'kolory_trybu', opis: tt('koloryDruku.doTrybuNpW', { tryb, zleIle: zle.length, x: zle.length === 1 ? tt('koloryDruku.kolorNiePasuje') : tt('koloryDruku.kolorowNiePasuje'), join: zle.slice(0, 3).join(', ') }) });
   }
   for (const sek of [null, ...(projekt.sekcje || []).filter((s) => s.tryb_kolorow)]) {
-    if (trybKolorow(projekt, sek) === 'czb1' && !spotTrybu(projekt, sek)) uwagi.push({ rodzaj: 'kolor_spoza_trybu', strony: [], opis: `Tryb „Czarno-biały + 1 kolor dodatkowy”${sek ? ` w sekcji „${sek.nazwa}”` : ''} nie ma wybranego koloru – dodaj kolor dodatkowy w oknie „Kolory projektu”.` });
+    if (trybKolorow(projekt, sek) === 'czb1' && !spotTrybu(projekt, sek)) uwagi.push({ rodzaj: 'kolor_spoza_trybu', strony: [], opis: tt('koloryDruku.trybCzarnoBialy1', { x: sek ? tt('koloryDruku.wSekcji', { nazwa: sek.nazwa }) : '' }) });
   }
   // Uszlachetnienie za drobne albo przy krawędzi bez spadu.
   const MIN_LINIA = 0.3; const MIN_TEKST = (6 * 25.4) / 72;
@@ -358,14 +359,14 @@ export function uwagiKolorowDruku(projekt, { numerStrony = () => null } = {}) {
           const nr = numerStrony(strona.id);
           const gdzie = { strony: nr ? [nr] : [], idStrony: strona.id, idObiektu: o.id };
           const rozmiar = (o.fontSize || 0) * sx;
-          if (/text|textbox/.test(o.type) && rozmiar && rozmiar < MIN_TEKST) uwagi.push({ rodzaj: 'uszl_drobne', ...gdzie, opis: `${u.etykieta} na tekście mniejszym niż 6 pt (strona „${strona.nazwa}”) – drukarnia może go nie odwzorować.` });
-          else if (o.stroke && !o.fill && (o.strokeWidth || 0) * sx < MIN_LINIA) uwagi.push({ rodzaj: 'uszl_drobne', ...gdzie, opis: `${u.etykieta} na linii cieńszej niż 0,3 mm (strona „${strona.nazwa}”) – drukarnia może jej nie odwzorować.` });
+          if (/text|textbox/.test(o.type) && rozmiar && rozmiar < MIN_TEKST) uwagi.push({ rodzaj: 'uszl_drobne', ...gdzie, opis: tt('koloryDruku.naTekscieMniejszymNiz', { etykieta: u.etykieta, nazwa: strona.nazwa }) });
+          else if (o.stroke && !o.fill && (o.strokeWidth || 0) * sx < MIN_LINIA) uwagi.push({ rodzaj: 'uszl_drobne', ...gdzie, opis: tt('koloryDruku.naLiniiCienszejNiz', { etykieta: u.etykieta, nazwa: strona.nazwa }) });
           if (w) {
             const x0 = o.left ?? 0; const y0 = o.top ?? 0;
             const x1 = x0 + (o.width || 0) * sx; const y1 = y0 + (o.height || 0) * Math.abs(o.scaleY || 1);
             const dotyka = x0 <= 0.01 || y0 <= 0.01 || x1 >= w.szerokosc_mm - 0.01 || y1 >= w.wysokosc_mm - 0.01;
             const wSpad = x0 < -0.5 || y0 < -0.5 || x1 > w.szerokosc_mm + 0.5 || y1 > w.wysokosc_mm + 0.5;
-            if (dotyka && !wSpad && !o.angle) uwagi.push({ rodzaj: 'uszl_krawedz', ...gdzie, opis: `${u.etykieta} kończy się na krawędzi strony bez spadu (strona „${strona.nazwa}”) – po obcięciu może zostać biały pasek. Przeciągnij element w spad albo odsuń od krawędzi.` });
+            if (dotyka && !wSpad && !o.angle) uwagi.push({ rodzaj: 'uszl_krawedz', ...gdzie, opis: tt('koloryDruku.konczySieNaKrawedzi', { etykieta: u.etykieta, nazwa: strona.nazwa }) });
           }
         }
         sprawdz(o.objects);

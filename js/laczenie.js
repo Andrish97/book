@@ -20,6 +20,7 @@
 // (inna kolejność pól), więc zwykłe porównanie tekstu widziałoby zmiany, których nie ma.
 
 import { normalizuj } from './projekt.js';
+import { t as tt } from './jezyk.js';
 
 // Części projektu będące listami elementów z identyfikatorem.
 export const LISTY = ['strony', 'wzorce', 'tabele', 'sekcje', 'serie', 'style', 'czcionki'];
@@ -126,13 +127,13 @@ export function odciskiProjektu(projekt, pamiec = new WeakMap()) {
 }
 
 const NAZWY = {
-  strony: (e) => `Strona „${e.nazwa || 'bez nazwy'}”`,
-  wzorce: (e) => `Wzorzec „${e.nazwa || 'bez nazwy'}”`,
-  tabele: (e) => `Tabela danych „${e.nazwa || 'bez nazwy'}”`,
-  sekcje: (e) => `Sekcja „${e.nazwa || 'bez nazwy'}”`,
-  serie: (e) => `Seria „${e.nazwa || 'bez nazwy'}”`,
-  style: (e) => `Styl tekstu „${e.nazwa || 'bez nazwy'}”`,
-  czcionki: (e) => `Czcionka „${e.rodzina || 'bez nazwy'}”`,
+  strony: (e) => tt('laczenie.strona', { x: e.nazwa || tt('laczenie.bezNazwy') }),
+  wzorce: (e) => tt('laczenie.wzorzec', { x: e.nazwa || tt('laczenie.bezNazwy') }),
+  tabele: (e) => tt('laczenie.tabelaDanych', { x: e.nazwa || tt('laczenie.bezNazwy') }),
+  sekcje: (e) => tt('laczenie.sekcja', { x: e.nazwa || tt('laczenie.bezNazwy') }),
+  serie: (e) => tt('laczenie.seria', { x: e.nazwa || tt('laczenie.bezNazwy') }),
+  style: (e) => tt('laczenie.stylTekstu', { x: e.nazwa || tt('laczenie.bezNazwy') }),
+  czcionki: (e) => tt('laczenie.czcionka', { x: e.rodzina || tt('laczenie.bezNazwy') }),
 };
 const NAZWY_USTAWIEN = { nazwa: 'Nazwa projektu', udostepnienie: 'Udostępniony link' };
 const NAZWY_POL = { nazwa: 'nazwa', tlo: 'tło', prowadnice: 'prowadnice', wzorce: 'przypisane wzorce', sekcja: 'sekcja', seria: 'seria', marginesy: 'marginesy' };
@@ -141,9 +142,9 @@ const NAZWY_POL = { nazwa: 'nazwa', tlo: 'tło', prowadnice: 'prowadnice', wzorc
 const skrot = (s, n = 28) => { const x = String(s || '').replace(/\s+/g, ' ').trim(); return x.length > n ? `${x.slice(0, n)}…` : x; };
 export function opisElementu(o) {
   if (!o) return 'element';
-  if (o.tabela) return o.nazwa ? `tabela „${skrot(o.nazwa)}”` : 'tabela';
+  if (o.tabela) return o.nazwa ? tt('laczenie.tabela', { skrot: skrot(o.nazwa) }) : 'tabela';
   const typ = String(o.type || '').toLowerCase();
-  if (typeof o.text === 'string') return `tekst „${skrot(o.text) || 'pusty'}”`;
+  if (typeof o.text === 'string') return tt('laczenie.tekst', { x: skrot(o.text) || 'pusty' });
   const rodzaj = { image: 'obraz', rect: 'prostokąt', ellipse: 'elipsa', circle: 'elipsa', line: 'linia', polygon: 'wielokąt', path: 'rysunek', group: 'grupa' }[typ] || 'element';
   return o.nazwa ? `${rodzaj} „${skrot(o.nazwa)}”` : rodzaj;
 }

@@ -1,5 +1,6 @@
 // Wspólne elementy interfejsu: wybieranie elementów, powiadomienia, okna
 // potwierdzeń, menu rozwijane, pobieranie plików.
+import { t } from './jezyk.js';
 
 export const $ = (sel, korzen = document) => korzen.querySelector(sel);
 export const $$ = (sel, korzen = document) => [...korzen.querySelectorAll(sel)];
@@ -108,7 +109,7 @@ export function kiedy(iso) {
   const d = new Date(iso);
   const roznica = (Date.now() - d.getTime()) / 1000;
   if (roznica < 60) return 'przed chwilą';
-  if (roznica < 3600) return `${Math.floor(roznica / 60)} min temu`;
+  if (roznica < 3600) return t('ui.minTemu', { floor: Math.floor(roznica / 60) });
   const dzis = new Date();
   if (d.toDateString() === dzis.toDateString()) return `dziś, ${d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
   return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: d.getFullYear() === dzis.getFullYear() ? undefined : 'numeric' });

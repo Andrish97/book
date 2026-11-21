@@ -7,6 +7,7 @@ import { OPRAWY, PAPIERY, geometriaOkladki } from './okladka.js';
 import { opisWykonczenia } from './materialy.js';
 import { TYPY_SEKCJI, typSekcji } from './typ-sekcji.js';
 import { TRYBY_KOLOROW, trybKolorow, uzyteKoloryDruku } from './kolory-druku.js';
+import { t as tt } from './jezyk.js';
 
 const mm = (v) => String(Math.round(Number(v) * 10) / 10).replace('.', ',');
 const PODLOZA = { kolor: 'kolorowy papier', folia: 'przezroczysta folia' };
@@ -40,7 +41,7 @@ export function specyfikacja(projekt, ciag = rozwin(projekt)) {
   const { spoty, uszlachetnienia } = uzyteKoloryDruku(projekt);
   return {
     projekt: projekt.nazwa, data: new Date().toISOString().slice(0, 10), stron_razem: ciag.egzemplarze.length, sekcje,
-    kolory_dodatkowe: spoty.map((s) => s.nazwa), uszlachetnienia: uszlachetnienia.map((u) => `${u.etykieta} (płyta ${u.plyta}, ${u.ile} el.)`),
+    kolory_dodatkowe: spoty.map((s) => s.nazwa), uszlachetnienia: uszlachetnienia.map((u) => tt('specyfikacja.plytaEl', { etykieta: u.etykieta, plyta: u.plyta, ile: u.ile })),
   };
 }
 
@@ -48,21 +49,21 @@ export function specyfikacjaTekst(spec) {
   const l = [`SPECYFIKACJA DO DRUKU – ${spec.projekt}`, `Data: ${spec.data}`, `Stron w wydruku razem: ${spec.stron_razem}`, ''];
   for (const s of spec.sekcje) {
     l.push(`■ ${s.nazwa} (${s.typ})`);
-    l.push(`  Format netto: ${mm(s.format_mm[0])} × ${mm(s.format_mm[1])} mm, spad ${mm(s.spad_mm)} mm, stron: ${s.stron}${s.uklad === 'rozkladowki' ? ', rozkładówki' : ''}`);
+    l.push(tt('specyfikacja.formatNettoMmSpad', { mm: mm(s.format_mm[0]), mm2: mm(s.format_mm[1]), mm3: mm(s.spad_mm), stron: s.stron, x: s.uklad === 'rozkladowki' ? tt('specyfikacja.rozkladowki') : '' }));
     if (s.oprawa) {
       l.push(`  Oprawa: ${s.oprawa}${s.grzbiet_mm ? `, grzbiet ${mm(s.grzbiet_mm)} mm` : ''}${s.stron_srodka ? `, środek ${s.stron_srodka} stron` : ''}`);
-      l.push(`  Papier środka: ${s.papier_srodka}`);
+      l.push(tt('specyfikacja.papierSrodka', { papier_srodka: s.papier_srodka }));
       l.push(`  Okładka: ${s.wykonczenie}`);
-      if (s.tektura_mm) l.push(`  Tektura ${mm(s.tektura_mm)} mm, zawinięcie ${mm(s.zawiniecie_mm)} mm`);
-      if (s.tasiemka) l.push(`  Tasiemka (zakładka): ${s.tasiemka}`);
+      if (s.tektura_mm) l.push(tt('specyfikacja.tekturaMmZawiniecieMm', { mm: mm(s.tektura_mm), mm2: mm(s.zawiniecie_mm) }));
+      if (s.tasiemka) l.push(tt('specyfikacja.tasiemkaZakladka', { tasiemka: s.tasiemka }));
     }
-    if (s.skladka) l.push(`  Składki po ${s.skladka} stron`);
-    if (s.papier) l.push(`  Papier wkładki: ${PAPIERY[s.papier.rodzaj]?.nazwa || s.papier.rodzaj}, ${s.papier.gramatura} g/m²`);
-    if (s.podloze) l.push(`  Podłoże: ${PODLOZA[s.podloze.rodzaj]}${s.podloze.kolor ? ` (${s.podloze.kolor})` : ''} – nie drukuje się`);
+    if (s.skladka) l.push(tt('specyfikacja.skladkiPoStron', { skladka: s.skladka }));
+    if (s.papier) l.push(tt('specyfikacja.papierWkladkiGM', { x: PAPIERY[s.papier.rodzaj]?.nazwa || s.papier.rodzaj, gramatura: s.papier.gramatura }));
+    if (s.podloze) l.push(tt('specyfikacja.podlozeNieDrukujeSie', { x: PODLOZA[s.podloze.rodzaj], x2: s.podloze.kolor ? ` (${s.podloze.kolor})` : '' }));
     if (s.kolory) l.push(`  Kolory: ${s.kolory}`);
     l.push('');
   }
-  if (spec.kolory_dodatkowe.length) l.push(`Kolory dodatkowe (osobne płyty): ${spec.kolory_dodatkowe.join(', ')}`);
+  if (spec.kolory_dodatkowe.length) l.push(tt('specyfikacja.koloryDodatkoweOsobnePlyty', { join: spec.kolory_dodatkowe.join(', ') }));
   if (spec.uszlachetnienia.length) l.push(`Uszlachetnienia: ${spec.uszlachetnienia.join('; ')}`);
   l.push('', 'Przygotowano w Makietce (makietka.app).');
   return l.join('\n');

@@ -5,6 +5,7 @@
 
 import * as chmura from './chmura.js';
 import { sciezkiLokalne } from './lokalny.js';
+import { t } from './jezyk.js';
 
 export const PROG_OSTRZEZENIA = 0.8;
 const WAZNOSC_MS = 10 * 60 * 1000; // stan miejsca z pamięci przez 10 minut
@@ -49,7 +50,7 @@ export function ostrzezenie(m) {
   const konto = udzialKonta(m);
   if (konto < PROG_OSTRZEZENIA) return null;
   const skutek = konto >= 1 ? 'Nowe obrazy nie zapiszą się na koncie.' : 'Gdy miejsce się skończy, nowe obrazy nie zapiszą się na koncie.';
-  return `Twoje pliki zajmują ${Math.round(konto * 100)}% miejsca konta (${rozmiar(m.konto)} z ${rozmiar(m.limit_konta)}). ${skutek} Posprzątaj stare pliki w ustawieniach konta (Miejsce) albo usuń nieużywane obrazy i projekty.`;
+  return t('miejsce.twojePlikiZajmujaMiejsca', { round: Math.round(konto * 100), rozmiar: rozmiar(m.konto), rozmiar2: rozmiar(m.limit_konta), skutek });
 }
 
 // Komunikat, gdy konto ma już tyle projektów, ile wolno (sprawdzane przed „Nowy projekt”, „Duplikuj”, „Importuj”);
@@ -58,7 +59,7 @@ export async function limitProjektow() {
   try {
     const m = await rpc('miejsce_na_koncie');
     if (liczba(m?.limit_projektow) && liczba(m.projekty) >= liczba(m.limit_projektow)) {
-      return `Masz już ${m.projekty} projektów – to limit jednego konta. Usuń albo wyeksportuj do pliku projekt, którego nie potrzebujesz, żeby założyć nowy.`;
+      return t('miejsce.maszJuzProjektowTo', { projekty: m.projekty });
     }
   } catch { /* bez sieci albo bez konta */ }
   return null;

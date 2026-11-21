@@ -174,7 +174,7 @@ const DEF = [
   ['linia-fala-podw', tt('ksztaltyBiblioteka.falaPodwojna'), 'Separatory ozdobne', 'fala podwojna linia', 'M 2 44 C 14 28 26 28 38 44 C 50 60 62 60 74 44 C 86 28 98 28 98 44 M 2 56 C 14 40 26 40 38 56 C 50 72 62 72 74 56 C 86 40 98 40 98 56', { otwarta: true }],
   ['linia-zawijas', tt('ksztaltyBiblioteka.zawijas'), 'Separatory ozdobne', 'zawijas ornament vintage', 'M 5 50 C 25 50 30 35 42 38 C 52 41 48 54 40 52 M 95 50 C 75 50 70 65 58 62 C 48 59 52 46 60 48 M 42 38 C 46 46 54 54 58 62', { otwarta: true }],
   // Ikony
-  ['dom', 'Dom', 'Symbole i ikony', 'dom domek', 'M 50 8 L 95 48 L 82 48 L 82 92 L 60 92 L 60 65 L 40 65 L 40 92 L 18 92 L 18 48 L 5 48 Z'],
+  ['dom', tt('ksztaltyBiblioteka.dom'), 'Symbole i ikony', 'dom domek', 'M 50 8 L 95 48 L 82 48 L 82 92 L 60 92 L 60 65 L 40 65 L 40 92 L 18 92 L 18 48 L 5 48 Z'],
   ['lokalizacja', tt('ksztaltyBiblioteka.pinezka'), 'Symbole i ikony', 'pinezka lokalizacja mapa miejsce', `M 50 95 C 30 65 15 50 15 35 A 35 35 0 0 1 85 35 C 85 50 70 65 50 95 Z ${okrag(50, 35, 13, 0)}`, { otwor: true }],
   ['zegar', tt('ksztaltyBiblioteka.zegar'), 'Symbole i ikony', 'zegar czas godzina', `${okrag(50, 50, 45)} M 47 20 L 53 20 L 53 48 L 70 60 L 67 65 L 47 52 Z`, { otwor: true }],
   ['ptaszek', tt('ksztaltyBiblioteka.ptaszek'), 'Znaki', 'ptaszek check ok gotowe', 'M 10 55 L 22 43 L 40 61 L 80 21 L 92 33 L 40 85 Z'],
@@ -232,18 +232,18 @@ export function szukajKsztaltow(zapytanie) {
 
 // Pola w jednostkach całości (0–1): [x, y, szerokość, wysokość].
 export const KOLAZE = [
-  { id: '2-pion', nazwa: '2 obok siebie', pola: [[0, 0, 0.5, 1], [0.5, 0, 0.5, 1]] },
-  { id: '2-poziom', nazwa: '2 jeden pod drugim', pola: [[0, 0, 1, 0.5], [0, 0.5, 1, 0.5]] },
-  { id: '3-kolumny', nazwa: '3 kolumny', pola: [[0, 0, 1 / 3, 1], [1 / 3, 0, 1 / 3, 1], [2 / 3, 0, 1 / 3, 1]] },
-  { id: '3-duzy-lewo', nazwa: '3 – duże z lewej', pola: [[0, 0, 0.6, 1], [0.6, 0, 0.4, 0.5], [0.6, 0.5, 0.4, 0.5]] },
-  { id: '3-duzy-gora', nazwa: '3 – duże u góry', pola: [[0, 0, 1, 0.6], [0, 0.6, 0.5, 0.4], [0.5, 0.6, 0.5, 0.4]] },
-  { id: '4-siatka', nazwa: '4 – siatka', pola: [[0, 0, 0.5, 0.5], [0.5, 0, 0.5, 0.5], [0, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5]] },
-  { id: '4-duzy-lewo', nazwa: '4 – duże z lewej', pola: [[0, 0, 0.6, 1], [0.6, 0, 0.4, 1 / 3], [0.6, 1 / 3, 0.4, 1 / 3], [0.6, 2 / 3, 0.4, 1 / 3]] },
-  { id: '5-mozaika', nazwa: '5 – mozaika', pola: [[0, 0, 0.5, 0.6], [0.5, 0, 0.5, 0.4], [0.5, 0.4, 0.5, 0.6], [0, 0.6, 0.25, 0.4], [0.25, 0.6, 0.25, 0.4]] },
-  { id: '5-duzy-gora', nazwa: '5 – duże u góry', pola: [[0, 0, 1, 0.55], [0, 0.55, 0.25, 0.45], [0.25, 0.55, 0.25, 0.45], [0.5, 0.55, 0.25, 0.45], [0.75, 0.55, 0.25, 0.45]] },
-  { id: '6-siatka', nazwa: '6 – siatka 3 × 2', pola: [0, 1, 2, 3, 4, 5].map((i) => [(i % 3) / 3, Math.floor(i / 3) / 2, 1 / 3, 0.5]) },
-  { id: '6-pion', nazwa: '6 – siatka 2 × 3', pola: [0, 1, 2, 3, 4, 5].map((i) => [(i % 2) / 2, Math.floor(i / 2) / 3, 0.5, 1 / 3]) },
-  { id: '9-siatka', nazwa: '9 – siatka 3 × 3', pola: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => [(i % 3) / 3, Math.floor(i / 3) / 3, 1 / 3, 1 / 3]) },
+  { id: '2-pion', nazwa: tt('ksztaltyBiblioteka.2ObokSiebie'), pola: [[0, 0, 0.5, 1], [0.5, 0, 0.5, 1]] },
+  { id: '2-poziom', nazwa: tt('ksztaltyBiblioteka.2JedenPodDrugim'), pola: [[0, 0, 1, 0.5], [0, 0.5, 1, 0.5]] },
+  { id: '3-kolumny', nazwa: tt('ksztaltyBiblioteka.3Kolumny'), pola: [[0, 0, 1 / 3, 1], [1 / 3, 0, 1 / 3, 1], [2 / 3, 0, 1 / 3, 1]] },
+  { id: '3-duzy-lewo', nazwa: tt('ksztaltyBiblioteka.3DuzeZLewej'), pola: [[0, 0, 0.6, 1], [0.6, 0, 0.4, 0.5], [0.6, 0.5, 0.4, 0.5]] },
+  { id: '3-duzy-gora', nazwa: tt('ksztaltyBiblioteka.3DuzeUGory'), pola: [[0, 0, 1, 0.6], [0, 0.6, 0.5, 0.4], [0.5, 0.6, 0.5, 0.4]] },
+  { id: '4-siatka', nazwa: tt('ksztaltyBiblioteka.4Siatka'), pola: [[0, 0, 0.5, 0.5], [0.5, 0, 0.5, 0.5], [0, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5]] },
+  { id: '4-duzy-lewo', nazwa: tt('ksztaltyBiblioteka.4DuzeZLewej'), pola: [[0, 0, 0.6, 1], [0.6, 0, 0.4, 1 / 3], [0.6, 1 / 3, 0.4, 1 / 3], [0.6, 2 / 3, 0.4, 1 / 3]] },
+  { id: '5-mozaika', nazwa: tt('ksztaltyBiblioteka.5Mozaika'), pola: [[0, 0, 0.5, 0.6], [0.5, 0, 0.5, 0.4], [0.5, 0.4, 0.5, 0.6], [0, 0.6, 0.25, 0.4], [0.25, 0.6, 0.25, 0.4]] },
+  { id: '5-duzy-gora', nazwa: tt('ksztaltyBiblioteka.5DuzeUGory'), pola: [[0, 0, 1, 0.55], [0, 0.55, 0.25, 0.45], [0.25, 0.55, 0.25, 0.45], [0.5, 0.55, 0.25, 0.45], [0.75, 0.55, 0.25, 0.45]] },
+  { id: '6-siatka', nazwa: tt('ksztaltyBiblioteka.6Siatka32'), pola: [0, 1, 2, 3, 4, 5].map((i) => [(i % 3) / 3, Math.floor(i / 3) / 2, 1 / 3, 0.5]) },
+  { id: '6-pion', nazwa: tt('ksztaltyBiblioteka.6Siatka23'), pola: [0, 1, 2, 3, 4, 5].map((i) => [(i % 2) / 2, Math.floor(i / 2) / 3, 0.5, 1 / 3]) },
+  { id: '9-siatka', nazwa: tt('ksztaltyBiblioteka.9Siatka33'), pola: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => [(i % 3) / 3, Math.floor(i / 3) / 3, 1 / 3, 1 / 3]) },
 ];
 
 export const ukladKolazu = (id) => KOLAZE.find((k) => k.id === id) || KOLAZE[0];
@@ -269,7 +269,7 @@ export function svgKolazu(uklad) {
 // ---------- Rodzaje linii (#143) ----------
 
 // Wzór kresek linii (strokeDashArray, mm) dla rodzaju i grubości: kreski rosną razem z grubością.
-export const RODZAJE_KRESEK = [['ciagla', 'ciągła'], ['przerywana', 'przerywana'], ['kropkowana', 'kropkowana'], ['kreska-kropka', 'kreska – kropka']];
+export const RODZAJE_KRESEK = [['ciagla', tt('ksztaltyBiblioteka.ciagla')], ['przerywana', 'przerywana'], ['kropkowana', 'kropkowana'], ['kreska-kropka', tt('ksztaltyBiblioteka.kreskaKropka')]];
 export function wzorKresek(rodzaj, grubosc = 0.5) {
   const g = Math.max(0.1, grubosc);
   if (rodzaj === 'przerywana') return [r1(Math.max(1.5, g * 6)), r1(Math.max(1, g * 4))];

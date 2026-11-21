@@ -6,6 +6,7 @@ import { publikujDoMagazynu } from './publikacja-magazyn.js';
 import { blobZasobu } from './zasoby.js';
 import { podstawaProjektu, kanon } from './laczenie.js';
 import { biblioteka } from './biblioteki.js';
+import { t } from './jezyk.js';
 
 // Biblioteka Supabase leży w repozytorium (js/zewnetrzne/) – aplikacja nie pobiera kodu z obcych serwerów.
 const SUPABASE_JS = 'js/zewnetrzne/supabase-js-2.57.4.umd.js';
@@ -144,7 +145,7 @@ export function komunikatBledu(e) {
     [/invalid login credentials/i, KOMUNIKATY.invalid_credentials],
     [/email not confirmed/i, KOMUNIKATY.email_not_confirmed],
     [/already registered/i, KOMUNIKATY.user_already_exists],
-    [/password should be at least (\d+)/i, (r) => `Hasło musi mieć co najmniej ${r[1]} znaków.`],
+    [/password should be at least (\d+)/i, (r) => t('chmura.hasloMusiMiecCo', { x: r[1] })],
     [/should be different from the old/i, KOMUNIKATY.same_password],
     [/unable to validate email|invalid email/i, KOMUNIKATY.email_address_invalid],
     [/rate limit|too many requests|security purposes/i, KOMUNIKATY.over_request_rate_limit],

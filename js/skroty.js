@@ -16,7 +16,7 @@ export const SKROTY = [
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyC'], opis: t('skroty.kopiuj'), zaznaczenie: true, akcja: (k) => k.edytor.kopiuj() },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyX'], opis: t('skroty.wytnij'), zaznaczenie: true, akcja: (k) => k.edytor.wytnij() },
   // Wklejanie obsługuje zdarzenie „paste” przeglądarki (aplikacja.js) – tylko ono widzi schowek systemu.
-  { grupa: 'Edycja', klawisze: ['Ctrl+KeyV'], opis: 'Wklej: element skopiowany w aplikacji (na innej stronie – w to samo miejsce) albo obraz ze schowka systemu – zrzut ekranu, skopiowany plik, kod SVG', systemowe: true },
+  { grupa: 'Edycja', klawisze: ['Ctrl+KeyV'], opis: t('skroty.wklejElementSkopiowanyW'), systemowe: true },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyD'], opis: t('skroty.duplikuj'), zaznaczenie: true, akcja: (k) => k.edytor.duplikuj() },
   { grupa: 'Edycja', klawisze: ['Delete', 'Backspace'], opis: t('skroty.usun'), zaznaczenie: true, akcja: (k) => k.edytor.usun() },
   { grupa: 'Edycja', klawisze: ['Ctrl+KeyF'], opis: t('skroty.znajdzWTekstachProjektu'), zawsze: true, akcja: (k) => k.znajdz(false) },
@@ -36,7 +36,7 @@ export const SKROTY = [
   { grupa: 'Przesuwanie', klawisze: ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'], pokaz: 'Strzałki', opis: t('skroty.przesunO1Mm'), zaznaczenie: true, akcja: (k, e) => k.edytor.przesun(...kierunek(e, 1)) },
   { grupa: 'Przesuwanie', klawisze: ['Shift+ArrowLeft', 'Shift+ArrowRight', 'Shift+ArrowUp', 'Shift+ArrowDown'], pokaz: 'Shift+Strzałki', opis: t('skroty.przesunO10Mm'), zaznaczenie: true, akcja: (k, e) => k.edytor.przesun(...kierunek(e, 10)) },
   { grupa: 'Przesuwanie', klawisze: ['Alt+ArrowLeft', 'Alt+ArrowRight', 'Alt+ArrowUp', 'Alt+ArrowDown'], pokaz: 'Alt+Strzałki', opis: t('skroty.przesunO01'), zaznaczenie: true, akcja: (k, e) => k.edytor.przesun(...kierunek(e, 0.1)) },
-  { grupa: 'Przesuwanie', pokaz: 'Shift przy przeciąganiu', opis: 'Tylko w poziomie albo w pionie; przy obracaniu – co 15°' },
+  { grupa: 'Przesuwanie', pokaz: 'Shift przy przeciąganiu', opis: t('skroty.tylkoWPoziomieAlbo') },
   { grupa: 'Przesuwanie', pokaz: 'Alt przy przeciąganiu', opis: t('skroty.przeciagnijKopieOryginalZostaje') },
   { grupa: 'Przesuwanie', pokaz: 'Ctrl przy przeciąganiu', opis: t('skroty.bezPrzyciaganiaDoLinii') },
   { grupa: 'Przesuwanie', pokaz: 'Alt (przytrzymany)', opis: t('skroty.pokazOdleglosciZaznaczonegoElementu') },
@@ -68,8 +68,8 @@ export const SKROTY = [
   { grupa: 'Wstawianie', klawisze: ['KeyR'], opis: t('skroty.prostokat'), akcja: (k) => k.edytor.dodajProstokat() },
   { grupa: 'Wstawianie', klawisze: ['KeyE'], opis: t('skroty.elipsa'), akcja: (k) => k.edytor.dodajElipse() },
   { grupa: 'Wstawianie', klawisze: ['KeyL'], opis: t('skroty.linia'), akcja: (k) => k.edytor.dodajLinie() },
-  { grupa: 'Wstawianie', klawisze: ['KeyB'], opis: 'Rysowanie odręczne (włącz / wyłącz; Esc kończy)', akcja: (k) => k.edytor.ustawRysowanie(!k.edytor.rysuje) },
-  { grupa: 'Wstawianie', klawisze: ['KeyN'], opis: 'Pióro: kształt z punktów i krzywych (włącz / wyłącz; Enter kończy kształt, Esc porzuca)', akcja: (k) => k.edytor.ustawPioro(!k.edytor.pioro) },
+  { grupa: 'Wstawianie', klawisze: ['KeyB'], opis: t('skroty.rysowanieOdreczneWlaczWylacz'), akcja: (k) => k.edytor.ustawRysowanie(!k.edytor.rysuje) },
+  { grupa: 'Wstawianie', klawisze: ['KeyN'], opis: t('skroty.pioroKsztaltZPunktow'), akcja: (k) => k.edytor.ustawPioro(!k.edytor.pioro) },
   { grupa: 'Wstawianie', klawisze: ['KeyP'], opis: t('skroty.wielokat'), akcja: (k) => k.edytor.dodajWielokat() },
   { grupa: 'Wstawianie', klawisze: ['KeyI'], opis: t('skroty.obrazZDysku'), akcja: (k) => k.wstawObraz() },
 
@@ -80,7 +80,7 @@ export const SKROTY = [
   { grupa: 'Widok', klawisze: ['Ctrl+Digit1', 'Ctrl+Numpad1'], pokaz: 'Ctrl+1', opis: t('skroty.powiekszenie100'), akcja: (k) => k.edytor.ustawZoom(1) },
   { grupa: 'Widok', pokaz: 'Ctrl+kółko myszy', opis: t('skroty.powiekszanieWMiejscuKursora') },
   { grupa: 'Widok', pokaz: 'Spacja+przeciąganie', opis: t('skroty.przesuwanieWidokuRaczka') },
-  { grupa: 'Widok', klawisze: ['KeyW', 'Ctrl+Semicolon'], pokaz: 'W', opis: 'Pokaż albo ukryj linie pomocnicze', akcja: (k) => k.przelaczProwadnice() },
+  { grupa: 'Widok', klawisze: ['KeyW', 'Ctrl+Semicolon'], pokaz: 'W', opis: t('skroty.pokazAlboUkryjLinie'), akcja: (k) => k.przelaczProwadnice() },
   { grupa: 'Widok', klawisze: ['Ctrl+Quote'], pokaz: 'Ctrl+\'', opis: t('skroty.pokazAlboUkryjSiatke'), akcja: (k) => k.widok.przelacz('siatka') },
   { grupa: 'Widok', klawisze: ['Ctrl+Shift+Quote'], pokaz: 'Ctrl+Shift+\'', opis: t('skroty.przyciaganieDoSiatki'), akcja: (k) => k.widok.przelacz('do_siatki') },
   { grupa: 'Widok', klawisze: ['Shift+KeyR'], opis: t('skroty.pokazAlboUkryjLinijki'), akcja: (k) => k.widok.przelacz('linijki') },
@@ -92,7 +92,7 @@ export const SKROTY = [
   { grupa: 'Strony', klawisze: ['PageUp'], opis: t('skroty.poprzedniaStrona'), akcja: (k) => k.strona(-1) },
   { grupa: 'Strony', klawisze: ['PageDown'], opis: t('skroty.nastepnaStrona'), akcja: (k) => k.strona(1) },
   { grupa: 'Strony', klawisze: ['Ctrl+Shift+KeyP'], opis: t('skroty.nowaStronaZaBiezaca'), akcja: (k) => k.nowaStrona() },
-  { grupa: 'Strony', klawisze: ['Shift+Slash', 'F1'], pokaz: '?', opis: 'Ta lista skrótów', zawsze: true, akcja: (k) => k.pomoc() },
+  { grupa: 'Strony', klawisze: ['Shift+Slash', 'F1'], pokaz: '?', opis: t('skroty.taListaSkrotow'), zawsze: true, akcja: (k) => k.pomoc() },
 ];
 
 function kierunek(e, krok) {

@@ -39,7 +39,7 @@ export function odswiezNaglowek() {
   const u = stan.uzytkownik;
   const nazwa = u ? chmura.nazwaUzytkownika(u) : '';
   $('#awatar').textContent = (nazwa || '?')[0].toUpperCase();
-  $('#awatar').title = u ? `Konto: ${nazwa}` : t('logowanie.nieZalogowano');
+  $('#awatar').title = u ? t('logowanie.konto', { nazwa }) : t('logowanie.nieZalogowano');
   $('#nazwa-uzytkownika').textContent = u ? nazwa : t('logowanie.nieZalogowano');
   $('#email-uzytkownika').textContent = u ? u.email : '';
   $('#pozycja-konto').hidden = !u;

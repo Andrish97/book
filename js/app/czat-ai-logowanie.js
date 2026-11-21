@@ -24,7 +24,7 @@ export async function dokonczLogowanieOpenRouter() {
     powiadom(t('czatAiLogowanie.polaczonoZOpenrouterAsystent'));
     return true;
   } catch (e) {
-    powiadom(`Logowanie przez OpenRouter nie powiodło się: ${e.message}`, true);
+    powiadom(t('czatAiLogowanie.logowaniePrzezOpenrouterNie', { message: e.message }), true);
     return false;
   }
 }

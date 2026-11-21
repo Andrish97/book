@@ -16,6 +16,7 @@
 
 import { normalizujOpcje, DOMYSLNE_OPCJE, DRUT, TEKTURA } from './makieta-ustawienia.js';
 import { normalizujCzesc, scianyCzesci, naStronieZapisanej, poleWielokata, wWielokacie, naObwodzie, rogiPola, liniaProsta } from './skladanka.js';
+import { t as tt } from './jezyk.js';
 
 export { normalizujOpcje, DOMYSLNE_OPCJE };
 
@@ -166,12 +167,12 @@ export function opisPolozenia(model, kartki, u, numer = (i) => i + 1) {
     if (!klucz) return 'Tył kartki (pusty)';
     return nr(klucz) ? `Strona ${nr(klucz)}` : 'Wyklejka';
   }
-  if (model.startsWith('kalendarz')) return `Karta ${Math.min(t + 1, kartki.length)} z ${kartki.length}`;
+  if (model.startsWith('kalendarz')) return tt('makieta3d.kartaZ', { min: Math.min(t + 1, kartki.length), kartkiIle: kartki.length });
   if (t === 0) return 'Okładka';
   if (t >= kartki.length) return 'Tył okładki';
   const lewa = nr(kartki[t - 1].tyl);
   const prawa = nr(kartki[t].przod);
-  if (lewa && prawa) return `Strony ${lewa}–${prawa}`;
+  if (lewa && prawa) return tt('makieta3d.strony', { lewa, prawa });
   return lewa || prawa ? `Strona ${lewa || prawa}` : 'Wyklejka';
 }
 
@@ -3817,7 +3818,7 @@ export function utworzRenderer(plotno, { maksTekstury = 2048 } = {}) {
   const gl = plotno.getContext('webgl', atr) || plotno.getContext('experimental-webgl', atr);
   plotno.removeEventListener('webglcontextcreationerror', naBlad);
   if (!gl) {
-    powodBrakuWebGL = `przeglądarka nie udostępnia WebGL${komunikatPrzegladarki ? ` (${komunikatPrzegladarki.trim().slice(0, 160)})` : ''}`;
+    powodBrakuWebGL = tt('makieta3d.przegladarkaNieUdostepniaWebgl', { x: komunikatPrzegladarki ? ` (${komunikatPrzegladarki.trim().slice(0, 160)})` : '' });
     return null;
   }
   if (gl.isContextLost()) { powodBrakuWebGL = 'kontekst grafiki został utracony'; return null; }
@@ -3825,7 +3826,7 @@ export function utworzRenderer(plotno, { maksTekstury = 2048 } = {}) {
     const s = gl.createShader(typ);
     gl.shaderSource(s, zrodlo);
     gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { const log = gl.getShaderInfoLog(s); console.error(log); powodBrakuWebGL ||= `karta graficzna nie skompilowała programu (${String(log).trim().slice(0, 160)})`; }
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { const log = gl.getShaderInfoLog(s); console.error(log); powodBrakuWebGL ||= tt('makieta3d.kartaGraficznaNieSkompilowala', { slice: String(log).trim().slice(0, 160) }); }
     return s;
   };
   const program = (vs, fs) => {
@@ -3833,7 +3834,7 @@ export function utworzRenderer(plotno, { maksTekstury = 2048 } = {}) {
     gl.attachShader(p, shader(gl.VERTEX_SHADER, vs));
     gl.attachShader(p, shader(gl.FRAGMENT_SHADER, fs));
     gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { powodBrakuWebGL ||= `karta graficzna nie połączyła programu (${String(gl.getProgramInfoLog(p)).trim().slice(0, 160)})`; return null; }
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) { powodBrakuWebGL ||= tt('makieta3d.kartaGraficznaNiePolaczyla', { slice: String(gl.getProgramInfoLog(p)).trim().slice(0, 160) }); return null; }
     const u = {};
     const n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
     for (let i = 0; i < n; i += 1) { const nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }

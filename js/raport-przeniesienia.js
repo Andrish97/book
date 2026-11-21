@@ -104,7 +104,7 @@ export function pokazRaport({ tytul, wstep, raport, przycisk = 'Pobierz', anuluj
   }
   dlg.querySelector('h2').textContent = tytul;
   dlg.querySelector('.raport-wstep').textContent = wstep || '';
-  dlg.querySelector('.raport-ok').textContent = `Bez zmian: ${raport.ok} ${raport.ok === 1 ? 'element' : 'elementów'}.`;
+  dlg.querySelector('.raport-ok').textContent = t('raportPrzeniesienia.bezZmian', { ok: raport.ok, x: raport.ok === 1 ? t('raportPrzeniesienia.element') : t('raportPrzeniesienia.elementow') });
   const lista = dlg.querySelector('.raport-lista');
   lista.replaceChildren();
   const grupy = raport.grupy();

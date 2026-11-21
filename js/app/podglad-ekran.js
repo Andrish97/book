@@ -35,7 +35,7 @@ export async function pokazPodglad(opcje = null) {
   const biezaca = stan.tryb === 'strona' ? biezacaStrona().id : null;
   pokazEkran('podglad');
   trasa.ustaw(`p/${stan.projekt.id}/podglad`);
-  document.title = `${stan.projekt.nazwa} – podgląd – ${NAZWA}`;
+  document.title = t('podgladEkran.podglad', { nazwa: stan.projekt.nazwa, NAZWA });
   podglad.pokazProjekt(stan.projekt, biezaca, nrStrony, odciskPodgladu);
   $('#podglad-tresc').focus({ preventScroll: true });
 }
@@ -44,7 +44,7 @@ export async function pokazPodglad(opcje = null) {
 // Podgląd zostaje w tym samym miejscu, a przerysowują się tylko strony, które wyglądają inaczej.
 export function odswiezPodglad() {
   if (!stan.projekt || document.body.dataset.ekran !== 'podglad' || document.body.classList.contains('podglad-publiczny')) return;
-  document.title = `${stan.projekt.nazwa} – podgląd – ${NAZWA}`;
+  document.title = t('podgladEkran.podglad', { nazwa: stan.projekt.nazwa, NAZWA });
   podglad.odswiezProjekt(stan.projekt, odciskPodgladu);
 }
 
@@ -98,7 +98,7 @@ function odswiezOknoUdostepniania() {
   // Z listy projektów też (#196): utworzenie linku i „Aktualizuj teraz” rysują strony w tle.
   $('#udostepnij-utworz').hidden = !zKontem || Boolean(u);
   $('#udostepnij-teraz').hidden = !zKontem || !u;
-  $('#udostepnij-komunikat').textContent = zKontem ? '' : 'Udostępnianie wymaga zalogowania.';
+  $('#udostepnij-komunikat').textContent = zKontem ? '' : t('podgladEkran.udostepnianieWymagaZalogowania');
   $('#udostepnij-komunikat').classList.remove('sukces');
   odswiezOchrone(p, zKontem); // z listy projektów: ochronę też ustawisz i zmienisz (#190, #196)
   odswiezZnak(p, zKontem);
@@ -109,8 +109,8 @@ function odswiezOknoUdostepniania() {
   $('#udostepnij-stan').textContent = trwaPublikacja
     ? t('podgladEkran.aktualizujeLink')
     : (aktualny
-      ? `Link pokazuje aktualny stan projektu (zaktualizowano ${kiedy(u.zaktualizowano)}).`
-      : `Projekt zmienił się po ostatniej aktualizacji linku (${kiedy(u.zaktualizowano)}). Link zaktualizuje się sam, gdy zmiany zapiszą się na koncie.`);
+      ? t('podgladEkran.linkPokazujeAktualnyStan', { kiedy: kiedy(u.zaktualizowano) })
+      : t('podgladEkran.projektZmienilSiePo', { kiedy: kiedy(u.zaktualizowano) }));
 }
 
 // ---------- Ochrona linku: hasło i data ważności ----------
@@ -129,14 +129,14 @@ function opisOchrony(ochrona) {
   const czesci = [];
   if (ochrona.haslo) czesci.push('chroniony hasłem');
   if (ochrona.wazny_do) czesci.push(`${new Date(ochrona.wazny_do) < new Date() ? 'wygasł' : 'ważny do'} ${dataSlownie(ochrona.wazny_do)}`);
-  return `Link ${czesci.join(', ')}.`;
+  return t('podgladEkran.link', { join: czesci.join(', ') });
 }
 
 function odswiezPolaOchrony() {
   const u = (celOkna || stan.projekt)?.udostepnienie;
   $('#udostepnij-haslo-pole').hidden = !$('#udostepnij-haslo-wl').checked;
   $('#udostepnij-termin-pole').hidden = !$('#udostepnij-termin-wl').checked;
-  $('#udostepnij-haslo').placeholder = u?.ochrona?.haslo ? 'bez zmian – wpisz nowe, żeby je zmienić' : t('podgladEkran.coNajmniej4Znaki');
+  $('#udostepnij-haslo').placeholder = u?.ochrona?.haslo ? t('podgladEkran.bezZmianWpiszNowe') : t('podgladEkran.coNajmniej4Znaki');
 }
 
 // Pola ochrony według zapisanych ustawień linku – przy otwarciu okna i po udanym zapisie
@@ -215,7 +215,7 @@ async function linkWTle(praca) {
 // Rysowanie przejął serwer: Makietkę można zamknąć – link dokończy się sam.
 function rysujeSerwer() {
   if (!aktywnyPasek) return;
-  aktywnyPasek.pasek.opis('Podgląd z linku rysuje się na serwerze – możesz zamknąć Makietkę');
+  aktywnyPasek.pasek.opis(t('podgladEkran.podgladZLinkuRysuje'));
   aktywnyPasek.zwolnij();
 }
 export const trwaAktualizacjaLinku = () => trwajace > 0;
@@ -243,13 +243,13 @@ export async function zapiszOchroneLinku() {
       await przygotujDoRysowania(p);
     }
     komunikat.textContent = t('podgladEkran.zapisujeOchroneLinku');
-    await linkWTle((pasek) => zastosujOchrone(p, w, (i, n) => { pasek(i, n); komunikat.textContent = `Przenoszę strony: ${i} z ${n}… (możesz zamknąć to okno, nie zamykaj Makietki)`; }));
+    await linkWTle((pasek) => zastosujOchrone(p, w, (i, n) => { pasek(i, n); komunikat.textContent = t('podgladEkran.przenoszeStronyZMozesz', { i, n }); }));
     if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
-    komunikat.textContent = `Zapisano. ${opisOchrony(p.udostepnienie.ochrona)}`;
+    komunikat.textContent = t('podgladEkran.zapisano', { opisOchrony: opisOchrony(p.udostepnienie.ochrona) });
     komunikat.classList.add('sukces');
     wypelnijOchrone(p);
   } catch (e) {
-    komunikat.textContent = `Nie udało się zapisać ochrony: ${chmura.komunikatBledu(e)}`;
+    komunikat.textContent = t('podgladEkran.nieUdaloSieZapisac', { komunikatBledu: chmura.komunikatBledu(e) });
   } finally {
     trwaPublikacja = false;
     przycisk.disabled = false;
@@ -292,7 +292,7 @@ function odswiezZnak(p, mozna) {
   $('#udostepnij-znak').hidden = !mozna;
   pokazPolaZnaku();
   $('#udostepnij-znak-stan').textContent = p.znak_wodny
-    ? `Strony linku mają znak wodny „${p.znak_wodny.tekst}” (krycie ${kryciaZnaku(p.znak_wodny)}%).`
+    ? t('podgladEkran.stronyLinkuMajaZnak', { tekst: p.znak_wodny.tekst, kryciaZnaku: kryciaZnaku(p.znak_wodny) })
     : t('podgladEkran.bezZnakuWodnego');
 }
 const pokazPolaZnaku = () => { const wl = $('#udostepnij-znak-wl').checked; $('#udostepnij-znak-pole').hidden = !wl; $('#udostepnij-znak-krycie-pole').hidden = !wl; if (wl) pokazPodgladZnaku(); };
@@ -322,16 +322,16 @@ export async function zapiszZnakWodny() {
     wypelnijZnak(p);
     odswiezZnak(p, true); // stan ustawienia widać od razu, nie dopiero po narysowaniu stron
     if (p.udostepnienie) {
-      komunikat.textContent = 'Zapisano. Strony linku przygotowują się w tle – możesz zamknąć to okno, ale nie zamykaj Makietki (postęp widać na pasku).';
+      komunikat.textContent = t('podgladEkran.zapisanoStronyLinkuPrzygotowuja');
       if (p !== stan.projekt) await przygotujDoRysowania(p);
-      await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); komunikat.textContent = `Zapisano. Strony linku: ${i} z ${n} – możesz zamknąć to okno, nie zamykaj Makietki.`; }));
+      await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); komunikat.textContent = t('podgladEkran.zapisanoStronyLinkuZ', { i, n }); }));
       await zapiszP();
     }
-    komunikat.textContent = nowy ? `Zapisano. Znak wodny „${nowy.tekst}” (krycie ${nowy.krycie}%)${p.udostepnienie ? ' jest już na stronach linku' : ' pojawi się na stronach linku'}.` : t('podgladEkran.zapisanoStronyLinkuSa');
+    komunikat.textContent = nowy ? t('podgladEkran.zapisanoZnakWodnyKrycie', { tekst: nowy.tekst, krycie: nowy.krycie, x: p.udostepnienie ? t('podgladEkran.jestJuzNaStronach') : t('podgladEkran.pojawiSieNaStronach') }) : t('podgladEkran.zapisanoStronyLinkuSa');
     komunikat.classList.add('sukces');
     wypelnijZnak(p);
   } catch (e) {
-    komunikat.textContent = `Nie udało się zapisać znaku wodnego: ${chmura.komunikatBledu(e)}`;
+    komunikat.textContent = t('podgladEkran.nieUdaloSieZapisac2', { komunikatBledu: chmura.komunikatBledu(e) });
   } finally {
     trwaPublikacja = false;
     przycisk.disabled = false;
@@ -351,12 +351,12 @@ function wypelnijMakieteLinku(p) {
   let dm = null;
   try { const b = bazaMakiety(p); dm = domyslnyModel(p, b.strony.length, b.okladka); } catch { dm = null; }
   const wybor = $('#udostepnij-makieta-model');
-  wybor.replaceChildren(new Option(`Jak w makiecie projektu${dm && MODELE[dm] ? ` (${MODELE[dm]})` : ''}`, ''), ...modele.map((m) => new Option(MODELE[m] || m, m)));
+  wybor.replaceChildren(new Option(t('podgladEkran.jakWMakiecieProjektu', { x: dm && MODELE[dm] ? ` (${MODELE[dm]})` : '' }), ''), ...modele.map((m) => new Option(MODELE[m] || m, m)));
   if (inne.length) { const g = document.createElement('optgroup'); g.label = 'Nie pasuje do projektu'; g.append(...inne.map((m) => new Option(MODELE[m] || m, m))); wybor.append(g); }
   wybor.value = ml.model && [...modele, ...inne].includes(ml.model) ? ml.model : '';
   const uj = $('#udostepnij-makieta-ujecie');
   const ujecia = p.makieta?.ujecia || [];
-  uj.replaceChildren(new Option(ujecia.length ? `Pierwsze zapisane („${ujecia[0].nazwa || 'Ujęcie'}”)` : 'Domyślne', ''), ...ujecia.map((u) => new Option(u.nazwa || 'Ujęcie', u.id)));
+  uj.replaceChildren(new Option(ujecia.length ? t('podgladEkran.pierwszeZapisane', { x: ujecia[0].nazwa || t('podgladEkran.ujecie') }) : 'Domyślne', ''), ...ujecia.map((u) => new Option(u.nazwa || 'Ujęcie', u.id)));
   uj.value = ml.ujecie && ujecia.some((u) => u.id === ml.ujecie) ? ml.ujecie : '';
   pokazPolaMakiety();
 }
@@ -366,8 +366,8 @@ function opisMakietyLinku(p) {
   const ml = p.makieta_linku || {};
   if (ml.pokaz === false) return 'Oglądający nie widzi makiety 3D – tylko strony.';
   const uj = ml.ujecie && p.makieta?.ujecia?.find((u) => u.id === ml.ujecie);
-  if (uj) return `Oglądający widzi makietę 3D w ujęciu „${uj.nazwa || 'Ujęcie'}”.`;
-  if (ml.model) return `Oglądający widzi makietę 3D: ${MODELE[ml.model] || ml.model}.`;
+  if (uj) return t('podgladEkran.ogladajacyWidziMakiete3d', { x: uj.nazwa || t('podgladEkran.ujecie') });
+  if (ml.model) return t('podgladEkran.ogladajacyWidziMakiete3d2', { x: MODELE[ml.model] || ml.model });
   return 'Oglądający widzi makietę 3D taką jak w makiecie projektu (rodzaj dobrany do projektu, pierwsze zapisane ujęcie).';
 }
 function odswiezMakieteLinku(p, mozna) {
@@ -396,15 +396,15 @@ export async function zapiszMakieteLinku() {
     await zapiszP();
     odswiezMakieteLinku(p, true);
     if (p.udostepnienie) {
-      komunikat.textContent = 'Zapisano. Link aktualizuje się w tle – możesz zamknąć to okno, ale nie zamykaj Makietki.';
+      komunikat.textContent = t('podgladEkran.zapisanoLinkAktualizujeSie');
       if (p !== stan.projekt) await przygotujDoRysowania(p);
       await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); }));
       await zapiszP();
     }
-    komunikat.textContent = `Zapisano. ${opisMakietyLinku(p)}`;
+    komunikat.textContent = t('podgladEkran.zapisano2', { opisMakietyLinku: opisMakietyLinku(p) });
     komunikat.classList.add('sukces');
   } catch (e) {
-    komunikat.textContent = `Nie udało się zapisać makiety w linku: ${chmura.komunikatBledu(e)}`;
+    komunikat.textContent = t('podgladEkran.nieUdaloSieZapisac3', { komunikatBledu: chmura.komunikatBledu(e) });
   } finally {
     trwaPublikacja = false;
     przycisk.disabled = false;
@@ -575,20 +575,20 @@ export async function opublikujUdostepnienie() {
     let wynik;
     let linkJest = Boolean(p.udostepnienie);
     const opisPostepu = (i, n) => (linkJest
-      ? `Link gotowy – możesz go już skopiować i wysłać albo zamknąć okno. Strony przygotowują się w tle: ${i} z ${n}.`
-      : `Strony: ${i} z ${n}…`);
+      ? t('podgladEkran.linkGotowyMozeszGo2', { i, n })
+      : t('podgladEkran.stronyZ', { i, n }));
     try {
       wynik = await opublikuj(p, (i, n) => { if (komunikat.isConnected) komunikat.textContent = opisPostepu(i, n); pasek.krok(i, n); }, {
         naLink: async () => {
           linkJest = true;
           odswiezOknoUdostepnianiaZachowujacKomunikat();
-          komunikat.textContent = 'Link gotowy – możesz go już skopiować i wysłać albo zamknąć okno. Strony przygotowują się w tle; oglądający zobaczy je po kolei.';
+          komunikat.textContent = t('podgladEkran.linkGotowyMozeszGo');
           for (const b of [$('#udostepnij-utworz'), $('#udostepnij-teraz')]) b.disabled = true;
         },
       });
     } finally { pasek.koniec(); pilnujZamkniecia(false); }
     komunikat.textContent = wynik.wyslane < wynik.wszystkie
-      ? `Gotowe. Wysłano ${wynik.wyslane} z ${wynik.wszystkie} stron – reszta się nie zmieniła.`
+      ? t('podgladEkran.gotoweWyslanoZStron', { wyslane: wynik.wyslane, wszystkie: wynik.wszystkie })
       : t('podgladEkran.gotoweSkopiujLinkI');
     komunikat.classList.add('sukces');
     wypelnijOchrone(p);
@@ -596,7 +596,7 @@ export async function opublikujUdostepnienie() {
     await zapisz();
     if (!otwarty && document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); // plakietka „Udostępniony”
   } catch (e) {
-    komunikat.textContent = `Nie udało się udostępnić: ${chmura.komunikatBledu(e)}`;
+    komunikat.textContent = t('podgladEkran.nieUdaloSieUdostepnic', { komunikatBledu: chmura.komunikatBledu(e) });
   } finally {
     trwaPublikacja = false;
     for (const b of [$('#udostepnij-utworz'), $('#udostepnij-teraz')]) b.disabled = false;
@@ -655,7 +655,7 @@ export async function wylaczUdostepnienie() {
     $('#udostepnij-komunikat').textContent = t('podgladEkran.linkUniewazniony');
     if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
   } catch (e) {
-    $('#udostepnij-komunikat').textContent = `Nie udało się unieważnić: ${chmura.komunikatBledu(e)}`;
+    $('#udostepnij-komunikat').textContent = t('podgladEkran.nieUdaloSieUniewaznic', { komunikatBledu: chmura.komunikatBledu(e) });
   }
 }
 

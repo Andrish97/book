@@ -14,7 +14,7 @@
 // Dane: funkcje bazy admin_poczta_* (migracja 20261115160000_skrzynka.sql).
 
 import { supabase, komunikatBledu, r2 } from '../chmura.js';
-import { $, $$, powiadom, potwierdz, kiedy, odmiana, zapytajONazwe } from '../ui.js';
+import { $, $$, powiadom, potwierdz, kiedy, zapytajONazwe } from '../ui.js';
 import { utworzEdytorWiadomosci } from '../edytor-wiadomosci.js';
 import { wstawIkony } from '../ikony.js';
 import { t as tt } from '../jezyk.js';
@@ -98,7 +98,7 @@ export async function rysujSkrzynke() {
     b.querySelector('.licznik-folderu').textContent = n || '';
     b.classList.toggle('ma-nowe', Boolean(n) && f !== 'robocze');
   }
-  $('#admin-tytul-folderu').textContent = s.szukaj ? `Szukaj: ${s.szukaj}` : FOLDERY[s.folder];
+  $('#admin-tytul-folderu').textContent = s.szukaj ? tt('skrzynka.szukaj', { szukaj: s.szukaj }) : FOLDERY[s.folder];
   const lista = $('#admin-watki');
   lista.replaceChildren(...s.watki.map(wierszListy));
   wstawIkony(lista);
@@ -110,7 +110,7 @@ export async function rysujSkrzynke() {
   }
   $('#admin-watki-pusto').textContent = s.szukaj || s.filtr ? tt('skrzynka.nicNiePasujeDo') : {
     skrzynka: 'Brak wiadomości w Odebranych.', robocze: 'Brak wersji roboczych.', kosz: 'Kosz jest pusty.', spam: 'Brak spamu.',
-  }[s.folder] || `${FOLDERY[s.folder]} – pusto.`;
+  }[s.folder] || tt('skrzynka.pusto', { x: FOLDERY[s.folder] });
   $('#admin-zakres').textContent = s.razem ? `${s.od + 1}–${Math.min(s.od + s.watki.length, s.razem)} z ${s.razem}` : '';
   $('#admin-poprzednie').disabled = s.od === 0;
   $('#admin-nastepne').disabled = s.od + NA_STRONE >= s.razem;
@@ -169,7 +169,7 @@ function rysujZbiorcze() {
   wszystkie.disabled = !s.watki.length;
   $('#admin-zbiorcze').hidden = !n;
   $('#admin-tytul-folderu').hidden = Boolean(n);
-  $('#admin-zaznaczone').textContent = n ? `${n} ${odmiana(n, 'zaznaczona', 'zaznaczone', 'zaznaczonych')}` : '';
+  $('#admin-zaznaczone').textContent = n ? tt('skrzynka.tekst', { n }) : '';
   const dozwolone = ZBIORCZO[s.folder] || [];
   for (const b of $$('#admin-zbiorcze [data-zbiorczo]')) b.hidden = !dozwolone.includes(b.dataset.zbiorczo);
 }
@@ -177,8 +177,8 @@ function rysujZbiorcze() {
 async function zbiorczo(akcja, ids = [...s.zaznaczone]) {
   if (!ids.length) return;
   if (akcja === 'usun') {
-    const ile = `${ids.length} ${odmiana(ids.length, 'wiadomość', 'wiadomości', 'wiadomości')}`;
-    if (!await potwierdz(tt('skrzynka.usunacNaZawsze'), `${ile} zniknie bez możliwości przywrócenia, razem z załącznikami.`, tt('skrzynka.usunNaZawsze'), true)) return;
+    const ile = tt('skrzynka.tekst2', { idsIle: ids.length });
+    if (!await potwierdz(tt('skrzynka.usunacNaZawsze'), tt('skrzynka.zniknieBezMozliwosciPrzywrocenia', { ile }), tt('skrzynka.usunNaZawsze'), true)) return;
   }
   try {
     if (s.folder === 'robocze') {
@@ -390,7 +390,7 @@ function wstawTresc(art) {
   }
   const ramka = document.createElement('iframe');
   ramka.className = 'ramka-wiadomosci';
-  ramka.title = `Treść wiadomości: ${m.temat || ''}`;
+  ramka.title = tt('skrzynka.trescWiadomosci', { x: m.temat || '' });
   ramka.setAttribute('sandbox', 'allow-popups allow-popups-to-escape-sandbox allow-same-origin');
   ramka.setAttribute('referrerpolicy', 'no-referrer');
   ramka.srcdoc = dokumentRamki(czysty, obrazy);
@@ -470,7 +470,7 @@ export async function otworzPisanie({ tryb = 'nowa', wiadomosc = null, robocza =
   }
   $('#admin-pisz-tytul').textContent = { nowa: 'Nowa wiadomość', odpowiedz: 'Odpowiedź', wszystkim: 'Odpowiedź do wszystkich', przekaz: 'Przekazanie' }[pisz.tryb];
   $('#admin-pisz-temat').value = tematWiadomosci;
-  $('#admin-pisz-stan').textContent = robocza ? `Wersja robocza z ${kiedy(robocza.zmieniono)}` : '';
+  $('#admin-pisz-stan').textContent = robocza ? tt('skrzynka.wersjaRoboczaZ', { kiedy: kiedy(robocza.zmieniono) }) : '';
   for (const p of ['dw', 'udw']) $(`.pole-adresow[data-pole="${p}"]`).hidden = !pisz.adresy[p].length;
   $('#admin-pisz-kopie').hidden = Boolean(pisz.adresy.dw.length && pisz.adresy.udw.length);
   for (const p of ['do', 'dw', 'udw']) rysujAdresy(p);
@@ -522,10 +522,10 @@ function zapiszRobocza() {
       const w = await rpc('admin_poczta_robocza_zapisz', { p: { ...d, id: pisz.id } });
       pisz.id = w.id;
       await usunPliki((w.klucze || []).filter((k) => !pisz.zalaczniki.some((z) => z.klucz === k)));
-      $('#admin-pisz-stan').textContent = `Zapisano ${new Date(w.zmieniono).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
+      $('#admin-pisz-stan').textContent = tt('skrzynka.zapisano', { toLocaleTimeString: new Date(w.zmieniono).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }) });
       if (s.folder === 'robocze') rysujSkrzynke().catch(() => {});
     } catch (e) {
-      $('#admin-pisz-stan').textContent = `Nie zapisano: ${komunikatBledu(e)}`;
+      $('#admin-pisz-stan').textContent = tt('skrzynka.nieZapisano', { komunikatBledu: komunikatBledu(e) });
     }
   });
   return pisz.zapis;
@@ -576,7 +576,7 @@ async function wyslij(e) {
   if (pisz.wysylanie) return;
   const d = dane();
   const zle = [...d.do, ...d.dw, ...d.udw].filter((a) => !POPRAWNY.test(a));
-  if (zle.length) { powiadom(`Popraw adres: ${zle.join(', ')}`, true); return; }
+  if (zle.length) { powiadom(tt('skrzynka.poprawAdres', { join: zle.join(', ') }), true); return; }
   if (!d.do.length) { powiadom(tt('skrzynka.podajAdresataWPolu'), true); $('#admin-pisz-do').focus(); return; }
   if (pisz.zalaczniki.some((z) => !z.klucz)) { powiadom(tt('skrzynka.poczekajAzZalacznikiSie'), true); return; }
   if (!d.temat && !await potwierdz(tt('skrzynka.wyslacBezTematu'), tt('skrzynka.wiadomoscNieMaTematu'), tt('skrzynka.wyslij'))) return;
@@ -611,7 +611,7 @@ function rysujAdresy(pole) {
   for (const [i, a] of pisz.adresy[pole].entries()) {
     const chip = document.createElement('span');
     chip.className = `adres ${POPRAWNY.test(a) ? '' : 'zly'}`;
-    chip.title = POPRAWNY.test(a) ? a : `Nieprawidłowy adres: ${a}`;
+    chip.title = POPRAWNY.test(a) ? a : tt('skrzynka.nieprawidlowyAdres', { a });
     chip.innerHTML = `<span>${esc(a)}</span><button type="button" aria-label="Usuń ${esc(a)}" data-ikona="zamknij" data-rozmiar="14"></button>`;
     chip.querySelector('button').addEventListener('click', () => { pisz.adresy[pole].splice(i, 1); rysujAdresy(pole); zmieniono(); input.focus(); });
     box.insertBefore(chip, input);
@@ -736,7 +736,7 @@ async function dodajPliki(pliki) {
   for (const plik of pliki) {
     const razem = pisz.zalaczniki.reduce((n, z) => n + (z.rozmiar || 0), 0);
     if (razem + plik.size > LIMIT_ZALACZNIKOW) {
-      powiadom(`„${plik.name}” się nie zmieści – załączniki razem mogą mieć najwyżej 10 MB.`, true);
+      powiadom(tt('skrzynka.sieNieZmiesciZalaczniki', { name: plik.name }), true);
       continue;
     }
     const z = { nazwa: plik.name, typ: plik.type || 'application/octet-stream', rozmiar: plik.size, klucz: null };
@@ -839,11 +839,11 @@ $('#admin-poprzednie').addEventListener('click', () => { s.od = Math.max(0, s.od
 $('#admin-nastepne').addEventListener('click', () => { s.od += NA_STRONE; rysujSkrzynke().catch(blad); });
 $('#admin-oproznij').addEventListener('click', async () => {
   const co = s.folder === 'spam' ? 'spam' : 'kosz';
-  if (!await potwierdz(co === 'spam' ? tt('skrzynka.oproznicSpam') : tt('skrzynka.oproznicKosz'), `Wszystkie wiadomości z folderu ${FOLDERY[co]} znikną na zawsze.`, tt('skrzynka.oproznij'), true)) return;
+  if (!await potwierdz(co === 'spam' ? tt('skrzynka.oproznicSpam') : tt('skrzynka.oproznicKosz'), tt('skrzynka.wszystkieWiadomosciZFolderu', { x: FOLDERY[co] }), tt('skrzynka.oproznij'), true)) return;
   try {
     const w = await rpc('admin_poczta_oproznij', { p_folder: co });
     await usunPliki(w?.klucze);
-    powiadom(`Usunięto ${w.zmienione} ${odmiana(w.zmienione, 'rozmowę', 'rozmowy', 'rozmów')}.`);
+    powiadom(tt('skrzynka.usunieto', { zmienione: w.zmienione }));
     zamknijWatek();
     await rysujSkrzynke();
   } catch (e) { blad(e); }

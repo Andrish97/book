@@ -9,11 +9,11 @@ import { t } from './jezyk.js';
 export const MATERIALY = {
   druk: { nazwa: 'Okładka drukowana', opis: t('materialy.kartonZNadrukiemZwykle'), druk: true, kolory: [] },
   plotno: {
-    nazwa: 'Płótno introligatorskie', opis: 'Tkanina na tekturze; zdobienia – złocenie albo tłoczenie.', druk: false, ziarno: 'tkanina',
+    nazwa: 'Płótno introligatorskie', opis: t('materialy.tkaninaNaTekturzeZdobienia'), druk: false, ziarno: 'tkanina',
     kolory: [['#1f2a44', 'Granatowe'], ['#6d1a24', 'Bordowe'], ['#20402f', 'Butelkowa zieleń'], ['#1b1b1b', 'Czarne'], ['#7a7a76', 'Szare'], ['#cdbf9f', 'Lniane (beż)'], ['#8a5a2b', 'Brązowe']],
   },
   skora: {
-    nazwa: 'Skóra ekologiczna', opis: 'Okleina skóropodobna z fakturą; zdobienia – złocenie albo tłoczenie.', druk: false, ziarno: 'skora',
+    nazwa: 'Skóra ekologiczna', opis: t('materialy.okleinaSkoropodobnaZFaktura'), druk: false, ziarno: 'skora',
     kolory: [['#15130f', 'Czarna'], ['#4a2c1a', 'Brązowa'], ['#8a4b22', 'Koniakowa'], ['#5c1622', 'Bordowa'], ['#1d2840', 'Granatowa'], ['#ece3cf', 'Kremowa']],
   },
   papier_strukturalny: {
@@ -46,7 +46,7 @@ export function opisWykonczenia(w) {
   const m = MATERIALY[w.material] || MATERIALY.druk;
   const kolor = m.kolory.find(([k]) => k === w.kolor)?.[1] || w.kolor;
   const czesci = [w.material === 'druk' ? `${m.nazwa}, ${FOLIE_OKLADKI[w.folia || 'mat'].toLowerCase()}` : `${m.nazwa} – ${kolor}`];
-  if (w.rogi_mm) czesci.push(`rogi zaokrąglone ${String(w.rogi_mm).replace('.', ',')} mm`);
+  if (w.rogi_mm) czesci.push(t('materialy.rogiZaokragloneMm', { replace: String(w.rogi_mm).replace('.', ',') }));
   return czesci.join(', ');
 }
 

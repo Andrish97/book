@@ -1,6 +1,7 @@
 // Wybór zakresu w oknach eksportu PDF i druku (zgłoszenie 19.11: „zapis bardziej zaawansowany – wybrane sekcje,
 // a nie sekcja, i strony nie tylko od–do, ale jak w Wordzie 1-5, 8”).
 import { parsujZakresStron } from './eksport.js';
+import { t as tt } from './jezyk.js';
 
 // Lista sekcji z polami do zaznaczenia: „Nazwa (N str.)” – liczba egzemplarzy sekcji w wydruku (z powieleniami).
 export function wypelnijSekcje(kontener, projekt, ciag, zaznaczone = []) {
@@ -16,7 +17,7 @@ export function wypelnijSekcje(kontener, projekt, ciag, zaznaczone = []) {
     i.value = s.id;
     i.checked = wybrane.has(s.id);
     const t = document.createElement('span');
-    t.textContent = `${s.nazwa} (${ile.get(s.id)} str.)`;
+    t.textContent = tt('zakresEksportu.str', { nazwa: s.nazwa, get: ile.get(s.id) });
     l.append(i, t);
     return l;
   }));
@@ -28,7 +29,7 @@ export const wybraneSekcje = (kontener) => [...kontener.querySelectorAll('input[
 export function uwagaZakresu(tekst, n) {
   if (!String(tekst || '').trim()) return 'Wpisz numery stron, np. 1-5, 8.';
   const { bledy, poza, numery } = parsujZakresStron(tekst, n);
-  if (bledy.length) return `Nie rozumiem: ${bledy.map((b) => `„${b}”`).join(', ')} – wpisz numery i przedziały po przecinku, np. 1-5, 8, 11-.`;
-  if (poza.length) return `Projekt ma ${n} ${n === 1 ? 'stronę' : 'stron'} – ${poza.length === 1 ? `numer ${poza[0]} pominięty` : 'numery ponad tę liczbę pominięte'}.${numery.length ? '' : ' W zakresie nie ma stron.'}`;
+  if (bledy.length) return tt('zakresEksportu.nieRozumiemWpiszNumery', { join: bledy.map((b) => `„${b}”`).join(', ') });
+  if (poza.length) return tt('zakresEksportu.projektMa', { n, x: n === 1 ? tt('zakresEksportu.strone') : tt('zakresEksportu.stron'), x2: poza.length === 1 ? tt('zakresEksportu.numerPominiety', { x: poza[0] }) : tt('zakresEksportu.numeryPonadTeLiczbe'), x3: numery.length ? '' : tt('zakresEksportu.wZakresieNieMa') });
   return null;
 }

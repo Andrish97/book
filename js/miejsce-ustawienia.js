@@ -28,7 +28,7 @@ export async function pokazMiejsce({ swieze = true } = {}) {
   konto.textContent = `${rozmiar(m.konto)} z ${rozmiar(m.limit_konta)} (${procent(udzialKonta(m))})`;
   $('#miejsce-pasek-konta').style.width = `${Math.min(100, udzialKonta(m) * 100)}%`;
   $('#miejsce-konta .miejsce-pasek').setAttribute('aria-valuenow', String(Math.round(udzialKonta(m) * 100)));
-  $('#miejsce-limity').textContent = `Projekty: ${liczba(m.projekty)} z ${liczba(m.limit_projektow)}. Jeden plik – najwyżej ${rozmiar(m.limit_pliku)}, w jednym projekcie najwyżej ${liczba(m.obrazy_w_projekcie)} obrazów i ${liczba(m.osoby_w_projekcie)} osób do współpracy.`;
+  $('#miejsce-limity').textContent = t('miejsceUstawienia.projektyZJedenPlik', { liczba: liczba(m.projekty), liczba2: liczba(m.limit_projektow), rozmiar: rozmiar(m.limit_pliku), liczba3: liczba(m.obrazy_w_projekcie), liczba4: liczba(m.osoby_w_projekcie) });
   const tekst = ostrzezenie(m);
   $('#miejsce-ostrzezenie').hidden = !tekst;
   $('#miejsce-ostrzezenie').textContent = tekst || '';
@@ -53,17 +53,17 @@ async function sprzataj() {
     if (!plan.ile) { komunikat.textContent = t('miejsceUstawienia.nieMaCzegoSprzatac'); return; }
     const tak = await potwierdz(
       t('miejsceUstawienia.posprzatacKonto'),
-      `Usunę ${plan.ile} ${pliki(plan.ile)}, których żaden projekt nie używa – zwolni się ${rozmiar(plan.bajty)}. Projektów, obrazów na stronach ani czcionek to nie zmienia.`,
+      t('miejsceUstawienia.usuneKtorychZadenProjekt', { ile: plan.ile, pliki: pliki(plan.ile), rozmiar: rozmiar(plan.bajty) }),
       t('miejsceUstawienia.posprzataj'),
     );
     if (!tak) { komunikat.textContent = ''; return; }
     komunikat.textContent = t('miejsceUstawienia.sprzatam');
     const karta = postep(t('miejsceUstawienia.sprzatanieKonta'), { razem: plan.ile });
     try { await posprzataj(plan, (gotowe) => karta.krok(gotowe)); } finally { karta.koniec(); }
-    komunikat.textContent = `Posprzątane – zwolniono ${rozmiar(plan.bajty)}.`;
+    komunikat.textContent = t('miejsceUstawienia.posprzataneZwolniono', { rozmiar: rozmiar(plan.bajty) });
     await pokazMiejsce();
   } catch (e) {
-    komunikat.textContent = `Nie udało się posprzątać: ${e.message}`;
+    komunikat.textContent = t('miejsceUstawienia.nieUdaloSiePosprzatac', { message: e.message });
   } finally {
     trwa = false;
     przycisk.disabled = false;

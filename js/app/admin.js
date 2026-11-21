@@ -102,10 +102,10 @@ document.addEventListener('click', async (e) => {
   if (e.target.closest('#admin-kopie-wyczysc')) {
     const dni = Number($('#admin-kopie-dni').value) || 14;
     const { potwierdz } = await import('../ui.js');
-    if (!await potwierdz(t('admin.wyczyscicStareKopie'), `Kopie, strony i wpisy dziennika starsze niż ${dni} dni znikną ze wszystkich projektów – takich stanów nie da się już przywrócić. Projekty i ich obecna treść zostają.`, t('admin.wyczysc'), true)) return;
+    if (!await potwierdz(t('admin.wyczyscicStareKopie'), t('admin.kopieStronyIWpisy', { dni }), t('admin.wyczysc'), true)) return;
     try {
       const w = await rpc('admin_kopie_wyczysc', { p_dni: dni });
-      powiadom(`Usunięto kopie: ${w.kopie} zapisów, ${w.strony} stron, ${w.dziennik} wpisów dziennika.`);
+      powiadom(t('admin.usunietoKopieZapisowStron', { kopie: w.kopie, strony: w.strony, dziennik: w.dziennik }));
       await Promise.all([rysujZapisy(), rysujStanKopii()]);
     } catch (err) { blad(err); }
     return;
@@ -115,10 +115,10 @@ document.addEventListener('click', async (e) => {
   const b = e.target.closest('[data-przywroc]');
   if (!b) return;
   const { potwierdz } = await import('../ui.js');
-  if (!await potwierdz(t('admin.przywrocicStanSprzedZapisu'), 'Dane projektu i strony zmienione albo usunięte przez ten zapis wrócą do stanu sprzed niego. Otwarte edytory dostaną to jak każdą zmianę z konta. Samo przywrócenie też trafi do kopii – da się je cofnąć.', t('admin.przywroc'))) return;
+  if (!await potwierdz(t('admin.przywrocicStanSprzedZapisu'), t('admin.daneProjektuIStrony'), t('admin.przywroc'))) return;
   try {
     const w = await rpc('admin_przywroc_kopie', { p_kopia: Number(b.dataset.przywroc) });
-    powiadom(`Przywrócono (stron: ${w.strony}, wersja ${w.wersja}).`);
+    powiadom(t('admin.przywroconoStronWersja', { strony: w.strony, wersja: w.wersja }));
     await rysujZapisy();
   } catch (err) { blad(err); }
 });
@@ -242,7 +242,7 @@ async function wyslijTest(e, dostawca = null) {
     await rpc('admin_poczta_test', { p_do: pole.value.trim(), p_dostawca: dostawca });
     const p = await przebiegKolejki();
     const przez = dostawca ? ` przez ${NAZWY_DOSTAWCOW[dostawca] || dostawca}` : '';
-    kom.textContent = p?.wyslane ? `Wysłano mail testowy${przez} na ${pole.value.trim()}.` : `Mail testowy czeka w kolejce${p?.powod ? ` (${p.powod})` : ''} – zobacz „Kolejka maili”.`;
+    kom.textContent = p?.wyslane ? t('admin.wyslanoMailTestowyNa', { przez, trim: pole.value.trim() }) : t('admin.mailTestowyCzekaW', { x: p?.powod ? ` (${p.powod})` : '' });
     kom.className = 'komunikat ok';
   } catch (err) {
     kom.textContent = komunikatBledu(err);
@@ -289,8 +289,8 @@ async function rysujStatystyki() {
       : kafel(t('admin.plikiR2'), mb(pliki.pliki_razem), `z ${mb(pliki.limit_plikow)} puli (${Math.round((pliki.pliki_razem / pliki.limit_plikow) * 100)}%)`),
     kafel(t('admin.baza'), mb(rozmiary.baza), `z 500 MB (${Math.round((rozmiary.baza / (500 * 1024 ** 2)) * 100)}%)`),
     serwer.blad
-      ? kafel('Serwer rysowania', '–', `nie udało się odczytać: ${serwer.blad}`)
-      : kafel('Serwer rysowania', godz(serwer.miesiac.ms), `w tym miesiącu z ${serwer.planGodzin} h w planie (${Math.round((serwer.miesiac.ms / (serwer.planGodzin * 3600000)) * 100)}%) · stron: ${serwer.miesiac.stron} · zleceń: ${serwer.miesiac.zlecen}`),
+      ? kafel(t('admin.serwerRysowania'), '–', `nie udało się odczytać: ${serwer.blad}`)
+      : kafel(t('admin.serwerRysowania'), godz(serwer.miesiac.ms), `w tym miesiącu z ${serwer.planGodzin} h w planie (${Math.round((serwer.miesiac.ms / (serwer.planGodzin * 3600000)) * 100)}%) · stron: ${serwer.miesiac.stron} · zleceń: ${serwer.miesiac.zlecen}`),
   ].join('');
   const tabele = (rozmiary.tabele || []).slice(0, 12);
   $('#admin-tabele').innerHTML = tabele.length
@@ -314,7 +314,7 @@ for (const b of $$('#admin-stany [data-stan]')) {
 }
 $('#admin-przebieg').addEventListener('click', async () => {
   const p = await przebiegKolejki();
-  powiadom(p ? `Wysłano: ${p.wyslane || 0}${p.bledy ? `, błędy: ${p.bledy}` : ''}${p.powod ? ` (${p.powod})` : ''}.` : 'Nie udało się uruchomić wysyłki.', !p);
+  powiadom(p ? t('admin.wyslano', { x: p.wyslane || 0, x2: p.bledy ? t('admin.bledy', { bledy: p.bledy }) : '', x3: p.powod ? ` (${p.powod})` : '' }) : t('admin.nieUdaloSieUruchomic'), !p);
   await rysujKolejke().catch(blad);
 });
 $('#admin-form-ustawien').addEventListener('submit', zapiszUstawienia);

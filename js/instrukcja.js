@@ -265,7 +265,7 @@ export class Instrukcja {
     const zapas = `img/instrukcja/${motyw}`;
     const html = r.sekcje.map((s) => `<section class="podrozdzial" id="${idSekcji(s.id)}" data-sekcja="${s.id}"><h2><small>${s.id}</small>${esc(s.tytul)}</h2>${s.html}</section>`).join('')
       .replace(/src="img\/instrukcja\/([^"]+)"/g, (_, plik) => (katalog === zapas ? `src="${zapas}${plik}"`
-        : `src="${katalog}${plik}" onerror="this.onerror=null;this.src='${zapas}${plik}'"`));
+        : tt('instrukcja.srcOnerrorThisOnerror', { katalog, plik, zapas })));
     // Bez okruszków (#169): część i rozdział pokazuje już spis z boku, a na telefonie przycisk nad treścią.
     return `<header class="instrukcja-naglowek"><h1 class="instrukcja-h1"><small>${r.nr}.</small> ${esc(r.tytul)}</h1>`
       + (r.wstep ? `<p class="instrukcja-lead wstep-rozdzialu">${r.wstep}</p>` : '')

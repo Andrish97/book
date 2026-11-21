@@ -18,6 +18,7 @@
 
 /* global fabric */
 
+import { t as tt } from './jezyk.js';
 export const RODZAJE_KRAWEDZI = { ciecie: 'Cięcie', zakladka: 'Zakładka klejowa', klej: 'Do sklejenia (bez zakładki)', wypustka: 'Wypustka do szczeliny' };
 export const RODZAJE_ZGIEC = { dolina: 'Dolina – zginaj do siebie', gora: 'Góra – zginaj od siebie' };
 export const KRESKI = { dolina: [2.4, 1.6], gora: [3, 1.2, 0.6, 1.2] };
@@ -797,49 +798,49 @@ export function uwagiSkladanki(arkusze) {
       const c = normalizujCzesc(o.czesc);
       const gdzie = { strony: a.nr ? [a.nr] : [], idStrony: a.strona.id, idObiektu: o.id, nazwa: c.nr };
       const r = ramkaNaStronie(o);
-      if (r.x1 < -0.2 || r.y1 < -0.2 || r.x2 > a.w + 0.2 || r.y2 > a.h + 0.2) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Część ${c.nr} wystaje poza arkusz – przesuń ją albo przenieś na inny arkusz.` });
-      else if (a.margines > 0 && (r.x1 < a.margines || r.y1 < a.margines || r.x2 > a.w - a.margines || r.y2 > a.h - a.margines)) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Część ${c.nr} wchodzi w margines drukarki (${mmTxt(a.margines)} mm) – ten kawałek może się nie wydrukować.` });
-      c.krawedzie.forEach((k, i) => { if (k.para && k.typ !== 'ciecie') (wpisy.get(k.para) || wpisy.set(k.para, []).get(k.para)).push({ rodzaj: k.typ, dl: dlKrawedzi(c, i), szer: k.szer, gdzie, opis: `krawędź ${i + 1} części ${c.nr}` }); });
-      for (const p of c.pola) if (p.para) (wpisy.get(p.para) || wpisy.set(p.para, []).get(p.para)).push({ rodzaj: 'pole', dl: Math.max(p.w, p.h), szer: Math.min(p.w, p.h), gdzie, opis: `miejsce klejenia na części ${c.nr}` });
-      for (const l of c.linie) if (l.para) (wpisy.get(l.para) || wpisy.set(l.para, []).get(l.para)).push({ rodzaj: 'linia', dl: dlugoscLinii(l), prosta: liniaProsta(l), gdzie, opis: `linia klejenia na części ${c.nr}` });
+      if (r.x1 < -0.2 || r.y1 < -0.2 || r.x2 > a.w + 0.2 || r.y2 > a.h + 0.2) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: tt('skladanka.czescWystajePozaArkusz', { nr: c.nr }) });
+      else if (a.margines > 0 && (r.x1 < a.margines || r.y1 < a.margines || r.x2 > a.w - a.margines || r.y2 > a.h - a.margines)) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: tt('skladanka.czescWchodziWMargines', { nr: c.nr, mmTxt: mmTxt(a.margines) }) });
+      c.krawedzie.forEach((k, i) => { if (k.para && k.typ !== 'ciecie') (wpisy.get(k.para) || wpisy.set(k.para, []).get(k.para)).push({ rodzaj: k.typ, dl: dlKrawedzi(c, i), szer: k.szer, gdzie, opis: tt('skladanka.krawedzCzesci', { x: i + 1, nr: c.nr }) }); });
+      for (const p of c.pola) if (p.para) (wpisy.get(p.para) || wpisy.set(p.para, []).get(p.para)).push({ rodzaj: 'pole', dl: Math.max(p.w, p.h), szer: Math.min(p.w, p.h), gdzie, opis: tt('skladanka.miejsceKlejeniaNaCzesci', { nr: c.nr }) });
+      for (const l of c.linie) if (l.para) (wpisy.get(l.para) || wpisy.set(l.para, []).get(l.para)).push({ rodzaj: 'linia', dl: dlugoscLinii(l), prosta: liniaProsta(l), gdzie, opis: tt('skladanka.liniaKlejeniaNaCzesci', { nr: c.nr }) });
       for (const z of c.szczeliny) {
-        if (z.para) (wpisy.get(z.para) || wpisy.set(z.para, []).get(z.para)).push({ rodzaj: 'szczelina', dl: Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y), gdzie, opis: `szczelina na części ${c.nr}` });
+        if (z.para) (wpisy.get(z.para) || wpisy.set(z.para, []).get(z.para)).push({ rodzaj: 'szczelina', dl: Math.hypot(z.b.x - z.a.x, z.b.y - z.a.y), gdzie, opis: tt('skladanka.szczelinaNaCzesci', { nr: c.nr }) });
         // Nacięcie (#297) – końce w części albo na jej krawędzi; poza nią nóż przetnie sąsiednią część albo powietrze.
-        if (z.naciecie && [z.a, z.b].some((q) => !wWielokacie(c.punkty, q) && naObwodzie(c.punkty, q).odl > 0.3)) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Nacięcie na części ${c.nr} wychodzi poza część – przesuń jego koniec do środka albo na krawędź.` });
-        if (!z.naciecie && z.szer < a.grubosc) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: `Szczelina na części ${c.nr} ma ${mmTxt(z.szer)} mm, a materiał ${mmTxt(a.grubosc)} mm – wypustka się nie zmieści. Ustaw szerokość co najmniej ${mmTxt(a.grubosc + 0.2)} mm.` });
+        if (z.naciecie && [z.a, z.b].some((q) => !wWielokacie(c.punkty, q) && naObwodzie(c.punkty, q).odl > 0.3)) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: tt('skladanka.naciecieNaCzesciWychodzi', { nr: c.nr }) });
+        if (!z.naciecie && z.szer < a.grubosc) uwagi.push({ rodzaj: 'skladanka', ...gdzie, opis: tt('skladanka.szczelinaNaCzesciMa', { nr: c.nr, mmTxt: mmTxt(z.szer), mmTxt2: mmTxt(a.grubosc), mmTxt3: mmTxt(a.grubosc + 0.2) }) });
       }
     }
   }
   for (const a of arkusze) {
-    for (const [nrA, nrB, id] of nachodzaceCzesci(a.strona.obiekty)) uwagi.push({ rodzaj: 'skladanka', strony: a.nr ? [a.nr] : [], idStrony: a.strona.id, idObiektu: id, opis: `Części ${nrA} i ${nrB} nachodzą na siebie (razem z zakładkami) – nie da się ich wyciąć. Rozsuń je albo użyj „Rozłóż na arkusze”.` });
+    for (const [nrA, nrB, id] of nachodzaceCzesci(a.strona.obiekty)) uwagi.push({ rodzaj: 'skladanka', strony: a.nr ? [a.nr] : [], idStrony: a.strona.id, idObiektu: id, opis: tt('skladanka.czesciINachodzaNa', { nrA, nrB }) });
   }
   for (const [para, lista] of wpisy) {
     const g = lista[0].gdzie;
-    if (lista.length === 1) { uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Numer ${para} (${lista[0].opis}) nie ma pary – nie wiadomo, do czego to przykleić. Połącz z krawędzią albo miejscem (narzędzie „Połącz”) albo usuń numer.` }); continue; }
+    if (lista.length === 1) { uwagi.push({ rodzaj: 'skladanka', ...g, opis: tt('skladanka.numerNieMaPary', { para, opis: lista[0].opis }) }); continue; }
     if (lista.length > 2) {
       // Szew po łuku (#261: walec, stożek): tyle samo krawędzi z tym numerem na dwóch częściach – razem tej samej długości.
       const wg = new Map();
       for (const w of lista) wg.set(w.gdzie.idObiektu, [...(wg.get(w.gdzie.idObiektu) || []), w]);
       const [s1, s2] = [...wg.values()];
       const szew = wg.size === 2 && s1.length === s2.length && lista.every((w) => ['zakladka', 'klej'].includes(w.rodzaj));
-      if (!szew) { uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Numer ${para} jest użyty ${lista.length} razy (${lista.map((x) => x.opis).join(', ')}) – para to dwa miejsca; nadaj pozostałym inne numery.` }); continue; }
+      if (!szew) { uwagi.push({ rodzaj: 'skladanka', ...g, opis: tt('skladanka.numerJestUzytyRazy', { para, listaIle: lista.length, join: lista.map((x) => x.opis).join(', ') }) }); continue; }
       const suma = (l) => l.reduce((x, w) => x + w.dl, 0);
-      if (Math.abs(suma(s1) - suma(s2)) > 1) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Szew ${para}: strony mają różne długości (${mmTxt(suma(s1))} i ${mmTxt(suma(s2))} mm) – po sklejeniu jedna będzie wystawać.` });
+      if (Math.abs(suma(s1) - suma(s2)) > 1) uwagi.push({ rodzaj: 'skladanka', ...g, opis: tt('skladanka.szewStronyMajaRozne', { para, mmTxt: mmTxt(suma(s1)), mmTxt2: mmTxt(suma(s2)) }) });
       continue;
     }
     const krawedzie = lista.filter((w) => ['zakladka', 'klej'].includes(w.rodzaj));
-    if (krawedzie.length === 2 && Math.abs(krawedzie[0].dl - krawedzie[1].dl) > 0.5) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: krawędzie mają różne długości (${mmTxt(krawedzie[0].dl)} i ${mmTxt(krawedzie[1].dl)} mm) – po sklejeniu jedna będzie wystawać.` });
+    if (krawedzie.length === 2 && Math.abs(krawedzie[0].dl - krawedzie[1].dl) > 0.5) uwagi.push({ rodzaj: 'skladanka', ...g, opis: tt('skladanka.paraKrawedzieMajaRozne', { para, mmTxt: mmTxt(krawedzie[0].dl), mmTxt2: mmTxt(krawedzie[1].dl) }) });
     // Linia klejenia (#285): krawędź (albo zakładka) przyklejana wzdłuż niej musi mieć jej długość – na prostej część
     // stanie pod kątem, na krzywej wygnie się; dłuższa krawędź wystaje, krótsza zostawia kawałek linii bez kleju.
     const linia = lista.find((w) => w.rodzaj === 'linia');
     const doLinii = lista.find((w) => w !== linia && ['zakladka', 'klej', 'linia'].includes(w.rodzaj));
-    if (linia && doLinii && Math.abs(linia.dl - doLinii.dl) > 1) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: ${doLinii.rodzaj === 'linia' ? 'druga linia' : 'krawędź'} ma ${mmTxt(doLinii.dl)} mm, a linia klejenia ${mmTxt(linia.dl)} mm – ${doLinii.dl > linia.dl ? 'po przyklejeniu będzie wystawać' : 'kawałek linii zostanie bez kleju'}.` });
+    if (linia && doLinii && Math.abs(linia.dl - doLinii.dl) > 1) uwagi.push({ rodzaj: 'skladanka', ...g, opis: tt('skladanka.paraMaMmA', { para, x: doLinii.rodzaj === 'linia' ? tt('skladanka.drugaLinia') : tt('skladanka.krawedz'), mmTxt: mmTxt(doLinii.dl), mmTxt2: mmTxt(linia.dl), x2: doLinii.dl > linia.dl ? tt('skladanka.poPrzyklejeniuBedzieWystawac') : tt('skladanka.kawalekLiniiZostanieBez') }) });
     const zak = lista.find((w) => w.rodzaj === 'zakladka');
     const pole = lista.find((w) => w.rodzaj === 'pole');
-    if (zak && pole && (pole.dl < zak.dl - 3 || pole.szer < zak.szer - 1)) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: miejsce klejenia (${mmTxt(pole.dl)} × ${mmTxt(pole.szer)} mm) jest mniejsze niż zakładka (${mmTxt(zak.dl)} × ${mmTxt(zak.szer)} mm) – klej wyjdzie poza nie.` });
+    if (zak && pole && (pole.dl < zak.dl - 3 || pole.szer < zak.szer - 1)) uwagi.push({ rodzaj: 'skladanka', ...g, opis: tt('skladanka.paraMiejsceKlejeniaMm', { para, mmTxt: mmTxt(pole.dl), mmTxt2: mmTxt(pole.szer), mmTxt3: mmTxt(zak.dl), mmTxt4: mmTxt(zak.szer) }) });
     const wyp = lista.find((w) => w.rodzaj === 'wypustka');
     const szcz = lista.find((w) => w.rodzaj === 'szczelina');
-    if (wyp && szcz && szcz.dl < Math.min(wyp.dl / 3, 30) + 0.5) uwagi.push({ rodzaj: 'skladanka', ...g, opis: `Para ${para}: szczelina (${mmTxt(szcz.dl)} mm) jest krótsza niż wypustka (${mmTxt(Math.min(wyp.dl / 3, 30))} mm).` });
+    if (wyp && szcz && szcz.dl < Math.min(wyp.dl / 3, 30) + 0.5) uwagi.push({ rodzaj: 'skladanka', ...g, opis: tt('skladanka.paraSzczelinaMmJest', { para, mmTxt: mmTxt(szcz.dl), mmTxt2: mmTxt(Math.min(wyp.dl / 3, 30)) }) });
   }
   return uwagi;
 }
@@ -855,9 +856,9 @@ export function paryWSekcji(strony) {
       const c = normalizujCzesc(o.czesc);
       const m = { czesc: c.nr, arkusz: i + 1, idStrony: st.id, idObiektu: o.id };
       c.krawedzie.forEach((k, j) => { if (k.para && k.typ !== 'ciecie') dodaj(k.para, { ...m, rodzaj: k.typ, opis: `${k.typ === 'zakladka' ? 'zakładka' : k.typ === 'wypustka' ? 'wypustka' : 'krawędź'} ${j + 1}` }); });
-      c.pola.forEach((p) => { if (p.para) dodaj(p.para, { ...m, rodzaj: 'pole', opis: p.spod ? 'miejsce klejenia (spód)' : 'miejsce klejenia' }); });
+      c.pola.forEach((p) => { if (p.para) dodaj(p.para, { ...m, rodzaj: 'pole', opis: p.spod ? tt('skladanka.miejsceKlejeniaSpod') : tt('skladanka.miejsceKlejenia') }); });
       c.szczeliny.forEach((z) => { if (z.para) dodaj(z.para, { ...m, rodzaj: 'szczelina', opis: 'szczelina' }); });
-      c.linie.forEach((l) => { if (l.para) dodaj(l.para, { ...m, rodzaj: 'linia', prosta: liniaProsta(l), opis: liniaProsta(l) ? 'linia klejenia' : 'krzywa linia klejenia' }); });
+      c.linie.forEach((l) => { if (l.para) dodaj(l.para, { ...m, rodzaj: 'linia', prosta: liniaProsta(l), opis: liniaProsta(l) ? tt('skladanka.liniaKlejenia') : tt('skladanka.krzywaLiniaKlejenia') }); });
     }
   });
   return new Map([...pary].sort((a, b) => (Number(a[0]) || 0) - (Number(b[0]) || 0) || a[0].localeCompare(b[0])));
@@ -956,14 +957,14 @@ export function instrukcjaMontazu(strony, sp = {}) {
   if (!lista.length) return { kroki, czesci: 0, par: 0 };
   const nazwa = (x) => `${x.c.nr}${x.c.opis ? ` (${x.c.opis})` : ''}`;
   const ark = strony.length;
-  kroki.push(`Wydrukuj ${ark === 1 ? 'arkusz' : `${ark} arkusze`}${sp.material ? ` na ${sp.material === 'karton' ? 'kartonie' : sp.material === 'tektura' ? 'tekturze' : 'papierze'}${sp.gramatura && ['papier', 'karton'].includes(sp.material) ? ` ${sp.gramatura} g/m²` : ''}` : ''}${sp.druga_strona === 'druk' ? ' dwustronnie' : ''}.`);
+  kroki.push(tt('skladanka.wydrukuj', { x: ark === 1 ? 'arkusz' : `${ark} arkusze`, x2: sp.material ? ` na ${sp.material === 'karton' ? 'kartonie' : sp.material === 'tektura' ? 'tekturze' : 'papierze'}${sp.gramatura && ['papier', 'karton'].includes(sp.material) ? ` ${sp.gramatura} g/m²` : ''}` : '', x3: sp.druga_strona === 'druk' ? ' dwustronnie' : '' }));
   kroki.push(sp.druk === 'drukarnia'
-    ? `Części wycina ploter (linia cięcia „CutContour”); bigi („Crease”) ułatwią zginanie. Części: ${lista.map(nazwa).join(', ')}.`
-    : `Wytnij części po ciągłej linii: ${lista.map((x) => `${nazwa(x)}${ark > 1 ? ` – arkusz ${x.arkusz}` : ''}`).join(', ')}. ${lista.some((x) => x.c.szczeliny.some((z) => z.naciecie)) ? 'Nacięcia (także skośne i krzywe w środku części) przetnij nożykiem przy linijce, a szczeliny wytnij.' : 'Szczeliny natnij nożykiem.'}`);
+    ? tt('skladanka.czesciWycinaPloterLinia', { join: lista.map(nazwa).join(', ') })
+    : tt('skladanka.wytnijCzesciPoCiaglej', { join: lista.map((x) => `${nazwa(x)}${ark > 1 ? tt('skladanka.arkusz', { arkusz: x.arkusz }) : ''}`).join(', '), x: lista.some((x) => x.c.szczeliny.some((z) => z.naciecie)) ? tt('skladanka.nacieciaTakzeSkosneI') : tt('skladanka.szczelinyNatnijNozykiem') }));
   const zgiecia = lista.map((x) => ({ x, g: x.c.zgiecia.filter((z) => z.rodzaj === 'gora').length, d: x.c.zgiecia.filter((z) => z.rodzaj === 'dolina').length, z: x.c.krawedzie.filter((k) => k.typ === 'zakladka').length })).filter((y) => y.g + y.d + y.z);
   if (zgiecia.length) {
     kroki.push('Zegnij wszystkie linie przed klejeniem – przyłóż linijkę i przeciągnij tępą stroną noża. Kreska–kropka („góra”) – zginaj od siebie, nadruk zostaje na zewnątrz; same kreski („dolina”) – do siebie. Zakładki zaginaj pod spód.');
-    for (const y of zgiecia) kroki.push(`Część ${nazwa(y.x)}: ${[y.g ? `${y.g} ${y.g === 1 ? 'zgięcie od siebie' : 'zgięcia od siebie'}` : '', y.d ? `${y.d} do siebie` : '', y.z ? `${y.z} ${y.z === 1 ? 'zakładka' : 'zakładki'}` : ''].filter(Boolean).join(', ')}.`);
+    for (const y of zgiecia) kroki.push(tt('skladanka.czesc', { nazwa: nazwa(y.x), join: [y.g ? `${y.g} ${y.g === 1 ? tt('skladanka.zgiecieOdSiebie') : tt('skladanka.zgieciaOdSiebie')}` : '', y.d ? tt('skladanka.doSiebie', { d: y.d }) : '', y.z ? `${y.z} ${y.z === 1 ? tt('skladanka.zakladka') : tt('skladanka.zakladki')}` : ''].filter(Boolean).join(', ') }));
   }
   const pary = paryWSekcji(strony);
   const opis = (w) => `${w.opis} części ${w.czesc}`;
@@ -974,14 +975,14 @@ export function instrukcjaMontazu(strony, sp = {}) {
     const szcz = w.find((x) => x.rodzaj === 'szczelina');
     const lin = w.find((x) => x.rodzaj === 'linia');
     const doLin = lin && w.find((x) => x !== lin);
-    if (wyp && szcz) kroki.push(`${para}. Wsuń wypustkę ${para} (część ${wyp.czesc}) w szczelinę ${para} (część ${szcz.czesc}).`);
+    if (wyp && szcz) kroki.push(tt('skladanka.wsunWypustkeCzescW', { para, czesc: wyp.czesc, czesc2: szcz.czesc }));
     else if (lin && doLin && doLin.rodzaj !== 'linia') {
       const co = doLin.rodzaj === 'zakladka' ? `zakładkę ${para} (część ${doLin.czesc})` : `${opis(doLin)}`;
       kroki.push(lin.prosta
-        ? `${para}. Posmaruj klejem ${co} i przyklej wzdłuż linii ${para} na części ${lin.czesc} – doklejona część stanie pod kątem (zegnij ją na linii).`
-        : `${para}. Posmaruj klejem ${co} i przyklej wzdłuż krzywej linii ${para} na części ${lin.czesc}, prowadząc po kawałku – doklejona część wygnie się (zawinie) wzdłuż krzywej.`);
-    } else if (lin) kroki.push(`${para}. Sklej linie ${para} na częściach ${w[0].czesc} i ${w[1].czesc}.`);
-    else if (zak) { const inna = w.find((x) => x !== zak); kroki.push(`${para}. Posmaruj klejem zakładkę ${para} (część ${zak.czesc}) i przyklej ${inna.rodzaj === 'pole' ? `w miejscu ${para} na części ${inna.czesc}` : `pod ${opis(inna)} z numerem ${para}`}.`); } else kroki.push(`${para}. Sklej ${opis(w[0])} z ${opis(w[1])}.`);
+        ? tt('skladanka.posmarujKlejemIPrzyklej', { para, co, czesc: lin.czesc })
+        : tt('skladanka.posmarujKlejemIPrzyklej2', { para, co, czesc: lin.czesc }));
+    } else if (lin) kroki.push(tt('skladanka.sklejLinieNaCzesciach', { para, czesc: w[0].czesc, czesc2: w[1].czesc }));
+    else if (zak) { const inna = w.find((x) => x !== zak); kroki.push(tt('skladanka.posmarujKlejemZakladkeCzesc', { para, czesc: zak.czesc, x: inna.rodzaj === 'pole' ? tt('skladanka.wMiejscuNaCzesci', { para, czesc: inna.czesc }) : tt('skladanka.podZNumerem', { opis: opis(inna), para }) })); } else kroki.push(tt('skladanka.sklejZ', { para, opis: opis(w[0]), opis2: opis(w[1]) }));
   }
   kroki.push('Dociśnij sklejone miejsca i odczekaj, aż klej wyschnie.');
   return { kroki, czesci: lista.length, par: pary.size };

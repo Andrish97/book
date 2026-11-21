@@ -85,7 +85,7 @@ export const biezacyJezyk = () => jezyk;
 
 try {
   const startowy = wybranyJezyk();
-  if (startowy !== 'pl') klucze = await wczytajKlucze(startowy);
+  if (startowy !== 'pl') { klucze = await wczytajKlucze(startowy); jezykKluczy = startowy; }
 } catch { /* bez słownika – napisy po polsku, ustawJezyk spróbuje jeszcze raz */ }
 
 // Napis złożony w kodzie z kilku części („Okładka: Twarda”, „Kolor #1f2a44 – zmień”): gdy słownik nie ma całości,
@@ -112,9 +112,52 @@ function przeloz(klucz, glebokosc = 0) {
 
 // Tłumaczenie napisu z JS (np. komunikat) – bez słownika albo bez wpisu: polski.
 // t('obszar.nazwa', { n: 3 }) – napis klucza w bieżącym języku ze zmiennymi {n}; t('Polski napis') – dawny słownik.
+// Wartości kluczy ze zmiennymi i odmianą (#356, zapis jak ICU MessageFormat): „Usunięto {n, plural, one {# obraz}
+// few {# obrazy} many {# obrazów} other {# obrazu}}.” – formę wybiera reguła języka (Intl.PluralRules: polski
+// i ukraiński one/few/many/other, angielski one/other); „#” to liczba, „=0 {…}” – dokładna wartość.
+const reguly = new Map();
+const kategoria = (j, n) => {
+  let r = reguly.get(j);
+  if (!r) { r = new Intl.PluralRules(j); reguly.set(j, r); }
+  return r.select(n);
+};
+const zamkniecie = (s, od) => { let g = 0; for (let k = od; k < s.length; k += 1) { if (s[k] === '{') g += 1; else if (s[k] === '}') { g -= 1; if (!g) return k; } } return -1; };
+export function formatuj(wzor, zmienne, j = 'pl') {
+  let wynik = '';
+  for (let i = 0; i < wzor.length;) {
+    if (wzor[i] !== '{') { wynik += wzor[i]; i += 1; continue; }
+    const k = zamkniecie(wzor, i);
+    if (k < 0) { wynik += wzor.slice(i); break; }
+    const m = /^\s*(\w+)\s*(?:,\s*plural\s*,([\s\S]*))?$/.exec(wzor.slice(i + 1, k));
+    const v = m ? zmienne?.[m[1]] : undefined;
+    if (!m || v === undefined) { wynik += wzor.slice(i, k + 1); i = k + 1; continue; }
+    if (m[2] === undefined) wynik += String(v);
+    else {
+      const warianty = {};
+      const s = m[2];
+      for (let p = 0; p < s.length;) {
+        const mm = /^\s*(=?[\w.-]+)\s*\{/.exec(s.slice(p));
+        if (!mm) break;
+        const start = p + mm[0].length - 1;
+        const kon = zamkniecie(s, start);
+        if (kon < 0) break;
+        warianty[mm[1]] = s.slice(start + 1, kon);
+        p = kon + 1;
+      }
+      const n = Number(v);
+      const tekst = warianty[`=${n}`] ?? warianty[kategoria(j, n)] ?? warianty.other ?? warianty.many ?? '';
+      wynik += formatuj(tekst.replace(/#/g, String(v)), zmienne, j);
+    }
+    i = k + 1;
+  }
+  return wynik;
+}
+
+let jezykKluczy = 'pl';
 export function t(tekst, zmienne = null) {
-  const kl = (klucze || slownikiKluczy.pl)?.[tekst] ?? slownikiKluczy.pl?.[tekst];
-  if (kl !== undefined) return zmienne ? kl.replace(/\{(\w+)\}/g, (c, n) => (zmienne[n] !== undefined ? String(zmienne[n]) : c)) : kl;
+  const zBiezacego = klucze?.[tekst];
+  const kl = zBiezacego ?? slownikiKluczy.pl?.[tekst];
+  if (kl !== undefined) return zmienne ? formatuj(kl, zmienne, zBiezacego !== undefined ? jezykKluczy : 'pl') : kl;
   if (jezyk === 'pl' || !slownik) return tekst;
   return przeloz(norm(tekst)) ?? tekst;
 }
@@ -201,6 +244,7 @@ export async function ustawJezyk(nowy, { zapamietaj = true } = {}) {
   // Słownik kluczy bieżącego języka i polski (rozpoznanie napisów klucza przy przełączaniu języków).
   [klucze] = await Promise.all([wczytajKlucze(nowy), wczytajKlucze('pl')]);
   jezyk = nowy;
+  jezykKluczy = nowy;
   document.documentElement.lang = nowy;
   if (zapamietaj) { try { localStorage.setItem(KLUCZ, nowy); } catch { /* bez pamięci – na tę sesję */ } }
   zastosuj();

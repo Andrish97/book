@@ -8,13 +8,13 @@ import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie, znajdz
 import { normalizujKod, uwagiKodu } from './kody.js';
 import { wzorceStrony } from './projekt.js';
 import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
-import { odmiana } from './ui.js';
 import { bilansSkladki } from './okladka.js';
 import { uwagiSekcjiSpecjalnych } from './sekcje-specjalne.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
 import { uwagiKolorowDruku } from './kolory-druku.js';
 import { tacKoloru, silnikTac, LIMIT_TAC } from './separacje.js';
 import { indeksKsiazki, uzywaKsiazki } from './ksiazka.js';
+import { t as tt } from './jezyk.js';
 
 const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
 
@@ -133,8 +133,8 @@ export function szablonSerii(projekt, seria) {
   const blok = blokiSerii(projekt).find((b) => b.seria.id === seria.id);
   const n = blok?.strony.length || 1;
   const coWiersz = seria.uklad === 'dlugi' && seria.tryb === 'tabela'
-    ? `Jeden wiersz to jedna strona; blok serii ma ${n} ${odmiana(n, 'stronę', 'strony', 'stron')}.`
-    : `Jeden wiersz to jedno powielenie bloku (${n} ${odmiana(n, 'strona', 'strony', 'stron')}).`;
+    ? tt('kontrola.jedenWierszToJedna', { n })
+    : tt('kontrola.jedenWierszToJedno', { n });
   const role = roleKolumn(projekt, seria);
   const listy = [];
   kolumny.forEach((k, i) => {
@@ -199,15 +199,15 @@ export function powtorzenia(tabela, kolumna) {
 // Kiedy tabela dodatkowa przechodzi do następnego wiersza – słowami, do komunikatów.
 export const opisKroku = (d) => {
   const kolumny = kolumnyZmiany(d.zmiana);
-  if (kolumny.length > 1) return `nowy wiersz, gdy zmieni się kolumna ${kolumny.map((x) => `„${x}”`).join(' albo ')}`;
+  if (kolumny.length > 1) return tt('kontrola.nowyWierszGdyZmieni', { join: kolumny.map((x) => `„${x}”`).join(' albo ') });
   return kolumny.length
-    ? `nowy wiersz, gdy zmieni się kolumna „${kolumny[0]}”`
-    : `nowy wiersz co ${d.co} ${odmiana(d.co, 'stronę', 'strony', 'stron')}`;
+    ? tt('kontrola.nowyWierszGdyZmieni2', { x: kolumny[0] })
+    : tt('kontrola.nowyWierszCo', { co: d.co });
 };
 
 const lista = (numery, ile = 6) => {
   const n = [...new Set(numery)].sort((a, b) => a - b);
-  return n.length > ile ? `${n.slice(0, ile).join(', ')} i ${n.length - ile} ${odmiana(n.length - ile, 'innej', 'innych', 'innych')}` : n.join(', ').replace(/, (\d+)$/, ' i $1');
+  return n.length > ile ? tt('kontrola.i', { join: n.slice(0, ile).join(', '), x: n.length - ile }) : n.join(', ').replace(/, (\d+)$/, ' i $1');
 };
 
 // Uwagi do całego projektu przed drukiem: [{ rodzaj, opis, strony: [numery w wydruku] }].
@@ -218,17 +218,17 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   for (const sekcja of projekt.sekcje) {
     const b = bilansSkladki(sekcja, ciag);
     if (b?.brakuje) {
-      uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Sekcja „${sekcja.nazwa}” ma ${b.stron} ${odmiana(b.stron, 'stronę', 'strony', 'stron')} – do pełnej składki po ${b.skladka} brakuje ${b.brakuje}. Dodaj strony albo użyj „Dopełnij pustymi” na liście stron.` });
+      uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: tt('kontrola.sekcjaMaDoPelnej', { nazwa: sekcja.nazwa, stron: b.stron, skladka: b.skladka, brakuje: b.brakuje }) });
     }
     // Okleina (#214): płótno, skóra… – nadruk okładki się nie drukuje, drukarnia potrzebuje płyt złocenia/tłoczenia.
     const wyk = sekcja.okladka?.wykonczenie;
     if (wyk && wyk.material !== 'druk') {
-      uwagi.push({ rodzaj: 'material', idSekcji: sekcja.id, opis: `Okładka „${sekcja.nazwa}” jest z okleiny (${opisWykonczenia(wyk)}): jej grafika się nie drukuje. Na okleinie zostają elementy ze złoceniem albo tłoczeniem – wyślij drukarni plik uszlachetnień (Eksport PDF → uszlachetnienia osobno) i specyfikację (menu ⋯ → Specyfikacja dla drukarni).` });
+      uwagi.push({ rodzaj: 'material', idSekcji: sekcja.id, opis: tt('kontrola.okladkaJestZOkleiny', { nazwa: sekcja.nazwa, opisWykonczenia: opisWykonczenia(wyk) }) });
     }
-    if (wyk?.rogi_mm > 0) uwagi.push({ rodzaj: 'material', idSekcji: sekcja.id, opis: `Okładka „${sekcja.nazwa}” ma zaokrąglone rogi (${wyk.rogi_mm} mm) – nie stawiaj ważnych elementów w narożnikach; zaznacz to w zamówieniu (Specyfikacja dla drukarni).` });
+    if (wyk?.rogi_mm > 0) uwagi.push({ rodzaj: 'material', idSekcji: sekcja.id, opis: tt('kontrola.okladkaMaZaokragloneRogi', { nazwa: sekcja.nazwa, rogi_mm: wyk.rogi_mm }) });
     const okl = sekcja.okladka?.wynik;
     if (okl && sekcja.okladka.oprawa === 'zeszytowa' && okl.stron % 4) {
-      uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: `Oprawa zeszytowa: środek ma ${okl.stron} stron, a potrzeba liczby podzielnej przez 4.` });
+      uwagi.push({ rodzaj: 'skladka', idSekcji: sekcja.id, opis: tt('kontrola.oprawaZeszytowaSrodekMa', { stron: okl.stron }) });
     }
   }
   // Podłoże (#213): biel nie jest farbą – na kolorowym papierze i folii białe elementy wyjdą w kolorze podłoża;
@@ -248,9 +248,9 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     const egz = ciag.egzemplarze.filter((e) => e.sekcja.id === sekcja.id && !e.pusta);
     const zBiela = egz.filter((e) => biale(e.strona.obiekty).length || (e.strona.tlo && bialy(e.strona.tlo))).map((e) => e.nr ?? e.indeks + 1);
     const podloze = r === 'folia' ? 'przezroczystej folii' : 'kolorowym papierze';
-    if (zBiela.length) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: zBiela, opis: `Sekcja „${sekcja.nazwa}” jest na ${podloze}: białe elementy nie wydrukują się (biel to brak farby) – wyjdą ${r === 'folia' ? 'przezroczyste' : 'w kolorze papieru'}. Ustaw im biały poddruk (Kolory do druku → Uszlachetnienie) albo inny kolor. ${odmiana(new Set(zBiela).size, 'Strona', 'Strony', 'Strony')} ${lista(zBiela)}.` });
+    if (zBiela.length) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: zBiela, opis: tt('kontrola.sekcjaJestNaBiale', { nazwa: sekcja.nazwa, podloze, x: r === 'folia' ? 'przezroczyste' : tt('kontrola.wKolorzePapieru'), size: new Set(zBiela).size, lista: lista(zBiela) }) });
     const zPoddrukiem = egz.some((e) => JSON.stringify(e.strona.obiekty).includes('"uszlachetnienie":"bialy"'));
-    if (r === 'folia' && !zPoddrukiem) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: [], opis: `Sekcja „${sekcja.nazwa}” jest na przezroczystej folii, a żaden element nie ma białego poddruku – kolory będą prześwitywać. Jeśli mają być kryjące, ustaw pod nimi biały poddruk.` });
+    if (r === 'folia' && !zPoddrukiem) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: [], opis: tt('kontrola.sekcjaJestNaPrzezroczystej', { nazwa: sekcja.nazwa }) });
   }
   // Linie wykrojnika (#218): czy da się wyciąć i złożyć – cięcie z zamkniętego kształtu, big i klej na wykroju.
   const techniczne = (obiekty, wynik = [], zGrupy = null) => {
@@ -280,9 +280,9 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       if (t.some((x) => (x.id === 'big' || x.id === 'klej') && (() => { const q = ramka(x.o); return q.x2 < x1 || q.x1 > x2 || q.y2 < y1 || q.y1 > y2; })())) wykNaStronach.poza.push(nr);
     }
   }
-  if (wykNaStronach.otwarte.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.otwarte, opis: `Linia cięcia z otwartej linii – nóż przetnie tylko ten odcinek. Jeśli to obrys kawałka do wycięcia, narysuj go zamkniętym kształtem (prostokąt, wielokąt, zamknięty kształt piórem). ${odmiana(new Set(wykNaStronach.otwarte).size, 'Strona', 'Strony', 'Strony')} ${lista(wykNaStronach.otwarte)}.` });
-  if (wykNaStronach.bezCiecia.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.bezCiecia, opis: `Są linie zgięcia albo miejsca klejenia, a nie ma linii cięcia – składanka nie da się wyciąć. Oznacz obrys kawałka jako „Cięcie” (Kolory do druku → Wykończenie). ${odmiana(new Set(wykNaStronach.bezCiecia).size, 'Strona', 'Strony', 'Strony')} ${lista(wykNaStronach.bezCiecia)}.` });
-  if (wykNaStronach.poza.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.poza, opis: `Linia zgięcia albo miejsce klejenia leży poza wykrojem – po wycięciu jej nie będzie. Przesuń ją na wycinany kawałek. ${odmiana(new Set(wykNaStronach.poza).size, 'Strona', 'Strony', 'Strony')} ${lista(wykNaStronach.poza)}.` });
+  if (wykNaStronach.otwarte.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.otwarte, opis: tt('kontrola.liniaCieciaZOtwartej', { size: new Set(wykNaStronach.otwarte).size, lista: lista(wykNaStronach.otwarte) }) });
+  if (wykNaStronach.bezCiecia.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.bezCiecia, opis: tt('kontrola.saLinieZgieciaAlbo', { size: new Set(wykNaStronach.bezCiecia).size, lista: lista(wykNaStronach.bezCiecia) }) });
+  if (wykNaStronach.poza.length) uwagi.push({ rodzaj: 'wykrojnik', strony: wykNaStronach.poza, opis: tt('kontrola.liniaZgieciaAlboMiejsce', { size: new Set(wykNaStronach.poza).size, lista: lista(wykNaStronach.poza) }) });
   // Sekcje specjalne (#177): tekst na zgięciu, elementy poza wykrojnikiem, ulotka z nadmiarowymi stronami.
   uwagi.push(...uwagiSekcjiSpecjalnych(projekt, ciag));
   // Kody QR i EAN (#128): za mały moduł, za wąski EAN, za jasny kod, zła treść – także po podstawieniu danych.
@@ -304,7 +304,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       for (const u of uwagiKodu(k)) kodyUwagi.set(u, [...(kodyUwagi.get(u) || []), egz.indeks + 1]);
     }
   }
-  for (const [opis, strony] of kodyUwagi) uwagi.push({ rodzaj: 'kod', strony, opis: `${opis} ${odmiana(new Set(strony).size, 'Strona', 'Strony', 'Strony')} ${[...new Set(strony)].join(', ')}.` });
+  for (const [opis, strony] of kodyUwagi) uwagi.push({ rodzaj: 'kod', strony, opis: tt('kontrola.tekst', { opis, size: new Set(strony).size, join: [...new Set(strony)].join(', ') }) });
   // Kolory do druku (#127): kolory dodatkowe, uszlachetnienia, kolory spoza trybu kolorów projektu.
   const pierwszyNr = new Map();
   for (const e of ciag.egzemplarze) if (!pierwszyNr.has(e.strona.id)) pierwszyNr.set(e.strona.id, e.indeks + 1);
@@ -323,7 +323,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     for (const o of lista || []) {
       if (o?.z_importu) {
         const nr = strona ? pierwszyNr.get(strona.id) : null;
-        uwagi.push({ rodzaj: 'z_importu', naprawa: 'z_importu', idObiektu: o.id, ...(strona ? { idStrony: strona.id, strony: nr ? [nr] : [] } : { strony: [] }), opis: `Z importu${wzorzec ? ` (wzorzec „${wzorzec.nazwa}”)` : ''}: ${o.z_importu}.` });
+        uwagi.push({ rodzaj: 'z_importu', naprawa: 'z_importu', idObiektu: o.id, ...(strona ? { idStrony: strona.id, strony: nr ? [nr] : [] } : { strony: [] }), opis: tt('kontrola.zImportu', { x: wzorzec ? tt('kontrola.wzorzec', { nazwa: wzorzec.nazwa }) : '', z_importu: o.z_importu }) });
       }
       if (Array.isArray(o?.objects)) zImportu(o.objects, strona, wzorzec);
     }
@@ -347,7 +347,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     for (const s of projekt.strony) przejdz(s.obiekty, pierwszyNr.get(s.id));
     for (const [k, w] of zaDuzo) {
       const strony = [...w.strony];
-      uwagi.push({ rodzaj: 'pokrycie_farba', strony, opis: `Kolor ${k} po przeliczeniu na CMYK daje ${w.tac}% pokrycia farbą (powyżej ${LIMIT_TAC}%) – drukarnia może prosić o jaśniejszy kolor albo czerń bez domieszek.${strony.length ? ` ${odmiana(strony.length, 'Strona', 'Strony', 'Strony')} ${strony.join(', ')}.` : ''} Sprawdź w podglądzie separacji.` });
+      uwagi.push({ rodzaj: 'pokrycie_farba', strony, opis: tt('kontrola.kolorPoPrzeliczeniuNa', { k, tac: w.tac, LIMIT_TAC, x: strony.length ? tt('kontrola.tekst2', { stronyIle: strony.length, join: strony.join(', ') }) : '' }) });
     }
   }
   const pamiec = new Map();
@@ -397,20 +397,20 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     const szukaj = (obiekty) => { for (const o of obiekty || []) { if (typeof o?.text === 'string' && !o.bez_pol) for (const p of znajdzPola(o.text)) if (p.nazwa === 's' && !ix.gdzie.has(p.zapis)) zerwane.add(o.text.slice(0, 40)); if (Array.isArray(o?.objects)) szukaj(o.objects); } };
     for (const st of projekt.strony) szukaj(st.obiekty);
     for (const w of projekt.wzorce || []) szukaj(w.obiekty);
-    if (zerwane.size) uwagi.push({ rodzaj: 'odsylacz', opis: `Odsyłacz prowadzi do elementu, którego już nie ma (zamiast numeru strony widać „?”): ${[...zerwane].map((t) => `„${t}”`).join(', ')}. Wstaw odsyłacz jeszcze raz.` });
+    if (zerwane.size) uwagi.push({ rodzaj: 'odsylacz', opis: tt('kontrola.odsylaczProwadziDoElementu', { join: [...zerwane].map((t) => `„${t}”`).join(', ') }) });
   }
 
   for (const [nazwa, strony] of nieznane) {
-    uwagi.push({ rodzaj: 'nieznane_pole', strony, opis: `Pole {${nazwa}} nie ma skąd wziąć wartości (nie ma takiej kolumny ani pola dokumentu) – ${odmiana(new Set(strony).size, 'strona', 'strony', 'strony')} ${lista(strony)}.` });
+    uwagi.push({ rodzaj: 'nieznane_pole', strony, opis: tt('kontrola.poleNieMaSkad', { nazwa: `{${nazwa}}`, size: new Set(strony).size, lista: lista(strony) }) });
   }
   for (const [klucz, strony] of brakObrazu) {
     const [kolumna, plik] = klucz.split('\n');
-    uwagi.push({ rodzaj: 'brak_obrazu', strony, opis: `Nie ma w projekcie obrazu „${plik}” (kolumna „${kolumna}”) – ${odmiana(new Set(strony).size, 'strona', 'strony', 'strony')} ${lista(strony)}.` });
+    uwagi.push({ rodzaj: 'brak_obrazu', strony, opis: tt('kontrola.nieMaWProjekcie', { plik, kolumna, size: new Set(strony).size, lista: lista(strony) }) });
   }
   for (const [klucz, strony] of niejednoznaczne) {
     const [kolumna, plik] = klucz.split('\n');
     const pasuja = obrazZNazwy(projekt.zasoby, plik, czcionki).niejednoznaczne.map((id) => `„${projekt.zasoby[id].nazwa}”`).join(', ');
-    uwagi.push({ rodzaj: 'brak_obrazu', strony, opis: `Niejednoznaczna nazwa obrazu „${plik}” (kolumna „${kolumna}”): pasuje kilka plików (${pasuja}) – dopisz w tabeli rozszerzenie. ${odmiana(new Set(strony).size, 'Strona', 'Strony', 'Strony')} ${lista(strony)}.` });
+    uwagi.push({ rodzaj: 'brak_obrazu', strony, opis: tt('kontrola.niejednoznacznaNazwaObrazuKolumna', { plik, kolumna, pasuja, size: new Set(strony).size, lista: lista(strony) }) });
   }
   // Powtórzenia: na stronach, a gdy kolumna nie jest nigdzie użyta – w samej tabeli.
   for (const tabela of projekt.tabele) {
@@ -422,11 +422,11 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
           // Powtórzenie to ta sama wartość w dwóch różnych wierszach. Jeden wiersz pokazany na
           // kilku stronach (np. tydzień na siedmiu stronach dni) powtórzeniem nie jest.
           const strony = [...new Set(stan.strony)];
-          if (stan.wiersze.size > 1) uwagi.push({ rodzaj: 'powtorzenie', strony, opis: `Wartość „${wartosc}” z kolumny „${kolumna}” (tabela „${tabela.nazwa}”) powtarza się na stronach ${lista(strony)}.` });
+          if (stan.wiersze.size > 1) uwagi.push({ rodzaj: 'powtorzenie', strony, opis: tt('kontrola.wartoscZKolumnyTabela', { wartosc, kolumna, nazwa: tabela.nazwa, lista: lista(strony) }) });
         }
       } else {
         for (const p of powtorzenia(tabela, kolumna)) {
-          uwagi.push({ rodzaj: 'powtorzenie', strony: [], opis: `Wartość „${p.wartosc}” w kolumnie „${kolumna}” (tabela „${tabela.nazwa}”) powtarza się w wierszach ${lista(p.wiersze.map((i) => i + 1))}.` });
+          uwagi.push({ rodzaj: 'powtorzenie', strony: [], opis: tt('kontrola.wartoscWKolumnieTabela', { wartosc: p.wartosc, kolumna, nazwa: tabela.nazwa, lista: lista(p.wiersze.map((i) => i + 1)) }) });
         }
       }
     }
@@ -435,7 +435,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
   for (const tabela of projekt.tabele) {
     for (const kolumna of Object.keys(tabela.listy || {})) {
       for (const s of spozaListy(tabela, kolumna)) {
-        uwagi.push({ rodzaj: 'spoza_listy', strony: [], opis: `Wartość „${s.wartosc}” w kolumnie „${kolumna}” (tabela „${tabela.nazwa}”) nie jest na liście dozwolonych wartości – ${odmiana(s.wiersze.length, 'wiersz', 'wiersze', 'wiersze')} ${lista(s.wiersze.map((i) => i + 1))}.` });
+        uwagi.push({ rodzaj: 'spoza_listy', strony: [], opis: tt('kontrola.wartoscWKolumnieTabela2', { wartosc: s.wartosc, kolumna, nazwa: tabela.nazwa, wierszeIle: s.wiersze.length, lista: lista(s.wiersze.map((i) => i + 1)) }) });
       }
     }
   }
@@ -446,26 +446,26 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     for (const blok of bilansSerii(projekt, seria, ciag)) {
       if (blok.puste.length) {
         const ile = blok.puste.length;
-        uwagi.push({ rodzaj: 'pusta_strona', strony: blok.puste, opis: `Seria „${seria.nazwa}”: ${odmiana(ile, 'wstawiona została pusta strona', 'wstawione zostały puste strony', 'wstawionych zostało pustych stron')} (${odmiana(ile, 'strona', 'strony', 'strony')} ${lista(blok.puste)}), żeby strony lewe zostały po lewej, a prawe po prawej. Pusta strona jest biała i liczy się w numeracji.` });
+        uwagi.push({ rodzaj: 'pusta_strona', strony: blok.puste, opis: tt('kontrola.seriaZebyStronyLewe', { nazwa: seria.nazwa, ile, lista: lista(blok.puste) }) });
       }
       if (blok.zamianaOd !== null) {
-        uwagi.push({ rodzaj: 'zamiana_stron', strony: [blok.zamianaOd], opis: `Seria „${seria.nazwa}”: od strony ${blok.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki niż w układzie stron (lewa po prawej, prawa po lewej). Zaznacz w oknie serii „Pilnuj lewej i prawej strony”, a w takim miejscu stanie pusta strona.` });
+        uwagi.push({ rodzaj: 'zamiana_stron', strony: [blok.zamianaOd], opis: tt('kontrola.seriaOdStronyStrony', { nazwa: seria.nazwa, zamianaOd: blok.zamianaOd }) });
       }
       if (!blok.stron && blok.pominietych) {
-        uwagi.push({ rodzaj: 'seria_bez_stron', strony: [], opis: `Seria „${seria.nazwa}”: wszystkie wiersze tabeli są pomijane (${ZNACZNIK_POMIJANIA}) – seria nie daje żadnej strony.` });
+        uwagi.push({ rodzaj: 'seria_bez_stron', strony: [], opis: tt('kontrola.seriaWszystkieWierszeTabeli', { nazwa: seria.nazwa, ZNACZNIK_POMIJANIA }) });
       }
       for (const d of blok.dodatkowe) {
         if (d.potrzeba > d.jest) {
           const ostatnia = ciag.egzemplarze.filter((e) => e.seria?.id === seria.id).at(-1).indeks + 1;
-          uwagi.push({ rodzaj: 'brak_danych', strony: [d.brakOd], opis: `Seria „${seria.nazwa}”: tabela „${d.tabela.nazwa}” ma ${d.jest} ${odmiana(d.jest, 'wiersz', 'wiersze', 'wierszy')}, a potrzeba ${d.potrzeba} (${opisKroku(d)}). Od strony ${d.brakOd}${ostatnia > d.brakOd ? ` do ${ostatnia}` : ''} jej pola zostaną puste.` });
+          uwagi.push({ rodzaj: 'brak_danych', strony: [d.brakOd], opis: tt('kontrola.seriaTabelaMaA', { nazwa: seria.nazwa, nazwa2: d.tabela.nazwa, jest: d.jest, potrzeba: d.potrzeba, opisKroku: opisKroku(d), brakOd: d.brakOd, x: ostatnia > d.brakOd ? ` do ${ostatnia}` : '' }) });
         }
       }
       if (seria.tryb === 'tabela' && seria.uklad === 'dlugi' && seria.dopelnij && wierszy % blok.dlugosc) {
-        uwagi.push({ rodzaj: 'niepelny_blok', strony: [], opis: `Seria „${seria.nazwa}”: tabela ma ${wierszy} ${odmiana(wierszy, 'wiersz', 'wiersze', 'wierszy')}, a blok ${blok.dlugosc} ${odmiana(blok.dlugosc, 'stronę', 'strony', 'stron')} – ostatnie powielenie jest dokończone stronami bez danych.` });
+        uwagi.push({ rodzaj: 'niepelny_blok', strony: [], opis: tt('kontrola.seriaTabelaMaA2', { nazwa: seria.nazwa, wierszy, dlugosc: blok.dlugosc }) });
       }
     }
     if (seria.tryb === 'stala' && zDanymi && seria.ile > zDanymi && (tabelaSerii(projekt, seria).unikalne || []).length) {
-      uwagi.push({ rodzaj: 'za_malo_wartosci', strony: [], opis: `Seria „${seria.nazwa}” powiela się ${seria.ile} razy, a tabela ma ${zDanymi} ${odmiana(zDanymi, 'wiersz', 'wiersze', 'wierszy')}${zDanymi < wierszy ? ' z danymi' : ''} – wartości zaczną się powtarzać.` });
+      uwagi.push({ rodzaj: 'za_malo_wartosci', strony: [], opis: tt('kontrola.seriaPowielaSieRazy', { nazwa: seria.nazwa, ile: seria.ile, zDanymi, x: zDanymi < wierszy ? tt('kontrola.zDanymi') : '' }) });
     }
   }
   return uwagi;
@@ -494,10 +494,10 @@ function uwagiPopupu(arkusze) {
   const kartka = czesci.find((c) => (c.czesc.zgiecia || []).some((z) => z.grzbiet));
   const uwagi = [];
   // Koszt więzów przy zamkniętej kartce: dobre modele mają ~1e-3, za długi pasek – setki.
-  if (w.koszt > 0.05) uwagi.push({ ...gdzie(kartka), opis: `Kartka pop-up ${nazwa(kartka)} nie zamyka się na płasko – doklejone części blokują się (pasek platformy albo ramię V innej długości niż odległość miejsc klejenia). Popraw długości albo miejsca klejenia.` });
+  if (w.koszt > 0.05) uwagi.push({ ...gdzie(kartka), opis: tt('kontrola.kartkaPopUpNie', { nazwa: nazwa(kartka) }) });
   for (const { ic, mm } of w.wystaje) {
     const c = czesci[ic];
-    uwagi.push({ ...gdzie(c), opis: `Część ${nazwa(c)} wystaje po zamknięciu kartki pop-up o ${Math.round(mm)} mm – skróć ją albo przesuń miejsca klejenia bliżej grzbietu.` });
+    uwagi.push({ ...gdzie(c), opis: tt('kontrola.czescWystajePoZamknieciu', { nazwa: nazwa(c), round: Math.round(mm) }) });
   }
   return uwagi;
 }

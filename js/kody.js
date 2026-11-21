@@ -5,6 +5,7 @@
 // ean13(cyfry) → { cyfry, moduly: [bool × 95] } (bez marginesów ciszy)
 
 // ---------- QR: tablice z normy ----------
+import { t as tt } from './jezyk.js';
 
 const POZIOMY = { L: 1, M: 0, Q: 3, H: 2 }; // bity formatu poziomu korekcji
 const KOLEJNOSC = ['L', 'M', 'Q', 'H'];
@@ -499,8 +500,8 @@ export function uwagiKodu(k, modul = null) {
   const uwagi = [];
   const rys = modul == null ? rysunekKodu(k) : { modul, blad: null };
   if (rys.blad) { uwagi.push(rys.blad); return uwagi; }
-  if (k.rodzaj === 'qr' && rys.modul < 0.33) uwagi.push(`Moduł kodu QR ma ${rys.modul.toFixed(2).replace('.', ',')} mm – telefon może go nie odczytać (najmniej 0,33 mm). Powiększ kod albo skróć treść.`);
-  if (k.rodzaj === 'ean' && k.szerokosc < EAN_NOMINAL.szerokosc * 0.8) uwagi.push(`Kod EAN ma ${Math.round((k.szerokosc / EAN_NOMINAL.szerokosc) * 100)}% wielkości nominalnej – czytniki w sklepach potrzebują najmniej 80%.`);
+  if (k.rodzaj === 'qr' && rys.modul < 0.33) uwagi.push(tt('kody.modulKoduQrMa', { replace: rys.modul.toFixed(2).replace('.', ',') }));
+  if (k.rodzaj === 'ean' && k.szerokosc < EAN_NOMINAL.szerokosc * 0.8) uwagi.push(tt('kody.kodEanMaWielkosci', { round: Math.round((k.szerokosc / EAN_NOMINAL.szerokosc) * 100) }));
   const jasnosc = (kolor) => {
     const m = /^#?([0-9a-f]{6})$/i.exec(String(kolor || '').trim());
     if (!m) return null;

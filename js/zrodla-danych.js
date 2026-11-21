@@ -8,6 +8,7 @@
 import { naDataUrl } from './zasoby.js';
 import { skrotPliku } from './obrazy-projektu.js';
 import { uid } from './projekt.js';
+import { t as tt } from './jezyk.js';
 
 export const MAKS_ZALACZNIKA = 5 * 1024 * 1024; // większych plików nie trzymamy w projekcie – tylko opis źródła
 
@@ -73,10 +74,10 @@ export function porownajTabele(stara, nowa, uzyteKolumny = new Set()) {
 
 export function opisPorownania(r) {
   const cz = [];
-  if (r.wierszyJest !== r.wierszyBylo) cz.push(`wierszy: ${r.wierszyBylo} → ${r.wierszyJest}`);
-  if (r.zmienione) cz.push(`zmienione komórki: ${r.zmienione}`);
-  if (r.noweKolumny.length) cz.push(`nowe kolumny: ${r.noweKolumny.join(', ')}`);
-  if (r.usunieteKolumny.length) cz.push(`znikną kolumny: ${r.usunieteKolumny.join(', ')}`);
+  if (r.wierszyJest !== r.wierszyBylo) cz.push(tt('zrodlaDanych.wierszy', { wierszyBylo: r.wierszyBylo, wierszyJest: r.wierszyJest }));
+  if (r.zmienione) cz.push(tt('zrodlaDanych.zmienioneKomorki', { zmienione: r.zmienione }));
+  if (r.noweKolumny.length) cz.push(tt('zrodlaDanych.noweKolumny', { join: r.noweKolumny.join(', ') }));
+  if (r.usunieteKolumny.length) cz.push(tt('zrodlaDanych.zniknaKolumny', { join: r.usunieteKolumny.join(', ') }));
   return cz.length ? cz.join('; ') : 'dane bez zmian';
 }
 

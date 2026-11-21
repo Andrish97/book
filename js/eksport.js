@@ -36,9 +36,9 @@ const ZNAK_DLUGOSC = 5; // mm
 const ZNAK_ODSTEP_MIN = 2; // mm od krawędzi strony po obcięciu
 
 export const JAKOSCI_PDF = [
-  { dpi: 150, opis: '150 dpi – wydruk próbny, mały plik' },
-  { dpi: 300, opis: '300 dpi – do drukarni' },
-  { dpi: 600, opis: '600 dpi – bardzo ostry tekst, duży plik' },
+  { dpi: 150, opis: t('eksport.150DpiWydrukProbny') },
+  { dpi: 300, opis: t('eksport.300DpiDoDrukarni') },
+  { dpi: 600, opis: t('eksport.600DpiBardzoOstry') },
 ];
 
 export class Przerwano extends Error {

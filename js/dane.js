@@ -8,7 +8,7 @@ import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabe
 import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku, spozaListy } from './kontrola.js';
 import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany, wierszPomijany, ZNACZNIK_POMIJANIA } from './serie.js';
 import { POLA_DOKUMENTU } from './pola.js';
-import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa, odmiana } from './ui.js';
+import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa } from './ui.js';
 import { wstawIkony } from './ikony.js';
 import { zPostepem } from './postep.js';
 import { przypnijZrodlo, odepnijZrodlo, zmienionaWMakietce, podpisDanych, porownajTabele, opisPorownania, zapamietajUchwyt, uchwytTabeli, plikZUchwytu, moznaZapamietacPlik, wybierzPlikZDostepem, plikZLinku } from './zrodla-danych.js';
@@ -65,7 +65,7 @@ export class Dane {
       b.setAttribute('aria-current', String(t.id === this.idTabeli));
       b.innerHTML = '<strong></strong><small></small>';
       wpiszNazwe(b.querySelector('strong'), t.nazwa);
-      b.querySelector('small').textContent = `${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')} · ${t.kolumny.length} ${odmiana(t.kolumny.length, 'kolumna', 'kolumny', 'kolumn')}`;
+      b.querySelector('small').textContent = tt('dane.tekst', { wierszeIle: t.wiersze.length, kolumnyIle: t.kolumny.length });
       b.addEventListener('click', () => { this.idTabeli = t.id; this.rysuj(); });
       li.append(b);
       lista.append(li);
@@ -135,21 +135,21 @@ export class Dane {
       const k = t.kolumny.indexOf(kolumna);
       const znalezione = spozaListy(t, kolumna);
       for (const s of znalezione) for (const w of s.wiersze) this._komorka(w, k)?.classList.add('spoza-listy');
-      if (znalezione.length) spoza.push(`„${kolumna}”: ${znalezione.slice(0, 4).map((s) => `„${s.wartosc}” (${odmiana(s.wiersze.length, 'wiersz', 'wiersze', 'wiersze')} ${s.wiersze.map((w) => w + 1).join(', ')})`).join('; ')}${znalezione.length > 4 ? ` i ${znalezione.length - 4} więcej` : ''}`);
+      if (znalezione.length) spoza.push(`„${kolumna}”: ${znalezione.slice(0, 4).map((s) => tt('dane.tekst2', { wartosc: s.wartosc, wierszeIle: s.wiersze.length, join: s.wiersze.map((w) => w + 1).join(', ') })).join('; ')}${znalezione.length > 4 ? ` i ${znalezione.length - 4} więcej` : ''}`);
     }
     const uwaga = $('#dane-spoza-listy');
     uwaga.hidden = !spoza.length;
-    uwaga.textContent = spoza.length ? `Wartości spoza listy – ${spoza.join('. ')}.` : '';
+    uwaga.textContent = spoza.length ? tt('dane.wartosciSpozaListy', { join: spoza.join('. ') }) : '';
     const opisy = [];
     for (const kolumna of t.unikalne || []) {
       const k = t.kolumny.indexOf(kolumna);
       const znalezione = powtorzenia(t, kolumna);
       for (const p of znalezione) for (const w of p.wiersze) this._komorka(w, k)?.classList.add('powtorzona');
-      if (znalezione.length) opisy.push(`„${kolumna}”: ${znalezione.slice(0, 4).map((p) => `„${p.wartosc}” (wiersze ${p.wiersze.map((w) => w + 1).join(', ')})`).join('; ')}${znalezione.length > 4 ? ` i ${znalezione.length - 4} więcej` : ''}`);
+      if (znalezione.length) opisy.push(`„${kolumna}”: ${znalezione.slice(0, 4).map((p) => tt('dane.wiersze', { wartosc: p.wartosc, join: p.wiersze.map((w) => w + 1).join(', ') })).join('; ')}${znalezione.length > 4 ? ` i ${znalezione.length - 4} więcej` : ''}`);
     }
     const el = $('#dane-powtorzenia');
     el.hidden = !opisy.length;
-    el.textContent = opisy.length ? `Powtórzone wartości – ${opisy.join('. ')}.` : '';
+    el.textContent = opisy.length ? tt('dane.powtorzoneWartosci', { join: opisy.join('. ') }) : '';
   }
 
   _oznaczPomijany(tr, w) {
@@ -165,7 +165,7 @@ export class Dane {
     const ile = t ? t.wiersze.filter(wierszPomijany).length : 0;
     const el = $('#dane-pomijane');
     el.hidden = !ile;
-    el.textContent = ile ? `${ile} ${odmiana(ile, 'wiersz pomijany', 'wiersze pomijane', 'wierszy pomijanych')} (${ZNACZNIK_POMIJANIA} w pierwszej komórce): ${odmiana(ile, 'zajmuje', 'zajmują', 'zajmuje')} miejsce w bloku serii, ale ${odmiana(ile, 'strona dla niego nie powstaje', 'strony dla nich nie powstają', 'strony dla nich nie powstają')}.` : '';
+    el.textContent = ile ? tt('dane.wPierwszejKomorceMiejsce', { ile, ZNACZNIK_POMIJANIA }) : '';
   }
 
   // Wstawia wiersz pomijany nad wierszem `przed` (bez wskazania – na początku tabeli).
@@ -258,7 +258,7 @@ export class Dane {
   // Okno listy dozwolonych wartości kolumny: zwraca listę wartości, [] (usuń listę) albo null (anulowano).
   _zapytajOListe(nazwa, wartosci) {
     const dlg = $('#dlg-lista-kolumny');
-    $('#lista-kolumny-tytul').textContent = `Dozwolone wartości kolumny „${nazwa}”`;
+    $('#lista-kolumny-tytul').textContent = tt('dane.dozwoloneWartosciKolumny', { nazwa });
     const pole = $('#lista-kolumny-wartosci');
     pole.value = wartosci.join('\n');
     $('#lista-kolumny-usun').hidden = !wartosci.length;
@@ -316,11 +316,11 @@ export class Dane {
     if (!nowa || nowa === stara) { el.textContent = stara; return; }
     if (t.kolumny.includes(nowa)) {
       el.textContent = stara;
-      powiadom(`Kolumna „${nowa}” już jest w tej tabeli.`, true);
+      powiadom(tt('dane.kolumnaJuzJestW', { nowa }), true);
       return;
     }
     if (POLA_DOKUMENTU.some(([nazwa]) => nazwa === nowa)) {
-      powiadom(`Uwaga: „${nowa}” to także nazwa pola dokumentu. Na stronach tej tabeli pole {${nowa}} pokaże wartość z kolumny.`);
+      powiadom(tt('dane.uwagaToTakzeNazwa', { nowa }));
     }
     // Samo {stara} poprawiamy tylko tam, gdzie bierze dane z tej tabeli: na stronach serii, w których
     // ta nazwa wskazuje właśnie ją, a poza seriami i we wzorcach – gdy żadna inna tabela nie ma takiej kolumny.
@@ -339,7 +339,7 @@ export class Dane {
     el.textContent = nowa;
     const n = zmienNazwePola(p, stara, nowa, (cel) => (p.strony.includes(cel) ? zTejTabeli.has(cel) : jedyna))
       + zmienNazwePola(p, `${t.nazwa}.${stara}`, `${t.nazwa}.${nowa}`);
-    if (n) powiadom(`Zmieniono {${stara}} na {${nowa}} w ${n} ${odmiana(n, 'elemencie', 'elementach', 'elementach')}.`);
+    if (n) powiadom(tt('dane.zmienionoNaW', { stara: `{${stara}}`, nowa: `{${nowa}}`, n }));
     this._zmieniono();
   }
 
@@ -457,7 +457,7 @@ export class Dane {
       if (kolumna) {
         if (t.kolumny.length <= 1) { powiadom(tt('dane.tabelaMusiMiecPrzynajmniej'), true); return; }
         const k = Number(kolumna.dataset.k);
-        if (!await potwierdz(`Usunąć kolumnę „${t.kolumny[k]}”?`, tt('dane.polaZTejKolumny'), tt('dane.usunKolumne'), true)) return;
+        if (!await potwierdz(tt('dane.usunacKolumne', { x: t.kolumny[k] }), tt('dane.polaZTejKolumny'), tt('dane.usunKolumne'), true)) return;
         if (t.unikalne) t.unikalne = t.unikalne.filter((u) => u !== t.kolumny[k]);
         if (t.listy) { delete t.listy[t.kolumny[k]]; if (!Object.keys(t.listy).length) delete t.listy; }
         for (const x of this.projekt().serie) if (x.tabela === t.id) for (const d of x.dodatkowe || []) if (d.zmiana) { d.zmiana = zapisZmiany(kolumnyZmiany(d.zmiana).filter((z) => z !== t.kolumny[k])); if (!d.zmiana) delete d.zmiana; }
@@ -514,8 +514,8 @@ export class Dane {
       const t = this.tabela();
       const p = this.projekt();
       const serie = p.serie.filter((x) => x.tabela === t.id);
-      const opis = serie.length ? `Serie, które z niej korzystają (${serie.map((x) => `„${x.nazwa}”`).join(', ')}), zostaną bez danych.` : 'Tej operacji nie da się cofnąć.';
-      if (!await potwierdz(`Usunąć tabelę „${t.nazwa}”?`, opis, tt('dane.usunTabele'), true)) return;
+      const opis = serie.length ? tt('dane.serieKtoreZNiej', { join: serie.map((x) => `„${x.nazwa}”`).join(', ') }) : 'Tej operacji nie da się cofnąć.';
+      if (!await potwierdz(tt('dane.usunacTabele', { nazwa: t.nazwa }), opis, tt('dane.usunTabele'), true)) return;
       p.tabele = p.tabele.filter((x) => x !== t);
       for (const x of serie) x.tabela = null;
       for (const x of p.serie) x.dodatkowe = (x.dodatkowe || []).filter((d) => d.tabela !== t.id);
@@ -558,7 +558,7 @@ export class Dane {
       const uchwyt = t && await uchwytTabeli(this.projekt().id, t.id);
       let plik = null;
       try { plik = await plikZUchwytu(uchwyt); } catch { plik = null; }
-      if (!plik) { powiadom('Nie ma dostępu do pliku na dysku – wybierz go jeszcze raz („Wczytaj nową wersję…”).', true); return; }
+      if (!plik) { powiadom(tt('dane.nieMaDostepuDo'), true); return; }
       await this.nowaWersja(t, plik, { uchwyt });
     });
     $('#dane-zrodlo-link').addEventListener('click', async () => {
@@ -570,7 +570,7 @@ export class Dane {
       const t = this.tabela();
       const z = t?.zrodlo?.zasob && this.projekt().zasoby[t.zrodlo.zasob];
       const url = z && await dataUrlZasobu(this.projekt(), t.zrodlo.zasob);
-      if (url) pobierz(z.nazwa, url); else powiadom('Pliku źródłowego nie ma na tym urządzeniu.', true);
+      if (url) pobierz(z.nazwa, url); else powiadom(tt('dane.plikuZrodlowegoNieMa'), true);
     });
     $('#dane-zrodlo-xlsx').addEventListener('click', async () => {
       const t = this.tabela();
@@ -580,7 +580,7 @@ export class Dane {
     });
     $('#dane-zrodlo-odepnij').addEventListener('click', async () => {
       const t = this.tabela();
-      if (!t || !await potwierdz('Odpiąć źródło danych?', 'Tabela zostaje z obecnymi danymi; projekt zapomni plik albo link, z którego przyszła (także zapisany oryginał).', 'Odepnij')) return;
+      if (!t || !await potwierdz(tt('dane.odpiacZrodloDanych'), tt('dane.tabelaZostajeZObecnymi'), tt('dane.odepnij'))) return;
       odepnijZrodlo(this.projekt(), t);
       this.rysuj();
       this.poZmianie();
@@ -589,7 +589,7 @@ export class Dane {
     $('#dane-link-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const url = $('#dane-link').value.trim();
-      if (!/^https?:\/\//i.test(url)) { powiadom('Wklej adres zaczynający się od https://', true); return; }
+      if (!/^https?:\/\//i.test(url)) { powiadom(tt('dane.wklejAdresZaczynajacySie'), true); return; }
       try {
         const plik = await zPostepem('Pobieranie danych z linku…', () => plikZLinku(url));
         await this.importuj(plik, { url });
@@ -607,14 +607,14 @@ export class Dane {
   async importuj(plik, { uchwyt = null, url = null } = {}) {
     const p = this.projekt();
     let wczytane;
-    try { wczytane = await zPostepem(`Wczytywanie „${plik.name || 'pliku'}”…`, () => wczytajPlik(plik)); } catch (e) { powiadom(`Nie udało się wczytać pliku: ${e.message}`, true); return; }
+    try { wczytane = await zPostepem(`Wczytywanie „${plik.name || 'pliku'}”…`, () => wczytajPlik(plik)); } catch (e) { powiadom(tt('dane.nieUdaloSieWczytac', { message: e.message }), true); return; }
     let ostatnia = null;
     let zachowano = null; // wygląd zachowany przy imporcie pliku bez wyglądu: { ile, bylo }
     const doPrzypiecia = [];
     for (const surowa of wczytane) {
       const nowa = normalizujTabele({ ...surowa, id: undefined });
       const stara = p.tabele.find((t) => t.nazwa.trim().toLowerCase() === nowa.nazwa.trim().toLowerCase());
-      if (stara && await potwierdz(`Zaktualizować tabelę „${stara.nazwa}”?`, `W projekcie jest już tabela o tej nazwie (${stara.wiersze.length} wierszy). Możesz podmienić jej dane na te z pliku (${nowa.wiersze.length} wierszy) albo dodać plik jako osobną tabelę.${this._opisZmian(stara, nowa)}`, tt('dane.podmienDane'), false, tt('dane.dodajOsobno'))) {
+      if (stara && await potwierdz(tt('dane.zaktualizowacTabele', { nazwa: stara.nazwa }), tt('dane.wProjekcieJestJuz', { wierszeIle: stara.wiersze.length, wierszeIle2: nowa.wiersze.length, _opisZmian: this._opisZmian(stara, nowa) }), tt('dane.podmienDane'), false, tt('dane.dodajOsobno'))) {
         zachowano = this._podmienDane(stara, nowa) || zachowano;
         doPrzypiecia.push([stara, surowa.arkusz]);
         ostatnia = stara;
@@ -634,8 +634,8 @@ export class Dane {
       if (uchwyt) await zapamietajUchwyt(p.id, t.id, uchwyt);
     }
     if (doPrzypiecia.length) { this.rysujZrodlo(this.tabela()); this.poZmianie(); }
-    const oWygladzie = zachowano ? ` Plik nie niesie wyglądu komórek: wygląd został w ${zachowano.ile} z ${zachowano.bylo} ${odmiana(zachowano.bylo, 'komórki', 'komórek', 'komórek')} – tam, gdzie wartość się nie zmieniła.` : '';
-    powiadom(`Wczytano: ${ostatnia.wiersze.length} ${odmiana(ostatnia.wiersze.length, 'wiersz', 'wiersze', 'wierszy')}, ${ostatnia.kolumny.length} ${odmiana(ostatnia.kolumny.length, 'kolumna', 'kolumny', 'kolumn')}.${oWygladzie}`);
+    const oWygladzie = zachowano ? tt('dane.plikNieNiesieWygladu', { ile: zachowano.ile, bylo: zachowano.bylo }) : '';
+    powiadom(tt('dane.wczytano', { wierszeIle: ostatnia.wiersze.length, kolumnyIle: ostatnia.kolumny.length, oWygladzie }));
   }
 
   // Podmiana danych tabeli na wczytane (te same serie i pola). Zwraca { ile, bylo } zachowanego wyglądu albo null.
@@ -685,7 +685,7 @@ export class Dane {
   async nowaWersja(t, plik, { uchwyt = null, url = null } = {}) {
     const p = this.projekt();
     let wczytane;
-    try { wczytane = await zPostepem(`Wczytywanie „${plik.name || 'pliku'}”…`, () => wczytajPlik(plik)); } catch (e) { powiadom(`Nie udało się wczytać pliku: ${e.message}`, true); return false; }
+    try { wczytane = await zPostepem(`Wczytywanie „${plik.name || 'pliku'}”…`, () => wczytajPlik(plik)); } catch (e) { powiadom(tt('dane.nieUdaloSieWczytac', { message: e.message }), true); return false; }
     const surowa = wczytane.find((x) => t.zrodlo?.arkusz && x.arkusz === t.zrodlo.arkusz) || wczytane.find((x) => x.nazwa.trim().toLowerCase() === t.nazwa.trim().toLowerCase()) || wczytane[0];
     const nowa = normalizujTabele({ ...surowa, id: undefined });
     if (podpisDanych(nowa) === podpisDanych(t) && !zmienionaWMakietce(t)) {
@@ -693,16 +693,16 @@ export class Dane {
       if (uchwyt) await zapamietajUchwyt(p.id, t.id, uchwyt);
       this.rysuj();
       this.poZmianie();
-      powiadom('Dane w pliku są takie same jak w tabeli.');
+      powiadom(tt('dane.daneWPlikuSa'));
       return true;
     }
-    if (!await potwierdz(`Nowa wersja danych „${t.nazwa}”?`, `Plik: ${plik.name}${surowa.arkusz ? `, arkusz „${surowa.arkusz}”` : ''}.${this._opisZmian(t, nowa)}`, tt('dane.podmienDane'))) return false;
+    if (!await potwierdz(tt('dane.nowaWersjaDanych', { nazwa: t.nazwa }), tt('dane.plik', { name: plik.name, x: surowa.arkusz ? tt('dane.arkusz', { arkusz: surowa.arkusz }) : '', _opisZmian: this._opisZmian(t, nowa) }), tt('dane.podmienDane'))) return false;
     const zachowano = this._podmienDane(t, nowa);
     await przypnijZrodlo(p, t, { plik: url ? null : plik, arkusz: surowa.arkusz, url });
     if (uchwyt) await zapamietajUchwyt(p.id, t.id, uchwyt);
     this.rysuj();
     this.poZmianie();
-    powiadom(`Wczytano nową wersję: ${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')}.${zachowano ? ` Wygląd komórek został tam, gdzie wartość się nie zmieniła (${zachowano.ile}).` : ''}`);
+    powiadom(tt('dane.wczytanoNowaWersje', { wierszeIle: t.wiersze.length, x: zachowano ? tt('dane.wygladKomorekZostalTam', { ile: zachowano.ile }) : '' }));
     return true;
   }
 
@@ -713,7 +713,7 @@ export class Dane {
     el.hidden = !z;
     if (!z) return;
     const kiedy = z.wczytano ? new Date(z.wczytano).toLocaleString('pl-PL', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
-    $('#dane-zrodlo-opis').textContent = `Dane z: ${z.plik || z.url}${z.arkusz && z.arkusz !== t.nazwa ? `, arkusz „${z.arkusz}”` : ''}${kiedy ? ` · wczytano ${kiedy}` : ''}`;
+    $('#dane-zrodlo-opis').textContent = tt('dane.daneZ', { x: z.plik || z.url, x2: z.arkusz && z.arkusz !== t.nazwa ? tt('dane.arkusz', { arkusz: z.arkusz }) : '', x3: kiedy ? tt('dane.wczytano2', { kiedy }) : '' });
     $('#dane-zrodlo-zmiany').hidden = !zmienionaWMakietce(t);
     $('#dane-zrodlo-link').hidden = z.rodzaj !== 'link';
     $('#dane-zrodlo-oryginal').hidden = !(z.zasob && this.projekt().zasoby?.[z.zasob]);
@@ -743,10 +743,10 @@ export class Dane {
     return bilansSerii(p, seria).map((b) => {
       const { dlugosc: n, powielen: ile, stron } = b;
       const koniec = (b.ostatniePelne ? '' : ' (seria kończy się na ostatnim wierszu danych – ostatnie powielenie jest niepełne)')
-        + (b.puste.length ? `; do tego ${b.puste.length} ${odmiana(b.puste.length, 'pusta strona', 'puste strony', 'pustych stron')}, żeby lewe strony zostały po lewej` : '')
+        + (b.puste.length ? tt('dane.doTegoZebyLewe', { pusteIle: b.puste.length }) : '')
         + (b.zamianaOd !== null ? `; uwaga: od strony ${b.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki` : '');
-      if (b.pominietych) return `${n} ${odmiana(n, 'strona', 'strony', 'stron')} w bloku, ${stron} ${odmiana(stron, 'strona', 'strony', 'stron')} w wydruku – ${b.pominietych} ${odmiana(b.pominietych, 'wiersz pomijany', 'wiersze pomijane', 'wierszy pomijanych')}${koniec}`;
-      return `${n} ${odmiana(n, 'strona', 'strony', 'stron')} × ${ile} ${odmiana(ile, 'powielenie', 'powielenia', 'powieleń')} = ${stron} ${odmiana(stron, 'strona', 'strony', 'stron')} w wydruku${koniec}`;
+      if (b.pominietych) return tt('dane.wBlokuWWydruku', { n, stron, pominietych: b.pominietych, koniec });
+      return tt('dane.wWydruku', { n, ile, stron, koniec });
     }).join('; ');
   }
 
@@ -754,7 +754,7 @@ export class Dane {
   brakiSerii(seria, projekt = this.projekt()) {
     return bilansSerii(projekt, seria).flatMap((b) => b.dodatkowe.filter((d) => d.potrzeba > d.jest).map((d) => {
       const brak = d.potrzeba - d.jest;
-      return `Brakuje danych: tabela „${d.tabela.nazwa}” ma ${d.jest} ${odmiana(d.jest, 'wiersz', 'wiersze', 'wierszy')}, a potrzeba ${d.potrzeba} (${brak} za mało). Od strony ${d.brakOd} jej pola będą puste.`;
+      return tt('dane.brakujeDanychTabelaMa', { nazwa: d.tabela.nazwa, jest: d.jest, potrzeba: d.potrzeba, brak, brakOd: d.brakOd });
     })).join(' ');
   }
 
@@ -770,7 +770,7 @@ export class Dane {
       <label class="pole waskie" title="${tt('dane.gdyPierwszyOkresJest')}"><span>Pierwszy wiersz przez … stron</span><input data-pole="pierwszy" type="number" min="1" max="2000" step="1" inputmode="numeric" placeholder="tyle samo"></label>
       <button type="button" class="przycisk-ikona" data-usun-dodatkowa title="${tt('dane.usunTeTabeleZ')}" aria-label="${tt('dane.usunTabeleDodatkowa')}">×</button>`;
     const sel = wiersz.querySelector('select');
-    for (const t of p.tabele) sel.add(new Option(`${t.nazwa} (${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')})`, t.id));
+    for (const t of p.tabele) sel.add(new Option(tt('dane.tekst3', { nazwa: t.nazwa, wierszeIle: t.wiersze.length }), t.id));
     sel.value = d.tabela || '';
     wiersz.querySelector('[data-pole="co"]').value = d.co || 7;
     wiersz.querySelector('[data-pole="pierwszy"]').value = d.pierwszy || '';
@@ -791,7 +791,7 @@ export class Dane {
     if (wiersz.dataset.glowna !== klucz) {
       const obecna = wybrane ? (wybrane[0] ? `k:${wybrane[0]}` : '') : sel.value;
       wiersz.dataset.glowna = klucz;
-      sel.replaceChildren(new Option('co stałą liczbę stron', ''), ...kolumny.map((k) => new Option(`gdy zmieni się kolumna „${k}”`, `k:${k}`)));
+      sel.replaceChildren(new Option('co stałą liczbę stron', ''), ...kolumny.map((k) => new Option(tt('dane.gdyZmieniSieKolumna', { k }), `k:${k}`)));
       sel.value = [...sel.options].some((o) => o.value === obecna) ? obecna : '';
     }
     for (const pole of ['co', 'pierwszy']) wiersz.querySelector(`[data-pole="${pole}"]`).closest('label').hidden = Boolean(sel.value);
@@ -831,7 +831,7 @@ export class Dane {
     f.elements.nazwa.value = seria.nazwa;
     const sel = f.elements.tabela;
     sel.replaceChildren(new Option('— bez tabeli —', ''));
-    for (const t of p.tabele) sel.add(new Option(`${t.nazwa} (${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')})`, t.id));
+    for (const t of p.tabele) sel.add(new Option(tt('dane.tekst3', { nazwa: t.nazwa, wierszeIle: t.wiersze.length }), t.id));
     sel.value = seria.tabela || '';
     f.elements.tryb.value = seria.tryb;
     f.elements.ile.value = seria.ile;
@@ -871,12 +871,12 @@ export class Dane {
     $('#seria-podsumowanie').textContent = bloki.length
       ? bilans.map((b) => {
         const opis = b.pominietych
-          ? `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')}: w wydruku ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')}. ${b.pominietych} ${odmiana(b.pominietych, 'wiersz tabeli jest pomijany', 'wiersze tabeli są pomijane', 'wierszy tabeli jest pomijanych')} (${ZNACZNIK_POMIJANIA}) – ${odmiana(b.pominietych, 'zajmuje', 'zajmują', 'zajmuje')} miejsce w bloku, ale ${odmiana(b.pominietych, 'jego strona', 'ich strony', 'ich strony')} nie ${odmiana(b.pominietych, 'powstaje', 'powstają', 'powstają')}.`
-          : `Blok ${b.dlugosc} ${odmiana(b.dlugosc, 'strony', 'stron', 'stron')} × ${b.powielen} = ${b.stron} ${odmiana(b.stron, 'strona', 'strony', 'stron')} w wydruku.`;
+          ? tt('dane.blokWWydrukuMiejsce', { dlugosc: b.dlugosc, stron: b.stron, pominietych: b.pominietych, ZNACZNIK_POMIJANIA })
+          : tt('dane.blokWWydruku', { dlugosc: b.dlugosc, powielen: b.powielen, stron: b.stron });
         const koniec = (b.ostatniePelne ? '' : ' Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne.')
-          + (b.puste.length ? ` Do tego ${b.puste.length} ${odmiana(b.puste.length, 'pusta strona', 'puste strony', 'pustych stron')} (${odmiana(b.puste.length, 'strona', 'strony', 'strony')} ${b.puste.join(', ')}), żeby lewe strony zostały po lewej, a prawe po prawej.` : '')
+          + (b.puste.length ? tt('dane.doTegoZebyLewe2', { pusteIle: b.puste.length, join: b.puste.join(', ') }) : '')
           + (b.zamianaOd !== null ? ` Uwaga: od strony ${b.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki – zaznacz „Pilnuj lewej i prawej strony”.` : '');
-        const dodatkowe = b.dodatkowe.map((d) => ` Tabela „${d.tabela.nazwa}”: ${opisKroku(d)} – potrzeba ${d.potrzeba} ${odmiana(d.potrzeba, 'wiersza', 'wierszy', 'wierszy')}, ${d.jest >= d.potrzeba ? `jest ${d.jest}` : `a jest tylko ${d.jest}`}.`).join('');
+        const dodatkowe = b.dodatkowe.map((d) => tt('dane.tabelaPotrzeba', { nazwa: d.tabela.nazwa, opisKroku: opisKroku(d), potrzeba: d.potrzeba, x: d.jest >= d.potrzeba ? tt('dane.jest', { jest: d.jest }) : tt('dane.aJestTylko', { jest: d.jest }) })).join('');
         return opis + koniec + dodatkowe;
       }).join(' ')
       : tt('dane.zadnaStronaNieNalezy');
@@ -887,7 +887,7 @@ export class Dane {
     const potrzebne = kolumnySerii(p, proba);
     const brak = brakujaceKolumny(p, proba);
     $('#seria-pola-opis').textContent = potrzebne.length
-      ? `Pola na stronach serii: ${potrzebne.map((k) => `{${k.nazwa}}`).join(', ')}.${brak.length ? ` W tabeli brakuje ${odmiana(brak.length, 'kolumny', 'kolumn', 'kolumn')}: ${brak.join(', ')}.` : (maTabele ? ' Tabela ma wszystkie potrzebne kolumny.' : '')}`
+      ? tt('dane.polaNaStronachSerii', { join: potrzebne.map((k) => `{${k.nazwa}}`).join(', '), x: brak.length ? tt('dane.wTabeliBrakuje', { brakIle: brak.length, join: brak.join(', ') }) : (maTabele ? tt('dane.tabelaMaWszystkiePotrzebne') : '') })
       : 'Na stronach tej serii nie ma jeszcze pól z danymi. Pole wstawiasz w tekście jako nazwę kolumny w nawiasach klamrowych, np. {dzien}.';
     $('#seria-dodaj-kolumny').hidden = !brak.length;
     $('#seria-dodaj-kolumny').textContent = maTabele ? tt('dane.dodajBrakujaceKolumnyDo') : tt('dane.utworzTabeleZTych');
@@ -955,12 +955,12 @@ export class Dane {
         const ile = proba.tryb === 'stala' ? Math.min(proba.ile, 500) : 1;
         t = nowaTabela(proba.nazwa || 'Dane serii', brak, Array.from({ length: ile }, () => brak.map(() => '')));
         p.tabele.push(t);
-        f.elements.tabela.add(new Option(`${t.nazwa} (${t.wiersze.length} ${odmiana(t.wiersze.length, 'wiersz', 'wiersze', 'wierszy')})`, t.id));
+        f.elements.tabela.add(new Option(tt('dane.tekst3', { nazwa: t.nazwa, wierszeIle: t.wiersze.length }), t.id));
         f.elements.tabela.value = t.id;
       }
       this.poZmianie();
       this._odswiezSerie();
-      powiadom(`Dodano ${odmiana(brak.length, 'kolumnę', 'kolumny', 'kolumn')}: ${brak.join(', ')}. Dane wpiszesz w oknie „Dane”.`);
+      powiadom(tt('dane.dodanoDaneWpiszeszW', { brakIle: brak.length, join: brak.join(', ') }));
     });
     $('#seria-szablon').addEventListener('click', async () => {
       const p = this.projekt();
@@ -977,7 +977,7 @@ export class Dane {
     $('#seria-usun').addEventListener('click', async () => {
       const p = this.projekt();
       const seria = p.serie.find((s) => s.id === dlg.dataset.id);
-      if (!await potwierdz(`Usunąć serię „${seria.nazwa}”?`, tt('dane.stronyZostajaWProjekcie'), tt('dane.usunSerie'), true)) return;
+      if (!await potwierdz(tt('dane.usunacSerie', { nazwa: seria.nazwa }), tt('dane.stronyZostajaWProjekcie'), tt('dane.usunSerie'), true)) return;
       p.serie = p.serie.filter((s) => s !== seria);
       for (const s of p.strony) if (s.seria === seria.id) delete s.seria;
       dlg.close('usun');

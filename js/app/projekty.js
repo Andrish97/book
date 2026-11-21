@@ -72,7 +72,7 @@ export async function wpisyProjektow() {
         usunKopieLokalna(id).catch(() => {});
       }
     } catch (e) {
-      powiadom(`Nie udało się pobrać listy z konta: ${chmura.komunikatBledu(e)}`, true);
+      powiadom(t('projekty.nieUdaloSiePobrac', { komunikatBledu: chmura.komunikatBledu(e) }), true);
     }
   }
   return [...wpisy.values()].sort((a, b) => najnowsza(b).localeCompare(najnowsza(a)));
@@ -188,7 +188,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
       $('strong', li).prepend(stanWysylki);
     }
     const rola = w.wspolpraca ? `${krotkoRola(w.wspolpraca.rola) === 'edytuje' ? 'Możesz edytować' : 'Możesz oglądać'} · ` : '';
-    $('small', li).textContent = `${rola}Zmieniono ${kiedy(najnowsza(w))}`;
+    $('small', li).textContent = t('projekty.zmieniono', { rola, kiedy: kiedy(najnowsza(w)) });
     $('.otworz-projekt', li).addEventListener('click', () => otworzZListy(w));
     $('.plakietka-linku:not(.plakietka-wspolpracy)', li)?.addEventListener('click', async () => {
       try { otworzUdostepnianie(await wczytajProjektZWpisu(w)); } catch (e) { powiadom(chmura.komunikatBledu(e), true); }
@@ -255,21 +255,21 @@ async function wczytajProjektZWpisuBez(w, pasek = null) {
 // Obrazy projektu dostają adresy plików z magazynu przeglądarki; brakujące są pobierane z konta.
 export async function podlaczObrazy(projekt, pasek = null) {
   const brak = await podlaczZasoby(projekt, stan.uzytkownik ? chmura.pobierzZasob : null, pasek && ((i, n) => { pasek.opis(t('projekty.pobieranieObrazowZKonta')); pasek.krok(i, n); }));
-  if (brak.length) powiadom(`Nie udało się wczytać ${brak.length === 1 ? `obrazu „${brak[0]}”` : `obrazów (${brak.length}): ${brak.slice(0, 3).join(', ')}${brak.length > 3 ? '…' : ''}`}.${navigator.onLine ? '' : ' Są na koncie – pobiorą się po powrocie internetu.'}`, true);
+  if (brak.length) powiadom(t('projekty.nieUdaloSieWczytac', { x: brak.length === 1 ? t('projekty.obrazu', { x: brak[0] }) : t('projekty.obrazow', { brakIle: brak.length, join: brak.slice(0, 3).join(', '), x: brak.length > 3 ? '…' : '' }), x2: navigator.onLine ? '' : t('projekty.saNaKonciePobiora') }), true);
 }
 
 async function otworzZListy(w) {
-  const pasek = postep(`Otwieranie „${w.nazwa || 'projektu'}”…`);
+  const pasek = postep(t('projekty.otwieranie', { x: w.nazwa || t('projekty.projektu') }));
   try {
     const projekt = await wczytajProjektZWpisu(w, pasek);
     if (!projekt) throw new Error('Nie znaleziono projektu.');
-    pasek.opis(`Otwieranie „${projekt.nazwa}”…`);
+    pasek.opis(t('projekty.otwieranie2', { nazwa: projekt.nazwa }));
     pasek.razem(null);
     await otworzProjekt(projekt);
     // Rola „może oglądać” (współpraca): od razu podgląd.
     if (projekt.wspolpraca_chmury?.rola === 'odczyt') await (await czekajNaEdytor()).pokazPodglad();
   } catch (e) {
-    powiadom(`Nie udało się otworzyć projektu: ${chmura.komunikatBledu(e)}`, true);
+    powiadom(t('projekty.nieUdaloSieOtworzyc', { komunikatBledu: chmura.komunikatBledu(e) }), true);
   } finally {
     pasek.koniec();
   }
@@ -293,7 +293,7 @@ export async function zapiszGdziekolwiek(projekt) {
 
 async function duplikujProjekt(w) {
   if (await ponadLimit()) return;
-  const pasek = postep(`Kopiowanie „${w.nazwa || 'projektu'}”…`);
+  const pasek = postep(t('projekty.kopiowanie', { x: w.nazwa || t('projekty.projektu') }));
   try {
     const zrodlo = await wczytajProjektZWpisu(w);
     const kopia = kopiujProjekt(zrodlo, `${zrodlo.nazwa} (kopia)`);
@@ -301,9 +301,9 @@ async function duplikujProjekt(w) {
     await kopiujPliki(zrodlo, kopia); // kopia ma własne pliki obrazów – podmiana zdjęcia w niej nie rusza oryginału
     pasek.opis(t('projekty.zapisywanieKopii'));
     await zapiszGdziekolwiek(kopia);
-    powiadom(`Utworzono „${kopia.nazwa}”.`);
+    powiadom(t('projekty.utworzono', { nazwa: kopia.nazwa }));
   } catch (e) {
-    powiadom(`Nie udało się zduplikować: ${chmura.komunikatBledu(e)}`, true);
+    powiadom(t('projekty.nieUdaloSieZduplikowac', { komunikatBledu: chmura.komunikatBledu(e) }), true);
   } finally {
     pasek.koniec();
   }
@@ -330,15 +330,15 @@ async function eksportujProjekt(w) {
     const url = URL.createObjectURL(blob);
     pobierz(`${bezpiecznaNazwa(projekt.nazwa)}${ROZSZERZENIE}`, url);
     setTimeout(() => URL.revokeObjectURL(url), 10000);
-    powiadom(`Zapisano „${projekt.nazwa}${ROZSZERZENIE}”.`);
+    powiadom(t('projekty.zapisano', { nazwa: projekt.nazwa, ROZSZERZENIE }));
   } catch (e) {
-    powiadom(`Nie udało się wyeksportować: ${e.message}`, true);
+    powiadom(t('projekty.nieUdaloSieWyeksportowac', { message: e.message }), true);
   }
 }
 
 async function usunProjekt(w) {
   const ok = await potwierdz(
-    `Usunąć „${w.nazwa || 'Bez nazwy'}”?`,
+    t('projekty.usunac', { x: w.nazwa || t('projekty.bezNazwy') }),
     t('projekty.projektZniknieZeWszystkich'),
     t('projekty.usunProjekt'),
     true,
@@ -353,7 +353,7 @@ async function usunProjekt(w) {
     if (stan.uzytkownik) await chmura.usunZChmury(w.id);
     powiadom(t('projekty.projektUsuniety'));
   } catch (e) {
-    powiadom(`Nie udało się usunąć: ${chmura.komunikatBledu(e)}`, true);
+    powiadom(t('projekty.nieUdaloSieUsunac', { komunikatBledu: chmura.komunikatBledu(e) }), true);
   }
   // Odświeżenie listy po czynności na karcie – ciche: pełne ustawia adres #/projekty, a spóźniona zmiana adresu
   // wyrzucała z edytora, gdy w tym czasie otwierano już inny projekt (#137).
@@ -482,7 +482,7 @@ export async function projektUsunietyNaKoncie(id) {
     await usunKopieLokalna(id).catch(() => {});
     trasa.ustaw('projekty');
     await pokazProjekty();
-    powiadom(`Projekt „${nazwa}” został usunięty z konta (z innego urządzenia albo przez AI).`, true);
+    powiadom(t('projekty.projektZostalUsunietyZ', { nazwa }), true);
     return;
   }
   if (!lokalny) { if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); return; }
@@ -544,7 +544,7 @@ async function plikSkladu(plik) {
 }
 
 async function wczytajPlikSkladu(plik) {
-  const pasek = postep(`Odczyt „${plik.name}”…`);
+  const pasek = postep(t('projekty.odczyt', { name: plik.name }));
   try {
     const [{ biblioteka }, { importujSklad }, { przyjmijPlik }] = await Promise.all([import('../biblioteki.js'), import('../import-skladu.js'), import('../obrazy-projektu.js')]);
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
@@ -553,11 +553,11 @@ async function wczytajPlikSkladu(plik) {
     if (stan.projekt) await zapiszTeraz();
     await otworzProjekt(projekt);
     await zapiszTeraz();
-    const czesci = [`${raport.stron} ${raport.stron === 1 ? 'strona' : 'stron'}`, `ramki tekstu ${raport.teksty}`, `kształty ${raport.ksztalty}`, `obrazy ${raport.obrazy}`];
-    let opis = `Wczytano z programu ${raport.format}: ${czesci.join(', ')}.`;
-    if (raport.pola.length) opis += ` Pola korespondencji seryjnej zamienione na pola Makietki: ${raport.pola.map((x) => `{${x}}`).join(', ')} – wczytaj dane w „Dane”.`;
-    if (raport.nieobslugiwane?.length) opis += ` Obrazy w starym formacie Windows (${raport.nieobslugiwane.join(', ')}) – przeglądarka ich nie wyświetla; w ich miejscu są szare pola – wstaw tam obrazy jeszcze raz (np. zapisane z Publishera jako PNG).`;
-    if (raport.brakujace.length) opis += ` Brak plików obrazów (${raport.brakujace.length}): ${raport.brakujace.slice(0, 5).join(', ')}${raport.brakujace.length > 5 ? '…' : ''} – wczytaj ZIP z folderem obrazów (w InDesignie: Plik → Pakiet) albo wstaw je w szare pola.`;
+    const czesci = [`${raport.stron} ${raport.stron === 1 ? 'strona' : 'stron'}`, t('projekty.ramkiTekstu', { teksty: raport.teksty }), `kształty ${raport.ksztalty}`, `obrazy ${raport.obrazy}`];
+    let opis = t('projekty.wczytanoZProgramu', { format: raport.format, join: czesci.join(', ') });
+    if (raport.pola.length) opis += t('projekty.polaKorespondencjiSeryjnejZamienione', { join: raport.pola.map((x) => `{${x}}`).join(', ') });
+    if (raport.nieobslugiwane?.length) opis += t('projekty.obrazyWStarymFormacie', { join: raport.nieobslugiwane.join(', ') });
+    if (raport.brakujace.length) opis += t('projekty.brakPlikowObrazowWczytaj', { brakujaceIle: raport.brakujace.length, join: raport.brakujace.slice(0, 5).join(', '), x: raport.brakujace.length > 5 ? '…' : '' });
     powiadom(opis);
     pasek.koniec();
     // Raport przeniesienia (#232): co uproszczono – elementy mają oznaczenie i są w „Sprawdź przed drukiem”.
@@ -565,7 +565,7 @@ async function wczytajPlikSkladu(plik) {
       const { pokazRaport } = await import('../raport-przeniesienia.js');
       const edytor = await czekajNaEdytor();
       const kontrola = await pokazRaport({
-        tytul: `Co przeszło z programu ${raport.format}`,
+        tytul: t('projekty.coPrzeszloZProgramu', { format: raport.format }),
         wstep: `${opis} Elementy uproszczone przy odczycie są oznaczone – zobaczysz je w „Sprawdź przed drukiem”, dopóki nie usuniesz oznaczenia.`,
         raport: przeniesienie, przycisk: t('projekty.sprawdzPrzedDrukiem'), anuluj: 'Zamknij',
         pokaz: (s, o) => edytor.pokazElement(s, o),
@@ -573,7 +573,7 @@ async function wczytajPlikSkladu(plik) {
       if (kontrola) edytor.otworzKontrole();
     }
   } catch (e) {
-    powiadom(`Nie udało się wczytać pliku: ${e.message}`, true);
+    powiadom(t('projekty.nieUdaloSieWczytac2', { message: e.message }), true);
   } finally {
     pasek.koniec();
   }
@@ -581,7 +581,7 @@ async function wczytajPlikSkladu(plik) {
 
 export async function wczytajPlikProjektu(plik) {
   if (await plikSkladu(plik)) { await wczytajPlikSkladu(plik); return; }
-  let pasek = postep(`Wczytywanie pliku „${plik.name || 'projektu'}”…`);
+  let pasek = postep(t('projekty.wczytywaniePliku', { x: plik.name || t('projekty.projektu') }));
   try {
     const projekt = normalizuj(await odczytajPlik(plik));
     pasek.koniec(); // na czas ewentualnego pytania – bez karty postępu nad oknem
@@ -592,22 +592,22 @@ export async function wczytajPlikProjektu(plik) {
     if (istniejacy) {
       const zastap = await potwierdz(
         t('projekty.tenProjektJuzIstnieje'),
-        `„${istniejacy.nazwa}” jest już na liście. Zastąpić go wersją z pliku? „Anuluj” doda plik jako osobny projekt.`,
+        t('projekty.jestJuzNaLiscie', { nazwa: istniejacy.nazwa }),
         t('projekty.zastap'),
       );
       if (!zastap) projekt.id = crypto.randomUUID();
     }
     if ((!istniejacy || projekt.id !== istniejacy.id) && await ponadLimit()) return;
-    pasek = postep(`Otwieranie „${projekt.nazwa}”…`);
+    pasek = postep(t('projekty.otwieranie2', { nazwa: projekt.nazwa }));
     if (stan.projekt) await zapiszTeraz();
     // Plik w miejsce projektu: dawna historia cofania do niego nie pasuje.
     if (istniejacy && projekt.id === istniejacy.id) await usunHistorie(projekt.id);
     await otworzProjekt(projekt);
     pasek.opis(t('projekty.zapisywanieProjektuNaUrzadzeniu'));
     await zapiszTeraz();
-    powiadom(`Wczytano „${projekt.nazwa}”.`);
+    powiadom(t('projekty.wczytano', { nazwa: projekt.nazwa }));
   } catch (e) {
-    powiadom(`Nie udało się wczytać pliku: ${e.message}`, true);
+    powiadom(t('projekty.nieUdaloSieWczytac2', { message: e.message }), true);
   } finally {
     pasek.koniec();
   }

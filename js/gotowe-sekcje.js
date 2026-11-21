@@ -240,7 +240,7 @@ export const SZABLONY_SEKCJI = [
   // ---------- Książka ----------
   {
     id: 'okladka-ksiazki', nazwa: 'Okładka książki', kategoria: 'ksiazka', okladka: 'miekka', paleta: 'granat',
-    opis: 'Przód, grzbiet i tył – grzbiet liczy się sam z liczby stron środka.', slowa: 'okladka ksiazki grzbiet tyl przod oprawa',
+    opis: tt('gotoweSekcje.przodGrzbietITyl'), slowa: 'okladka ksiazki grzbiet tyl przod oprawa',
     pytania: [{ klucz: 'oprawa', etykieta: tt('gotoweSekcje.oprawa'), typ: 'wybor', opcje: [['miekka', 'Miękka klejona'], ['twarda', 'Twarda'], ['zeszytowa', 'Zeszytowa (zszywki)']], domyslna: () => 'miekka' }],
     schemat: [['tlo', 0, 0, 30, 42], ['akcent', 4, 8, 22, 1], ['tytul', 4, 12, 22, 5], ['tekst', 4, 33, 22, 2]],
     buduj(c, n) {
@@ -254,38 +254,38 @@ export const SZABLONY_SEKCJI = [
         { ...n.tlo(c.k.akcent), okladka: 'cala' },
         { ...n.kreska(przod.x1 + mx, y0 + my + wys * 0.12, Math.min(30, pw * 0.3), 0.6, c.k.akcent2), okladka: 'przod' },
         { ...n.tekst(tt('gotoweSekcje.tytulKsiazki'), przod.x1 + mx, y0 + my + wys * 0.16, pw - 2 * mx, { pt: 30, font: c.f.tytul, bold: true, kolor: '#ffffff', lh: 1.05, nazwa: 'Tytuł' }), okladka: 'przod' },
-        { ...n.tekst('Podtytuł albo krótkie zdanie o książce', przod.x1 + mx, y0 + my + wys * 0.36, pw - 2 * mx, { pt: 12, kolor: mieszaj(c.k.akcent, '#ffffff', 0.8), italic: true, nazwa: 'Podtytuł' }), okladka: 'przod' },
-        { ...n.tekst('IMIĘ NAZWISKO', przod.x1 + mx, y0 + wys - my - c.pt(11) * 1.4, pw - 2 * mx, { pt: 11, kolor: c.k.akcent2, cs: 120, nazwa: 'Autor' }), okladka: 'przod' },
+        { ...n.tekst(tt('gotoweSekcje.podtytulAlboKrotkieZdanie'), przod.x1 + mx, y0 + my + wys * 0.36, pw - 2 * mx, { pt: 12, kolor: mieszaj(c.k.akcent, '#ffffff', 0.8), italic: true, nazwa: 'Podtytuł' }), okladka: 'przod' },
+        { ...n.tekst(tt('gotoweSekcje.imieNazwisko'), przod.x1 + mx, y0 + wys - my - c.pt(11) * 1.4, pw - 2 * mx, { pt: 11, kolor: c.k.akcent2, cs: 120, nazwa: 'Autor' }), okladka: 'przod' },
         { ...n.tekst(akapit(3), tyl.x1 + mx, y0 + my + wys * 0.12, (tyl.x2 - tyl.x1) - 2 * mx, { pt: 9.5, kolor: '#ffffff', lh: 1.4, nazwa: 'Opis na tyle' }), okladka: 'tyl' },
         { ...n.prost(tyl.x2 - mx - 38, y0 + wys - my - 22, 38, 22, { fill: '#ffffff', nazwa: 'Miejsce na kod ISBN' }), okladka: 'tyl' },
       ];
       if (grzbiet.x2 - grzbiet.x1 >= 5) {
         const sz = grzbiet.x2 - grzbiet.x1; const pt = Math.min(11, (sz * 0.5) / ptNaMm(1) / c.s);
-        o.push({ ...n.tekst('Tytuł książki · Imię Nazwisko', grzbiet.x1 + sz / 2 + c.pt(pt) * 0.6, y0 + my, wys - 2 * my, { pt, kolor: '#ffffff', align: 'center', angle: 90, lh: 1, nazwa: 'Grzbiet' }), okladka: 'grzbiet' });
+        o.push({ ...n.tekst(tt('gotoweSekcje.tytulKsiazkiImieNazwisko'), grzbiet.x1 + sz / 2 + c.pt(pt) * 0.6, y0 + my, wys - 2 * my, { pt, kolor: '#ffffff', align: 'center', angle: 90, lh: 1, nazwa: 'Grzbiet' }), okladka: 'grzbiet' });
       }
       return { strony: [{ nazwa: 'Okładka', obiekty: o }], numeracja: { tryb: 'brak', od: 1 } };
     },
   },
   {
     id: 'strona-tytulowa', nazwa: 'Strona tytułowa i redakcyjna', kategoria: 'ksiazka', paleta: 'granat',
-    opis: 'Tytuł, autor i wydawca, a na odwrocie stopka redakcyjna.', slowa: 'strona tytulowa redakcyjna stopka isbn copyright',
+    opis: tt('gotoweSekcje.tytulAutorIWydawca'), slowa: 'strona tytulowa redakcyjna stopka isbn copyright',
     schemat: [['tytul', 6, 12, 18, 4], ['tekst', 8, 18, 14, 2], ['tekst', 9, 34, 12, 1.5]],
     buduj(c, n) {
       const { pole: p } = c;
       const s1 = [
-        n.tekst('IMIĘ NAZWISKO', p.x, p.y + p.h * 0.18, p.w, { pt: 10, align: 'center', cs: 160, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.imieNazwisko'), p.x, p.y + p.h * 0.18, p.w, { pt: 10, align: 'center', cs: 160, kolor: c.k.akcent2 }),
         n.tekst(tt('gotoweSekcje.tytulKsiazki'), p.x, p.y + p.h * 0.26, p.w, { pt: 26, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent, lh: 1.05, nazwa: 'Tytuł' }),
-        n.tekst('Podtytuł książki', p.x, p.y + p.h * 0.42, p.w, { pt: 12, italic: true, align: 'center' }),
+        n.tekst(tt('gotoweSekcje.podtytulKsiazki'), p.x, p.y + p.h * 0.42, p.w, { pt: 12, italic: true, align: 'center' }),
         ...n.ozdobnik(p.x + p.w / 2, p.y + p.h * 0.52, Math.min(50, p.w * 0.5)),
-        n.tekst('Wydawnictwo · Miasto · Rok', p.x, p.y + p.h - c.pt(9) * 2, p.w, { pt: 9, align: 'center', kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.wydawnictwoMiastoRok'), p.x, p.y + p.h - c.pt(9) * 2, p.w, { pt: 9, align: 'center', kolor: c.k.akcent2 }),
       ];
-      const s2 = [n.tekst('Copyright © Imię Nazwisko\nWszelkie prawa zastrzeżone.\n\nRedakcja: Imię Nazwisko\nKorekta: Imię Nazwisko\nProjekt okładki: Imię Nazwisko\nSkład: Makietka\n\nISBN 978-83-000-0000-0\n\nWydanie pierwsze\nWydawnictwo, ul. Przykładowa 1, 00-000 Miasto', p.x, p.y + p.h * 0.55, p.w, { pt: 8, lh: 1.45, kolor: c.k.tekst, nazwa: 'Stopka redakcyjna' })];
+      const s2 = [n.tekst(tt('gotoweSekcje.copyrightImieNazwiskoWszelkie'), p.x, p.y + p.h * 0.55, p.w, { pt: 8, lh: 1.45, kolor: c.k.tekst, nazwa: 'Stopka redakcyjna' })];
       return { strony: [{ nazwa: 'Strona tytułowa', obiekty: s1, wzorce: [] }, { nazwa: 'Strona redakcyjna', obiekty: s2, wzorce: [] }], numeracja: { tryb: 'brak', od: 1 } };
     },
   },
   {
     id: 'spis-tresci', nazwa: 'Spis treści', kategoria: 'ksiazka', paleta: 'granat',
-    opis: 'Spis układa się sam z nagłówków projektu, z numerami stron.', slowa: 'spis tresci rozdzialy numery stron',
+    opis: tt('gotoweSekcje.spisUkladaSieSam'), slowa: 'spis tresci rozdzialy numery stron',
     schemat: [['tytul', 4, 6, 14, 3], ['linie', 4, 13, 22, 20]],
     buduj(c, n) {
       const { pole: p } = c;
@@ -303,7 +303,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'rozdzial', nazwa: 'Rozdział', kategoria: 'ksiazka', uklad: 'rozkladowki', paleta: 'granat',
-    opis: 'Otwarcie rozdziału i strony tekstu połączone w jeden ciąg – tekst przelewa się sam.', slowa: 'rozdzial tekst ksiazka powiesc akapity przelewanie',
+    opis: tt('gotoweSekcje.otwarcieRozdzialuIStrony'), slowa: 'rozdzial tekst ksiazka powiesc akapity przelewanie',
     pytania: [pytanieStron(4, 40)],
     schemat: [['akcent', 4, 8, 6, 1], ['tytul', 4, 11, 18, 4], ['linie', 4, 19, 22, 18]],
     buduj(c, n) {
@@ -328,8 +328,8 @@ export const SZABLONY_SEKCJI = [
       const strony = [{
         nazwa: 'Rozdział – otwarcie',
         obiekty: [
-          n.tekst('ROZDZIAŁ 1', p.x, p.y + p.h * 0.08, p.w, { pt: 9, cs: 200, kolor: c.k.akcent2, nazwa: 'Numer rozdziału' }),
-          n.tekst('Tytuł rozdziału', p.x, p.y + p.h * 0.13, p.w, { pt: 24, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.05, styl: tytul?.id, nazwa: 'Tytuł rozdziału' }),
+          n.tekst(tt('gotoweSekcje.rozdzial1'), p.x, p.y + p.h * 0.08, p.w, { pt: 9, cs: 200, kolor: c.k.akcent2, nazwa: 'Numer rozdziału' }),
+          n.tekst(tt('gotoweSekcje.tytulRozdzialu'), p.x, p.y + p.h * 0.13, p.w, { pt: 24, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.05, styl: tytul?.id, nazwa: 'Tytuł rozdziału' }),
           n.kreska(p.x, p.y + p.h * 0.3, Math.min(24, p.w * 0.25), 0.5, c.k.akcent2),
           ramka(otwarcieY, p.y + p.h - otwarcieY, 1),
         ],
@@ -341,7 +341,7 @@ export const SZABLONY_SEKCJI = [
   // ---------- Kalendarze ----------
   {
     id: 'kalendarz-scienny', nazwa: 'Kalendarz ścienny', kategoria: 'kalendarze', paleta: 'zielen',
-    opis: 'Okładka i 12 miesięcy: zdjęcie u góry, siatka dni ze świętami pod spodem. Miesiące z danych.', slowa: 'kalendarz scienny miesiace zdjecia 12 rok swieta',
+    opis: tt('gotoweSekcje.okladkaI12Miesiecy'), slowa: 'kalendarz scienny miesiace zdjecia 12 rok swieta',
     pytania: [pytanieRok], dane: true,
     schemat: [['zdjecie', 3, 3, 24, 20], ['tytul', 3, 25, 12, 2], ['siatka', 3, 28, 24, 11]],
     buduj(c, n) {
@@ -372,7 +372,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'kalendarz-biurkowy', nazwa: 'Kalendarz biurkowy', kategoria: 'kalendarze', format: [210, 148], paleta: 'pastel',
-    opis: 'Poziome karty na stojak: miesiąc z miejscem na notatki i małym zdjęciem.', slowa: 'kalendarz biurkowy stojak poziomy notatki miesiac',
+    opis: tt('gotoweSekcje.poziomeKartyNaStojak'), slowa: 'kalendarz biurkowy stojak poziomy notatki miesiac',
     pytania: [pytanieRok], dane: true,
     schemat: [['zdjecie', 2, 3, 10, 14], ['siatka', 14, 3, 14, 14], ['tytul', 2, 19, 10, 2]],
     buduj(c, n) {
@@ -403,7 +403,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'kalendarz-roczny', nazwa: 'Kalendarz roczny na stronie', kategoria: 'kalendarze', paleta: 'granat',
-    opis: 'Cały rok na jednej stronie: 12 małych miesięcy ze świętami.', slowa: 'kalendarz roczny caly rok jedna strona 12 miesiecy',
+    opis: tt('gotoweSekcje.calyRokNaJednej'), slowa: 'kalendarz roczny caly rok jedna strona 12 miesiecy',
     pytania: [pytanieRok],
     schemat: [['tytul', 4, 3, 14, 3], ['siatka', 3, 8, 7, 7], ['siatka', 11.5, 8, 7, 7], ['siatka', 20, 8, 7, 7], ['siatka', 3, 17, 7, 7], ['siatka', 11.5, 17, 7, 7], ['siatka', 20, 17, 7, 7], ['siatka', 3, 26, 7, 7], ['siatka', 11.5, 26, 7, 7], ['siatka', 20, 26, 7, 7]],
     buduj(c, n) {
@@ -425,7 +425,7 @@ export const SZABLONY_SEKCJI = [
   // ---------- Planery i notesy ----------
   {
     id: 'planer-dzienny', nazwa: 'Planer dzienny (365 dni)', kategoria: 'planery', paleta: 'terakota',
-    opis: 'Strona na każdy dzień roku: data, priorytety, plan i notatki. Daty z danych – 1 strona-wzór.', slowa: 'planer dzienny dziennik 365 dni data rok dzien',
+    opis: tt('gotoweSekcje.stronaNaKazdyDzien'), slowa: 'planer dzienny dziennik 365 dni data rok dzien',
     pytania: [pytanieRok], dane: true,
     schemat: [['tytul', 3, 3, 14, 3], ['akcent', 3, 7, 24, 0.6], ['punkty', 3, 9, 11, 8], ['linie', 3, 19, 24, 20]],
     buduj(c, n) {
@@ -441,14 +441,14 @@ export const SZABLONY_SEKCJI = [
         n.tekst('{data}', p.x, p.y, p.w * 0.65, { pt: 20, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Data' }),
         n.tekst('{dzien_tygodnia}', p.x + p.w * 0.65, p.y + c.pt(20) * 0.3, p.w * 0.35, { pt: 10, align: 'right', kolor: c.k.akcent2, cs: 60, nazwa: 'Dzień tygodnia' }),
         n.kreska(p.x, y1, p.w, 0.5, c.k.akcent),
-        n.tekst('NAJWAŻNIEJSZE', p.x, y1 + 3, kol, { pt: 7.5, cs: 140, kolor: c.k.akcent2 }),
-        n.tekst('DO ZROBIENIA', p.x + kol + 4, y1 + 3, kol, { pt: 7.5, cs: 140, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.najwazniejsze'), p.x, y1 + 3, kol, { pt: 7.5, cs: 140, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.doZrobienia'), p.x + kol + 4, y1 + 3, kol, { pt: 7.5, cs: 140, kolor: c.k.akcent2 }),
       ];
       const yP = y1 + 3 + c.pt(7.5) * 2;
       for (let i = 0; i < 3; i += 1) o.push(...n.punkt(p.x, yP + i * c.pt(9) * 1.9, kol, '', { pt: 9 }), n.kreska(p.x + c.pt(9) * 1.6, yP + i * c.pt(9) * 1.9 + c.pt(9) * 1.2, kol - c.pt(9) * 1.6));
       for (let i = 0; i < 5; i += 1) o.push(...n.punkt(p.x + kol + 4, yP + i * c.pt(9) * 1.9, kol, '', { pt: 9 }), n.kreska(p.x + kol + 4 + c.pt(9) * 1.6, yP + i * c.pt(9) * 1.9 + c.pt(9) * 1.2, kol - c.pt(9) * 1.6));
       const yN = yP + 5 * c.pt(9) * 1.9 + 3;
-      o.push(n.tekst('NOTATKI', p.x, yN, p.w, { pt: 7.5, cs: 140, kolor: c.k.akcent2 }));
+      o.push(n.tekst(tt('gotoweSekcje.notatki'), p.x, yN, p.w, { pt: 7.5, cs: 140, kolor: c.k.akcent2 }));
       const l = n.linie(p.x, yN + c.pt(7.5), p.w, p.y + p.h - yN - c.pt(7.5) - 6, 7);
       if (l) o.push(l);
       o.push(n.tekst('Dzień {dzien_roku} · {miesiac}', p.x, p.y + p.h - c.pt(7) * 1.4, p.w, { pt: 7, align: 'right', kolor: c.k.linia }));
@@ -461,7 +461,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'planer-tygodniowy', nazwa: 'Planer tygodniowy (52 tygodnie)', kategoria: 'planery', paleta: 'zielen',
-    opis: 'Tydzień na stronie: siedem pól z datami, cele tygodnia. Daty z danych.', slowa: 'planer tygodniowy tydzien 52 tygodnie daty',
+    opis: tt('gotoweSekcje.tydzienNaStronieSiedem'), slowa: 'planer tygodniowy tydzien 52 tygodnie daty',
     pytania: [pytanieRok], dane: true,
     schemat: [['tytul', 3, 3, 14, 2], ['siatka', 3, 7, 24, 32]],
     buduj(c, n) {
@@ -490,7 +490,7 @@ export const SZABLONY_SEKCJI = [
       for (let i = 0; i < pol; i += 1) {
         const x = p.x + (i % kol) * (w + odst); const y = yG + Math.floor(i / kol) * (h + odst);
         o.push(n.prost(x, y, w, h, { fill: i === pol - 1 ? c.k.jasny : '', stroke: c.k.linia, sw: 0.25, rx: 1.2 }));
-        o.push(n.tekst(i < 7 ? `{d${i + 1}}` : 'Cele tygodnia', x + 2, y + 1.6, w - 4, { pt: 8.5, bold: true, kolor: i === 5 || i === 6 ? '#c0392b' : c.k.akcent }));
+        o.push(n.tekst(i < 7 ? `{d${i + 1}}` : tt('gotoweSekcje.celeTygodnia'), x + 2, y + 1.6, w - 4, { pt: 8.5, bold: true, kolor: i === 5 || i === 6 ? '#c0392b' : c.k.akcent }));
         const l = n.linie(x + 2, y + 1.6 + c.pt(8.5) * 0.6, w - 4, h - 3 - c.pt(8.5) * 0.6, 6);
         if (l) o.push(l);
       }
@@ -503,7 +503,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'planer-miesieczny', nazwa: 'Planer miesięczny', kategoria: 'planery', paleta: 'pastel',
-    opis: 'Miesiąc z miejscem na wpisy w każdym dniu, cele i notatki. 12 stron z danych.', slowa: 'planer miesieczny miesiac notatki cele',
+    opis: tt('gotoweSekcje.miesiacZMiejscemNa'), slowa: 'planer miesieczny miesiac notatki cele',
     pytania: [pytanieRok], dane: true,
     schemat: [['tytul', 3, 3, 12, 2], ['siatka', 3, 7, 24, 22], ['linie', 3, 31, 24, 8]],
     buduj(c, n) {
@@ -515,7 +515,7 @@ export const SZABLONY_SEKCJI = [
       const o = [
         n.tekst('{nazwa}', p.x, p.y, p.w, { pt: 18, font: c.f.tytul, bold: true, kolor: c.k.akcent }),
         n.kalendarz(p.x, yK, p.w, { pole_daty: 'miesiac', h: hK, notatki: true, pt: 8 }),
-        n.tekst('CELE I NOTATKI', p.x, yK + hK + 4, p.w, { pt: 7.5, cs: 140, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.celeINotatki'), p.x, yK + hK + 4, p.w, { pt: 7.5, cs: 140, kolor: c.k.akcent2 }),
       ];
       const l = n.linie(p.x, yK + hK + 4 + c.pt(7.5), p.w, p.y + p.h - (yK + hK + 4 + c.pt(7.5)), 7);
       if (l) o.push(l);
@@ -528,7 +528,7 @@ export const SZABLONY_SEKCJI = [
   },
   ...[['notes-linie', 'Notes w linie', 'linie', 'linie zeszyt pisanie'], ['notes-kratka', 'Notes w kratkę', 'kratka', 'kratka zeszyt matematyka'], ['notes-kropki', 'Notes w kropki', 'kropki', 'kropki bullet journal dot grid']].map(([id, nazwa, rodzaj, slowa]) => ({
     id, nazwa, kategoria: 'planery', paleta: 'mono',
-    opis: `Wybrana liczba stron ${rodzaj === 'linie' ? 'w linie co 8 mm' : rodzaj === 'kratka' ? 'w kratkę 5 mm' : 'w kropki co 5 mm'}, z miejscem na datę i numerem strony.`, slowa: `notes ${slowa}`,
+    opis: tt('gotoweSekcje.wybranaLiczbaStronZ', { x: rodzaj === 'linie' ? tt('gotoweSekcje.wLinieCo8') : rodzaj === 'kratka' ? tt('gotoweSekcje.wKratke5Mm') : tt('gotoweSekcje.wKropkiCo5') }), slowa: `notes ${slowa}`,
     pytania: [pytanieStron(40, 400)],
     schemat: [['tekst', 18, 3, 9, 1], [rodzaj === 'linie' ? 'linie' : 'siatka', 3, 6, 24, 33]],
     buduj(c, n) {
@@ -536,7 +536,7 @@ export const SZABLONY_SEKCJI = [
       const y0 = p.y + c.pt(8) * 2.2;
       const wypelnienie = rodzaj === 'linie' ? n.linie(p.x, y0, p.w, p.y + p.h - y0, 8) : n[rodzaj](p.x, y0, p.w, p.y + p.h - y0, 5);
       const o = [
-        n.tekst('Data: ……………………', p.x + p.w * 0.55, p.y, p.w * 0.45, { pt: 8, align: 'right', kolor: c.k.akcent2, nazwa: 'Data' }),
+        n.tekst(tt('gotoweSekcje.data'), p.x + p.w * 0.55, p.y, p.w * 0.45, { pt: 8, align: 'right', kolor: c.k.akcent2, nazwa: 'Data' }),
         wypelnienie,
       ].filter(Boolean);
       return {
@@ -548,7 +548,7 @@ export const SZABLONY_SEKCJI = [
   })),
   {
     id: 'tracker-roczny', nazwa: 'Tracker roczny', kategoria: 'planery', paleta: 'roz',
-    opis: 'Rok w pigułce: 12 kolumn miesięcy × 31 dni do kolorowania (nastrój, nawyk, czytanie).', slowa: 'tracker roczny rok w pigulce nastroj nawyk kolorowanie',
+    opis: tt('gotoweSekcje.rokWPigulce12'), slowa: 'tracker roczny rok w pigulce nastroj nawyk kolorowanie',
     pytania: [pytanieRok],
     schemat: [['tytul', 3, 3, 14, 2], ['siatka', 3, 7, 24, 32]],
     buduj(c, n) {
@@ -556,8 +556,8 @@ export const SZABLONY_SEKCJI = [
       const yT = p.y + c.pt(16) * 1.6;
       const lew = c.pt(7) * 2.4; const gor = c.pt(7) * 1.8;
       const kw = (p.w - lew) / 12; const kh = (p.y + p.h - yT - gor - c.pt(7) * 3) / 31;
-      const o = [n.tekst(`Mój rok ${c.rok}`, p.x, p.y, p.w * 0.6, { pt: 16, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' }),
-        n.tekst('Co śledzę: …………………', p.x + p.w * 0.6, p.y + c.pt(16) * 0.3, p.w * 0.4, { pt: 8, align: 'right', kolor: c.k.akcent2 })];
+      const o = [n.tekst(tt('gotoweSekcje.mojRok', { rok: c.rok }), p.x, p.y, p.w * 0.6, { pt: 16, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' }),
+        n.tekst(tt('gotoweSekcje.coSledze'), p.x + p.w * 0.6, p.y + c.pt(16) * 0.3, p.w * 0.4, { pt: 8, align: 'right', kolor: c.k.akcent2 })];
       MIES.forEach((m, i) => o.push(n.tekst(wielka(m).slice(0, 3), p.x + lew + i * kw, yT, kw, { pt: 7, align: 'center', bold: true, kolor: c.k.akcent })));
       for (let d = 1; d <= 31; d += 1) o.push(n.tekst(String(d), p.x, yT + gor + (d - 1) * kh + Math.max(0, (kh - c.pt(7)) / 2), lew - 1, { pt: 7, align: 'right', kolor: c.k.akcent2 }));
       let dd = '';
@@ -580,7 +580,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'tracker-nawykow', nazwa: 'Miesięczny tracker nawyków', kategoria: 'planery', paleta: 'zielen',
-    opis: 'Nawyki w wierszach, dni miesiąca w kolumnach – co miesiąc nowa strona z danych.', slowa: 'tracker nawykow miesiac nawyki habit',
+    opis: tt('gotoweSekcje.nawykiWWierszachDni'), slowa: 'tracker nawykow miesiac nawyki habit',
     pytania: [pytanieRok], dane: true,
     schemat: [['tytul', 3, 3, 12, 2], ['siatka', 3, 7, 24, 20]],
     buduj(c, n) {
@@ -609,32 +609,32 @@ export const SZABLONY_SEKCJI = [
   // ---------- Zaproszenia i dyplomy ----------
   {
     id: 'zaproszenie', nazwa: 'Zaproszenie', kategoria: 'okazje', format: [148, 210], paleta: 'roz',
-    opis: 'Przód z ozdobną ramką i druga strona ze szczegółami: kiedy, gdzie, potwierdzenie.', slowa: 'zaproszenie slub urodziny chrzest komunia impreza wesele',
+    opis: tt('gotoweSekcje.przodZOzdobnaRamka'), slowa: 'zaproszenie slub urodziny chrzest komunia impreza wesele',
     schemat: [['ramka', 3, 3, 24, 36], ['tytul', 7, 14, 16, 4], ['tekst', 9, 22, 12, 1.5]],
     buduj(c, n) {
       const { pole: p } = c;
       const ramka = (o = {}) => [n.prost(p.x - 3, p.y - 3, p.w + 6, p.h + 6, { fill: '', stroke: c.k.akcent2, sw: 0.5, nazwa: 'Ramka', ...o }), n.prost(p.x - 1.5, p.y - 1.5, p.w + 3, p.h + 3, { fill: '', stroke: c.k.akcent2, sw: 0.2 })];
       const s1 = [
         n.tlo(c.k.jasny), ...ramka(),
-        n.tekst('Z radością zapraszamy', p.x, p.y + p.h * 0.18, p.w, { pt: 11, align: 'center', italic: true, kolor: c.k.akcent2 }),
-        n.tekst('Anna\n&\nPiotr', p.x, p.y + p.h * 0.28, p.w, { pt: 30, font: 'Great Vibes', align: 'center', kolor: c.k.akcent, lh: 1.0, nazwa: 'Imiona' }),
+        n.tekst(tt('gotoweSekcje.zRadosciaZapraszamy'), p.x, p.y + p.h * 0.18, p.w, { pt: 11, align: 'center', italic: true, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.annaPiotr'), p.x, p.y + p.h * 0.28, p.w, { pt: 30, font: 'Great Vibes', align: 'center', kolor: c.k.akcent, lh: 1.0, nazwa: 'Imiona' }),
         ...n.ozdobnik(p.x + p.w / 2, p.y + p.h * 0.66, Math.min(50, p.w * 0.5)),
-        n.tekst('12 czerwca 2027', p.x, p.y + p.h * 0.72, p.w, { pt: 12, align: 'center', cs: 120, kolor: c.k.tekst, wielkosc_liter: 'wielkie' }),
+        n.tekst(tt('gotoweSekcje.12Czerwca2027'), p.x, p.y + p.h * 0.72, p.w, { pt: 12, align: 'center', cs: 120, kolor: c.k.tekst, wielkosc_liter: 'wielkie' }),
       ];
       const s2 = [
         n.tlo(c.k.jasny), ...ramka(),
-        n.tekst('Uroczystość', p.x, p.y + p.h * 0.1, p.w, { pt: 16, font: c.f.tytul, align: 'center', bold: true, kolor: c.k.akcent }),
-        n.tekst('Sobota, 12 czerwca 2027 r., godz. 15:00\nKościół pw. św. Anny\nul. Przykładowa 1, Miasto', p.x, p.y + p.h * 0.2, p.w, { pt: 10, align: 'center', lh: 1.5 }),
-        n.tekst('Przyjęcie', p.x, p.y + p.h * 0.45, p.w, { pt: 16, font: c.f.tytul, align: 'center', bold: true, kolor: c.k.akcent }),
-        n.tekst('Dom Weselny „Pod Lipami”\nul. Ogrodowa 5, Miasto', p.x, p.y + p.h * 0.55, p.w, { pt: 10, align: 'center', lh: 1.5 }),
-        n.tekst('Prosimy o potwierdzenie przybycia do 1 maja\ntel. 600 000 000', p.x, p.y + p.h * 0.8, p.w, { pt: 8.5, align: 'center', italic: true, kolor: c.k.akcent2, lh: 1.4 }),
+        n.tekst(tt('gotoweSekcje.uroczystosc'), p.x, p.y + p.h * 0.1, p.w, { pt: 16, font: c.f.tytul, align: 'center', bold: true, kolor: c.k.akcent }),
+        n.tekst(tt('gotoweSekcje.sobota12Czerwca2027'), p.x, p.y + p.h * 0.2, p.w, { pt: 10, align: 'center', lh: 1.5 }),
+        n.tekst(tt('gotoweSekcje.przyjecie'), p.x, p.y + p.h * 0.45, p.w, { pt: 16, font: c.f.tytul, align: 'center', bold: true, kolor: c.k.akcent }),
+        n.tekst(tt('gotoweSekcje.domWeselnyPodLipami'), p.x, p.y + p.h * 0.55, p.w, { pt: 10, align: 'center', lh: 1.5 }),
+        n.tekst(tt('gotoweSekcje.prosimyOPotwierdzeniePrzybycia'), p.x, p.y + p.h * 0.8, p.w, { pt: 8.5, align: 'center', italic: true, kolor: c.k.akcent2, lh: 1.4 }),
       ];
       return { strony: [{ nazwa: 'Zaproszenie – przód', obiekty: s1, wzorce: [] }, { nazwa: 'Zaproszenie – szczegóły', obiekty: s2, wzorce: [] }], numeracja: { tryb: 'brak', od: 1 } };
     },
   },
   {
     id: 'dyplom', nazwa: 'Dyplom', kategoria: 'okazje', format: [297, 210], paleta: 'granat',
-    opis: 'Poziomy dyplom z ozdobną ramką, imieniem z danych i miejscem na podpisy – jedna strona na osobę.', slowa: 'dyplom uznanie nagroda szkola konkurs osoby',
+    opis: tt('gotoweSekcje.poziomyDyplomZOzdobna'), slowa: 'dyplom uznanie nagroda szkola konkurs osoby',
     dane: true,
     schemat: [['ramka', 2, 6, 26, 28], ['tytul', 8, 11, 14, 4], ['tekst', 8, 18, 14, 2], ['tekst', 5, 29, 7, 1], ['tekst', 18, 29, 7, 1]],
     buduj(c, n) {
@@ -642,8 +642,8 @@ export const SZABLONY_SEKCJI = [
       const o = [
         n.prost(p.x - 4, p.y - 4, p.w + 8, p.h + 8, { fill: '', stroke: c.k.akcent, sw: 1.2, nazwa: 'Ramka' }),
         n.prost(p.x - 1.5, p.y - 1.5, p.w + 3, p.h + 3, { fill: '', stroke: c.k.akcent2, sw: 0.3 }),
-        n.tekst('DYPLOM', p.x, p.y + p.h * 0.1, p.w, { pt: 40, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent, cs: 200, nazwa: 'Tytuł' }),
-        n.tekst('dla', p.x, p.y + p.h * 0.3, p.w, { pt: 12, align: 'center', italic: true, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.dyplom'), p.x, p.y + p.h * 0.1, p.w, { pt: 40, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent, cs: 200, nazwa: 'Tytuł' }),
+        n.tekst(tt('gotoweSekcje.dla'), p.x, p.y + p.h * 0.3, p.w, { pt: 12, align: 'center', italic: true, kolor: c.k.akcent2 }),
         n.tekst('{imie}', p.x, p.y + p.h * 0.37, p.w, { pt: 28, font: 'Great Vibes', align: 'center', kolor: c.k.tekst, nazwa: 'Imię i nazwisko' }),
         ...n.ozdobnik(p.x + p.w / 2, p.y + p.h * 0.55, Math.min(70, p.w * 0.4)),
         n.tekst('{za_co}', p.x + p.w * 0.15, p.y + p.h * 0.6, p.w * 0.7, { pt: 12, align: 'center', lh: 1.35, nazwa: 'Za co' }),
@@ -661,7 +661,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'certyfikat', nazwa: 'Certyfikat ukończenia', kategoria: 'okazje', format: [297, 210], paleta: 'mono',
-    opis: 'Nowoczesny certyfikat: pasek akcentu, imię z danych, kurs, data i numer.', slowa: 'certyfikat zaswiadczenie kurs szkolenie ukonczenie',
+    opis: tt('gotoweSekcje.nowoczesnyCertyfikatPasekAkcentu'), slowa: 'certyfikat zaswiadczenie kurs szkolenie ukonczenie',
     dane: true,
     schemat: [['akcent', 0, 0, 6, 42], ['tytul', 9, 10, 18, 3], ['tekst', 9, 17, 14, 3], ['tekst', 9, 32, 8, 1]],
     buduj(c, n) {
@@ -671,13 +671,13 @@ export const SZABLONY_SEKCJI = [
       const o = [
         n.prost(-c.spad, -c.spad, pas + c.spad, c.H + 2 * c.spad, { fill: c.k.akcent, bez_ostrzezen: true, nazwa: 'Pasek' }),
         n.prost(pas, -c.spad, 2, c.H + 2 * c.spad, { fill: c.k.akcent2, bez_ostrzezen: true }),
-        n.tekst('CERTYFIKAT', x, p.y + p.h * 0.1, w, { pt: 30, font: c.f.tytul, bold: true, kolor: c.k.akcent, cs: 150, nazwa: 'Tytuł' }),
-        n.tekst('Niniejszym potwierdzamy, że', x, p.y + p.h * 0.28, w, { pt: 11, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.certyfikat'), x, p.y + p.h * 0.1, w, { pt: 30, font: c.f.tytul, bold: true, kolor: c.k.akcent, cs: 150, nazwa: 'Tytuł' }),
+        n.tekst(tt('gotoweSekcje.niniejszymPotwierdzamyZe'), x, p.y + p.h * 0.28, w, { pt: 11, kolor: c.k.akcent2 }),
         n.tekst('{imie}', x, p.y + p.h * 0.35, w, { pt: 26, font: c.f.tytul, bold: true, nazwa: 'Imię i nazwisko' }),
         n.tekst('ukończył(a) kurs „{kurs}” w wymiarze {godzin} godzin.', x, p.y + p.h * 0.52, w, { pt: 12, lh: 1.4, nazwa: 'Opis' }),
         n.tekst('Data: {data}\nNr certyfikatu: {numer}', x, p.y + p.h * 0.78, w * 0.5, { pt: 9, lh: 1.5, kolor: c.k.akcent2 }),
         n.kreska(x + w * 0.55, p.y + p.h * 0.84, w * 0.45, 0.25, c.k.tekst),
-        n.tekst('podpis prowadzącego', x + w * 0.55, p.y + p.h * 0.85, w * 0.45, { pt: 8, align: 'center', kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.podpisProwadzacego'), x + w * 0.55, p.y + p.h * 0.85, w * 0.45, { pt: 8, align: 'center', kolor: c.k.akcent2 }),
       ];
       return {
         strony: [{ nazwa: 'Certyfikat', obiekty: o, seria: 'osoby', wzorce: [] }],
@@ -689,7 +689,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'kartka-okolicznosciowa', nazwa: 'Kartka okolicznościowa', kategoria: 'okazje', format: [148, 105], paleta: 'terakota',
-    opis: 'Kartka z życzeniami: przód z hasłem i ozdobnikami, środek z miejscem na życzenia.', slowa: 'kartka zyczenia swieta urodziny boze narodzenie wielkanoc okolicznosciowa',
+    opis: tt('gotoweSekcje.kartkaZZyczeniamiPrzod'), slowa: 'kartka zyczenia swieta urodziny boze narodzenie wielkanoc okolicznosciowa',
     schemat: [['tlo', 0, 0, 30, 42], ['tytul', 5, 16, 20, 5], ['akcent', 10, 24, 10, 0.6]],
     buduj(c, n) {
       const { pole: p } = c;
@@ -698,26 +698,26 @@ export const SZABLONY_SEKCJI = [
       const s1 = [
         n.tlo(c.k.akcent),
         gw(p.x + r, p.y + r, r, c.k.akcent2), gw(p.x + p.w - r, p.y + p.h - r, r * 0.8, c.k.akcent2), gw(p.x + p.w - r * 2.5, p.y + r * 1.5, r * 0.5, mieszaj(c.k.akcent2, '#ffffff', 0.4)),
-        n.tekst('Wszystkiego\nnajlepszego!', p.x, p.y + p.h * 0.3, p.w, { pt: 26, font: 'Dancing Script', bold: true, align: 'center', kolor: '#ffffff', lh: 1.05, nazwa: 'Hasło' }),
+        n.tekst(tt('gotoweSekcje.wszystkiegoNajlepszego'), p.x, p.y + p.h * 0.3, p.w, { pt: 26, font: 'Dancing Script', bold: true, align: 'center', kolor: '#ffffff', lh: 1.05, nazwa: 'Hasło' }),
       ];
       const s2 = [
         ...n.ozdobnik(p.x + p.w / 2, p.y + 4, Math.min(40, p.w * 0.4)),
-        n.tekst('Kochana Mamo,\nżyczymy Ci zdrowia, radości i wielu pięknych chwil!', p.x, p.y + p.h * 0.25, p.w, { pt: 12, font: 'Dancing Script', align: 'center', lh: 1.4, nazwa: 'Życzenia' }),
-        n.tekst('— Twoja rodzina', p.x, p.y + p.h * 0.75, p.w, { pt: 10, align: 'center', italic: true, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.kochanaMamoZyczymyCi'), p.x, p.y + p.h * 0.25, p.w, { pt: 12, font: 'Dancing Script', align: 'center', lh: 1.4, nazwa: 'Życzenia' }),
+        n.tekst(tt('gotoweSekcje.twojaRodzina'), p.x, p.y + p.h * 0.75, p.w, { pt: 10, align: 'center', italic: true, kolor: c.k.akcent2 }),
       ];
       return { strony: [{ nazwa: 'Kartka – przód', obiekty: s1, wzorce: [] }, { nazwa: 'Kartka – środek', obiekty: s2, wzorce: [] }], numeracja: { tryb: 'brak', od: 1 } };
     },
   },
   {
     id: 'program-wydarzenia', nazwa: 'Program wydarzenia', kategoria: 'okazje', paleta: 'granat',
-    opis: 'Agenda z godzinami, prelegentami i miejscem – czytelna jedna strona.', slowa: 'program wydarzenia agenda konferencja harmonogram uroczystosc',
+    opis: tt('gotoweSekcje.agendaZGodzinamiPrelegentami'), slowa: 'program wydarzenia agenda konferencja harmonogram uroczystosc',
     schemat: [['tytul', 3, 3, 18, 3], ['punkty', 3, 9, 24, 28]],
     buduj(c, n) {
       const { pole: p } = c;
       const punkty = [['9:00', 'Powitanie gości', 'Sala główna'], ['9:30', 'Wykład otwierający', 'Imię Nazwisko'], ['11:00', 'Przerwa kawowa', 'Foyer'], ['11:30', 'Warsztaty w grupach', 'Sale 1–3'], ['13:00', 'Obiad', 'Restauracja'], ['14:30', 'Panel dyskusyjny', 'Prowadzenie: Imię Nazwisko'], ['16:00', 'Podsumowanie i zakończenie', 'Sala główna']];
       const o = [
-        n.tekst('Program', p.x, p.y, p.w, { pt: 26, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' }),
-        n.tekst('Nazwa wydarzenia · 12 czerwca 2027 · Miasto', p.x, p.y + c.pt(26) * 1.25, p.w, { pt: 10, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.program'), p.x, p.y, p.w, { pt: 26, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' }),
+        n.tekst(tt('gotoweSekcje.nazwaWydarzenia12Czerwca'), p.x, p.y + c.pt(26) * 1.25, p.w, { pt: 10, kolor: c.k.akcent2 }),
       ];
       const y0 = p.y + c.pt(26) * 1.25 + c.pt(10) * 2.5;
       const krok = Math.min(c.pt(11) * 3.6, (p.y + p.h - y0) / punkty.length);
@@ -736,7 +736,7 @@ export const SZABLONY_SEKCJI = [
     id: 'wizytowki', nazwa: 'Wizytówki', kategoria: 'firma', format: [85, 55], marginesy: 4, paleta: 'granat',
     // Sekcja specjalna (#177): arkusz użytków – w PDF wizytówki stoją na arkuszu SRA3 ze znakami cięcia.
     specjalna: { rodzaj: 'arkusz', uzytek_szer_mm: 85, uzytek_wys_mm: 55, arkusz: 'SRA3' },
-    opis: 'Wizytówka 85 × 55 mm dla każdej osoby z tabeli: imię, stanowisko, telefon, e-mail.', slowa: 'wizytowki wizytowka firma kontakt osoby telefon email',
+    opis: tt('gotoweSekcje.wizytowka8555Mm'), slowa: 'wizytowki wizytowka firma kontakt osoby telefon email',
     dane: true,
     schemat: [['akcent', 0, 0, 30, 4], ['tytul', 3, 10, 18, 3], ['tekst', 3, 15, 14, 1.5], ['tekst', 3, 30, 18, 3]],
     buduj(c, n) {
@@ -757,7 +757,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'ulotka', nazwa: 'Ulotka', kategoria: 'firma', format: [148, 210], paleta: 'terakota',
-    opis: 'Dwie strony: duże zdjęcie z hasłem i lista korzyści, na odwrocie oferta i kontakt.', slowa: 'ulotka a5 reklama oferta promocja',
+    opis: tt('gotoweSekcje.dwieStronyDuzeZdjecie'), slowa: 'ulotka a5 reklama oferta promocja',
     schemat: [['zdjecie', 0, 0, 30, 20], ['tytul', 3, 22, 20, 4], ['punkty', 3, 28, 24, 10]],
     buduj(c, n) {
       const { pole: p } = c;
@@ -765,34 +765,34 @@ export const SZABLONY_SEKCJI = [
       const s1 = [
         n.zdjecie(-c.spad, -c.spad, c.W + 2 * c.spad, hZ + c.spad, { bez_ostrzezen: true }),
         n.prost(p.x, hZ - c.pt(9) * 1.2, Math.min(60, p.w * 0.5), c.pt(9) * 2.4, { fill: c.k.akcent2, nazwa: 'Plakietka' }),
-        n.tekst('NOWOŚĆ', p.x + 2, hZ - c.pt(9) * 0.6, Math.min(60, p.w * 0.5) - 4, { pt: 9, bold: true, cs: 200, kolor: '#ffffff' }),
-        n.tekst('Hasło, które przyciąga uwagę', p.x, hZ + c.pt(9) * 2, p.w, { pt: 24, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.05, nazwa: 'Hasło' }),
-        n.tekst('Jedno zdanie, które mówi, co zyska klient.', p.x, hZ + c.pt(9) * 2 + c.pt(24) * 2.4, p.w, { pt: 11, kolor: c.k.akcent2, italic: true }),
+        n.tekst(tt('gotoweSekcje.nowosc'), p.x + 2, hZ - c.pt(9) * 0.6, Math.min(60, p.w * 0.5) - 4, { pt: 9, bold: true, cs: 200, kolor: '#ffffff' }),
+        n.tekst(tt('gotoweSekcje.hasloKtorePrzyciagaUwage'), p.x, hZ + c.pt(9) * 2, p.w, { pt: 24, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.05, nazwa: 'Hasło' }),
+        n.tekst(tt('gotoweSekcje.jednoZdanieKtoreMowi'), p.x, hZ + c.pt(9) * 2 + c.pt(24) * 2.4, p.w, { pt: 11, kolor: c.k.akcent2, italic: true }),
       ];
       const yL = hZ + c.pt(9) * 2 + c.pt(24) * 2.4 + c.pt(11) * 2.4;
       ['Pierwsza korzyść – krótko i konkretnie', 'Druga korzyść – czym różnisz się od innych', 'Trzecia korzyść – dlaczego warto teraz'].forEach((t, i) => s1.push(...n.punkt(p.x, yL + i * c.pt(10) * 2, p.w, t, { pt: 10 })));
       const s2 = [
-        n.tekst('Oferta', p.x, p.y, p.w, { pt: 22, font: c.f.tytul, bold: true, kolor: c.k.akcent }),
+        n.tekst(tt('gotoweSekcje.oferta'), p.x, p.y, p.w, { pt: 22, font: c.f.tytul, bold: true, kolor: c.k.akcent }),
         n.tabela(p.x, p.y + c.pt(22) * 1.6, p.w, [3, 1], [['Usługa', 'Cena'], ['Pakiet podstawowy', '99 zł'], ['Pakiet rozszerzony', '199 zł'], ['Pakiet premium', '299 zł']], { wysokosc: 8, pt: 9.5, nazwa: 'Cennik' }),
         n.prost(p.x, p.y + p.h * 0.62, p.w, p.h * 0.38, { fill: c.k.jasny, rx: 2, nazwa: 'Pole kontaktu' }),
-        n.tekst('Zadzwoń albo napisz', p.x + 4, p.y + p.h * 0.62 + 4, p.w - 8, { pt: 13, bold: true, kolor: c.k.akcent }),
-        n.tekst('tel. 600 000 000\nkontakt@firma.pl\nul. Przykładowa 1, Miasto\nwww.firma.pl', p.x + 4, p.y + p.h * 0.62 + 4 + c.pt(13) * 1.7, p.w - 8, { pt: 10, lh: 1.5 }),
+        n.tekst(tt('gotoweSekcje.zadzwonAlboNapisz'), p.x + 4, p.y + p.h * 0.62 + 4, p.w - 8, { pt: 13, bold: true, kolor: c.k.akcent }),
+        n.tekst(tt('gotoweSekcje.tel600000000'), p.x + 4, p.y + p.h * 0.62 + 4 + c.pt(13) * 1.7, p.w - 8, { pt: 10, lh: 1.5 }),
       ];
       return { strony: [{ nazwa: 'Ulotka – przód', obiekty: s1, wzorce: [] }, { nazwa: 'Ulotka – tył', obiekty: s2, wzorce: [] }], numeracja: { tryb: 'brak', od: 1 } };
     },
   },
   {
     id: 'plakat', nazwa: 'Plakat', kategoria: 'firma', format: [297, 420], paleta: 'terakota',
-    opis: 'Wielkie hasło, zdjęcie, data i miejsce – plakat wydarzenia.', slowa: 'plakat afisz wydarzenie koncert festyn a3',
+    opis: tt('gotoweSekcje.wielkieHasloZdjecieData'), slowa: 'plakat afisz wydarzenie koncert festyn a3',
     schemat: [['tlo', 0, 0, 30, 42], ['tytul', 3, 4, 24, 8], ['zdjecie', 3, 14, 24, 16], ['tekst', 3, 33, 20, 3]],
     buduj(c, n) {
       const { pole: p } = c;
       const o = [
         n.tlo(c.k.akcent),
-        n.tekst('NAZWA\nWYDARZENIA', p.x, p.y, p.w, { pt: 64, font: c.f.tytul, bold: true, kolor: '#ffffff', lh: 0.95, nazwa: 'Hasło' }),
+        n.tekst(tt('gotoweSekcje.nazwaWydarzenia'), p.x, p.y, p.w, { pt: 64, font: c.f.tytul, bold: true, kolor: '#ffffff', lh: 0.95, nazwa: 'Hasło' }),
         n.zdjecie(p.x, p.y + p.h * 0.3, p.w, p.h * 0.42),
-        n.tekst('12.06.2027 · godz. 18:00', p.x, p.y + p.h * 0.76, p.w, { pt: 24, bold: true, kolor: c.k.akcent2, nazwa: 'Data' }),
-        n.tekst('Miejsce wydarzenia, ul. Przykładowa 1, Miasto\nWstęp wolny · www.wydarzenie.pl', p.x, p.y + p.h * 0.76 + c.pt(24) * 1.5, p.w, { pt: 13, kolor: '#ffffff', lh: 1.4 }),
+        n.tekst(tt('gotoweSekcje.12062027Godz'), p.x, p.y + p.h * 0.76, p.w, { pt: 24, bold: true, kolor: c.k.akcent2, nazwa: 'Data' }),
+        n.tekst(tt('gotoweSekcje.miejsceWydarzeniaUlPrzykladowa'), p.x, p.y + p.h * 0.76 + c.pt(24) * 1.5, p.w, { pt: 13, kolor: '#ffffff', lh: 1.4 }),
       ];
       return { strony: [{ nazwa: 'Plakat', obiekty: o, wzorce: [] }], numeracja: { tryb: 'brak', od: 1 } };
     },
@@ -801,7 +801,7 @@ export const SZABLONY_SEKCJI = [
     id: 'broszura-skladana', nazwa: 'Broszura składana (3 części)', kategoria: 'firma', format: [297, 210], paleta: 'zielen',
     // Ulotka składana (#177): panele i zgięcia zna sekcja – panel składany do środka jest o 2 mm węższy.
     specjalna: { rodzaj: 'ulotka', panele: 3, zlozenie: 'c', szerokosc_mm: 99, wysokosc_mm: 210, skrot_mm: 2 },
-    opis: 'Arkusz A4 poziomo składany na trzy: strona zewnętrzna i wewnętrzna, z prowadnicami złamów.', slowa: 'broszura skladana trifold ulotka skladana trzy czesci',
+    opis: tt('gotoweSekcje.arkuszA4PoziomoSkladany'), slowa: 'broszura skladana trifold ulotka skladana trzy czesci',
     schemat: [['tekst', 1, 4, 8, 20], ['zdjecie', 11, 4, 8, 12], ['tytul', 21, 6, 8, 5]],
     buduj(c, n) {
       const tr = c.W / 3; const m = Math.max(6, c.m.gora);
@@ -810,14 +810,14 @@ export const SZABLONY_SEKCJI = [
       const zew = [];
       const k0 = kolumna(0); const k1 = kolumna(1); const k2 = kolumna(2);
       zew.push(
-        n.tekst('O nas', k0.x, m, k0.w, { pt: 16, font: c.f.tytul, bold: true, kolor: c.k.akcent }),
+        n.tekst(tt('gotoweSekcje.oNas'), k0.x, m, k0.w, { pt: 16, font: c.f.tytul, bold: true, kolor: c.k.akcent }),
         n.tekst(akapit(4), k0.x, m + c.pt(16) * 1.6, k0.w, { pt: 9, lh: 1.4 }),
         n.prost(k1.x, c.H * 0.35, k1.w, c.H * 0.45, { fill: c.k.jasny, rx: 2, nazwa: 'Kontakt' }),
         n.tekst(tt('gotoweSekcje.kontakt'), k1.x + 3, c.H * 0.35 + 3, k1.w - 6, { pt: 13, bold: true, kolor: c.k.akcent }),
-        n.tekst('tel. 600 000 000\nkontakt@firma.pl\nwww.firma.pl', k1.x + 3, c.H * 0.35 + 3 + c.pt(13) * 1.7, k1.w - 6, { pt: 9.5, lh: 1.5 }),
+        n.tekst(tt('gotoweSekcje.tel6000000002'), k1.x + 3, c.H * 0.35 + 3 + c.pt(13) * 1.7, k1.w - 6, { pt: 9.5, lh: 1.5 }),
         n.zdjecie(2 * tr, -c.spad, tr + c.spad, c.H * 0.55 + c.spad, { bez_ostrzezen: true }),
-        n.tekst('Nazwa firmy', k2.x, c.H * 0.6, k2.w, { pt: 22, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.05, nazwa: 'Tytuł' }),
-        n.tekst('Krótkie hasło o tym, co robimy', k2.x, c.H * 0.6 + c.pt(22) * 2.4, k2.w, { pt: 10, italic: true, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.nazwaFirmy'), k2.x, c.H * 0.6, k2.w, { pt: 22, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.05, nazwa: 'Tytuł' }),
+        n.tekst(tt('gotoweSekcje.krotkieHasloOTym'), k2.x, c.H * 0.6 + c.pt(22) * 2.4, k2.w, { pt: 10, italic: true, kolor: c.k.akcent2 }),
       );
       const wew = [];
       ['Co robimy', 'Jak pracujemy', 'Dlaczego my'].forEach((t, i) => {
@@ -829,7 +829,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'katalog-produktow', nazwa: 'Katalog produktów', kategoria: 'firma', paleta: 'mono',
-    opis: 'Strona na każdy produkt z tabeli: zdjęcie z pliku, nazwa, opis, cena, kod.', slowa: 'katalog produktow oferta sklep ceny zdjecia produkty',
+    opis: tt('gotoweSekcje.stronaNaKazdyProdukt'), slowa: 'katalog produktow oferta sklep ceny zdjecia produkty',
     dane: true,
     schemat: [['zdjecie', 3, 3, 24, 20], ['tytul', 3, 25, 18, 3], ['tekst', 3, 30, 24, 5], ['akcent', 19, 37, 8, 2]],
     buduj(c, n) {
@@ -854,7 +854,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'menu', nazwa: 'Menu restauracji', kategoria: 'firma', paleta: 'terakota',
-    opis: 'Okładka i karta dań z cenami wyrównanymi kropkami do prawej.', slowa: 'menu karta dan restauracja kawiarnia ceny',
+    opis: tt('gotoweSekcje.okladkaIKartaDan'), slowa: 'menu karta dan restauracja kawiarnia ceny',
     schemat: [['tytul', 8, 4, 14, 3], ['linie', 3, 10, 24, 28]],
     buduj(c, n) {
       const { pole: p } = c;
@@ -862,11 +862,11 @@ export const SZABLONY_SEKCJI = [
       const tab = [{ poz: Math.floor((p.w - 1.5) * 100) / 100, rodzaj: 'prawy', wypelniacz: '.' }];
       const okladka = [
         n.tlo(c.k.ciemny),
-        n.tekst('Nazwa\nrestauracji', p.x, p.y + p.h * 0.32, p.w, { pt: 32, font: c.f.tytul, bold: true, align: 'center', kolor: '#ffffff', lh: 1.05, nazwa: 'Nazwa' }),
+        n.tekst(tt('gotoweSekcje.nazwaRestauracji'), p.x, p.y + p.h * 0.32, p.w, { pt: 32, font: c.f.tytul, bold: true, align: 'center', kolor: '#ffffff', lh: 1.05, nazwa: 'Nazwa' }),
         ...n.ozdobnik(p.x + p.w / 2, p.y + p.h * 0.58, Math.min(50, p.w * 0.5)),
-        n.tekst('MENU', p.x, p.y + p.h * 0.62, p.w, { pt: 12, align: 'center', cs: 400, kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.menu'), p.x, p.y + p.h * 0.62, p.w, { pt: 12, align: 'center', cs: 400, kolor: c.k.akcent2 }),
       ];
-      const karta = [n.tekst('Menu', p.x, p.y, p.w, { pt: 24, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent })];
+      const karta = [n.tekst(tt('gotoweSekcje.menu2'), p.x, p.y, p.w, { pt: 24, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent })];
       let y = p.y + c.pt(24) * 1.8;
       const dzialy = [['Przystawki', [['Tatar z łososia', '32 zł'], ['Zupa dnia', '18 zł'], ['Sałatka z kozim serem', '29 zł']]], ['Dania główne', [['Pierogi ruskie', '34 zł'], ['Polędwiczki w sosie grzybowym', '58 zł'], ['Risotto z warzywami', '42 zł']]], ['Desery', [['Sernik domowy', '19 zł'], ['Szarlotka z lodami', '21 zł']]]];
       for (const [nazwa, dania] of dzialy) {
@@ -880,7 +880,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'gazetka', nazwa: 'Gazetka / newsletter', kategoria: 'firma', paleta: 'granat',
-    opis: 'Winieta z numerem wydania, artykuł główny ze zdjęciem i ramka z krótkimi wiadomościami.', slowa: 'gazetka newsletter biuletyn parafialna szkolna artykul',
+    opis: tt('gotoweSekcje.winietaZNumeremWydania'), slowa: 'gazetka newsletter biuletyn parafialna szkolna artykul',
     schemat: [['akcent', 0, 0, 30, 6], ['zdjecie', 3, 8, 15, 12], ['tekst', 3, 22, 15, 16], ['tekst', 20, 8, 7, 30]],
     buduj(c, n) {
       const { pole: p } = c;
@@ -889,14 +889,14 @@ export const SZABLONY_SEKCJI = [
       const o = [
         n.prost(-c.spad, -c.spad, c.W + 2 * c.spad, p.y + hW + c.spad, { fill: c.k.akcent, bez_ostrzezen: true, nazwa: 'Winieta' }),
         n.tekst(tt('gotoweSekcje.nazwaGazetki'), p.x, p.y + 1, p.w * 0.7, { pt: 28, font: c.f.tytul, bold: true, kolor: '#ffffff', nazwa: 'Tytuł' }),
-        n.tekst('Nr 1 · czerwiec 2027', p.x + p.w * 0.6, p.y + hW - c.pt(8) * 2.4, p.w * 0.4, { pt: 8, align: 'right', kolor: c.k.akcent2 }),
+        n.tekst(tt('gotoweSekcje.nr1Czerwiec2027'), p.x + p.w * 0.6, p.y + hW - c.pt(8) * 2.4, p.w * 0.4, { pt: 8, align: 'right', kolor: c.k.akcent2 }),
       ];
       const y = p.y + hW + 6;
       o.push(n.zdjecie(p.x, y, glowna, (p.h - hW) * 0.38),
-        n.tekst('Tytuł artykułu głównego', p.x, y + (p.h - hW) * 0.38 + 3, glowna, { pt: 16, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.1 }),
+        n.tekst(tt('gotoweSekcje.tytulArtykuluGlownego'), p.x, y + (p.h - hW) * 0.38 + 3, glowna, { pt: 16, font: c.f.tytul, bold: true, kolor: c.k.akcent, lh: 1.1 }),
         { ...n.tekst(akapit(6), p.x, y + (p.h - hW) * 0.38 + 5 + c.pt(16) * 2.4, glowna, { pt: 9, lh: 1.4, align: 'justify' }), dziel_wyrazy: true },
         n.prost(p.x + glowna + 4, y, bok, p.y + p.h - y, { fill: c.k.jasny, rx: 1.5, nazwa: 'Ramka boczna' }),
-        n.tekst('W skrócie', p.x + glowna + 7, y + 3, bok - 6, { pt: 12, bold: true, kolor: c.k.akcent }));
+        n.tekst(tt('gotoweSekcje.wSkrocie'), p.x + glowna + 7, y + 3, bok - 6, { pt: 12, bold: true, kolor: c.k.akcent }));
       let yb = y + 3 + c.pt(12) * 1.8;
       ['Krótka wiadomość numer jeden – dwa zdania o tym, co się wydarzyło.', 'Zapowiedź najbliższego spotkania z datą i miejscem.', 'Podziękowanie albo ogłoszenie dla czytelników.'].forEach((t) => {
         o.push(n.tekst(t, p.x + glowna + 7, yb, bok - 6, { pt: 8.5, lh: 1.35 }));
@@ -908,7 +908,7 @@ export const SZABLONY_SEKCJI = [
   // ---------- Inne ----------
   {
     id: 'przepisy', nazwa: 'Książka z przepisami', kategoria: 'inne', paleta: 'zielen',
-    opis: 'Przepis na stronie z tabeli: zdjęcie z pliku, czas, porcje, składniki i sposób przygotowania.', slowa: 'przepisy kucharska ksiazka kulinarna skladniki gotowanie',
+    opis: tt('gotoweSekcje.przepisNaStronieZ'), slowa: 'przepisy kucharska ksiazka kulinarna skladniki gotowanie',
     dane: true,
     schemat: [['zdjecie', 0, 0, 30, 14], ['tytul', 3, 16, 18, 3], ['tekst', 3, 21, 9, 17], ['tekst', 14, 21, 13, 17]],
     buduj(c, n) {
@@ -920,9 +920,9 @@ export const SZABLONY_SEKCJI = [
         n.tekst('{tytul}', p.x, yT, p.w, { pt: 20, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Nazwa potrawy' }),
         n.tekst('Czas: {czas} · Porcje: {porcje}', p.x, yT + c.pt(20) * 1.4, p.w, { pt: 9, kolor: c.k.akcent2 }),
         n.prost(p.x, yT + c.pt(20) * 1.4 + c.pt(9) * 2.2, kol, p.y + p.h - (yT + c.pt(20) * 1.4 + c.pt(9) * 2.2), { fill: c.k.jasny, rx: 1.5 }),
-        n.tekst('SKŁADNIKI', p.x + 3, yT + c.pt(20) * 1.4 + c.pt(9) * 2.2 + 3, kol - 6, { pt: 8, bold: true, cs: 120, kolor: c.k.akcent }),
+        n.tekst(tt('gotoweSekcje.skladniki'), p.x + 3, yT + c.pt(20) * 1.4 + c.pt(9) * 2.2 + 3, kol - 6, { pt: 8, bold: true, cs: 120, kolor: c.k.akcent }),
         { ...n.tekst('{skladniki}', p.x + 3, yT + c.pt(20) * 1.4 + c.pt(9) * 2.2 + 3 + c.pt(8) * 1.8, kol - 6, { pt: 9, lh: 1.45, nazwa: 'Składniki' }), lista: 'kreski' },
-        n.tekst('PRZYGOTOWANIE', p.x + kol + 5, yT + c.pt(20) * 1.4 + c.pt(9) * 2.2 + 3, p.w - kol - 5, { pt: 8, bold: true, cs: 120, kolor: c.k.akcent }),
+        n.tekst(tt('gotoweSekcje.przygotowanie'), p.x + kol + 5, yT + c.pt(20) * 1.4 + c.pt(9) * 2.2 + 3, p.w - kol - 5, { pt: 8, bold: true, cs: 120, kolor: c.k.akcent }),
         { ...n.tekst('{przygotowanie}', p.x + kol + 5, yT + c.pt(20) * 1.4 + c.pt(9) * 2.2 + 3 + c.pt(8) * 1.8, p.w - kol - 5, { pt: 9.5, lh: 1.45, nazwa: 'Przygotowanie' }), lista: 'numery' },
       ];
       return {
@@ -935,20 +935,20 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'album', nazwa: 'Album ze zdjęciami', kategoria: 'inne', uklad: 'rozkladowki', paleta: 'mono',
-    opis: 'Strony z różnymi układami zdjęć i podpisów – do fotoksiążki albo pamiątki.', slowa: 'album zdjecia fotoksiazka pamiatka galeria',
+    opis: tt('gotoweSekcje.stronyZRoznymiUkladami'), slowa: 'album zdjecia fotoksiazka pamiatka galeria',
     pytania: [pytanieStron(8, 60)],
     schemat: [['zdjecie', 3, 3, 24, 20], ['zdjecie', 3, 25, 11, 12], ['zdjecie', 16, 25, 11, 12]],
     buduj(c, n) {
       const { pole: p } = c;
       const ile = Math.max(1, Math.min(60, c.opcje.stron || 8));
-      const podpis = (x, y, w) => n.tekst('Podpis zdjęcia', x, y, w, { pt: 8, italic: true, kolor: c.k.akcent2, nazwa: 'Podpis' });
+      const podpis = (x, y, w) => n.tekst(tt('gotoweSekcje.podpisZdjecia'), x, y, w, { pt: 8, italic: true, kolor: c.k.akcent2, nazwa: 'Podpis' });
       const odst = 4;
       const uklady = [
         () => [n.zdjecie(p.x, p.y, p.w, p.h - c.pt(8) * 2.4), podpis(p.x, p.y + p.h - c.pt(8) * 1.6, p.w)],
         () => { const h = (p.h - odst) / 2 - c.pt(8) * 2; return [n.zdjecie(p.x, p.y, p.w, h), podpis(p.x, p.y + h + 1.5, p.w), n.zdjecie(p.x, p.y + h + c.pt(8) * 2 + odst, p.w, h), podpis(p.x, p.y + 2 * h + c.pt(8) * 2 + odst + 1.5, p.w)]; },
         () => { const h1 = p.h * 0.55; const w2 = (p.w - odst) / 2; const h2 = p.h - h1 - odst - c.pt(8) * 2; return [n.zdjecie(p.x, p.y, p.w, h1), n.zdjecie(p.x, p.y + h1 + odst, w2, h2), n.zdjecie(p.x + w2 + odst, p.y + h1 + odst, w2, h2), podpis(p.x, p.y + p.h - c.pt(8) * 1.4, p.w)]; },
         () => { const w2 = (p.w - odst) / 2; const h2 = (p.h - odst) / 2; return [0, 1, 2, 3].map((i) => n.zdjecie(p.x + (i % 2) * (w2 + odst), p.y + Math.floor(i / 2) * (h2 + odst), w2, h2)); },
-        () => [n.zdjecie(p.x, p.y, p.w, p.h * 0.6), n.tekst('Wspomnienie', p.x, p.y + p.h * 0.64, p.w, { pt: 18, font: c.f.tytul, bold: true, kolor: c.k.akcent }), n.tekst(akapit(2, 3), p.x, p.y + p.h * 0.64 + c.pt(18) * 1.6, p.w, { pt: 10, lh: 1.45 })],
+        () => [n.zdjecie(p.x, p.y, p.w, p.h * 0.6), n.tekst(tt('gotoweSekcje.wspomnienie'), p.x, p.y + p.h * 0.64, p.w, { pt: 18, font: c.f.tytul, bold: true, kolor: c.k.akcent }), n.tekst(akapit(2, 3), p.x, p.y + p.h * 0.64 + c.pt(18) * 1.6, p.w, { pt: 10, lh: 1.45 })],
       ];
       const strony = Array.from({ length: ile }, (_, i) => ({ nazwa: `Album ${i + 1}`, obiekty: uklady[i % uklady.length]().flat() }));
       return { strony, wzorce: [stopkaNumer(c, n)] };
@@ -957,7 +957,7 @@ export const SZABLONY_SEKCJI = [
   {
     id: 'etykiety', nazwa: 'Etykiety i naklejki', kategoria: 'inne', format: [70, 40], marginesy: 3, paleta: 'zielen',
     specjalna: { rodzaj: 'arkusz', uzytek_szer_mm: 70, uzytek_wys_mm: 40, arkusz: 'A4', ksztalt: 'naklejka', zaokraglenie_mm: 3 },
-    opis: 'Etykieta 70 × 40 mm dla każdego wiersza tabeli – np. na słoiki, przetwory, prezenty.', slowa: 'etykiety naklejki sloiki przetwory prezenty opis',
+    opis: tt('gotoweSekcje.etykieta7040Mm'), slowa: 'etykiety naklejki sloiki przetwory prezenty opis',
     dane: true,
     schemat: [['ramka', 2, 10, 26, 22], ['tytul', 5, 16, 20, 4], ['tekst', 7, 23, 16, 1.5]],
     buduj(c, n) {
@@ -979,7 +979,7 @@ export const SZABLONY_SEKCJI = [
   {
     id: 'zawieszki', nazwa: 'Zawieszki na prezenty', kategoria: 'inne', format: [50, 90], marginesy: 4, paleta: 'zielen',
     specjalna: { rodzaj: 'arkusz', uzytek_szer_mm: 50, uzytek_wys_mm: 90, arkusz: 'A4', ksztalt: 'zawieszka', zaokraglenie_mm: 12 },
-    opis: 'Zawieszka 50 × 90 mm ze ściętymi rogami i otworem na sznurek – dla każdego wiersza tabeli (dla kogo, życzenia, od kogo).', slowa: 'zawieszki metki prezenty swieta bilecik etykieta sznurek',
+    opis: tt('gotoweSekcje.zawieszka5090Mm'), slowa: 'zawieszki metki prezenty swieta bilecik etykieta sznurek',
     dane: true,
     schemat: [['ramka', 10, 3, 10, 34], ['tytul', 11, 14, 8, 3], ['tekst', 11, 20, 8, 6]],
     buduj(c, n) {
@@ -1001,7 +1001,7 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'spiewnik', nazwa: 'Śpiewnik / modlitewnik', kategoria: 'inne', paleta: 'granat',
-    opis: 'Pieśń na stronie z tabeli: tytuł, numer, tekst zwrotek i miejsce na nuty z pliku.', slowa: 'spiewnik piesni modlitewnik nuty teksty koscielny',
+    opis: tt('gotoweSekcje.piesnNaStronieZ'), slowa: 'spiewnik piesni modlitewnik nuty teksty koscielny',
     dane: true,
     schemat: [['tytul', 3, 3, 18, 3], ['zdjecie', 3, 8, 24, 8], ['linie', 3, 18, 24, 20]],
     buduj(c, n) {
@@ -1023,11 +1023,11 @@ export const SZABLONY_SEKCJI = [
   },
   {
     id: 'formularz-zamowienia', nazwa: 'Formularz zamówienia', kategoria: 'inne', paleta: 'mono',
-    opis: 'Dane zamawiającego, tabela pozycji z sumą i miejsce na podpis – do wydruku i wypełnienia.', slowa: 'formularz zamowienia zamowienie druk wypelnienia pozycje',
+    opis: tt('gotoweSekcje.daneZamawiajacegoTabelaPozycji'), slowa: 'formularz zamowienia zamowienie druk wypelnienia pozycje',
     schemat: [['tytul', 3, 3, 16, 3], ['linie', 3, 8, 24, 8], ['siatka', 3, 18, 24, 14], ['tekst', 17, 35, 10, 1]],
     buduj(c, n) {
       const { pole: p } = c;
-      const o = [n.tekst('Formularz zamówienia', p.x, p.y, p.w, { pt: 20, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' })];
+      const o = [n.tekst(tt('gotoweSekcje.formularzZamowienia'), p.x, p.y, p.w, { pt: 20, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' })];
       let y = p.y + c.pt(20) * 1.8;
       for (const pole of ['Imię i nazwisko', 'Adres', 'Telefon', 'E-mail']) {
         o.push(n.tekst(pole, p.x, y, p.w * 0.28, { pt: 9, kolor: c.k.akcent2 }), n.kreska(p.x + p.w * 0.28, y + c.pt(9) * 1.1, p.w * 0.72, 0.2, c.k.tekst));
@@ -1035,17 +1035,17 @@ export const SZABLONY_SEKCJI = [
       }
       y += 3;
       o.push(n.tabela(p.x, y, p.w, [1, 6, 2, 2, 2], [['Lp.', 'Nazwa', 'Ilość', 'Cena', 'Wartość'], ...Array.from({ length: 8 }, (_, i) => [String(i + 1), '', '', '', '']), ['', 'Razem', '', '', '']], { wysokosc: 7, pt: 8.5, nazwa: 'Pozycje zamówienia' }));
-      o.push(n.kreska(p.x + p.w * 0.6, p.y + p.h - c.pt(8) * 2.2, p.w * 0.4, 0.2, c.k.tekst), n.tekst('data i podpis', p.x + p.w * 0.6, p.y + p.h - c.pt(8) * 1.5, p.w * 0.4, { pt: 8, align: 'center', kolor: c.k.akcent2 }));
+      o.push(n.kreska(p.x + p.w * 0.6, p.y + p.h - c.pt(8) * 2.2, p.w * 0.4, 0.2, c.k.tekst), n.tekst(tt('gotoweSekcje.dataIPodpis'), p.x + p.w * 0.6, p.y + p.h - c.pt(8) * 1.5, p.w * 0.4, { pt: 8, align: 'center', kolor: c.k.akcent2 }));
       return { strony: [{ nazwa: 'Formularz', obiekty: o, wzorce: [] }], numeracja: { tryb: 'brak', od: 1 } };
     },
   },
   {
     id: 'lista-kontrolna', nazwa: 'Lista kontrolna / checklista', kategoria: 'planery', paleta: 'pastel',
-    opis: 'Lista do odhaczania w dwóch kolumnach: przed wyjazdem, przeprowadzką, wydarzeniem.', slowa: 'lista kontrolna checklista do odhaczenia wyjazd pakowanie zadania',
+    opis: tt('gotoweSekcje.listaDoOdhaczaniaW'), slowa: 'lista kontrolna checklista do odhaczenia wyjazd pakowanie zadania',
     schemat: [['tytul', 3, 3, 16, 3], ['punkty', 3, 9, 11, 28], ['punkty', 16, 9, 11, 28]],
     buduj(c, n) {
       const { pole: p } = c;
-      const o = [n.tekst('Lista kontrolna', p.x, p.y, p.w, { pt: 20, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' })];
+      const o = [n.tekst(tt('gotoweSekcje.listaKontrolna'), p.x, p.y, p.w, { pt: 20, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' })];
       const y0 = p.y + c.pt(20) * 1.9; const kw = (p.w - 6) / 2;
       const krok = c.pt(10) * 2.1;
       const ile = Math.max(4, Math.floor((p.y + p.h - y0) / krok));

@@ -40,7 +40,7 @@ async function zmien(fn) {
 function rysujZakres() {
   const p = stan.projekt;
   const sel = $('#kolory-zakres');
-  const opcje = [new Option('Cały projekt', 'projekt'), ...p.sekcje.map((s) => new Option(`Sekcja „${s.nazwa}”${s.tryb_kolorow ? ' – własny druk kolorów' : ''}`, s.id))];
+  const opcje = [new Option('Cały projekt', 'projekt'), ...p.sekcje.map((s) => new Option(tt('koloryDrukuOkno.sekcja', { nazwa: s.nazwa, x: s.tryb_kolorow ? tt('koloryDrukuOkno.wlasnyDrukKolorow') : '' }), s.id))];
   sel.replaceChildren(...opcje);
   if (zakres !== 'projekt' && !p.sekcje.some((s) => s.id === zakres)) zakres = 'projekt';
   sel.value = zakres;
@@ -50,7 +50,7 @@ function rysujZakres() {
 function rysujUzyte() {
   const p = stan.projekt;
   const sek = sekcjaZakresu();
-  $('#kolory-uzyte-tytul').textContent = sek ? `Kolory w sekcji „${sek.nazwa}”` : tt('koloryDrukuOkno.koloryWProjekcie');
+  $('#kolory-uzyte-tytul').textContent = sek ? tt('koloryDrukuOkno.koloryWSekcji', { nazwa: sek.nazwa }) : tt('koloryDrukuOkno.koloryWProjekcie');
   const uzyte = koloryWZakresie(p, zakres);
   const spoty = mapaSpotow(koloryDodatkowe(p));
   $('#kolory-uzyte-opis').textContent = uzyte.length
@@ -63,13 +63,13 @@ function rysujUzyte() {
     li.innerHTML = `<label class="uzyty-kolor"><input type="color"><span class="uzyty-opis"><b></b><small></small></span></label>`;
     const inp = li.querySelector('input');
     inp.value = kolor;
-    inp.setAttribute('aria-label', `Zamień kolor ${nazwa}`);
+    inp.setAttribute('aria-label', tt('koloryDrukuOkno.zamienKolor', { nazwa }));
     wpiszNazwe(li.querySelector('b'), nazwa);
     li.querySelector('small').textContent = `${ile} ${ile === 1 ? 'raz' : 'razy'}`;
     inp.addEventListener('change', async () => {
       const nowy = inp.value;
       const n = await zmien((proj) => zamienKolorWZakresie(proj, zakres, kolor, nowy));
-      if (n) powiadom(`Zamieniono kolor w ${n} ${n === 1 ? 'miejscu' : 'miejscach'}.`, false, { etykieta: tt('koloryDrukuOkno.cofnij'), fn: () => cofnijKrok(-1) });
+      if (n) powiadom(tt('koloryDrukuOkno.zamienionoKolorW', { n, x: n === 1 ? 'miejscu' : 'miejscach' }), false, { etykieta: tt('koloryDrukuOkno.cofnij'), fn: () => cofnijKrok(-1) });
     });
     return li;
   }));
@@ -94,7 +94,7 @@ function rysujTryb() {
   sel.disabled = !spoty.length;
   const zle = koloryPozaTrybem(p);
   $('#kolory-tryb-zle').hidden = !zle.length;
-  $('#kolory-tryb-zle-opis').textContent = `${zle.length} ${zle.length === 1 ? 'kolor nie pasuje' : 'kolorów nie pasuje'} do trybu druku (pójdą odcieniami czerni).`;
+  $('#kolory-tryb-zle-opis').textContent = tt('koloryDrukuOkno.doTrybuDrukuPojda', { zleIle: zle.length, x: zle.length === 1 ? tt('koloryDrukuOkno.kolorNiePasuje') : tt('koloryDrukuOkno.kolorowNiePasuje') });
 }
 
 function rysujSpoty() {
@@ -121,7 +121,7 @@ function rysujSpoty() {
       });
     }
     li.querySelector('button').addEventListener('click', async () => {
-      if (!await potwierdz(tt('koloryDrukuOkno.usunacKolorDodatkowy'), `Elementy w kolorze „${s.nazwa}” zostaną w zwykłym kolorze (CMYK) – bez osobnej płyty.`, tt('koloryDrukuOkno.usun'), true)) return;
+      if (!await potwierdz(tt('koloryDrukuOkno.usunacKolorDodatkowy'), tt('koloryDrukuOkno.elementyWKolorzeZostana', { nazwa: s.nazwa }), tt('koloryDrukuOkno.usun'), true)) return;
       zmien((proj) => {
         proj.kolory_dodatkowe = koloryDodatkowe(proj).filter((x) => x !== s);
         if (proj.kolor_trybu === s.id) proj.kolor_trybu = proj.kolory_dodatkowe[0]?.id || null;
@@ -146,7 +146,7 @@ function rysujWykonczenia() {
     const li = document.createElement('li');
     li.innerHTML = '<b></b> <span class="ciche"></span>';
     li.querySelector('b').textContent = u.etykieta;
-    li.querySelector('span').textContent = `· ${u.ile} ${u.ile === 1 ? 'element' : (u.ile < 5 ? 'elementy' : 'elementów')} · płyta w PDF „${u.plyta}”`;
+    li.querySelector('span').textContent = tt('koloryDrukuOkno.plytaWPdf', { ile: u.ile, x: u.ile === 1 ? tt('koloryDrukuOkno.element') : (u.ile < 5 ? tt('koloryDrukuOkno.elementy') : tt('koloryDrukuOkno.elementow')), plyta: u.plyta });
     return li;
   }));
 }

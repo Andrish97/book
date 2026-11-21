@@ -18,16 +18,16 @@ import { t as tt } from '../jezyk.js';
 
 function opisMarginesow(wydruk, rozkladowki) {
   const m = wydruk.marginesy;
-  if (m.gora === m.dol && m.dol === m.wewnetrzny && m.wewnetrzny === m.zewnetrzny) return `marginesy ${liczba(m.gora)} mm`;
+  if (m.gora === m.dol && m.dol === m.wewnetrzny && m.wewnetrzny === m.zewnetrzny) return tt('panelStrony.marginesyMm', { liczba: liczba(m.gora) });
   const [a, b] = rozkladowki ? ['wewn.', 'zewn.'] : ['lewy', 'prawy'];
-  return `marginesy: góra ${liczba(m.gora)}, dół ${liczba(m.dol)}, ${a} ${liczba(m.wewnetrzny)}, ${b} ${liczba(m.zewnetrzny)} mm`;
+  return tt('panelStrony.marginesyGoraDolMm', { liczba: liczba(m.gora), liczba2: liczba(m.dol), a, liczba3: liczba(m.wewnetrzny), b, liczba4: liczba(m.zewnetrzny) });
 }
 
 export function nazwaFormatu(w, pelny = false, rozkladowki = false) {
   const standard = Boolean(FORMATY[w.format]);
   const orient = standard && w.szerokosc_mm > w.wysokosc_mm ? ' poziomo' : '';
   if (!pelny) return standard ? `${w.format}${orient}` : `${liczba(w.szerokosc_mm)}×${liczba(w.wysokosc_mm)} mm`;
-  return `${standard ? `${w.format}${orient}` : 'Format własny'} – ${liczba(w.szerokosc_mm)} × ${liczba(w.wysokosc_mm)} mm, spad ${liczba(w.spad_mm)} mm, ${opisMarginesow(w, rozkladowki)}.`;
+  return tt('panelStrony.mmSpadMm', { x: standard ? `${w.format}${orient}` : tt('panelStrony.formatWlasny'), liczba: liczba(w.szerokosc_mm), liczba2: liczba(w.wysokosc_mm), liczba3: liczba(w.spad_mm), opisMarginesow: opisMarginesow(w, rozkladowki) });
 }
 
 export function odswiezPasekEdytora() {
@@ -51,8 +51,8 @@ export function odswiezPasekEdytora() {
   if (wz) {
     const w = biezacyWzorzec();
     const n = stronyZWzorcem(stan.projekt, w.id).length;
-    $('#pasek-wzorca-tekst').textContent = `Edytujesz wzorzec „${w.nazwa}” · ${n ? `widoczny na ${n} ${n === 1 ? 'stronie' : 'stronach'}` : 'nieużywany'}`;
-    $('#opis-formatu').textContent = `Wzorzec · ${liczba(w.wydruk.szerokosc_mm)}×${liczba(w.wydruk.wysokosc_mm)}`;
+    $('#pasek-wzorca-tekst').textContent = tt('panelStrony.edytujeszWzorzec', { nazwa: w.nazwa, x: n ? tt('panelStrony.widocznyNa', { n, x: n === 1 ? tt('panelStrony.stronie') : tt('panelStrony.stronach') }) : tt('panelStrony.nieuzywany') });
+    $('#opis-formatu').textContent = tt('panelStrony.wzorzec2', { liczba: liczba(w.wydruk.szerokosc_mm), liczba2: liczba(w.wydruk.wysokosc_mm) });
   } else {
     const sek = biezacaSekcja();
     const bok = bokStrony(biezacaStrona(), rozwin(stan.projekt));
@@ -171,7 +171,7 @@ export function panelStrony(p) {
   if (projekt.wzorce.length) {
     const w = p.sekcja(tt('panelStrony.wzorce'));
     const tryb = p.wybor(tt('panelStrony.wzorceNaTejStronie'), [
-      ['sekcja', `Jak w sekcji (${nazwyWzorcow(sekcja.wzorce)})`],
+      ['sekcja', tt('panelStrony.jakWSekcji', { nazwyWzorcow: nazwyWzorcow(sekcja.wzorce) })],
       ['wlasne', tt('panelStrony.wlasnyWybor')],
     ], () => (strona.wzorce === WZORCE_Z_SEKCJI ? 'sekcja' : 'wlasne'), (v) => {
       strona.wzorce = v === 'sekcja' ? WZORCE_Z_SEKCJI : [...sekcja.wzorce];
@@ -197,19 +197,19 @@ export function panelStrony(p) {
     w.append(p.akcje([['wzorzec', 'Wybierz gotowy wzorzec…', () => document.querySelector('[data-akcja="wzorce"]')?.click()]]));
   }
 
-  const f = p.sekcja(`Sekcja „${sekcja.nazwa}”`);
+  const f = p.sekcja(tt('panelStrony.sekcja2', { nazwa: sekcja.nazwa }));
   f.append(p.wskazowka(`${sekcja.uklad === 'rozkladowki' ? `Rozkładówki – to strona ${bok}. ` : ''}${nazwaFormatu(sekcja.wydruk, true, sekcja.uklad === 'rozkladowki')}`));
   if (edytor.rozkladowka) f.append(p.wskazowka(tt('panelStrony.obieStronyRozkladowkiEdytujesz')));
   const okl = sekcja.okladka?.wynik;
   if (okl) {
     // Okładka (#119): wynik przeliczenia – liczby, które drukarnia chce znać.
     const grzbiet = okl.grzbiet ? `grzbiet ${liczba(okl.grzbiet)} mm` : 'bez grzbietu';
-    f.append(p.wskazowka(`Okładka ${OPRAWY[sekcja.okladka.oprawa].split(' (')[0].toLowerCase()}: ${grzbiet}, cała okładka ${liczba(okl.szerokosc)} × ${liczba(okl.wysokosc)} mm. Środek: ${okl.stron} stron. Format przelicza się sam, gdy zmieni się liczba stron albo papier.`));
+    f.append(p.wskazowka(tt('panelStrony.okladkaCalaOkladkaMm', { toLowerCase: OPRAWY[sekcja.okladka.oprawa].split(' (')[0].toLowerCase(), grzbiet, liczba: liczba(okl.szerokosc), liczba2: liczba(okl.wysokosc), stron: okl.stron })));
   }
   // Szybka zamiana stron lewa ↔ prawa (zgłoszenie 19.11: „np. dodaję pojedynczą stronę” – reszta rozkładówek się
   // przesuwa): to samo co „Pierwsza strona sekcji” w ustawieniach, jednym kliknięciem; Cofnij przywraca.
   if (sekcja.uklad === 'rozkladowki') {
-    f.append(p.przelacznik('Zacznij sekcję od lewej strony (zamienia strony lewe i prawe)', () => sekcja.pierwsza === 'lewa', async (v) => {
+    f.append(p.przelacznik(tt('panelStrony.zacznijSekcjeOdLewej'), () => sekcja.pierwsza === 'lewa', async (v) => {
       zapiszBiezacyCel();
       sekcja.pierwsza = v ? 'lewa' : 'prawa';
       stan.miniatury.clear();
@@ -241,12 +241,12 @@ export function panelWzorca(p) {
     for (const st of stronyZWzorcem(projekt, w.id)) stan.miniatury.delete(st.id);
     zaplanujZapis();
   }));
-  s.append(p.wskazowka('Elementy wzorca leżą pod treścią stron. Zaznacz element i włącz „Nad treścią strony”, jeśli ma ją przykrywać (np. ramka albo znak wodny).'));
+  s.append(p.wskazowka(tt('panelStrony.elementyWzorcaLezaPod')));
 
   const u = p.sekcja(tt('panelStrony.gdzieJestUzywany'));
   for (const sek of projekt.sekcje) {
     const inny = tenSamRozmiar(sek.wydruk, w.wydruk) ? '' : ' – inny rozmiar';
-    u.append(p.przelacznik(`Sekcja „${sek.nazwa}”${inny}`, () => sek.wzorce.includes(w.id), (v) => {
+    u.append(p.przelacznik(tt('panelStrony.sekcja3', { nazwa: sek.nazwa, inny }), () => sek.wzorce.includes(w.id), (v) => {
       sek.wzorce = v ? [...sek.wzorce, w.id] : sek.wzorce.filter((id) => id !== w.id);
       for (const st of stronySekcji(projekt, sek)) stan.miniatury.delete(st.id);
       odswiezPasekEdytora();
@@ -258,7 +258,7 @@ export function panelWzorca(p) {
 
   const r = p.sekcja(tt('panelStrony.rozmiar'));
   r.append(p.wskazowka(nazwaFormatu(w.wydruk, true)));
-  const dopasuj = p.wybor(tt('panelStrony.ustawRozmiarJakW'), [['', '— wybierz sekcję —'], ...projekt.sekcje.map((x) => [x.id, x.nazwa])], () => '', async (v) => {
+  const dopasuj = p.wybor(tt('panelStrony.ustawRozmiarJakW'), [['', tt('panelStrony.wybierzSekcje')], ...projekt.sekcje.map((x) => [x.id, x.nazwa])], () => '', async (v) => {
     const sek = projekt.sekcje.find((x) => x.id === v);
     if (!sek) return;
     zapiszBiezacyCel();

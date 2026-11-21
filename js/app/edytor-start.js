@@ -147,7 +147,7 @@ async function wstawObraz(plik) {
     await edytor.dodajObraz(null, nazwa, stan.projekt.zasoby, { id });
     // Napisy w rysunku wstawionym jako obraz przeglądarka rysuje czcionką systemu, nie czcionką z pliku.
     if (plik.type === 'image/svg+xml' && /<text[\s>]/i.test(await gotowy.text())) {
-      powiadom('Rysunek ma napisy – jako obraz pokaże je czcionką zastępczą. „Rozłóż rysunek na elementy” we właściwościach zamieni je w zwykłe napisy z czcionkami zestawu.');
+      powiadom(t('edytorStart.rysunekMaNapisyJako'));
     }
   } catch (e) {
     powiadom(e.message, true);
@@ -226,7 +226,7 @@ async function zRaportem(program, zapisz) {
   const raport = new Raport();
   const w = await zapisz(raport);
   const ok = await pokazRaport({
-    tytul: `Co przejdzie do programu ${program}`,
+    tytul: t('edytorStart.coPrzejdzieDoProgramu', { program }),
     wstep: 'Nie wszystko ma odpowiednik w innym programie. Tak zapiszemy elementy projektu – „Pokaż” otwiera pierwszy taki element.',
     raport,
     pokaz: (idStrony, idObiektu) => oknoKontroli.zrodlo.pokaz(idStrony, idObiektu),
@@ -267,7 +267,7 @@ const oknoKontroli = new OknoKontroli({
       stan.miniatury.clear();
       await zaladujCel();
       zaplanujZapis();
-      powiadom(nowe.length ? `Dodano: ${nowe.map((s) => s.nazwa.toLowerCase()).join(' i ')}.` : t('edytorStart.wyklejkiJuzSa'));
+      powiadom(nowe.length ? t('edytorStart.dodano', { join: nowe.map((s) => s.nazwa.toLowerCase()).join(' i ') }) : t('edytorStart.wyklejkiJuzSa'));
       oknoKontroli.otworz();
     }
   },
@@ -287,7 +287,7 @@ async function otworzOknoPdf() {
         przedEksportem: zapiszBiezacyCel,
       });
     } catch (e) {
-      powiadom(`Nie udało się wczytać eksportu PDF: ${e.message}`, true);
+      powiadom(t('edytorStart.nieUdaloSieWczytac', { message: e.message }), true);
       return;
     } finally {
       clearTimeout(czekaj);
@@ -310,7 +310,7 @@ async function otworzOknoDruku() {
         przedDrukiem: zapiszBiezacyCel,
       });
     } catch (e) {
-      powiadom(`Nie udało się wczytać druku: ${e.message}`, true);
+      powiadom(t('edytorStart.nieUdaloSieWczytac2', { message: e.message }), true);
       return;
     }
   }
@@ -380,9 +380,9 @@ export const akcje = {
     const ciag = rozwin(stan.projekt);
     const egz = ciag.pierwszy.get(stan.projekt.strony[stan.indeks].id);
     const w = egz ? await svgPlotera(stan.projekt, egz, { ciag }) : null;
-    if (!w) { powiadom('Na tej stronie nie ma linii wykrojnika. Zaznacz kształt i w części „Kolory do druku” wybierz Cięcie, Big, Perforację albo Klej.', true); return; }
+    if (!w) { powiadom(t('edytorStart.naTejStronieNie'), true); return; }
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}-ploter.svg`, URL.createObjectURL(new Blob([w.svg], { type: 'image/svg+xml' })));
-    powiadom(`Pobrano plik dla plotera: cięcia ${w.ile.ciecie}, bigi ${w.ile.big}, perforacje ${w.ile.perforacja}, pola kleju ${w.ile.klej} – w milimetrach, kolor linii mówi ploterowi, co robić.`);
+    powiadom(t('edytorStart.pobranoPlikDlaPlotera', { ciecie: w.ile.ciecie, big: w.ile.big, perforacja: w.ile.perforacja, klej: w.ile.klej }));
   },
   'tekst-docx': () => zapiszTekstJako('docx'),
   'tekst-epub': () => zapiszTekstJako('epub'),
@@ -393,10 +393,10 @@ export const akcje = {
     const [{ biblioteka }, { zapiszIdml }] = await Promise.all([import('../biblioteki.js'), import('../idml.js')]);
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
     powiadom(t('edytorStart.przygotowujePlikIdml'));
-    const w = await zRaportem('InDesign / Affinity', (raport) => zapiszIdml(stan.projekt, JSZip, { raport, postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik IDML – strona ${i + 1} z ${z}…`); } }));
+    const w = await zRaportem('InDesign / Affinity', (raport) => zapiszIdml(stan.projekt, JSZip, { raport, postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(t('edytorStart.przygotowujePlikIdmlStrona', { x: i + 1, z })); } }));
     if (!w) return;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.idml`, URL.createObjectURL(w.blob));
-    powiadom(`Zapisano IDML (InDesign, Affinity Publisher, QuarkXPress): ${w.stron} stron, ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}. Czcionki: ${w.czcionki.join(', ') || '–'}.`);
+    powiadom(t('edytorStart.zapisanoIdmlIndesignAffinity', { stron: w.stron, teksty: w.ile.teksty, ksztalty: w.ile.ksztalty, obrazy: w.ile.obrazy, x: w.czcionki.join(', ') || '–' }));
   },
   // Word z układem stron i SVG stron (#228).
   'docx-uklad': async () => {
@@ -404,28 +404,28 @@ export const akcje = {
     zapiszBiezacyCel();
     const [{ biblioteka }, { zapiszDocxUklad }] = await Promise.all([import('../biblioteki.js'), import('../eksport-uklad.js')]);
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
-    powiadom('Przygotowuję plik Worda…');
+    powiadom(t('edytorStart.przygotowujePlikWorda'));
     const w = await zRaportem('Word', (raport) => zapiszDocxUklad(stan.projekt, JSZip, { raport }));
     if (!w) return;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.docx`, URL.createObjectURL(w.blob));
-    powiadom(`Zapisano dla Worda: ${w.stron} stron z układem – ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}.`);
+    powiadom(t('edytorStart.zapisanoDlaWordaStron', { stron: w.stron, teksty: w.ile.teksty, ksztalty: w.ile.ksztalty, obrazy: w.ile.obrazy }));
   },
   'svg-strony': async () => {
     zamknijMenu();
     zapiszBiezacyCel();
     const [{ biblioteka }, { zapiszSvgStron }] = await Promise.all([import('../biblioteki.js'), import('../eksport-uklad.js')]);
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
-    powiadom('Przygotowuję pliki SVG…');
+    powiadom(t('edytorStart.przygotowujePlikiSvg'));
     const w = await zapiszSvgStron(stan.projekt, JSZip);
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')} - SVG.zip`, URL.createObjectURL(w.blob));
-    powiadom(`Zapisano ${w.stron} stron jako SVG (w milimetrach) – do Inkscape'a, Illustratora, Corela albo Affinity.`);
+    powiadom(t('edytorStart.zapisanoStronJakoSvg', { stron: w.stron }));
   },
   // Seria dla innych programów (#226): szablon z polami + dane (InDesign/Affinity, Scribus, Word/Publisher).
   'seria-programy': async () => {
     zamknijMenu();
     zapiszBiezacyCel();
     const { daneSerii } = await import('../eksport-serii.js');
-    if (!daneSerii(stan.projekt).length) { powiadom('Projekt nie ma serii z tabelą danych – szablon z polami robi się ze strony powielanej z tabeli (Dane → seria).', true); return; }
+    if (!daneSerii(stan.projekt).length) { powiadom(t('edytorStart.projektNieMaSerii'), true); return; }
     $('#seria-programy-uwaga').textContent = '';
     $('#dlg-seria-programy').showModal();
   },
@@ -435,10 +435,10 @@ export const akcje = {
     zapiszBiezacyCel();
     const { zapiszSla } = await import('../scribus.js');
     powiadom(t('edytorStart.przygotowujePlikDlaScribusa'));
-    const w = await zRaportem('Scribus', (raport) => zapiszSla(stan.projekt, { raport, postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(`Przygotowuję plik dla Scribusa – strona ${i + 1} z ${z}…`); } }));
+    const w = await zRaportem('Scribus', (raport) => zapiszSla(stan.projekt, { raport, postep: (i, z) => { if (i < z && i % 5 === 0) powiadom(t('edytorStart.przygotowujePlikDlaScribusa2', { x: i + 1, z })); } }));
     if (!w) return;
     pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.sla`, URL.createObjectURL(new Blob([w.sla], { type: 'application/vnd.scribus' })));
-    powiadom(`Zapisano dla Scribusa: ${w.stron} stron, ramki tekstu ${w.ile.teksty}, kształty ${w.ile.ksztalty}, obrazy ${w.ile.obrazy}. Czcionki: ${w.czcionki.join(', ') || '–'} – zainstaluj je w systemie, zanim otworzysz plik.`);
+    powiadom(t('edytorStart.zapisanoDlaScribusaStron', { stron: w.stron, teksty: w.ile.teksty, ksztalty: w.ile.ksztalty, obrazy: w.ile.obrazy, x: w.czcionki.join(', ') || '–' }));
   },
   'czat-ai': async () => { zamknijMenu(); (await import('./czat-ai.js')).otworzCzatAi(); },
   'wstaw-tekst-z-pliku': async () => { zamknijMenu(); await import('./import-tekstu-okno.js'); $('#plik-tekst').click(); },
@@ -601,7 +601,7 @@ $('#pliki-zasoby').addEventListener('change', async (e) => {
   const pliki = [...e.target.files];
   e.target.value = '';
   if (!pliki.length || !stan.projekt) return;
-  try { await (await oknoObrazow()).wgrajObrazy(pliki); } catch (blad) { powiadom(`Nie udało się wgrać obrazów: ${blad.message}`, true); }
+  try { await (await oknoObrazow()).wgrajObrazy(pliki); } catch (blad) { powiadom(t('edytorStart.nieUdaloSieWgrac', { message: blad.message }), true); }
 });
 
 // Pole wyboru pliku czyścimy dopiero po wczytaniu – wyczyszczenie wcześniej
@@ -669,7 +669,7 @@ edytor.addEventListener('pisanie', () => zaplanujZapis({ historia: false }));
 edytor.addEventListener('pisanie-na-innej-stronie', (e) => { piszNaInnejStronie(e.detail); });
 // Widok jednej strony rozkładówki: kliknięty element należy do sąsiedniej strony i tylko zachodzi na tę.
 edytor.addEventListener('element-sasiedniej-strony', () => {
-  powiadom('Ten element leży na sąsiedniej stronie i przechodzi przez grzbiet. Zmienisz go na jego stronie albo w widoku rozkładówki.', false, {
+  powiadom(t('edytorStart.tenElementLezyNa'), false, {
     etykieta: t('edytorStart.pokazRozkladowke'),
     fn: () => { const p = $('#widok-jedna'); p.checked = false; p.dispatchEvent(new Event('change')); },
   });
@@ -682,10 +682,10 @@ edytor.addEventListener('rysowanie', (e) => {
 edytor.addEventListener('pioro', (e) => {
   for (const b of document.querySelectorAll('[data-akcja="pioro"]')) b.setAttribute('aria-pressed', String(e.detail));
   odswiezWiecejNarzedzi();
-  if (e.detail) powiadom('Pióro: kliknij, żeby postawić punkt; kliknij i przeciągnij, żeby zrobić łuk. Enter kończy kształt, kliknięcie w pierwszy punkt go zamyka.');
+  if (e.detail) powiadom(t('edytorStart.pioroKliknijZebyPostawic'));
 });
 edytor.addEventListener('punkty', (e) => {
-  if (e.detail) powiadom('Edycja punktów: przeciągaj punkty i uchwyty. Podwójne kliknięcie w linię dodaje punkt, Delete usuwa zaznaczony, Enter kończy.');
+  if (e.detail) powiadom(t('edytorStart.edycjaPunktowPrzeciagajPunkty'));
 });
 edytor.addEventListener('schowek', () => { if (!edytor.aktywny) panel.zbuduj(); });
 edytor.addEventListener('ostrzezenia', (e) => renderujOstrzezenia(e.detail));
@@ -862,7 +862,7 @@ async function zapiszTekstJako(format) {
   if (!akapity.length) { powiadom(t('edytorStart.wProjekcieNieMa'), true); return; }
   const blob = format === 'docx' ? await E.zapiszDocx(stan.projekt, JSZip, akapity) : await E.zapiszEpub(stan.projekt, JSZip, akapity);
   pobierz(`${bezpiecznaNazwa(stan.projekt.nazwa || 'projekt')}.${format}`, URL.createObjectURL(blob));
-  powiadom(`Zapisano ${akapity.length} akapitów jako ${format === 'docx' ? 'dokument Worda' : 'e-book EPUB'} – sama treść; układ stron i obrazy zostają w Makietce.`);
+  powiadom(t('edytorStart.zapisanoAkapitowJakoSama', { akapityIle: akapity.length, x: format === 'docx' ? t('edytorStart.dokumentWorda') : t('edytorStart.eBookEpub') }));
 }
 
 // Wklejanie (Ctrl+V): obraz ze schowka systemu – zrzut ekranu, skopiowany plik albo kod SVG –
@@ -918,7 +918,7 @@ const wEdytorze = () => document.body.dataset.ekran === 'edytor' && Boolean(stan
 dodajPolecenie({ nazwa: 'Komentarze', opis: t('edytorStart.listaKomentarzyProjektuPrzycisk'), wykonaj: () => otworzKomentarze(), dostepne: () => Boolean(stan.projekt) });
 dodajPolecenie({ nazwa: 'Dodaj komentarz', opis: t('edytorStart.narzedzieKomentarzKliknijMiejsce'), wykonaj: () => narzedzieKomentarz(), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Znajdź i zamień', opis: t('edytorStart.tekstyWszystkichStronI'), wykonaj: () => otworzZnajdz(), dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Kopiuj wygląd', opis: 'Malarz formatów: wygląd zaznaczonego elementu – potem kliknij inny (Ctrl+Alt+C; przycisk w nagłówku panelu właściwości, na telefonie też w ⋯ paska narzędzi)', wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
+dodajPolecenie({ nazwa: 'Kopiuj wygląd', opis: t('edytorStart.malarzFormatowWygladZaznaczonego'), wykonaj: () => kopiujWyglad(false), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
 dodajPolecenie({ nazwa: 'Zapisz w bibliotece', opis: t('edytorStart.zaznaczenieTrafiDoBiblioteki'), wykonaj: () => zapiszWBibliotece(), dostepne: () => wEdytorze() && Boolean(edytor.aktywny) });
 dodajPolecenie({ nazwa: 'Moje elementy', opis: t('edytorStart.bibliotekaElementyZapisaneNa'), wykonaj: () => otworzBiblioteke('moje'), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Sprawdzaj pisownię', opis: t('edytorStart.wlaczAlboWylaczFalista'), wykonaj: () => { sprawdzanie.ustawWlaczona(!sprawdzanie.wlaczona()); panel.zbuduj(); }, dostepne: wEdytorze });
@@ -931,7 +931,7 @@ const poKsiazce = () => { zaplanujZapis(); setTimeout(() => odswiezKsiazke().cat
 const zTekstem = () => wEdytorze() && edytor.aktywny?.type === 'textbox';
 dodajPolecenie({ nazwa: 'Wstaw spis treści', opis: t('edytorStart.rozdzialyZNumeramiStron'), wykonaj: () => { edytor.dodajElementKsiazki('spis'); poKsiazce(); }, dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Wstaw skorowidz', opis: t('edytorStart.haslaAlfabetycznieZNumerami'), wykonaj: () => { edytor.dodajElementKsiazki('skorowidz'); poKsiazce(); }, dostepne: wEdytorze });
-dodajPolecenie({ nazwa: 'Wstaw przypis', opis: 'Przypis dolny w miejscu kursora; treść wpiszesz w panelu', wykonaj: () => { edytor.wstawPrzypis(''); poKsiazce(); panel.zbuduj(); }, dostepne: zTekstem });
+dodajPolecenie({ nazwa: 'Wstaw przypis', opis: t('edytorStart.przypisDolnyWMiejscu'), wykonaj: () => { edytor.wstawPrzypis(''); poKsiazce(); panel.zbuduj(); }, dostepne: zTekstem });
 dodajPolecenie({ nazwa: 'Dodaj do skorowidza', opis: t('edytorStart.zaznaczoneSlowoTrafiaDo'), wykonaj: () => { if (edytor.dodajDoSkorowidza()) poKsiazce(); else powiadom(t('edytorStart.zaznaczSlowoWPisanym'), true); }, dostepne: zTekstem });
 dodajPolecenie({ nazwa: 'Wstaw kod QR', opis: t('edytorStart.adresTekstEMail'), wykonaj: () => wstawKod('qr'), dostepne: wEdytorze });
 dodajPolecenie({ nazwa: 'Wstaw kod kreskowy EAN / ISBN', opis: t('edytorStart.ean13AlboIsbn'), wykonaj: () => wstawKod('ean'), dostepne: wEdytorze });
@@ -1034,9 +1034,9 @@ $('#seria-programy-ok').addEventListener('click', async (e) => {
   try {
     const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
     const XLSX = program === 'word' ? await biblioteka('js/zewnetrzne/xlsx-0.18.5.full.min.js', 'XLSX', 'obsługi plików Excela') : null;
-    powiadom('Przygotowuję szablon i dane…');
+    powiadom(t('edytorStart.przygotowujeSzablonIDane'));
     const w = await pakietSerii(stan.projekt, program, JSZip, { XLSX });
     pobierz(w.nazwa, URL.createObjectURL(w.blob));
-    powiadom(`Pobrano szablon i dane: pola ${w.pola.map((p) => `{${p}}`).join(', ') || '–'}, ${w.wierszy} wierszy${w.obrazow ? `, obrazów ${w.obrazow}` : ''}. Co dalej – w pliku CZYTAJ-MNIE.txt.`);
-  } catch (e) { powiadom(`Nie udało się przygotować pliku: ${e.message}`, true); }
+    powiadom(t('edytorStart.pobranoSzablonIDane', { x: w.pola.map((p) => `{${p}}`).join(', ') || '–', wierszy: w.wierszy, x2: w.obrazow ? t('edytorStart.obrazow', { obrazow: w.obrazow }) : '' }));
+  } catch (e) { powiadom(t('edytorStart.nieUdaloSiePrzygotowac2', { message: e.message }), true); }
 });

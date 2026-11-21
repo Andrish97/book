@@ -5,6 +5,7 @@
 // w łączniku MCP (js/ai-narzedzia-rdzen.js); każdy dostawca dostaje je w swoim formacie.
 //
 // Rozmowa trzyma historię w formacie swojego dostawcy (zmiana dostawcy zaczyna nową rozmowę).
+import { t as tt } from './jezyk.js';
 
 export const DOSTAWCY = {
   anthropic: { nazwa: 'Anthropic (Claude)', rodzaj: 'anthropic', adres: 'https://api.anthropic.com/v1', modele: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'], kluczUrl: 'https://console.anthropic.com/settings/keys' },
@@ -26,13 +27,13 @@ export function komunikatBleduDostawcy(status, opis = '') {
   const o = String(opis || '');
   const szczegoly = o ? ` (dostawca: ${o.slice(0, 200)})` : '';
   if (status === 0) return 'Brak połączenia z dostawcą – sprawdź internet. Przy własnym adresie (np. Ollama) serwer musi pozwalać na zapytania z przeglądarki (CORS).';
-  if (status === 401 || status === 403) return `Dostawca odrzucił klucz – sprawdź, czy klucz jest poprawny i aktywny (Ustawienia konta → Sztuczna inteligencja → Edytuj).${szczegoly}`;
-  if (status === 402 || /insufficient|credit|balance|billing|quota|payment/i.test(o)) return `Brak środków albo wyczerpany limit na koncie dostawcy – doładuj konto u dostawcy.${szczegoly}`;
-  if (status === 429) return `Za dużo zapytań naraz – odczekaj chwilę i spróbuj ponownie.${szczegoly}`;
-  if (/tool|function.?call/i.test(o) && status === 400) return `Ten model nie obsługuje narzędzi – wybierz inny model.${szczegoly}`;
-  if (status === 404 || (status === 400 && /model/i.test(o))) return `Model niedostępny u dostawcy albo zła nazwa modelu – wybierz inny model.${szczegoly}`;
-  if ([500, 502, 503, 504, 529].includes(status) || /overload/i.test(o)) return `Dostawca jest przeciążony albo ma awarię – spróbuj za chwilę.${szczegoly}`;
-  return `Dostawca odpowiedział błędem ${status}.${szczegoly}`;
+  if (status === 401 || status === 403) return tt('aiDostawcy.dostawcaOdrzucilKluczSprawdz', { szczegoly });
+  if (status === 402 || /insufficient|credit|balance|billing|quota|payment/i.test(o)) return tt('aiDostawcy.brakSrodkowAlboWyczerpany', { szczegoly });
+  if (status === 429) return tt('aiDostawcy.zaDuzoZapytanNaraz', { szczegoly });
+  if (/tool|function.?call/i.test(o) && status === 400) return tt('aiDostawcy.tenModelNieObsluguje', { szczegoly });
+  if (status === 404 || (status === 400 && /model/i.test(o))) return tt('aiDostawcy.modelNiedostepnyUDostawcy', { szczegoly });
+  if ([500, 502, 503, 504, 529].includes(status) || /overload/i.test(o)) return tt('aiDostawcy.dostawcaJestPrzeciazonyAlbo', { szczegoly });
+  return tt('aiDostawcy.dostawcaOdpowiedzialBledem', { status, szczegoly });
 }
 
 // Przeciążenie i chwilowe awarie: dwie kolejne próby (po 1,5 s i 4 s; albo tyle, ile każe Retry-After, do 10 s).

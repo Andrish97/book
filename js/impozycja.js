@@ -10,6 +10,7 @@
 // złożeniu – ich strony przesuwają się o ułamek podanej wartości w stronę grzbietu.
 // Składki: broszura dzielona na zeszyty po N stron (4, 8, 16, 32 – jak ustawienie składek sekcji, #120),
 // każda składka układana jak osobna broszura.
+import { t as tt } from './jezyk.js';
 
 const PT = 72 / 25.4;
 export const ARKUSZE = { A4: [210, 297], A3: [297, 420], Letter: [215.9, 279.4] };
@@ -160,7 +161,7 @@ export function opisPlanu(n, opcje) {
   const arkuszy = opcje.uklad === 'broszura' || opcje.uklad === 'skladki' ? plan.strony.length / 2 : plan.strony.length;
   const czesci = [`${arkuszy} ${arkuszy === 1 ? 'arkusz' : (arkuszy % 10 >= 2 && arkuszy % 10 <= 4 && (arkuszy % 100 < 10 || arkuszy % 100 >= 20) ? 'arkusze' : 'arkuszy')}`];
   if (opcje.uklad === 'broszura' || opcje.uklad === 'skladki') czesci[0] += ' do druku dwustronnego (przód i tył, obracanie po krótszej krawędzi)';
-  if (plan.skladek > 1) czesci.push(`${plan.skladek} składek po ${opcje.skladka} stron`);
-  if (plan.puste) czesci.push(`dopełnione ${plan.puste} ${plan.puste === 1 ? 'pustą stroną' : 'pustymi stronami'} na końcu`);
+  if (plan.skladek > 1) czesci.push(tt('impozycja.skladekPoStron', { skladek: plan.skladek, skladka: opcje.skladka }));
+  if (plan.puste) czesci.push(tt('impozycja.dopelnioneNaKoncu', { puste: plan.puste, x: plan.puste === 1 ? tt('impozycja.pustaStrona') : tt('impozycja.pustymiStronami') }));
   return `${czesci.join(', ')}.`;
 }

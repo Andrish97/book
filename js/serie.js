@@ -34,6 +34,7 @@ import { sekcjaStrony } from './projekt.js';
 import { zapiszLiczbe } from './pola.js';
 import { poleKsiazki } from './ksiazka.js';
 import { pozaNumeracja as bezNumerow } from './typ-sekcji.js';
+import { t as tt } from './jezyk.js';
 
 // Znacznik wiersza pomijanego – wpisywany w pierwszej komórce wiersza (w Excelu, CSV albo w oknie Dane).
 export const ZNACZNIK_POMIJANIA = '[pomiń]';
@@ -382,7 +383,7 @@ export function wartosciPol(projekt, egz, ciag) {
       case 'papier': {
         const pa = okladkaProjektu(projekt)?.okladka?.papier;
         if (!pa) return '';
-        return pa.tryb === 'gramatura' ? `${RODZAJE_PAPIERU[pa.rodzaj] || pa.rodzaj} ${pa.gramatura} g/m²` : `${String(pa.grubosc_mm).replace('.', ',')} mm na kartkę`;
+        return pa.tryb === 'gramatura' ? `${RODZAJE_PAPIERU[pa.rodzaj] || pa.rodzaj} ${pa.gramatura} g/m²` : tt('serie.mmNaKartke', { replace: String(pa.grubosc_mm).replace('.', ',') });
       }
       case 'rok_kalendarza': { const k = projekt.sekcje.find((x) => x.specjalna?.rodzaj === 'kalendarz'); return k ? String(k.specjalna.rok) : ''; }
       case 'seria': return egz.seria ? egz.seria.nazwa : '';

@@ -1,6 +1,7 @@
 // Własny koder animowanego GIF (#181) – bez bibliotek z CDN. Używa go makieta 3D (animacja obrotu
 // i kartkowania). Paleta stała: 6 × 7 × 6 odcieni (252 kolory) z ditheringiem uporządkowanym (macierz Bayera
 // 4 × 4) – gładkie przejścia tła i cieni bez pasów; kompresja LZW według specyfikacji GIF89a.
+import { t as tt } from './jezyk.js';
 
 const POZIOMY_R = 6;
 const POZIOMY_G = 7;
@@ -109,7 +110,7 @@ export class KoderGif {
     this.h = h;
     this.opoznienie = opoznienie;
     const b = new Bufor();
-    b.tekst('GIF89a');
+    b.tekst(tt('gif.gif89a'));
     b.slowo(w);
     b.slowo(h);
     b.bajt(0xf7); // globalna paleta, 8 bitów na kolor, 256 wpisów
@@ -118,7 +119,7 @@ export class KoderGif {
     b.bajty(paletaGif());
     if (petla) {
       b.bajty([0x21, 0xff, 11]);
-      b.tekst('NETSCAPE2.0');
+      b.tekst(tt('gif.netscape20'));
       b.bajty([3, 1, 0, 0, 0]);
     }
     this.bufor = b;

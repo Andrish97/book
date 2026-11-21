@@ -1,6 +1,6 @@
 // Okno „Czcionki”: własne pliki czcionek projektu i lista czcionek wbudowanych.
 
-import { $, powiadom, potwierdz, odmiana, pobierz } from './ui.js';
+import { $, powiadom, potwierdz, pobierz } from './ui.js';
 import { uid } from './projekt.js';
 import { wstawIkony } from './ikony.js';
 import { zPostepem } from './postep.js';
@@ -74,7 +74,7 @@ export class OknoCzcionek {
       li.innerHTML = '<span class="nazwa-rodziny"></span><span class="probka"></span><span class="opis"></span><button type="button" class="przycisk-ikona" data-ikona="pobierz"></button>';
       wpiszNazwe(li.querySelector('.nazwa-rodziny'), c.nazwa);
       const pobierz = li.querySelector('button');
-      pobierz.title = `Pobierz pliki czcionki ${c.nazwa}`;
+      pobierz.title = t('oknoCzcionek.pobierzPlikiCzcionki', { nazwa: c.nazwa });
       pobierz.setAttribute('aria-label', pobierz.title);
       const probka = li.querySelector('.probka');
       probka.textContent = t('oknoCzcionek.zazolcGeslaJazn');
@@ -98,7 +98,7 @@ export class OknoCzcionek {
       const wynik = await zestawCzcionek(rodziny);
       this.ostatniZestaw = wynik; // do testów
       pobierz(wynik.nazwa, URL.createObjectURL(wynik.blob));
-    } catch (e) { powiadom(`Nie udało się przygotować plików czcionek: ${e.message}`, true); }
+    } catch (e) { powiadom(t('oknoCzcionek.nieUdaloSiePrzygotowac', { message: e.message }), true); }
   }
 
   // „Moje czcionki”: rodziny wgrane w innych projektach, których w tym jeszcze nie ma.
@@ -123,7 +123,7 @@ export class OknoCzcionek {
       probka.textContent = rodzina;
       const wzor = odmiany.find((c) => c.waga === 400 && !c.kursywa) || odmiany[0];
       this._probka(wzor).then((nazwa) => { if (nazwa) Object.assign(probka.style, { fontFamily: `"${nazwa}"`, fontWeight: wzor.waga, fontStyle: wzor.kursywa ? 'italic' : 'normal' }); });
-      li.querySelector('.opis').textContent = `${odmiany.map(nazwaOdmiany).join(', ')} · ${odmiany.length} ${odmiana(odmiany.length, 'plik', 'pliki', 'plików')}`;
+      li.querySelector('.opis').textContent = t('oknoCzcionek.tekst', { join: odmiany.map(nazwaOdmiany).join(', '), odmianyIle: odmiany.length });
       li.querySelector('[data-rola="dodaj"]').dataset.dodaj = rodzina;
       li.querySelector('[data-rola="zapomnij"]').dataset.zapomnij = rodzina;
       lista.append(li);
@@ -149,8 +149,8 @@ export class OknoCzcionek {
   async dodajZMoich(rodzina) {
     this.zrodlo.przedZmiana();
     const ile = await dodajRodzineDoProjektu(this.zrodlo.wlasciciel(), this.zrodlo.projekt(), rodzina, uid);
-    if (!ile) { powiadom(`Nie znaleziono czcionki „${rodzina}” w moich czcionkach.`, true); return; }
-    powiadom(`Dodano do projektu czcionkę „${rodzina}” (${ile} ${odmiana(ile, 'odmiana', 'odmiany', 'odmian')}).`);
+    if (!ile) { powiadom(t('oknoCzcionek.nieZnalezionoCzcionkiW', { rodzina }), true); return; }
+    powiadom(t('oknoCzcionek.dodanoDoProjektuCzcionke', { rodzina, ile }));
     await this.zrodlo.poZmianie(rodzina);
     await this.zrodlo.poZmianieZbioru();
     if (this.okno.open) this.rysuj();
@@ -158,7 +158,7 @@ export class OknoCzcionek {
 
   async usunZMoich(rodzina) {
     await zapomnij(this.zrodlo.wlasciciel(), rodzina);
-    powiadom(`Usunięto „${rodzina}” z moich czcionek. Projekty, które jej używają, zachowują swoją kopię.`);
+    powiadom(t('oknoCzcionek.usunietoZMoichCzcionek', { rodzina }));
     await this.zrodlo.poZmianieZbioru();
     if (this.okno.open) this.rysuj();
   }
@@ -168,10 +168,10 @@ export class OknoCzcionek {
     if (!pliki.length) return [];
     this.zrodlo.przedZmiana();
     const { dodane, odrzucone } = await zPostepem(pliki.length > 1 ? `Wczytywanie czcionek (${pliki.length})…` : 'Wczytywanie czcionki…', () => dodajCzcionkiDoProjektu(this.zrodlo.projekt(), pliki, uid));
-    if (odrzucone.length) powiadom(`Nie udało się wczytać: ${odrzucone.join(', ')}. Obsługiwane pliki: TTF, OTF, WOFF, WOFF2.`, true);
+    if (odrzucone.length) powiadom(t('oknoCzcionek.nieUdaloSieWczytac', { join: odrzucone.join(', ') }), true);
     if (dodane.length) {
       const rodziny = [...new Set(dodane.map((c) => c.rodzina))];
-      powiadom(`Dodano ${dodane.length} ${odmiana(dodane.length, 'plik czcionki', 'pliki czcionek', 'plików czcionek')}: ${rodziny.join(', ')}.`);
+      powiadom(t('oknoCzcionek.dodano', { dodaneIle: dodane.length, join: rodziny.join(', ') }));
       await this.zrodlo.poZmianie(rodziny[0]);
       try { await zapamietaj(this.zrodlo.wlasciciel(), this.zrodlo.projekt(), dodane); } catch { /* zbiór jest tylko ułatwieniem */ }
       this.zrodlo.poZmianieZbioru();
@@ -186,7 +186,7 @@ export class OknoCzcionek {
     if (!c) return;
     const ostatnia = p.czcionki.filter((x) => x.rodzina === c.rodzina).length === 1;
     const wUzyciu = ostatnia && uzyteCzcionki(p).has(c.rodzina);
-    if (wUzyciu && !await potwierdz(`Usunąć czcionkę „${c.rodzina}”?`, t('oknoCzcionek.tekstyKtoreJejUzywaja'), t('oknoCzcionek.usunCzcionke'), true)) return;
+    if (wUzyciu && !await potwierdz(t('oknoCzcionek.usunacCzcionke', { rodzina: c.rodzina }), t('oknoCzcionek.tekstyKtoreJejUzywaja'), t('oknoCzcionek.usunCzcionke'), true)) return;
     this.zrodlo.przedZmiana();
     p.czcionki = p.czcionki.filter((x) => x !== c);
     delete p.zasoby[id];

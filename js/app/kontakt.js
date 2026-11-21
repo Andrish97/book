@@ -32,7 +32,7 @@ function pokazPliki() {
       + `<button type="button" class="przycisk-ikona maly" data-ikona="zamknij" data-rozmiar="14" title="${tt('kontakt.usunZalacznik')}"></button>`;
     li.querySelector('.nazwa').textContent = f.name;
     li.querySelector('.ciche').textContent = rozmiar(f.size);
-    li.querySelector('button').setAttribute('aria-label', `Usuń załącznik ${f.name}`);
+    li.querySelector('button').setAttribute('aria-label', tt('kontakt.usunZalacznik2', { name: f.name }));
     li.querySelector('button').addEventListener('click', () => { pliki.splice(i, 1); pokazPliki(); });
     return li;
   }));
@@ -41,8 +41,8 @@ function pokazPliki() {
 }
 $('#kontakt-pliki').addEventListener('change', (e) => {
   for (const f of e.target.files) {
-    if (pliki.length >= MAKS_PLIKOW) { powiadom(`Najwyżej ${MAKS_PLIKOW} załączników.`, true); break; }
-    if (pliki.reduce((n, x) => n + x.size, 0) + f.size > MAKS_RAZEM) { powiadom(`„${f.name}” się nie zmieści – załączniki razem mogą mieć najwyżej 10 MB.`, true); continue; }
+    if (pliki.length >= MAKS_PLIKOW) { powiadom(tt('kontakt.najwyzejZalacznikow', { MAKS_PLIKOW }), true); break; }
+    if (pliki.reduce((n, x) => n + x.size, 0) + f.size > MAKS_RAZEM) { powiadom(tt('kontakt.sieNieZmiesciZalaczniki', { name: f.name }), true); continue; }
     pliki.push(f);
   }
   e.target.value = '';

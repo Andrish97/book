@@ -22,6 +22,7 @@ import { CZCIONKI } from './czcionki.js';
 import { spakuj } from './pdf-x.js';
 import { jpegCmyk } from './jpeg-cmyk.js';
 import { plytaUszlachetnienia, stanUszlachetnien, rgbNaHex } from './kolory-druku.js';
+import { t as tt } from './jezyk.js';
 
 const PT = 72 / 25.4;
 const ROZMIAR_POMIARU = 400; // tekst mierzymy dużą czcionką i skalujemy – jak robi to edytor
@@ -1203,5 +1204,5 @@ async function wstawJakoMaske(ctx, zasoby, o, pole, dpi, u) {
   const { context } = zasoby.pdf;
   const ref = context.register(context.stream(await spakuj(bity), { Type: 'XObject', Subtype: 'Image', Width: w, Height: h, ImageMask: true, BitsPerComponent: 1, Filter: 'FlateDecode' }));
   const nazwa = zasoby._nazwa(ref, (n) => zasoby.strona.node.setXObject(n, ref));
-  ctx.op.push('q', `/${zasoby.nadruk()} gs`, `/${zasoby.separacja(u.plyta, u.alt)} cs 1 scn`, `${L(x1 - x0)} 0 0 ${L(-(y1 - y0))} ${L(x0)} ${L(y1)} cm`, `/${nazwa} Do`, 'Q');
+  ctx.op.push('q', `/${zasoby.nadruk()} gs`, tt('pdfWektorowy.cs1Scn', { separacja: zasoby.separacja(u.plyta, u.alt) }), `${L(x1 - x0)} 0 0 ${L(-(y1 - y0))} ${L(x0)} ${L(y1)} cm`, `/${nazwa} Do`, 'Q');
 }
