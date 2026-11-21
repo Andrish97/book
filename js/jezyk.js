@@ -128,7 +128,20 @@ export function formatuj(wzor, zmienne, j = 'pl') {
     if (wzor[i] !== '{') { wynik += wzor[i]; i += 1; continue; }
     const k = zamkniecie(wzor, i);
     if (k < 0) { wynik += wzor.slice(i); break; }
-    const m = /^\s*(\w+)\s*(?:,\s*plural\s*,([\s\S]*))?$/.exec(wzor.slice(i + 1, k));
+    const srodek = wzor.slice(i + 1, k);
+    // Krótki zapis odmiany (#356): {n|1|2–4|5+} – po polsku i ukraińsku trzy formy, po angielsku dwie {n|1|reszta}.
+    const krotki = /^\s*(\w+)\|([\s\S]*)$/.exec(srodek);
+    if (krotki && zmienne?.[krotki[1]] !== undefined) {
+      const v = zmienne[krotki[1]];
+      const formy = krotki[2].split('|');
+      const kat = kategoria(j, Number(v));
+      const f = formy.length === 2 ? (kat === 'one' ? formy[0] : formy[1])
+        : (kat === 'one' ? formy[0] : kat === 'few' ? formy[1] : kat === 'other' && !Number.isInteger(Number(v)) ? formy[1] : formy[2] ?? formy[1]);
+      wynik += formatuj(f.replace(/#/g, String(v)), zmienne, j);
+      i = k + 1;
+      continue;
+    }
+    const m = /^\s*(\w+)\s*(?:,\s*plural\s*,([\s\S]*))?$/.exec(srodek);
     const v = m ? zmienne?.[m[1]] : undefined;
     if (!m || v === undefined) { wynik += wzor.slice(i, k + 1); i = k + 1; continue; }
     if (m[2] === undefined) wynik += String(v);
