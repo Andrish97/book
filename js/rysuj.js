@@ -66,7 +66,7 @@ window.makietkaRysuj = {
 
 // Plik eksportu (#337): PDF całego projektu albo PNG jednej strony – ten sam kod co eksport zlecony przez AI
 // w aplikacji (js/app/eksport-ai.js). Zwraca { b64, typ, nazwa, strony, uwagi }.
-window.makietkaRysuj.eksportuj = async ({ projekt, rodzaj = 'pdf', ustawienia = {} }) => {
+window.makietkaRysuj.eksportuj = async ({ projekt, rodzaj = 'pdf', ustawienia = {}, opcje: opcjeOkna = null }) => {
   const { p } = await przygotuj(projekt);
   const { rozwin } = await import('./serie.js');
   const { sprawdzProjekt } = await import('./kontrola.js');
@@ -87,7 +87,8 @@ window.makietkaRysuj.eksportuj = async ({ projekt, rodzaj = 'pdf', ustawienia = 
   }
   const { eksportujPdf, wybierzEgzemplarze } = await import('./eksport.js');
   const { opcjePdf } = await import('./eksport-opcje.js');
-  const opcje = opcjePdf(p, u);
+  // Opcje z okna „Eksportuj do PDF” (#338) – jak w aplikacji, bez własnego profilu ICC; zlecenie AI – z ustawień.
+  const opcje = opcjeOkna ? { ...opcjeOkna, profilWlasny: null } : opcjePdf(p, u);
   const wynik = await eksportujPdf(p, { ...opcje, postep: (i, n) => window.__mkPostep?.(i, n) });
   for (const [powod, n] of wynik.uwagi || []) uwagi.push(`Zapisane jako obraz (${n}): ${powod}`);
   for (const [czcionka, n] of wynik.krzywe || []) uwagi.push(`Tekst jako krzywe (${n}): ${czcionka}`);

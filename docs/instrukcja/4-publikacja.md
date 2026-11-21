@@ -217,6 +217,11 @@ Wybierz [⋯] → [Eksportuj do PDF…].
 Na dole okna jest lista **Do sprawdzenia przed drukiem** (→ 20). [Eksportuj] zapisuje plik; długi
 eksport przerwiesz przyciskiem [Anuluj] na karcie postępu.
 
+Duży plik (od 150 stron, jeden plik) robi serwer Makietki, a nie Twoje urządzenie — karta postępu pokazuje
+**Eksport do PDF – plik robi serwer Makietki**, a gotowy plik pobiera się sam. Wygląda tak samo, bo serwer
+używa tego samego kodu. Wyjątek: PDF/X z własnym profilem ICC (plik profilu jest tylko na Twoim urządzeniu)
+robi zawsze urządzenie. Bez internetu albo przy kłopocie z serwerem plik robi urządzenie, jak dawniej.
+
 ![Okno eksportu](pdf.png)
 
 ## 21.2 Zaawansowane

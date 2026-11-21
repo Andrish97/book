@@ -117,3 +117,35 @@ test('link: dużo stron – rysuje serwer, postęp w aplikacji; serwer wyłączo
   assert.ok(obrazyStron() > przed, 'strony narysowało urządzenie');
   assert.deepEqual(bledy, []);
 });
+
+// #338: okno „Eksportuj do PDF” – duży projekt: plik robi serwer, aplikacja go pobiera; urządzenie nie eksportuje.
+test('PDF dużego projektu: okno eksportu zleca plik serwerowi i pobiera gotowy', async (t) => {
+  const { strona, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
+  await nowyProjekt(strona, 'Gruby PDF');
+  await strona.evaluate(() => { globalThis.__progPdfSerwera = 1; });
+  let zlecenie = null;
+  let pobrano = false;
+  await strona.route((u) => u.pathname.startsWith('/rysuj/') || u.pathname.includes('/_eksporty/serwer-'), async (r) => {
+    const u = new URL(r.request().url());
+    if (u.pathname === '/rysuj/pdf') { zlecenie = JSON.parse(r.request().postData()); return r.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ stan: 'w_kolejce', id: 'p1' }) }); }
+    if (u.pathname === '/rysuj/stan') {
+      const id = zlecenie.projekt.id;
+      return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ stan: 'gotowe', id: 'p1', plik: `uid/_eksporty/serwer-${id}.pdf`, nazwa: 'Gruby PDF.pdf', wszystkie: 1, gotowe: 1 }) });
+    }
+    if (r.request().method() === 'GET') { pobrano = true; return r.fulfill({ status: 200, contentType: 'application/pdf', body: '%PDF-1.7 serwer' }); }
+    return r.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+  const pobranie = strona.waitForEvent('download');
+  await strona.evaluate(async () => { (await import('./js/app/edytor-start.js')).akcje.pdf(); });
+  await strona.waitForSelector('#dlg-pdf[open]', { timeout: 15000 });
+  await strona.click('#pdf-eksportuj');
+  const plik = await pobranie;
+  assert.equal(plik.suggestedFilename(), 'Gruby PDF.pdf');
+  assert.ok(zlecenie && zlecenie.opcje && zlecenie.projekt, 'zlecenie z projektem i opcjami okna');
+  assert.ok(pobrano, 'plik pobrany z konta');
+  assert.deepEqual(bledy, []);
+});

@@ -9,6 +9,7 @@ import { eksportujPdf, wybierzEgzemplarze, planPlikow, JAKOSCI_PDF, Przerwano } 
 import { wypelnijSekcje, wybraneSekcje, uwagaZakresu } from './zakres-eksportu.js';
 import { WARUNKI_DRUKU } from './profil-icc.js';
 import { postep } from './postep.js';
+import * as chmura from './chmura.js';
 import { planImpozycji, opisPlanu } from './impozycja.js';
 
 export class OknoPdf {
@@ -193,9 +194,13 @@ export class OknoPdf {
     // Wspólny wskaźnik postępu (js/postep.js): pasek „strona i z n” i „Anuluj”, jak przy innych dłuższych czynnościach.
     const pasek = postep('Eksport do PDF', { anuluj: () => { this.przerwane = true; } });
     try {
-      const wynik = await eksportujPdf(this.zrodlo.projekt(), {
+      const krok = (i, n) => { komunikat.textContent = `Strona ${i} z ${n}…`; pasek.krok(i, n); };
+      // Duży projekt (#338): plik robi serwer – urządzenie nie mieli setek stron; przy kłopocie z serwerem – jak dotąd.
+      const wynik = await pdfNaSerwerze(this.zrodlo.projekt(), this.opcje(), {
+        postep: krok, przerwij: () => this.przerwane, start: () => { pasek.opis('Eksport do PDF – plik robi serwer Makietki'); komunikat.textContent = 'Plik robi serwer Makietki…'; },
+      }) || await eksportujPdf(this.zrodlo.projekt(), {
         ...this.opcje(),
-        postep: (i, n) => { komunikat.textContent = `Strona ${i} z ${n}…`; pasek.krok(i, n); },
+        postep: krok,
         przerwij: () => this.przerwane,
       });
       this.ostatni = wynik; // do testów i ponownego pobrania
@@ -221,6 +226,37 @@ export class OknoPdf {
       $('#pdf-anuluj').textContent = 'Anuluj';
       this.odswiez();
     }
+  }
+}
+
+// ---------- PDF dużego projektu na serwerze (#338) ----------
+// Od PROG_PDF_SERWERA stron w pliku (jeden plik, bez własnego profilu ICC): zlecenie do serwera (projekt i opcje
+// okna), postęp stron, plik z konta (pobrany i usunięty z serwera). null – robi urządzenie.
+export const PROG_PDF_SERWERA = 150;
+const czekaj = (ms) => new Promise((ok) => { setTimeout(ok, ms); });
+async function pdfNaSerwerze(projekt, opcje, { postep: krok, przerwij, start }) {
+  if (globalThis.__bezSerwera || !navigator.onLine || opcje.profilWlasny || opcje.podzial !== 'jeden') return null;
+  if (wybierzEgzemplarze(rozwin(projekt), opcje).length < (globalThis.__progPdfSerwera ?? PROG_PDF_SERWERA)) return null;
+  try {
+    if (!chmura.chmuraSkonfigurowana() || !await chmura.biezacyUzytkownik()) return null;
+    // Projekt bez treści plików, które są już na koncie (serwer bierze je z magazynu).
+    const kopia = JSON.parse(JSON.stringify(projekt));
+    for (const z of Object.values(kopia.zasoby || {})) if (z?.sciezka && !String(z.sciezka).startsWith('ai:')) delete z.dataUrl;
+    const { id } = await chmura.zlecPdfNaSerwerze(kopia, opcje);
+    start();
+    for (let proba = 0; proba < 1800; proba += 1) {
+      await czekaj(proba ? 2000 : 800);
+      if (przerwij()) throw new Przerwano();
+      const st = await chmura.stanRysowaniaLinku(projekt.id, 'pdf');
+      if (st.id && id && st.id !== id) continue;
+      if (st.stan === 'rysuje' && st.wszystkie) krok(st.gotowe || 0, st.wszystkie);
+      if (st.stan === 'gotowe' && st.plik) return { blob: await chmura.odbierzPlikSerwera(st.plik), nazwa: st.nazwa, uwagi: [], krzywe: [], naSerwerze: true };
+      if (['blad', 'limit', 'brak'].includes(st.stan)) return null;
+    }
+    return null;
+  } catch (e) {
+    if (e instanceof Przerwano) throw e;
+    return null;
   }
 }
 

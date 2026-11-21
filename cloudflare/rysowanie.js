@@ -43,8 +43,10 @@ export function sprawdzFolder(folder, uid, idProjektu) {
   return { kod, chroniony: sekret !== undefined, nazwa: c[2] };
 }
 
-const kluczZlecenia = (uid, idProjektu) => `zadania/${uid}/${idProjektu}.json`;
-const obiektKolejki = (env, uid, idProjektu) => env.RYSOWANIE.get(env.RYSOWANIE.idFromName(`link:${uid}:${idProjektu}`));
+const kluczZlecenia = (uid, idProjektu, rodzaj = 'link') => `zadania/${uid}/${idProjektu}${rodzaj === 'pdf' ? '.pdf' : ''}.json`;
+const obiektKolejki = (env, uid, idProjektu, rodzaj = 'link') => env.RYSOWANIE.get(env.RYSOWANIE.idFromName(`${rodzaj === 'pdf' ? 'pdf' : 'link'}:${uid}:${idProjektu}`));
+// Plik PDF zrobiony na serwerze dla okna „Eksportuj do PDF” (#338) – na koncie zlecającego, aplikacja pobiera i usuwa.
+export const plikPdfSerwera = (uid, idProjektu) => `${uid}/_eksporty/serwer-${idProjektu}.pdf`;
 
 // POST /rysuj/link { projekt, folder, pelna } – zlecenie; GET /rysuj/stan?projekt=… – postęp.
 // pomoc: funkcje workera (api-worker.js) – json, cors, tokenZZapytania, uzytkownik, dostep, linkChronionyWazny.
@@ -59,11 +61,12 @@ export async function obsluzRysowanie(zapytanie, env, u, pomoc) {
   if (u.pathname === '/rysuj/stan' && zapytanie.method === 'GET') {
     const id = u.searchParams.get('projekt') || '';
     if (!ID.test(id)) return pomoc.json(400, { blad: 'Nieprawidłowy projekt.' }, cors);
-    const odp = await obiektKolejki(env, uid, id).fetch('https://kolejka/stan');
+    const odp = await obiektKolejki(env, uid, id, u.searchParams.get('rodzaj')).fetch('https://kolejka/stan');
     return pomoc.json(200, await odp.json(), cors);
   }
 
-  if (u.pathname !== '/rysuj/link' || zapytanie.method !== 'POST') return pomoc.json(404, { blad: 'Nie ma takiej funkcji.' }, cors);
+  const rodzaj = u.pathname === '/rysuj/pdf' ? 'pdf' : 'link';
+  if (!['/rysuj/link', '/rysuj/pdf'].includes(u.pathname) || zapytanie.method !== 'POST') return pomoc.json(404, { blad: 'Nie ma takiej funkcji.' }, cors);
   if (Number(zapytanie.headers.get('content-length') || 0) > MAKS_ZLECENIA) return pomoc.json(413, { blad: 'Projekt za duży do rysowania na serwerze.' }, cors);
   let dane;
   try {
@@ -75,11 +78,14 @@ export async function obsluzRysowanie(zapytanie, env, u, pomoc) {
   if (!projekt || typeof projekt !== 'object' || !ID.test(String(projekt.id || '')) || !Array.isArray(projekt.strony)) {
     return pomoc.json(400, { blad: 'Nieprawidłowy projekt.' }, cors);
   }
-  const folder = sprawdzFolder(dane.folder, uid, projekt.id);
+  const folder = rodzaj === 'pdf' ? { chroniony: false } : sprawdzFolder(dane.folder, uid, projekt.id);
   if (!folder) return pomoc.json(403, { blad: 'To nie jest folder Twojego linku.' }, cors);
   if (folder.chroniony && !await pomoc.linkChronionyWazny(env, uid, projekt.id, folder.nazwa)) {
     return pomoc.json(403, { blad: 'Link z ochroną jest nieaktualny – opublikuj go ponownie.' }, cors);
   }
+  // Opcje eksportu z okna aplikacji: bez własnego profilu ICC (plik użytkownika – taki eksport robi urządzenie).
+  const opcje = rodzaj === 'pdf' ? { ...(dane.opcje && typeof dane.opcje === 'object' ? dane.opcje : {}), profilWlasny: null } : null;
+  if (opcje && JSON.stringify(opcje).length > 20000) return pomoc.json(400, { blad: 'Nieprawidłowe opcje eksportu.' }, cors);
   // Pliki projektu: tylko te, które zlecający może czytać (właściciel projektu albo współpracownik).
   const sciezki = sciezkiZasobow(projekt);
   const sprawdzone = new Map();
@@ -89,9 +95,10 @@ export async function obsluzRysowanie(zapytanie, env, u, pomoc) {
     if (!sprawdzone.has(para)) sprawdzone.set(para, Boolean(wl && pr) && await pomoc.dostep(env, token, uid, wl, pr, false));
     if (!sprawdzone.get(para)) return pomoc.json(403, { blad: 'Brak dostępu do plików tego projektu.' }, cors);
   }
-  const zlecenie = { projekt, folder: dane.folder, chroniony: folder.chroniony, pelna: Boolean(dane.pelna), sciezki, uid, zlecono: Date.now() };
-  await env.PLIKI.put(kluczZlecenia(uid, projekt.id), JSON.stringify(zlecenie), { httpMetadata: { contentType: 'application/json' } });
-  const odp = await obiektKolejki(env, uid, projekt.id).fetch('https://kolejka/start', { method: 'POST', body: JSON.stringify({ klucz: kluczZlecenia(uid, projekt.id), uid, stron: projekt.strony.length }) });
+  const zlecenie = { rodzaj, projekt, folder: rodzaj === 'pdf' ? null : dane.folder, chroniony: folder.chroniony, pelna: Boolean(dane.pelna), opcje, sciezki, uid, zlecono: Date.now() };
+  const klucz = kluczZlecenia(uid, projekt.id, rodzaj);
+  await env.PLIKI.put(klucz, JSON.stringify(zlecenie), { httpMetadata: { contentType: 'application/json' } });
+  const odp = await obiektKolejki(env, uid, projekt.id, rodzaj).fetch('https://kolejka/start', { method: 'POST', body: JSON.stringify({ klucz, uid, stron: projekt.strony.length, rodzaj }) });
   return pomoc.json(202, await odp.json(), cors);
 }
 
@@ -169,7 +176,7 @@ export class Rysowanie {
       await s.put('stan', { ...st, stan: 'rysuje', gotowe, wszystkie });
     };
     try {
-      const w = await rysujLink(this.env, z.klucz, postep);
+      const w = z.rodzaj === 'pdf' ? await rysujPdf(this.env, z.klucz, postep) : await rysujLink(this.env, z.klucz, postep);
       const st = await s.get('stan');
       await s.put('stan', { stan: 'gotowe', id: z.id, od, koniec: Date.now(), ...w });
       if (st?.czeka || await s.get('zlecenie')) await s.setAlarm(Date.now());
@@ -294,7 +301,7 @@ export async function wykonajEksport(env, z) {
 }
 
 // Przeglądarka z zamkniętym ruchem i stroną rysuj.html; dostęp do plików konta tylko przez pobierz(ścieżka) → bool.
-async function wPrzegladarce(env, { pobierz }, praca) {
+async function wPrzegladarce(env, { pobierz, postep = () => {} }, praca) {
   const puppeteer = env.__puppeteer || (await import('@cloudflare/puppeteer')).default;
   const przegladarka = await puppeteer.launch(env.PRZEGLADARKA, { keep_alive: 600000 });
   try {
@@ -306,11 +313,29 @@ async function wPrzegladarce(env, { pobierz }, praca) {
       const o = await env.PLIKI.get(`zasoby/${sciezka}`);
       return o ? { b64: await doBase64(o), typ: o.httpMetadata?.contentType || 'application/octet-stream' } : null;
     });
-    await strona.exposeFunction('__mkPostep', () => {});
+    await strona.exposeFunction('__mkPostep', (i, n) => postep(i, n));
     await strona.goto(`${env.APLIKACJA || APLIKACJA}/rysuj.html`, { waitUntil: 'load', timeout: 60000 });
     await strona.waitForFunction('window.makietkaRysujGotowe === true', { timeout: 60000 });
     return await praca(strona);
   } finally {
     await przegladarka.close().catch(() => {});
+  }
+}
+
+// PDF z okna „Eksportuj do PDF” (#338): duży projekt – plik robi serwer, aplikacja pobiera go z konta.
+export async function rysujPdf(env, klucz, postep = () => {}) {
+  const obj = await env.PLIKI.get(klucz);
+  if (!obj) throw new Error('Zlecenie zniknęło.');
+  const z = await obj.json();
+  try {
+    const dozwolone = new Set(z.sciezki || []);
+    const w = await wPrzegladarce(env, { pobierz: (sc) => dozwolone.has(sc), postep },
+      (strona) => strona.evaluate((a) => window.makietkaRysuj.eksportuj(a), { projekt: z.projekt, rodzaj: 'pdf', opcje: z.opcje }));
+    const plik = plikPdfSerwera(z.uid, z.projekt.id);
+    const bajty = zBase64(w.b64);
+    await env.PLIKI.put(`zasoby/${plik}`, bajty, { httpMetadata: { contentType: w.typ || 'application/pdf', cacheControl: 'private, no-store' } });
+    return { plik, nazwa: w.nazwa, typ: w.typ, rozmiar: bajty.length, strony: w.strony, uwagi: (w.uwagi || []).slice(0, 40) };
+  } finally {
+    await env.PLIKI.delete(klucz).catch(() => {});
   }
 }

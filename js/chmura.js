@@ -819,9 +819,28 @@ export async function zlecRysowanieLinku(projekt, folder, pelna = false) {
   return dane;
 }
 
+// PDF z okna „Eksportuj do PDF” na serwerze (#338): projekt i opcje eksportu; plik wraca na konto zlecającego.
+export async function zlecPdfNaSerwerze(projekt, opcje) {
+  const odp = await fetch(`${SUPABASE_URL}/rysuj/pdf`, {
+    method: 'POST',
+    headers: { authorization: `Bearer ${await tokenSesji()}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ projekt, opcje }),
+  });
+  const dane = await odp.json().catch(() => ({}));
+  if (!odp.ok) { const e = new Error(dane.blad || `Eksport na serwerze niedostępny (${odp.status}).`); e.status = odp.status; throw e; }
+  return dane;
+}
+// Plik zrobiony na serwerze: pobranie z konta i usunięcie (plik tylko dla tego eksportu).
+export async function odbierzPlikSerwera(plik) {
+  const blob = await r2.pobierz(BUCKET, plik);
+  r2.usun(BUCKET, [plik]).catch(() => {});
+  return blob;
+}
+
 // Stan rysowania: { stan: 'w_kolejce' | 'rysuje' | 'gotowe' | 'blad' | 'limit' | 'brak', gotowe, wszystkie, wyslane, koniec, blad }.
-export async function stanRysowaniaLinku(projektId) {
-  const odp = await fetch(`${SUPABASE_URL}/rysuj/stan?projekt=${encodeURIComponent(projektId)}`, { headers: { authorization: `Bearer ${await tokenSesji()}` }, cache: 'no-store' });
+// rodzaj: 'link' albo 'pdf' (#338).
+export async function stanRysowaniaLinku(projektId, rodzaj = 'link') {
+  const odp = await fetch(`${SUPABASE_URL}/rysuj/stan?projekt=${encodeURIComponent(projektId)}&rodzaj=${rodzaj}`, { headers: { authorization: `Bearer ${await tokenSesji()}` }, cache: 'no-store' });
   if (!odp.ok) { const e = new Error(`Stan rysowania niedostępny (${odp.status}).`); e.status = odp.status; throw e; }
   return odp.json();
 }

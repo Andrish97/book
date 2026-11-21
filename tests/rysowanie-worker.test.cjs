@@ -199,3 +199,33 @@ test('eksport dla AI na serwerze: PDF z projektu z bazy, plik w _eksporty, zlece
   assert.ok(koniec[1].p_strony > 0 && /\.pdf$/.test(koniec[1].p_nazwa));
   assert.deepEqual(koniec[2], { apikey: 'sb_secret_test', 'content-type': 'application/json' }, 'klucz serwisowy tylko w nagłówku apikey');
 });
+
+// #338: PDF z okna „Eksportuj do PDF” na serwerze – zlecenie z projektem i opcjami, kolejka, plik na koncie.
+test('PDF dużego projektu na serwerze: zlecenie, kolejka, plik na koncie zlecającego', async (t) => {
+  const R = await import(MODUL);
+  const { strona, przegladarka, adres } = await otworz(t);
+  await nowyProjekt(strona, 'Start');
+  const projekt = await strona.evaluate(async () => {
+    const { zbudujProjekt } = await import('./js/szablony-projektow.js');
+    const P = await import('./js/projekt.js');
+    const p = P.normalizuj(await zbudujProjekt('ksiazka-miekka', { nazwa: 'PDF z serwera' }));
+    p.id = 'p1';
+    return JSON.parse(JSON.stringify(p));
+  });
+  const env = { PLIKI: r2(), PRZEGLADARKA: {}, APLIKACJA: adres.replace(/\/$/, ''), __puppeteer: puppeteerZPlaywright(przegladarka) };
+  env.RYSOWANIE = kolejki(env, R.Rysowanie);
+  const opcje = { zakres: 'wszystko', tryb: 'wektor', spad: false, znaki: false, podzial: 'jeden', uklad: 'zwykly', dpi: 150, profilWlasny: { dane: 'nie wolno' } };
+  const odp = await R.obsluzRysowanie(new Request('https://api.makietka.app/rysuj/pdf', { method: 'POST', headers: { authorization: 'Bearer dobry' }, body: JSON.stringify({ projekt, opcje }) }), env, new URL('https://api.makietka.app/rysuj/pdf'), pomoc());
+  assert.equal(odp.status, 202);
+  const zlecenie = await (await env.PLIKI.get(`zadania/${UID}/p1.pdf.json`)).json();
+  assert.equal(zlecenie.opcje.profilWlasny, null, 'bez własnego profilu ICC z urządzenia');
+  const kolejka = env.RYSOWANIE.instancje.get(`pdf:${UID}:p1`);
+  assert.ok(kolejka?.state.alarm, 'osobna kolejka PDF projektu');
+  await kolejka.obj.alarm();
+  const stan = await (await R.obsluzRysowanie(new Request('https://api.makietka.app/rysuj/stan?projekt=p1&rodzaj=pdf', { headers: { authorization: 'Bearer dobry' } }), env, new URL('https://api.makietka.app/rysuj/stan?projekt=p1&rodzaj=pdf'), pomoc())).json();
+  assert.equal(stan.stan, 'gotowe', `stan: ${JSON.stringify(stan)}`);
+  assert.equal(stan.plik, R.plikPdfSerwera(UID, 'p1'));
+  const plik = env.PLIKI.m.get(`zasoby/${stan.plik}`);
+  assert.equal(Buffer.from(plik.dane).subarray(0, 5).toString(), '%PDF-');
+  assert.ok(!env.PLIKI.m.has(`zadania/${UID}/p1.pdf.json`), 'zlecenie usunięte');
+});
