@@ -17,12 +17,13 @@ Runda 3 (uwagi z 18.11) – pełny plan z kolejnością: [PLAN-RUNDA-3.md](PLAN-
 | Uwaga | Stan |
 |---|---|
 | 161 (reszta, #185 – makieta już o tym ostrzega z przyciskiem „Ustaw typ sekcji…”): projekt użytkownika do czasu ustawienia typów wyklejek (sekcje wyklejek → typ „Wyklejka przednia / tylna”) pokaże je jako zwykłe rozkładówki | 👤 |
-| Makieta 3D: gotowe ujęcia (przód, ¾, z góry, grzbiet, stojąca, wachlarz, stos), ustawienia kamery/światła/tła/materiałów, eksport rozmiarów i przezroczystości, animacja MP4/GIF, zapamiętanie ujęcia – po #161 | ⏳ |
-| 161 (reszta): makieta 3D – obwoluta (osobny obiekt nałożony na okładkę, skrzydełka zawinięte do środka) jeszcze nie pokazywana; rola sekcji tylko z jawnego typu (typSekcji w js/app/makieta-okno.js – do podpięcia pod wspólną funkcję z #177); obwoluta (typ 'obwoluta') pomijana – model obwoluty do zrobienia. Projekt użytkownika do czasu ustawienia typów wyklejek pokaże je jako zwykłe rozkładówki | ⏳ |
+| Makieta 3D: gotowe ujęcia (przód, ¾, z góry, grzbiet, stojąca, wachlarz, stos), ustawienia kamery/światła/tła/materiałów, eksport rozmiarów i przezroczystości, animacja MP4/GIF, zapamiętanie ujęcia – po #161 | ✅ #181 |
+| 161 (reszta): makieta 3D – obwoluta (osobny obiekt nałożony na okładkę, skrzydełka zawinięte do środka) jeszcze nie pokazywana; rola sekcji tylko z jawnego typu (typSekcji w js/app/makieta-okno.js – do podpięcia pod wspólną funkcję z #177); obwoluta (typ 'obwoluta') pomijana – model obwoluty do zrobienia. Projekt użytkownika do czasu ustawienia typów wyklejek pokaże je jako zwykłe rozkładówki | ✅ #181 (obwoluta ze skrzydełkami), #185 (role sekcji) |
 | 161 (uwaga): geometria okładki bez listy sekcji środka (tryb auto) bierze format pierwszej sekcji – gdy to wyklejka A4, okładka liczy się dla A4 (makieta już tego nie przenosi, ale sama okładka do druku – do sprawdzenia razem z rolami sekcji #177) | ⏳ do sprawdzenia |
-| Makieta 3D dla sekcji specjalnych (ulotka składana, koperta, pudełko złożone z wykrojnika, kalendarz trójdzielny) – #177 | ⏳ |
+| Makieta 3D dla sekcji specjalnych (ulotka składana, koperta, pudełko złożone z wykrojnika, kalendarz trójdzielny) – #177 | ✅ #181 |
 | Reszta propozycji wyglądu i edytora z #103 na później: pasek szybkich akcji przy zaznaczeniu, podgląd wybranego wiersza danych w edytorze, szablony startowe, segmenty w Serii, Szer./Wys./Spad w rzędzie, ⋯ na karcie obrazu | ⏳ |
-| Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ⏳ zaraz |
+| Skrzynka jak w Familiadzie (bez marketingu, styl Makietki): foldery, lista, wątki, pisanie nowych wiadomości z TinyMCE, odpowiedz/przekaż, robocze, załączniki, operacje zbiorcze | ✅ #110 |
+| Skład (#323–#324, dalej): łamanie całego akapitu naraz (jak InDesign) zamiast wiersz po wierszu; wyrównanie liczby wierszy na sąsiednich stronach (wyrównanie łamów) | ⏳ |
 | 160: ręczna lista kontrolna z docs/TESTY.md – Android sprawdzony przez użytkownika 2026-11-16 (wszystko OK); punkty 1–4 iPhone'a i pliki do druku sprawdza teraz symulacja (#186); zostają prawdziwy Safari (instalacja, powiadomienia) i papier/preflight drukarni (iPhone/Safari, Android, prawdziwa drukarka, e-maile, push, migracje na produkcji) – tego nie sprawdzą testy w tym środowisku | ⏳ ręcznie / do zbadania |
 
 ## Kroki po Twojej stronie
