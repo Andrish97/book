@@ -50,4 +50,5 @@ Podłączenie (raz):
      oraz CNAME `www` → `andrish97.github.io` (MX, TXT, rekordy poczty i `api` zostają);
    - DNS → Records → Import and Export → Import: plik `cloudflare/aplikacja/dns-makietka-app.txt`, zaznaczone
      „Proxy imported DNS records” (dwa rekordy AAAA 100:: – przez Cloudflare, ruch przejmuje worker);
-   - GitHub → Settings → Pages → Custom domain → Remove. Workflow `pages.yml` wyłączymy po sprawdzeniu.
+   - GitHub → Settings → Pages → Custom domain → Remove.
+   Zrobione 21.11.2026: GitHub Pages wyłączone, workflow `pages.yml` usunięty (#349) – aplikację publikuje tylko Cloudflare.

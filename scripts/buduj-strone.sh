@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-# Pliki strony aplikacji do wdrożenia (#345) – jeden przepis dla Cloudflare (Workers Builds, cloudflare/aplikacja)
-# i GitHub Pages (.github/workflows/pages.yml), żeby obie wersje były identyczne.
+# Pliki strony aplikacji do wdrożenia (#345, #349) – Cloudflare Workers Builds (worker makietka-app, cloudflare/aplikacja).
 # Użycie: bash scripts/buduj-strone.sh [katalog wynikowy, domyślnie _site] [wersja – skrót commita]
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -16,7 +15,7 @@ python3 scripts/wersja-sw.py "$CEL" "${WERSJA:0:12}"
 cp "$CEL/index.html" "$CEL/404.html"
 # Rozszerzenie Claude Desktop (.mcpb) z łącznikiem – pobierane z okna „Dostęp dla AI”.
 python3 scripts/rozszerzenie-mcpb.py "$CEL/ai/mcp/makietka.mcpb"
-# Nagłówki Cloudflare (GitHub Pages je pomija): pamięć podręczna i podstawowe zabezpieczenia. Biblioteki z wersją
+# Nagłówki Cloudflare: pamięć podręczna i podstawowe zabezpieczenia. Biblioteki z wersją
 # w nazwie pliku (fabric-7.4.0.min.js…) – na rok; czcionki, profile, obrazy – tydzień; kod aplikacji – sprawdzany
 # przy każdym starcie (ETag – niezmieniony plik się nie pobiera); i tak trzyma go service worker swojej wersji.
 cat > "$CEL/_headers" <<'NAGLOWKI'

@@ -8,42 +8,16 @@ Co gdzie będzie:
 
 | Adres | Co to | Skąd |
 |---|---|---|
-| `https://makietka.app/` | aplikacja | GitHub Pages (to samo repozytorium, własna domena) |
+| `https://makietka.app/` | aplikacja | Cloudflare Worker `makietka-app` (pliki z repozytorium, `cloudflare/aplikacja/`) |
 | `https://api.makietka.app/` | przekaźnik do bazy i adres łącznika AI (`…/mcp/<klucz>`) | Cloudflare Worker (`cloudflare/`) |
 | `no-reply@makietka.app` | nadawca maili (logowanie, reset hasła, zaproszenia) | Brevo |
 
-## 1. Cloudflare: DNS dla aplikacji
+## 1–2. Aplikacja makietka.app (Cloudflare)
 
-Cloudflare → wybierz domenę **makietka.app** → **DNS** → **Records** → **Add record**. Dodaj osiem rekordów
-dla samej domeny (pole **Name**: `@`) i jeden dla `www`. Przy każdym przełącz **Proxy status** na
-**DNS only** (szara chmurka) – GitHub sam wystawia certyfikat HTTPS i musi widzieć swoje adresy.
-
-| Type | Name | Content |
-|---|---|---|
-| A | @ | 185.199.108.153 |
-| A | @ | 185.199.109.153 |
-| A | @ | 185.199.110.153 |
-| A | @ | 185.199.111.153 |
-| AAAA | @ | 2606:50c0:8000::153 |
-| AAAA | @ | 2606:50c0:8001::153 |
-| AAAA | @ | 2606:50c0:8002::153 |
-| AAAA | @ | 2606:50c0:8003::153 |
-| CNAME | www | andrish97.github.io |
-
-Jeśli w DNS są już inne rekordy A/AAAA/CNAME dla `@` albo `www` (np. „parking” rejestratora) – usuń je.
-
-## 2. GitHub: własna domena dla Pages
-
-GitHub → repozytorium **Andrish97/book** → **Settings** → **Pages** → **Custom domain**: wpisz
-`makietka.app` → **Save**. GitHub sprawdzi DNS (zwykle kilka minut, czasem do 24 h). Gdy pokaże
-„DNS check successful”, zaznacz **Enforce HTTPS** (pole robi się aktywne, gdy certyfikat jest gotowy –
-do godziny).
-
-Pliku `CNAME` w repozytorium nie trzeba: strona wdraża się przepływem GitHub Actions, a wtedy domena
-jest tylko w ustawieniach Pages.
-
-Sprawdzenie: `https://makietka.app/` otwiera aplikację, a `https://andrish97.github.io/book/` przekierowuje
-na nową domenę (razem z linkami do projektów i podglądów).
+Od 21.11.2026 aplikację podaje worker `makietka-app` (decyzje #345, #347, #349) – GitHub Pages są wyłączone.
+Podłączenie workera, trasy domeny i rekordy DNS do importu: `cloudflare/README.md`, „Aplikacja na Cloudflare”.
+W DNS dla `makietka.app` i `www` są tylko dwa rekordy AAAA `100::` z pomarańczową chmurką (plik
+`cloudflare/aplikacja/dns-makietka-app.txt`); `www.makietka.app` przekierowuje na `https://makietka.app/`.
 
 ## 3. Cloudflare: przekaźnik api.makietka.app (Worker z repozytorium)
 

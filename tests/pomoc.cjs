@@ -26,7 +26,7 @@ function uruchomSerwer() {
     let plik = path.join(KORZEN, sciezka);
     if (!plik.startsWith(KORZEN)) { res.writeHead(403).end(); return; }
     if (fs.existsSync(plik) && fs.statSync(plik).isDirectory()) plik = path.join(plik, 'index.html');
-    // Krótki link podglądu (#195): na GitHub Pages nieznany adres dostaje 404.html – kopię aplikacji.
+    // Krótki link podglądu (#195): na Cloudflare nieznany adres dostaje 404.html – kopię aplikacji.
     if (/^\/[a-hj-km-np-z2-9]{6}\/?$/.test(sciezka)) plik = path.join(KORZEN, 'index.html');
     fs.readFile(plik, (blad, dane) => {
       if (blad) { res.writeHead(404).end('brak'); return; }

@@ -69,7 +69,7 @@ Instrukcja z aplikacji pokazuje się dopiero w uruchomionej aplikacji, więc dla
 
 ## Wdrożenie (push na `main`)
 
-- **Aplikacja:** workflow [`pages.yml`](.github/workflows/pages.yml) publikuje ją na GitHub Pages.
+- **Aplikacja:** Cloudflare (worker `makietka-app`, Workers Builds) buduje ją [`scripts/buduj-strone.sh`](scripts/buduj-strone.sh) i publikuje pod `https://makietka.app/` – konfiguracja [`cloudflare/aplikacja/`](cloudflare/aplikacja/).
 - **Baza i logowanie:** integracja Supabase z GitHubem stosuje migracje z [`supabase/migrations/`](supabase/migrations/) i ustawienia logowania z [`supabase/config.toml`](supabase/config.toml).
 - **Połączenie z bazą:** adres projektu i publiczny klucz są w [`js/konfiguracja.js`](js/konfiguracja.js). Dostęp do danych chronią reguły RLS. Klucza `service_role` nigdy nie wpisuj do frontendu.
 - **Wynik wdrożenia bazy** widać przy commicie na `main` (znaczek „Supabase Preview”). Szczegóły i ograniczenia poczty: [docs/UZASADNIENIE.md](docs/UZASADNIENIE.md), punkt 0.

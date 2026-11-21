@@ -1,4 +1,4 @@
-// Strona aplikacji do wdrożenia (#345): jeden przepis (scripts/buduj-strone.sh) dla Cloudflare i GitHub Pages –
+// Strona aplikacji do wdrożenia (#345): przepis scripts/buduj-strone.sh dla Cloudflare –
 // komplet plików, wersja service workera, 404.html dla krótkich linków, nagłówki pamięci podręcznej.
 const test = require('node:test');
 const assert = require('node:assert/strict');

@@ -35,7 +35,7 @@ export function pokazEkran(nazwa) {
 }
 
 // ======================================================================
-// Adresy podstron (routing w części # adresu – działa na GitHub Pages)
+// Adresy podstron (routing w części # adresu – działa na każdym hostingu plików)
 // ======================================================================
 //
 //   #/projekty                       lista projektów
