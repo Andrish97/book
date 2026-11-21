@@ -141,7 +141,7 @@ function renderujListeStron() {
         znak.textContent = `×${ile}`;
         $('.miniatura', li).append(znak);
         $('.miniatura', li).title = ile
-          ? t('listaStron.seriaTaStronaWychodzi', { nazwa: blok.seria.nazwa, ile, x: ile === 1 ? 'raz' : 'razy' })
+          ? t('listaStron.seriaTaStronaWychodzi', { nazwa: blok.seria.nazwa, ile })
           : t('listaStron.seriaTejStronyNie', { nazwa: blok.seria.nazwa });
       }
       // Które wzorce leżą na stronie (#164): mały znak na miniaturze, nazwy w podpowiedzi.

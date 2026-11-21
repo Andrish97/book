@@ -248,7 +248,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     const egz = ciag.egzemplarze.filter((e) => e.sekcja.id === sekcja.id && !e.pusta);
     const zBiela = egz.filter((e) => biale(e.strona.obiekty).length || (e.strona.tlo && bialy(e.strona.tlo))).map((e) => e.nr ?? e.indeks + 1);
     const podloze = r === 'folia' ? 'przezroczystej folii' : 'kolorowym papierze';
-    if (zBiela.length) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: zBiela, opis: tt('kontrola.sekcjaJestNaBiale', { nazwa: sekcja.nazwa, podloze, x: r === 'folia' ? 'przezroczyste' : tt('kontrola.wKolorzePapieru'), size: new Set(zBiela).size, lista: lista(zBiela) }) });
+    if (zBiela.length) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: zBiela, opis: tt('kontrola.sekcjaJestNaBiale', { nazwa: sekcja.nazwa, podloze, x: r === 'folia' ? tt('kontrola.przezroczyste') : tt('kontrola.wKolorzePapieru'), size: new Set(zBiela).size, lista: lista(zBiela) }) });
     const zPoddrukiem = egz.some((e) => JSON.stringify(e.strona.obiekty).includes('"uszlachetnienie":"bialy"'));
     if (r === 'folia' && !zPoddrukiem) uwagi.push({ rodzaj: 'podloze', idSekcji: sekcja.id, strony: [], opis: tt('kontrola.sekcjaJestNaPrzezroczystej', { nazwa: sekcja.nazwa }) });
   }
