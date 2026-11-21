@@ -24,7 +24,7 @@ import { powodWiazania } from './zasady-skladu.js';
 
 const PT = 25.4 / 72;
 
-export const POLA_SKLADU = ['zasady_pl', 'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory', 'do_siatki', 'bez_oblewania'];
+export const POLA_SKLADU = ['zasady_pl', 'lamanie_akapitu', 'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'wdowy', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory', 'do_siatki', 'bez_oblewania'];
 
 function wplywaNaUklad(k) {
   const T = fabric.Textbox;
@@ -53,7 +53,7 @@ const maTab = (o) => typeof o.text === 'string' && o.text.includes('\t');
 
 // Czy tekst potrzebuje składu (inaczej – zwykłe łamanie Fabric, bez żadnej zmiany).
 export function skladAktywny(o) {
-  return Boolean(o.zasady_pl || o.dziel_wyrazy || o.spojniki || inicjalAktywny(o) || o._przeszkody?.length || o.tabulatory?.length || maTab(o));
+  return Boolean(o.zasady_pl || o.lamanie_akapitu || o.dziel_wyrazy || o.spojniki || inicjalAktywny(o) || o._przeszkody?.length || o.tabulatory?.length || maTab(o));
 }
 
 // ---------- Tabulatory ----------
@@ -174,6 +174,100 @@ const maxRozmiar = (o, akapit, od, doZnaku) => {
   return r || o.fontSize;
 };
 
+// ---------- Łamanie całego akapitu naraz (#326) ----------
+// Jak „kompozytor akapitu” w programach DTP (Knuth–Plass): spośród wszystkich dopuszczalnych miejsc złamania
+// wybiera zestaw o najmniejszej sumie kar – nierówne odstępy (justowanie) albo poszarpana prawa krawędź, łączniki
+// (także kilka pod rząd), krótki ostatni wiersz. Zasady (spójniki, skróty, myślnik, limity dzielenia) – twarde.
+// Zwraca listę wierszy jak sklad() albo null (akapit bez rozwiązania – wtedy łamanie wiersz po wierszu).
+function lamAkapitu(o, zn, slowa, W, { dziel, pl, szer, lacznikSzer, tekstSlowa }) {
+  const justuj = o.textAlign === 'justify';
+  // Kawałki: wyrazy podzielone w miejscach dzielenia.
+  const fr = [];
+  for (let k = 0; k < slowa.length; k += 1) {
+    const s = slowa[k];
+    const t = tekstSlowa(k);
+    const ostatni = k === slowa.length - 1;
+    let miejsca = [];
+    if (dziel && t.length === s.do - s.od && !(pl && (ostatni || /^[„"(]?\p{Lu}/u.test(t)))) miejsca = miejscaPodzialu(t, dziel);
+    const granice = [s.od, ...miejsca.map((m) => s.od + m), s.do];
+    for (let i = 0; i < granice.length - 1; i += 1) {
+      fr.push({ od: granice[i], do: granice[i + 1], k, poczatek: i === 0, koniec: i === granice.length - 2, w: szer(granice[i], granice[i + 1]), spacja: i === 0 && k > 0 ? szer(s.od - 1, s.od) : 0 });
+    }
+  }
+  const n = fr.length;
+  if (!n) return null;
+  const cum = [0];
+  const sp = [0];
+  for (let i = 0; i < n; i += 1) { cum.push(cum[i] + fr[i].spacja + fr[i].w); sp.push(sp[i] + fr[i].spacja); }
+  const hyph = lacznikSzer();
+  const MAX_L = 3;
+  const INF = Infinity;
+  // best[i * 4 + h]: najmniejsza kara do wiersza zaczynającego się kawałkiem i po h dzielonych wierszach pod rząd.
+  const best = new Float64Array((n + 1) * 4).fill(INF);
+  const skad = new Int32Array((n + 1) * 4).fill(-1);
+  best[0] = 0;
+  for (let a = 0; a < n; a += 1) {
+    for (let h = 0; h < 4; h += 1) {
+      const baza = best[a * 4 + h];
+      if (baza === INF) continue;
+      for (let b = a; b < n; b += 1) {
+        const ostatniWiersz = b === n - 1;
+        const lacznik = !fr[b].koniec;
+        const nat = cum[b + 1] - cum[a] - fr[a].spacja + (lacznik ? hyph : 0);
+        const spacje = sp[b + 1] - sp[a + 1];
+        const scisk = pl && justuj && !ostatniWiersz ? 0.2 * spacje : 0;
+        if (nat > W + scisk + 0.001) {
+          if (b === a) return null; // kawałek szerszy niż wiersz
+          break;
+        }
+        // Czy wolno tu złamać.
+        if (!ostatniWiersz) {
+          if (lacznik) { if (pl && h >= MAX_L) continue; }
+          else if (wiazane(o, tekstSlowa(fr[b].k), tekstSlowa(fr[b].k + 1))) continue;
+        }
+        let kara;
+        if (ostatniWiersz) {
+          kara = 0;
+          // krótki ostatni wiersz (jeden wyraz krótszy niż 4 litery) w akapicie z kilku wierszy
+          if (pl && a > 0 && fr[a].poczatek && fr[a].k === fr[b].k && tekstSlowa(fr[b].k).replace(/[^\p{L}\d]/gu, '').length < 4) kara += 3000;
+        } else {
+          const luz = W - nat;
+          let r;
+          if (!justuj) r = luz / (W * 0.33); // poszarpana krawędź: kara za dużą dziurę na końcu wiersza
+          else if (luz < 0) r = luz / scisk; // ściśnięte odstępy (polskie zasady, do 20%)
+          else if (spacje > 0) r = luz / spacje; // rozciągnięte odstępy: 1 = dwa razy szersze
+          else r = luz > 0.5 ? 10 : 0; // jeden wyraz w justowanym wierszu
+          // Kara rośnie z kwadratem rozciągnięcia (1 = odstępy dwa razy szersze); łącznik kosztuje mniej więcej tyle,
+          // co wiersz z odstępami o połowę szerszymi, dwa łączniki pod rząd – drugie tyle.
+          kara = (1 + 10 * r * r) ** 2;
+          if (lacznik) kara += 2500 + (h > 0 ? 2500 : 0);
+        }
+        const nh = lacznik && !ostatniWiersz ? Math.min(3, h + 1) : 0;
+        const cel = (b + 1) * 4 + (ostatniWiersz ? 0 : nh);
+        if (baza + kara < best[cel]) { best[cel] = baza + kara; skad[cel] = a * 4 + h; }
+      }
+    }
+  }
+  if (best[n * 4] === INF) return null;
+  // Odtworzenie wierszy od końca.
+  const lamania = [];
+  for (let st = n * 4; st > 0; st = skad[st]) {
+    if (skad[st] < 0) return null;
+    lamania.push([Math.floor(skad[st] / 4), Math.floor(st / 4) - 1]);
+  }
+  lamania.reverse();
+  return lamania.map(([a, b]) => {
+    const lacznik = b < n - 1 && !fr[b].koniec;
+    const od = fr[a].od;
+    const linia = zn.slice(od, b === n - 1 ? zn.length : fr[b].do);
+    linia.lacznik = lacznik;
+    linia.odstepPo = 0;
+    linia._od = od;
+    linia._do = b === n - 1 ? zn.length : fr[b].do;
+    return linia;
+  });
+}
+
 function sklad(o, linieTekstu, szerokoscRamki) {
   const wciecie = wciecieListy(o);
   const baza = szerokoscRamki - wciecie;
@@ -199,6 +293,19 @@ function sklad(o, linieTekstu, szerokoscRamki) {
     const slowa = [];
     for (let i = 0, od = 0; i <= zn.length; i += 1) {
       if (i === zn.length || zn[i] === ' ' || zn[i] === '\t') { slowa.push({ od, do: i, sep: zn[i] ?? null }); od = i + 1; }
+    }
+    // Łamanie całego akapitu naraz (#326) – akapit bez przeszkód, inicjału i tabulatorów.
+    if (o.lamanie_akapitu && !o._przeszkody?.length && !(inicjal && p === 0) && !zn.includes('\t') && slowa.length > 1) {
+      const tekstSlowa = (i) => zn.slice(slowa[i].od, slowa[i].do).join('');
+      const linie = lamAkapitu(o, zn, slowa, baza, { dziel, pl, szer, lacznikSzer: () => o._measureWord(['-'], p, 0), tekstSlowa });
+      if (linie) {
+        for (const linia of linie) {
+          wynik.push(linia);
+          y += wysokoscWiersza(p, linia._od, linia._do);
+          delete linia._od; delete linia._do;
+        }
+        continue;
+      }
     }
     let nrWAkapicie = 0;
     let start = 0; // początek bieżącego wiersza (znak akapitu)

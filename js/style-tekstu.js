@@ -8,7 +8,7 @@ export const POLA_STYLU = [
   'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'underline', 'linethrough',
   'lineHeight', 'charSpacing', 'fill', 'textAlign',
   // Skład akapitu (#131) – w stylu zapisane jako null, gdy wyłączone (żeby styl je też wyłączał).
-  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'zasady_pl', 'wdowy', 'do_siatki',
+  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'zasady_pl', 'lamanie_akapitu', 'wdowy', 'do_siatki',
   'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory',
   'wielkosc_liter', // wielkość liter jako wygląd (#167: style marki, np. etykieta WIELKIMI)
 ];

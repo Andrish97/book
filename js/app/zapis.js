@@ -269,7 +269,7 @@ async function wczytajCel({ dopasuj = false, nawigacja = false } = {}) {
     const strony = jednaStrona() ? [cel] : arkusz;
     const dane = [];
     for (const s of strony) {
-      dane.push({ id: s.id, obiekty: s.obiekty, tlo: tloStrony(projekt, s), prowadnice: s.prowadnice, warstwy: await warstwyWzorcow(projekt, s, ciag) });
+      dane.push({ id: s.id, bok: s.bok_ukladu || bokStrony(s, ciag), obiekty: s.obiekty, tlo: tloStrony(projekt, s), prowadnice: s.prowadnice, warstwy: await warstwyWzorcow(projekt, s, ciag) });
     }
     // Widok jednej strony rozkładówki: sąsiednia strona idzie do edytora osobno – widać z niej to,
     // co przechodzi przez grzbiet na tę stronę (bez możliwości zmiany).

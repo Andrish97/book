@@ -1293,6 +1293,8 @@ export class PanelWlasciwosci {
     }
     s.append(this.przelacznik('Polskie zasady składu', () => Boolean(obj.zasady_pl), (v) => ustaw('zasady_pl', v || undefined)));
     s.append(this.wskazowka('Nie łamie wiersza po skrótach (np., tj., ul., dr…), inicjałach, między liczbą a jednostką lub datą i przed myślnikiem – jak w normach polskiego składu.'));
+    s.append(this.przelacznik('Łam cały akapit naraz', () => Boolean(obj.lamanie_akapitu), (v) => ustaw('lamanie_akapitu', v || undefined)));
+    s.append(this.wskazowka('Wiersze akapitu dobierane razem (jak „kompozytor akapitu” w programach DTP): równiejsze odstępy i mniej dzielonych wyrazów niż przy łamaniu wiersz po wierszu.'));
     // Uwagi do składu tego tekstu i poprawka znaków jednym przyciskiem (#323).
     const uwagiSk = uwagiSkladuTekstu(obj);
     if (uwagiSk.length) s.append(this.wskazowka(`Niezgodne z zasadami: ${uwagiSk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ')}.`, true));

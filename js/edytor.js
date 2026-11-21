@@ -382,6 +382,7 @@ export class Edytor extends EventTarget {
   // wczytania (np. otwarcie projektu i zaraz potem dołączenie zmian z konta albo przeliczenie okładki) potrafiły
   // zostawić na płótnie tylko część elementów strony.
   wczytajArkusz(strony, zasoby) {
+    this._bokiStron = strony.map((s) => s.bok); // lewa / prawa – wyrównanie łamów (#327)
     const poprzednie = this._kolejkaWczytan || Promise.resolve();
     const teraz = poprzednie.catch(() => {}).then(() => this._wczytajArkusz(strony, zasoby));
     this._kolejkaWczytan = teraz;
@@ -683,7 +684,7 @@ export class Edytor extends EventTarget {
       strokeWidth: 0, // domyślne 1 (= 1 mm) poszerzałoby ramkę obiektu
       // Skład (#131): spójniki nie zostają na końcu wiersza, wdowy i sieroty pilnowane przy przelewaniu.
       spojniki: true,
-      zasady_pl: true, // polskie zasady składu (#323)
+      zasady_pl: true, lamanie_akapitu: true, // polskie zasady składu (#323)
       wdowy: 2,
     });
     return this._wstaw(t);
@@ -715,7 +716,7 @@ export class Edytor extends EventTarget {
       left: this.strony[this.aktywna].x + m.lewy, top: m.gora,
       width: Math.max(20, this.wydruk.szerokosc_mm - m.lewy - m.prawy),
       fontFamily: DOMYSLNA, fontSize: ptNaMm(rozmiarPt), lineHeight: 1.35, fill: '#1a1a1a', textAlign: 'justify',
-      strokeWidth: 0, spojniki: true, zasady_pl: true, wdowy: 2,
+      strokeWidth: 0, spojniki: true, zasady_pl: true, lamanie_akapitu: true, wdowy: 2,
       styles: fabric.util.stylesFromArray(styles || [], text),
     });
     t.ramka_h = Math.max(20, h - m.gora - m.dol);
@@ -1408,6 +1409,7 @@ export class Edytor extends EventTarget {
   async ustawRamkiPoza(lista) {
     const zywe = lista.length ? await fabric.util.enlivenObjects(lista.map((x) => JSON.parse(JSON.stringify(x.json)))) : [];
     this._poza = lista.map((x) => ({ strona: x.strona, o: zywe.find((o) => o.id === x.json.id) })).filter((x) => x.o);
+    for (const p of this._poza) p.o._bok = lista.find((x) => x.strona === p.strona)?.bok; // wyrównanie łamów (#327)
     for (const p of this._poza) p.odcisk = this._odciskRamki(p.o);
     this.canvas.requestRenderAll();
   }
@@ -1538,6 +1540,7 @@ export class Edytor extends EventTarget {
       const numery = new Set(zInnychStron.map((r) => r.watek_nr));
       const tutaj = [];
       for (const r of naPlotnie.get(id) || []) {
+        r._bok = this._bokiStron?.[this.rozkladowka ? this.stronaW(this._srodekObiektu(r).x) : 0];
         if (numery.has(r.watek_nr)) odlaczRamke(r); else { numery.add(r.watek_nr); tutaj.push(r); }
       }
       const ramki = [...zInnychStron, ...tutaj].sort((a, b) => (a.watek_nr || 0) - (b.watek_nr || 0));

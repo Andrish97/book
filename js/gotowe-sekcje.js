@@ -88,7 +88,7 @@ function narzedzia(c) {
     return {
       type: 'textbox', version: '5.3.0', id: c.uid('o'), text, styles: [], left: x, top: y, width: Math.max(4, w),
       fontFamily: font, fontSize: rozmiar, fontWeight: bold ? 'bold' : 'normal', fontStyle: italic ? 'italic' : 'normal',
-      fill: kolor, textAlign: align, lineHeight: lh, charSpacing: cs, strokeWidth: 0, spojniki: true, zasady_pl: true, ...(nazwa ? { nazwa } : {}), ...reszta,
+      fill: kolor, textAlign: align, lineHeight: lh, charSpacing: cs, strokeWidth: 0, spojniki: true, zasady_pl: true, lamanie_akapitu: true, ...(nazwa ? { nazwa } : {}), ...reszta,
     };
   };
   const prost = (x, y, w, h, o = {}) => {

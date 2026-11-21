@@ -308,6 +308,7 @@ export async function tekstyEgzemplarza(projekt, egz, ciag) {
     const zywe = await ozyw(ramki);
     const idWatkow = new Set(ramki.filter((o) => o.watek).map((o) => o.watek));
     const zInnychStron = zrodlo === 'strona' && idWatkow.size ? await ramkiWatkowZInnychStron(projekt, egz, ciag, idWatkow, new Set(ramki.map((o) => o.id))) : [];
+    for (const o of zywe) if (o.watek) o._bok = egz.bok;
     rozlejWatki([...zywe, ...zInnychStron]);
     for (const o of zywe) wynik.push({ obiekt: o, zrodlo, id: o.id });
   }
@@ -324,7 +325,7 @@ async function ramkiWatkowZInnychStron(projekt, egz, ciag, idWatkow, obecne) {
     const e = (egz.blok && ciag.egzemplarze.find((x) => x.strona === s && x.blok === egz.blok && x.nrEgz === egz.nrEgz)) || ciag.pierwszy.get(s.id);
     if (!e) continue;
     const wartosc = wartosciPol(projekt, e, ciag);
-    ramki.push(...podstawWObiektach(s.obiekty.filter((o) => o.type === 'textbox' && idWatkow.has(o.watek) && !obecne.has(o.id)), wartosc));
+    ramki.push(...podstawWObiektach(s.obiekty.filter((o) => o.type === 'textbox' && idWatkow.has(o.watek) && !obecne.has(o.id)), wartosc).map((o) => ({ ...o, _bok: e.bok }))); // bok strony – wyrównanie łamów (#327)
   }
   return ramki.length ? ozyw(ramki) : [];
 }
@@ -371,7 +372,10 @@ export async function zlozCel(projekt, cel, { ciag, oryginaly = false, bezPodloz
   // Ramki tych samych wątków z innych stron biorą udział w przelewaniu, ale nie są tu rysowane.
   const idWatkow = new Set(tresc.filter((o) => o.watek).map((o) => o.watek));
   const zInnychStron = idWatkow.size && egz ? await ramkiWatkowZInnychStron(projekt, egz, rozwiniety, idWatkow, new Set(tresc.map((o) => o.id))) : [];
-  if (idWatkow.size) rozlejWatki([...wlasne, ...zInnychStron]);
+  if (idWatkow.size) {
+    for (const o of wlasne) if (o.watek) o._bok = egz?.bok;
+    rozlejWatki([...wlasne, ...zInnychStron]);
+  }
   const warstwy = jestWzorcem ? { pod: [], nad: [] } : await warstwyWzorcow(projekt, egz, rozwiniety, { oryginaly });
   // Elementy wzorców sąsiedniej strony rozkładówki, które przechodzą przez grzbiet, widać także tutaj.
   if (egz?.sasiad) {

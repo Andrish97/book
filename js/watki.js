@@ -73,12 +73,13 @@ function ustawTekst(ramka, text, styles) {
 }
 
 // Ile wierszy mieści stała wysokość ramki (co najmniej jeden – żeby tekst szedł dalej).
-function ileWierszy(ramka) {
+function ileWierszy(ramka, limit = Infinity) {
   let h = 0;
   let k = 0;
+  const wys = Math.min(ramka.ramka_h, limit);
   for (let i = 0; i < ramka._textLines.length; i += 1) {
     const wiersz = ramka.getHeightOfLine(i);
-    if (h + wiersz / ramka.lineHeight > ramka.ramka_h + 0.01) break;
+    if (h + wiersz / ramka.lineHeight > wys + 0.01) break;
     h += wiersz;
     k = i + 1;
   }
@@ -154,6 +155,48 @@ export function podzialyStron(text, styles) {
 // treść którejkolwiek ramki się zmieniła.
 export function rozlej(ramki) {
   const przed = ramki.map((r) => `${r.lacznik ?? ''}\u0000${r.text}`);
+  // Wyrównanie łamów (#327): z polskimi zasadami składu ramki na lewej i prawej stronie tej samej rozkładówki mają
+  // równą wysokość tekstu – gdy wdowy albo tytuł skróciły jedną, druga kończy się na tej samej wysokości.
+  const limity = new Map();
+  for (let proba = 0; proba < 4; proba += 1) {
+    przelej(ramki, limity);
+    if (!wyrownajLamy(ramki, limity)) break;
+  }
+  return ramki.some((r, i) => przed[i] !== `${r.lacznik ?? ''}\u0000${r.text}`);
+}
+
+// Wysokość tekstu w ramce tak, jak liczy ją ileWierszy (ostatni wiersz bez interlinii).
+function wysokoscTekstu(r) {
+  const n = r._textLines.length;
+  let h = 0;
+  for (let i = 0; i < n; i += 1) h += i === n - 1 ? r.getHeightOfLine(i) / r.lineHeight : r.getHeightOfLine(i);
+  return h;
+}
+
+// Pary ramek lewa → prawa (kolejne w wątku, ta sama wysokość ramki, obie pełne – za prawą tekst płynie dalej):
+// wyższa dostaje limit wysokości niższej. Zwraca true, gdy któryś limit się zmienił.
+function wyrownajLamy(ramki, limity) {
+  let zmiana = false;
+  for (let i = 0; i + 2 < ramki.length; i += 1) {
+    const l = ramki[i];
+    const p = ramki[i + 1];
+    if (!l.zasady_pl || l._bok !== 'lewa' || p._bok !== 'prawa') continue;
+    if (!(l.ramka_h > 0) || Math.abs(l.ramka_h - p.ramka_h) > 0.5 || !l._textLines?.length || !p._textLines?.length) continue;
+    if (!ramki[i + 2].text) continue; // za prawą ramką nic już nie płynie – nie jest pełna
+    const hl = wysokoscTekstu(l);
+    const hp = wysokoscTekstu(p);
+    const wiersz = l.fontSize * l._fontSizeMult * l.lineHeight;
+    if (Math.abs(hl - hp) < wiersz * 0.5) continue;
+    const [wyzsza, cel] = hl > hp ? [l, hp] : [p, hl];
+    const stary = limity.get(wyzsza);
+    if (stary !== undefined && stary <= cel + 0.01) continue;
+    limity.set(wyzsza, cel + 0.01);
+    zmiana = true;
+  }
+  return zmiana;
+}
+
+function przelej(ramki, limity) {
   const czesci = ramki.map((r, i) => ({
     text: r.text,
     styles: fabric.util.stylesToArray(r.styles || {}, r.text),
@@ -167,7 +210,7 @@ export function rozlej(ramki) {
     ustawTekst(r, text, styles);
     let idx = text.length;
     if (!ostatnia && r.ramka_h > 0) {
-      const k = ileWierszy(r);
+      const k = ileWierszy(r, limity.get(r));
       if (k < r._textLines.length) idx = poczatekWiersza(r, k);
     }
     // Akapit od nowej strony: ta ramka kończy się przed nim; w ostatniej – znak, że trzeba dalszej ramki.
@@ -190,7 +233,6 @@ export function rozlej(ramki) {
     r.dirty = true;
     text = b.text; styles = b.styles; lacznik = b.lacznik;
   });
-  return ramki.some((r, i) => przed[i] !== `${r.lacznik ?? ''}\u0000${r.text}`);
 }
 
 // Przelewa wszystkie kompletne wątki wśród obiektów (przy składaniu strony).
@@ -216,7 +258,7 @@ export function odlaczRamke(r) {
 
 // Właściwości tekstu wspólne dla całego wątku – tekst wygląda tak samo w każdej ramce.
 export const WSPOLNE_W_WATKU = ['auto_strony', 'fontFamily', 'fontSize', 'fill', 'lineHeight', 'charSpacing', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'textAlign', 'lista', 'styl', 'wielkosc_liter',
-  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'zasady_pl', 'wdowy', 'do_siatki', 'tabulatory'];
+  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'zasady_pl', 'lamanie_akapitu', 'wdowy', 'do_siatki', 'tabulatory'];
 
 // Kolejność czytania ramek: z góry na dół, a ramki leżące obok siebie – od lewej.
 export function kolejnoscCzytania(ramki) {
@@ -245,7 +287,7 @@ export function ramkiZInnychStron(projekt, strony) {
   const wynik = [];
   for (const s of projekt.strony) {
     if (strony.includes(s)) continue;
-    for (const o of ramkiStrony(s)) if (tutaj.has(o.watek)) wynik.push({ strona: s.id, json: o });
+    for (const o of ramkiStrony(s)) if (tutaj.has(o.watek)) wynik.push({ strona: s.id, bok: s.bok_ukladu, json: o });
   }
   return wynik;
 }

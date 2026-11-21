@@ -27,8 +27,8 @@ async function tekst(strona, wlasciwosci) {
 test('dzielenie wyrazów: łącznik na końcu wiersza, treść bez zmian, kursor trafia w te same znaki', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Skład');
-  const bez = await tekst(strona, { dziel_wyrazy: false });
-  const z = await tekst(strona, { dziel_wyrazy: true });
+  const bez = await tekst(strona, { dziel_wyrazy: false, lamanie_akapitu: undefined });
+  const z = await tekst(strona, { dziel_wyrazy: true, lamanie_akapitu: undefined });
   assert.equal(z.text, bez.text, 'treść się nie zmienia');
   assert.ok(z.linie.some((l) => l.lacznik), 'co najmniej jeden wiersz kończy się łącznikiem');
   assert.ok(!bez.linie.some((l) => l.lacznik));
@@ -387,5 +387,96 @@ test('polskie zasady składu: justowanie ściska odstępy do 20%, wiersze nie wy
   assert.ok(z.wiersze <= bez.wiersze, `ściskanie nie dodaje wierszy (${z.wiersze} / ${bez.wiersze})`);
   for (const ost of z.ostatnie) assert.ok(ost <= z.w + 0.01, 'ostatni wiersz akapitu nie wystaje');
   assert.ok(z.maxSzer <= z.w + 0.05, `justowane wiersze mają szerokość ramki (${z.maxSzer.toFixed(2)} / ${z.w})`);
+  assert.deepEqual(bledy, []);
+});
+
+// #326: łamanie całego akapitu naraz – równiejsze odstępy niż wiersz po wierszu, zasady dalej twarde, treść bez zmian.
+test('łamanie całego akapitu: równiejsze wiersze, zasady zachowane, nic nie wystaje', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Akapit');
+  const w = await strona.evaluate(async () => {
+    const { edytor } = window.seriodruk;
+    await (await import('./js/dzielenie.js')).zaladujDzielenie();
+    const tekst = 'W dawnych drukarniach zecer składał każdy wiersz z osobna, a dobry zecer patrzył też na wiersze następne, żeby w akapicie nie było dziur i rzek z odstępów. Program, który dobiera wiersze całego akapitu razem, robi to samo w ułamku sekundy i z ul. Długiej do ok. 5 km dalej – bez wyjątków.';
+    const wyniki = [];
+    for (const szer of [45, 52, 60, 70, 85]) {
+      for (const akapit of [false, true]) {
+        const o = edytor.dodajTekst(tekst);
+        o.set({ width: szer, fontSize: 3, textAlign: 'justify', dziel_wyrazy: true, zasady_pl: true, spojniki: true, lamanie_akapitu: akapit || undefined });
+        o.initDimensions();
+        // nierówność: suma kwadratów wydłużenia odstępów (luz / suma spacji) w wierszach poza ostatnim
+        let nierownosc = 0;
+        let suma = 0;
+        let maxSzer = 0;
+        o._textLines.forEach((l, i) => {
+          suma += l.length + o.missingNewlineOffset(i);
+          if (o.isEndOfWrapping(i)) return;
+          const tekstW = l.join('');
+          const spacje = (tekstW.match(/ /g) || []).length;
+          const nat = o.measureLine(i).width; // przed rozciągnięciem odstępów
+          maxSzer = Math.max(maxSzer, nat);
+          if (spacje) nierownosc += ((szer - nat) / (spacje * 0.75)) ** 2;
+        });
+        wyniki.push({
+          szer, akapit, nierownosc, maxSzer, zgodne: suma - 1 === o.text.length,
+          konce: o._textLines.filter((_, i) => !o.isEndOfWrapping(i)).map((l) => l.join('').trim().split(/\s+/).at(-1)),
+          poczatki: o._textLines.slice(1).map((l) => l.join('').trim().split(/\s+/)[0]),
+          laczniki: o._textLines.filter((l) => l.lacznik).length,
+        });
+        edytor.canvas.remove(o);
+      }
+    }
+    return wyniki;
+  });
+  let wiersz = 0; let akapit = 0;
+  for (const r of w) {
+    assert.ok(r.zgodne, `treść i kursor bez zmian (${r.szer} mm, akapit: ${r.akapit})`);
+    for (const k of r.konce) assert.ok(!/^(a|i|o|u|w|z|ul\.|ok\.)$/i.test(k), `zasady: „${k}” nie zostaje na końcu wiersza`);
+    for (const p of r.poczatki) assert.ok(!/^[–—]/.test(p), 'myślnik nie zaczyna wiersza');
+    assert.ok(r.maxSzer <= r.szer * 1.03, `wiersz nie wystaje poza ramkę ponad ścisk odstępów (${r.maxSzer.toFixed(2)} / ${r.szer})`);
+    if (r.akapit) akapit += r.nierownosc; else wiersz += r.nierownosc;
+  }
+  assert.ok(akapit < wiersz, `odstępy równiejsze przy łamaniu akapitu (${akapit.toFixed(2)} < ${wiersz.toFixed(2)})`);
+  assert.deepEqual(bledy, []);
+});
+
+// #327: wyrównanie łamów – ramki na lewej i prawej stronie rozkładówki kończą się na tej samej wysokości.
+test('wyrównanie łamów: lewa i prawa ramka rozkładówki mają równą wysokość tekstu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Łamy');
+  const w = await strona.evaluate(async () => {
+    const { rozlej } = await import('./js/watki.js');
+    const { edytor } = window.seriodruk;
+    const akapit = 'Treść rozdziału płynie przez kolejne strony książki, a wiersze układają się równo jeden pod drugim. ';
+    const wysokosci = (r) => { const n = r._textLines.length; let h = 0; for (let i = 0; i < n; i += 1) h += i === n - 1 ? r.getHeightOfLine(i) / r.lineHeight : r.getHeightOfLine(i); return h; };
+    const uloz = (boki, n) => {
+      const ramki = [0, 1, 2].map((i) => {
+        const o = edytor.dodajTekst('');
+        o.set({ width: 60, fontSize: 3, watek: 'w1', watek_nr: i, ramka_h: 40, zasady_pl: true, wdowy: 2 });
+        return o;
+      });
+      ramki.forEach((o, i) => { o._bok = boki[i]; }); // po utworzeniu wszystkich (edytor ustawia bok według strony)
+      // Tytuł wypada na końcu pierwszej ramki – przechodzi z następnym akapitem, więc ta ramka jest krótsza.
+      const tytul = 'Rozdział drugi';
+      const tekst = `${akapit.repeat(n).trim()}\n${tytul}\n${akapit.repeat(14).trim()}`;
+      ramki[0].text = tekst;
+      const start = tekst.indexOf(tytul);
+      ramki[0].setSelectionStyles({ fontWeight: 'bold' }, start, start + tytul.length);
+      ramki[0].initDimensions();
+      rozlej(ramki);
+      const r = { h: ramki.map(wysokosci), wiersz: ramki[0].getHeightOfLine(0), teksty: ramki.map((x) => x.text) };
+      ramki.forEach((x) => edytor.canvas.remove(x));
+      return r;
+    };
+    // długość pierwszego akapitu, przy której tytuł trafia na koniec pierwszej ramki
+    let n = 1;
+    for (; n < 20; n += 1) { const r = uloz([], n); if (Math.abs(r.h[0] - r.h[1]) > r.wiersz * 0.5) break; }
+    const wynik = [uloz([], n), uloz(['lewa', 'prawa', 'lewa'], n)];
+    return wynik;
+  });
+  const [bez, z] = w;
+  assert.ok(Math.abs(bez.h[0] - bez.h[1]) > bez.wiersz * 0.5, `bez stron rozkładówki ramki mają różną wysokość (${bez.h.map((x) => x.toFixed(1))})`);
+  assert.ok(Math.abs(z.h[0] - z.h[1]) < z.wiersz * 0.5, `lewa i prawa – równa wysokość tekstu (${z.h.map((x) => x.toFixed(1))})`);
+  assert.equal(z.teksty.join('\n').replace(/\s+/g, ' '), bez.teksty.join('\n').replace(/\s+/g, ' '), 'treść ta sama, tylko inaczej rozłożona');
   assert.deepEqual(bledy, []);
 });
