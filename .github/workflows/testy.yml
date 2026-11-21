@@ -45,4 +45,4 @@ jobs:
 
       - name: Pomiary testów PDF (zgodność obrazu z aplikacją)
         if: always()
-        run: cat tests/.pomiary-pdf.txt 2>/dev/null || echo "brak pomiarów"
+        run: cat tests/.pomiary-pdf.txt tests/.pomiary-wydajnosci.txt 2>/dev/null || echo "brak pomiarów"

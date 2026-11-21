@@ -160,6 +160,7 @@ function main() {
     if (wzgl === 'jezyk.js' || wzgl.startsWith('..')) continue;
     const kod = fs.readFileSync(plik, 'utf8');
     if (/PLIK SKŁADANY|Plik wygenerowany/.test(kod.slice(0, 400))) continue; // pliki składane skryptami
+    if (/WSPOLNE-POCZATEK/.test(kod)) continue; // kod wspólny z łącznikiem AI (Deno) – musi być dosłownie taki sam
     let ast;
     try { ast = acorn.parse(kod, { ecmaVersion: 'latest', sourceType: 'module' }); } catch (e) { console.warn(`pominięty ${wzgl}: ${e.message}`); continue; }
     biezacyPlik = path.basename(plik);

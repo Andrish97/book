@@ -7,7 +7,6 @@
 // WSPOLNE-POCZATEK
 // Rodzaj i wymiary obrazu w pikselach (tak, jak pokaże go przeglądarka) z pierwszych bajtów pliku, bez dekodowania.
 // Zwraca { typ, szer, wys } (szer/wys = null, gdy nagłówek ich nie podaje) albo null (to nie jest obraz).
-import { t } from './jezyk.js';
 export function wymiaryObrazu(bajty) {
   const b = bajty instanceof Uint8Array ? bajty : new Uint8Array(bajty);
   const u16 = (i) => (b[i] << 8) | b[i + 1];
@@ -136,7 +135,7 @@ export async function rozpakujZip(bajty, { maksPlikow = 100, maksPlik = 15 * 102
       wynik = new Uint8Array(dlugosc);
       let o = 0;
       for (const c of czesci) { wynik.set(c, o); o += c.length; }
-    } else { pominiete.push(t('obrazyWspolne.nieznanySposobPakowania', { nazwa })); continue; }
+    } else { pominiete.push(`${nazwa} (nieznany sposób pakowania)`); continue; }
     if (wynik.length > maksPlik) throw new Error(`„${nazwa}” ma ponad ${Math.round(maksPlik / 1048576)} MB.`);
     razem += wynik.length;
     if (razem > maksRazem) throw new Error(`Obrazy w archiwum po wypakowaniu mają razem ponad ${Math.round(maksRazem / 1048576)} MB.`);

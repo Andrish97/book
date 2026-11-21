@@ -11,3 +11,4 @@ zrzuty-robocze/
 
 # Zbudowana strona (scripts/buduj-strone.sh)
 _site/
+tests/.pomiary-wydajnosci.txt

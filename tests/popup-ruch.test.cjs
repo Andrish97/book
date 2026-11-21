@@ -51,6 +51,8 @@ test('Pop-up: mechanizm otwierania 0–180° dla wzorów pop-up, suwak w makieci
   const html = await strona.evaluate(() => ({ suwak: Boolean(document.querySelector('#makieta-popup[type=range][min="0"][max="180"]')), grupa: document.querySelector('#makieta-grupa-popup')?.hidden }));
   assert.deepEqual(html, { suwak: true, grupa: true });
   const kod = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'js/app/skladanka-narzedzia.js'), 'utf8');
-  assert.match(kod, /Grzbiet kartki \(pop-up\)/);
+  // napis przez klucz (#356): w kodzie klucz, polski tekst w słowniku
+  assert.match(kod, /'skladankaNarzedzia\.grzbietKartkiPopUp'/);
+  assert.match(require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'js/jezyki/klucze/pl.js'), 'utf8'), /"skladankaNarzedzia\.grzbietKartkiPopUp": "Grzbiet kartki \(pop-up\)"/);
   assert.deepEqual(bledy, []);
 });
