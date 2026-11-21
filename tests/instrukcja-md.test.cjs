@@ -59,3 +59,14 @@ test('instrukcja: słowniczek z pojęciami drukarskimi', () => {
     assert.ok(slownik.includes(`**${p}`), `brak pojęcia ${p}`);
   }
 });
+
+// #346: instrukcja po angielsku i ukraińsku – ta sama budowa co po polsku (sprawdza zbuduj), pliki aktualne.
+test('instrukcja: tłumaczenia en i uk są zbudowane i aktualne', async () => {
+  const { plikJsJezyka, jezykiInstrukcji } = require('../scripts/instrukcja-buduj.cjs');
+  assert.deepEqual(jezykiInstrukcji(), ['pl', 'en', 'uk']);
+  for (const j of ['en', 'uk']) {
+    const { js } = await zbuduj(j);
+    assert.ok(fs.readFileSync(plikJsJezyka(j), 'utf8') === js, `${path.basename(plikJsJezyka(j))} jest nieaktualny – uruchom: node scripts/instrukcja-buduj.cjs`);
+    assert.doesNotMatch(js, /"tytul":"[^"]*[ąęłńśźż][^"]*"/i, `${j}: polskie tytuły`);
+  }
+});

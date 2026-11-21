@@ -68,7 +68,8 @@ aplikacji — strony publikacji zawsze są na białym papierze.
 Obok przycisku motywu jest przycisk z flagą – **język aplikacji**: polski, angielski (English) albo ukraiński
 (Українська). W edytorze ten sam wybór jest w menu [⋯] → **Język / Language / Мова**. Pierwszy raz Makietka
 bierze język przeglądarki, potem pamięta wybór na tym urządzeniu. Język zmienia tylko napisy aplikacji —
-treści projektów (teksty na stronach, nazwy, dane w tabelach) zostają takie, jak je wpisano.
+treści projektów (teksty na stronach, nazwy, dane w tabelach) zostają takie, jak je wpisano. Podręcznik
+(przycisk z książką) i jego zrzuty też są w wybranym języku.
 
 ## 27.5 Miejsce i limity
 

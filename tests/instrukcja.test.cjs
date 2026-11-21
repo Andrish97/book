@@ -188,3 +188,20 @@ test('workflow zrzutów instrukcji: zapisuje tylko img/instrukcja, bez pętli i 
   assert.match(plik, /github-actions\[bot\]/);
   assert.doesNotMatch(plik, /\t/);
 });
+
+// #346: instrukcja w języku interfejsu – po angielsku i ukraińsku własna treść, przełączenie przy otwartym oknie.
+test('instrukcja: treść po angielsku i ukraińsku, przełączenie języka przy otwartej instrukcji', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.evaluate(() => localStorage.setItem('makietka-jezyk', 'en'));
+  await strona.reload();
+  await strona.waitForFunction(() => document.documentElement.lang === 'en');
+  await strona.evaluate(() => window.seriodruk.instrukcja.otworz());
+  await strona.waitForSelector('#dlg-instrukcja[open]');
+  assert.equal(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), 'Makietka manual');
+  assert.match(await strona.textContent('#instrukcja-tresc .karta-czesci h2'), /^Part I\. /);
+  await strona.evaluate(() => window.seriodruk.instrukcja.otworzRozdzial('Tekst')); // polski tytuł z kodu → ten sam rozdział
+  assert.equal(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), `5. ${await strona.evaluate(async () => (await import('./js/instrukcja-tresc-en.js')).ROZDZIALY[4].tytul)}`);
+  await strona.evaluate(() => import('./js/jezyk.js').then((m) => m.ustawJezyk('uk')));
+  await strona.waitForFunction(async () => document.querySelector('#instrukcja-tresc .instrukcja-h1')?.textContent === `5. ${(await import('./js/instrukcja-tresc-uk.js')).ROZDZIALY[4].tytul}`);
+  assert.deepEqual(bledy, []);
+});
