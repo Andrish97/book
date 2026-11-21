@@ -8,14 +8,14 @@ Co gdzie będzie:
 
 | Adres | Co to | Skąd |
 |---|---|---|
-| `https://makietka.app/` | aplikacja | Cloudflare Worker `makietka-app` (pliki z repozytorium, `cloudflare/aplikacja/`) |
+| `https://makietka.app/` | aplikacja | Cloudflare Worker (ten sam co API, pliki z repozytorium) |
 | `https://api.makietka.app/` | przekaźnik do bazy i adres łącznika AI (`…/mcp/<klucz>`) | Cloudflare Worker (`cloudflare/`) |
 | `no-reply@makietka.app` | nadawca maili (logowanie, reset hasła, zaproszenia) | Brevo |
 
 ## 1–2. Aplikacja makietka.app (Cloudflare)
 
-Od 21.11.2026 aplikację podaje worker `makietka-app` (decyzje #345, #347, #349) – GitHub Pages są wyłączone.
-Podłączenie workera, trasy domeny i rekordy DNS do importu: `cloudflare/README.md`, „Aplikacja na Cloudflare”.
+Od 21.11.2026 aplikację podaje ten sam worker co `api.makietka.app` (decyzje #345, #347, #349, #352) – GitHub Pages są wyłączone.
+Opis: `cloudflare/README.md`, „Aplikacja na Cloudflare”.
 W DNS dla `makietka.app` i `www` są tylko dwa rekordy AAAA `100::` z pomarańczową chmurką (plik
 `cloudflare/aplikacja/dns-makietka-app.txt`); `www.makietka.app` przekierowuje na `https://makietka.app/`.
 

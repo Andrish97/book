@@ -25,28 +25,31 @@ test('hosting: strona zbudowana jednym przepisem – pliki, wersja, 404, nagłó
     // biblioteki „na rok” muszą mieć wersję w nazwie pliku – inaczej zmiana nie dotarłaby do użytkowników
     const bezWersji = fs.readdirSync(path.join(kat, 'js', 'zewnetrzne')).filter((f) => f.endsWith('.js') && !/-\d+\.\d+\.\d+/.test(f));
     assert.deepEqual(bezWersji, []);
-    // konfiguracja workera aplikacji wskazuje zbudowany katalog i 404.html
-    const konf = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'aplikacja', 'wrangler.jsonc'), 'utf8');
-    assert.match(konf, /"directory": "\.\.\/\.\.\/_site"/);
+    // jeden worker z API (#352): pliki z ../_site budowane przy wdrożeniu, 404.html dla krótkich linków
+    const konf = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'wrangler.jsonc'), 'utf8');
+    assert.match(konf, /"directory": "\.\.\/_site"/);
     assert.match(konf, /"not_found_handling": "404-page"/);
+    assert.match(konf, /"command": "bash \.\.\/scripts\/buduj-strone\.sh _site"/);
   } finally {
     fs.rmSync(kat, { recursive: true, force: true });
   }
 });
 
-// #347: domena makietka.app na workerze – www przekierowuje na makietka.app, reszta idzie do plików;
-// trasy i plik importu DNS opisują ten sam adres.
+// #347, #352: domena makietka.app na workerze API – www przekierowuje na makietka.app, makietka.app idzie do plików,
+// api.makietka.app dalej jest przekaźnikiem; trasy i plik importu DNS opisują ten sam adres.
 test('hosting: www.makietka.app przekierowuje na makietka.app, trasy i rekordy DNS do importu', async () => {
-  const kod = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'aplikacja', 'worker.js'), 'utf8');
-  const { default: worker } = await import(`data:text/javascript,${encodeURIComponent(kod)}`);
+  const { pathToFileURL } = require('node:url');
+  const { default: worker } = await import(pathToFileURL(path.join(__dirname, '..', 'cloudflare', 'api-worker.js')).href);
   const env = { ASSETS: { fetch: async (z) => new Response(`plik ${new URL(z.url).pathname}`) } };
   const www = await worker.fetch(new Request('https://www.makietka.app/js/aplikacja.js?v=1'), env);
   assert.equal(www.status, 301);
   assert.equal(www.headers.get('location'), 'https://makietka.app/js/aplikacja.js?v=1');
   assert.equal(await (await worker.fetch(new Request('https://makietka.app/AbC123'), env)).text(), 'plik /AbC123');
-  const konf = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'aplikacja', 'wrangler.jsonc'), 'utf8');
+  assert.match(await (await worker.fetch(new Request('https://api.makietka.app/'), env)).text(), /Makietka – API/);
+  const konf = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'wrangler.jsonc'), 'utf8');
   assert.match(konf, /"pattern": "makietka\.app\/\*", "zone_name": "makietka\.app"/);
   assert.match(konf, /"pattern": "www\.makietka\.app\/\*", "zone_name": "makietka\.app"/);
+  assert.match(konf, /"pattern": "api\.makietka\.app", "custom_domain": true/);
   const dns = fs.readFileSync(path.join(__dirname, '..', 'cloudflare', 'aplikacja', 'dns-makietka-app.txt'), 'utf8');
   assert.match(dns, /^@\t1\tIN\tAAAA\t100:: ; cf_tags=cf-proxied:true$/m);
   assert.match(dns, /^www\t1\tIN\tAAAA\t100:: ; cf_tags=cf-proxied:true$/m);

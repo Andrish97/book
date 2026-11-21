@@ -31,26 +31,14 @@ do plików aplikacji, dzienny limit 5000 stron na konto. Wymaga planu Workers Pa
 miesięcznie w cenie). Bez przeglądarki albo przy błędzie aplikacja rysuje link jak dawniej, na urządzeniu.
 Testy: `tests/rysowanie-worker.test.cjs`, `tests/rysowanie-serwer.test.cjs`.
 
-## Aplikacja na Cloudflare (decyzja #345)
+## Aplikacja na Cloudflare (decyzje #345, #347, #352)
 
-Pliki aplikacji podaje osobny worker `makietka-app` (sam worker z plikami – static assets, bez kodu serwera),
-budowany z GitHuba po każdym pushu na `main`, tak jak `makietka-api`. Przepis na pliki: `scripts/buduj-strone.sh`
-(ten sam dla GitHub Pages), konfiguracja: `cloudflare/aplikacja/wrangler.jsonc`, nagłówki: `_headers` w zbudowanej stronie.
+Aplikację `makietka.app` podaje ten sam worker co przekaźnik API (w panelu nazywa się „book”, katalog `cloudflare/`).
+Przy każdym wdrożeniu `cloudflare/wrangler.jsonc` sam buduje pliki strony (`build.command` → `scripts/buduj-strone.sh`
+do `_site/`) i wysyła je jako static assets. Na początku `fetch` w `api-worker.js`: `makietka.app` → pliki,
+`www.makietka.app` → przekierowanie 301 na `makietka.app`, reszta (`api.makietka.app`) → przekaźnik jak dotąd.
+Trasy `makietka.app/*` i `www.makietka.app/*` wpisuje samo wdrożenie; w DNS są dwa rekordy AAAA `100::` przez Cloudflare
+(import: `cloudflare/aplikacja/dns-makietka-app.txt`). GitHub Pages wyłączone 21.11.2026 (#349).
 
-Podłączenie (raz):
-1. Workers & Pages → Create → Import a repository → `Andrish97/book`.
-2. Nazwa: `makietka-app`. Root directory: puste (katalog główny repozytorium).
-   Build command: `bash scripts/buduj-strone.sh`. Deploy command: `npx wrangler deploy -c cloudflare/aplikacja/wrangler.jsonc`.
-   Production branch: `main`.
-3. Po wdrożeniu aplikacja działa pod adresem testowym `https://makietka-app.<konto>.workers.dev` – sprawdzić
-   logowanie, otwarcie projektu, podgląd z linku i makietę.
-4. Przepięcie domeny (#347): trasy `makietka.app/*` i `www.makietka.app/*` są już w `cloudflare/aplikacja/wrangler.jsonc`
-   (www przekierowuje na makietka.app – `cloudflare/aplikacja/worker.js`). W panelu:
-   - DNS → Records: usunąć rekordy GitHub Pages – 4 × A i 4 × AAAA dla `makietka.app` (185.199.x.153, 2606:50c0:…)
-     oraz CNAME `www` → `andrish97.github.io` (MX, TXT, rekordy poczty i `api` zostają);
-   - DNS → Records → Import and Export → Import: plik `cloudflare/aplikacja/dns-makietka-app.txt`, zaznaczone
-     „Proxy imported DNS records” (dwa rekordy AAAA 100:: – przez Cloudflare, ruch przejmuje worker);
-   - GitHub → Settings → Pages → Custom domain → Remove.
-   Trasy nie dodaje się w panelu – wpisuje je samo wdrożenie z `cloudflare/aplikacja/wrangler.jsonc`, dlatego polecenie
-   wdrożenia (Settings → Build → Deploy command) musi mieć `-c cloudflare/aplikacja/wrangler.jsonc`.
-   Zrobione 21.11.2026: GitHub Pages wyłączone, workflow `pages.yml` usunięty (#349) – aplikację publikuje tylko Cloudflare.
+W panelu workera „book” (Settings → Build) potrzebne jest tylko: Root directory `/cloudflare`, Build command puste,
+Deploy command `npx wrangler deploy`.

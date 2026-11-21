@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Pliki strony aplikacji do wdrożenia (#345, #349) – Cloudflare Workers Builds (worker makietka-app, cloudflare/aplikacja).
+# Pliki strony aplikacji do wdrożenia (#345, #349) – Cloudflare Workers Builds (worker API, cloudflare/wrangler.jsonc → build.command).
 # Użycie: bash scripts/buduj-strone.sh [katalog wynikowy, domyślnie _site] [wersja – skrót commita]
 set -euo pipefail
 cd "$(dirname "$0")/.."

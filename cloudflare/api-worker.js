@@ -34,7 +34,7 @@ export const KLUCZ_PUBLICZNY = 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq';
 const MB = 1024 * 1024;
 // Pliki jednego konta (obrazy, czcionki, obrazy stron linków), jeden plik, cały darmowy próg R2.
 export const LIMITY = { konto: 2 * 1024 * MB, plik: 50 * MB, razem: 50 * 1024 * MB };
-const ZRODLA = [/^https:\/\/(www\.)?makietka\.app$/, /^https:\/\/makietka-app\.[a-z0-9-]+\.workers\.dev$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
+const ZRODLA = [/^https:\/\/(www\.)?makietka\.app$/, /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/];
 const ROK = 'private, max-age=31536000, immutable';
 const DWA_DNI_MS = 2 * 24 * 3600 * 1000;
 
@@ -450,6 +450,9 @@ async function obsluzPliki(zapytanie, env, u) {
 export default {
   async fetch(zapytanie, env = {}, ctx) {
     const u = new URL(zapytanie.url);
+    // Aplikacja (#352): makietka.app – pliki strony, www.makietka.app – przekierowanie (jeden adres, jedno logowanie).
+    if (u.hostname === 'www.makietka.app') { u.hostname = 'makietka.app'; return Response.redirect(u.toString(), 301); }
+    if (u.hostname === 'makietka.app' && env.ASSETS) return env.ASSETS.fetch(zapytanie);
     // Formularz kontaktowy (decyzja #95, cloudflare/poczta.js).
     if (u.pathname === '/kontakt') return obsluzKontakt(zapytanie, env || {}, ctx);
     if (u.pathname === '/' && zapytanie.method === 'GET') {

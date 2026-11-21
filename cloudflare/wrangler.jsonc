@@ -1,4 +1,4 @@
-// Przekaźnik api.makietka.app dla Cloudflare Workers Builds (integracja z GitHubem).
+// Przekaźnik api.makietka.app i aplikacja makietka.app (#352) – jeden worker, Cloudflare Workers Builds (integracja z GitHubem).
 // Ustawienia budowania: katalog główny „cloudflare”, polecenie wdrożenia „npx wrangler deploy”.
 // Worker przekazuje zapytania do bazy, obsługuje pliki w R2 (api-worker.js) i pocztę (poczta.js).
 // Bucket R2 „makietka-files” trzeba raz utworzyć w panelu Cloudflare (docs/KONFIGURACJA-DOMENY.md, „Pliki w R2”).
@@ -9,7 +9,23 @@
   "compatibility_date": "2025-10-01",
   // @cloudflare/puppeteer (rysowanie na serwerze, #335) potrzebuje zgodności z Node.
   "compatibility_flags": ["nodejs_compat"],
-  "routes": [{ "pattern": "api.makietka.app", "custom_domain": true }],
+  "routes": [
+    { "pattern": "api.makietka.app", "custom_domain": true },
+    // Aplikacja makietka.app (#352) – ten sam worker podaje pliki strony; www przekierowuje na makietka.app.
+    // Rekordy DNS (proxied AAAA 100::) – cloudflare/aplikacja/dns-makietka-app.txt.
+    { "pattern": "makietka.app/*", "zone_name": "makietka.app" },
+    { "pattern": "www.makietka.app/*", "zone_name": "makietka.app" }
+  ],
+  // Pliki aplikacji budowane przy każdym wdrożeniu (scripts/buduj-strone.sh → ../_site).
+  "build": { "command": "bash ../scripts/buduj-strone.sh _site" },
+  "assets": {
+    "directory": "../_site",
+    "binding": "ASSETS",
+    // Krótkie linki podglądu (makietka.app/<kod>) i adresy bez pliku – 404.html, czyli ta sama aplikacja.
+    "not_found_handling": "404-page",
+    // Najpierw kod: api.makietka.app to przekaźnik, makietka.app – pliki (api-worker.js, początek fetch).
+    "run_worker_first": true
+  },
   "workers_dev": false,
   "observability": { "enabled": true },
   "r2_buckets": [{ "binding": "PLIKI", "bucket_name": "makietka-files" }],
