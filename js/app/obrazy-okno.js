@@ -43,7 +43,7 @@ let przytrzymanie = null;
 let przytrzymano = 0;
 
 const mb = (b) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(b / 1024))} kB`);
-const usunZKonta = (sciezka) => (stan.uzytkownik ? chmura.usunZasobZKonta(sciezka) : null);
+const usunZKonta = (sciezka) => (stan.uzytkownik ? chmura.usunZasobZKonta(sciezka, { projekt: stan.projekt?.id }) : null); // plik kopii z łącznika zostaje
 const kolejnosc = () => [...lista.querySelectorAll('li[data-id]')].map((li) => li.dataset.id);
 
 // opcje.wybierz: { etykieta: 'Wstaw' | 'Podmień', fn(id) } – tryb wyboru jednego obrazu.

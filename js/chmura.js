@@ -327,7 +327,11 @@ export async function zapiszWChmurze(projekt, { wymus = false, postep = null } =
   // plików konta jak każdy nowy obraz, a po udanym zapisie projektu wiersz w tabeli jest usuwany.
   const odAi = [];
   // postep(gotowe, razem) – wysyłka nowych plików (duże zdjęcia trwają).
-  const nowe = Object.entries(projekt.zasoby || {}).filter(([, z]) => z && (!z.sciezka || czyOdAi(z.sciezka)));
+  // Kopia z łącznika AI (migracja 20261122140000_kopia_projektu_ai.sql) wskazuje na pliki oryginału – przy pierwszym
+  // zapisie (obraz jest już pobrany na urządzenie) dostaje własne pliki w swoim folderze.
+  const wlascicielPlikow = projekt.wspolpraca_chmury?.wlasciciel || uzytkownik.id;
+  const cudzyFolder = (s) => { const m = /^([^/]+)\/([0-9a-f-]{36})\/[^/]+$/i.exec(String(s || '')); return Boolean(m) && m[1] === wlascicielPlikow && m[2] !== projekt.id; };
+  const nowe = Object.entries(projekt.zasoby || {}).filter(([, z]) => z && (!z.sciezka || czyOdAi(z.sciezka) || cudzyFolder(z.sciezka)));
   let wyslane = 0;
   for (const [id, zasob] of nowe) {
     postep?.(wyslane, nowe.length);
@@ -335,7 +339,7 @@ export async function zapiszWChmurze(projekt, { wymus = false, postep = null } =
     const blob = await blobZasobu(projekt, id); // świeży obraz ma treść w projekcie, zapisany – w magazynie przeglądarki
     if (!blob) continue;
     // Pliki projektu leżą w folderze jego właściciela – także te wgrane przez współpracownika.
-    const sciezka = `${projekt.wspolpraca_chmury?.wlasciciel || uzytkownik.id}/${projekt.id}/${id}`;
+    const sciezka = `${wlascicielPlikow}/${projekt.id}/${id}`;
     // Plik pod tą ścieżką nigdy się nie zmienia (podmiana i zmiana nazwy dają nowy identyfikator, #68), więc
     // przeglądarka może go trzymać długo – kolejne pobranie nie liczy się do transferu.
     const typ = blob.type || zasob.typ || 'application/octet-stream';
@@ -397,8 +401,15 @@ const czcionkiZKonta = new Map();
 
 // Usuwa z konta plik obrazu usuniętego z projektu (js/obrazy-projektu.js). Bez sieci plik zostaje –
 // nic nie wskazuje na niego w projekcie, więc jest tylko zajętym miejscem.
-export async function usunZasobZKonta(sciezka) {
+// Projekty konta, które wskazują na pliki: { sciezka: [id projektu] } (bez sieci albo starej bazy – {}).
+export async function odwolaniaPlikow(sciezki) {
+  try { const sb = await supabase(); return sprawdz(await sb.rpc('odwolania_pliku', { p_sciezki: sciezki })) || {}; } catch { return {}; }
+}
+
+// projekt – id projektu, z którego obraz właśnie usunięto: plik zostaje, jeśli wskazuje na niego inny projekt (kopia).
+export async function usunZasobZKonta(sciezka, { projekt = null } = {}) {
   if (!sciezka) return;
+  if (projekt && !czyOdAi(sciezka) && ((await odwolaniaPlikow([sciezka]))[sciezka] || []).some((p) => p !== projekt)) return;
   if (czyOdAi(sciezka)) {
     const sb = await supabase();
     sprawdz(await sb.rpc('usun_obraz_ai', { p_id: sciezka.slice(3) }));
@@ -417,7 +428,10 @@ export async function sprzatnijPliki(projektId) {
   const sb = await supabase();
   const sciezki = sprawdz(await sb.rpc('pliki_do_usuniecia', { p_projekt: projektId })) || [];
   if (!sciezki.length) return 0;
-  await r2.usun(BUCKET, sciezki);
+  // plik, na który wskazuje inny projekt (kopia z łącznika AI), zostaje
+  const uzywane = await odwolaniaPlikow(sciezki.filter((x) => !czyOdAi(x)));
+  const doUsuniecia = sciezki.filter((x) => !(uzywane[x] || []).some((p) => p !== projektId));
+  if (doUsuniecia.length) await r2.usun(BUCKET, doUsuniecia);
   sprawdz(await sb.rpc('pliki_usuniete', { p_projekt: projektId, p_sciezki: sciezki }));
   return sciezki.length;
 }
@@ -533,12 +547,15 @@ export async function pobierzZasob(sciezka) {
 export async function usunZChmury(id) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
+  sprawdz(await sb.from('projekty').delete().eq('id', id));
   if (uzytkownik) {
-    const pliki = await r2.lista(BUCKET, `${uzytkownik.id}/${id}/`);
-    if (pliki.length) await r2.usun(BUCKET, pliki.map((p) => p.klucz));
+    // Pliki folderu projektu – bez tych, na które wskazuje inny projekt (kopia z łącznika AI, zanim dostała własne).
+    const pliki = (await r2.lista(BUCKET, `${uzytkownik.id}/${id}/`)).map((p) => p.klucz);
+    const uzywane = pliki.length ? await odwolaniaPlikow(pliki) : {};
+    const doUsuniecia = pliki.filter((k) => !uzywane[k]?.length);
+    if (doUsuniecia.length) await r2.usun(BUCKET, doUsuniecia);
     await usunPodglady(`${uzytkownik.id}/${id}`);
   }
-  sprawdz(await sb.from('projekty').delete().eq('id', id));
 }
 
 // ---------- „Moje czcionki” na koncie ----------

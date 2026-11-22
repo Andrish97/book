@@ -116,16 +116,22 @@ który dodajesz w aplikacji AI.
 
 | AI może | AI nie może |
 |---|---|
-| tworzyć i usuwać projekty (z pełnym dostępem) | zobaczyć projektów spoza klucza |
+| tworzyć, kopiować i usuwać projekty (z pełnym dostępem) | zobaczyć projektów spoza klucza |
 | dodawać, zmieniać i kopiować strony; dodawać, zmieniać, wyrównywać i równo rozmieszczać elementy; zmieniać style i wzorce | zmienić Twojego konta ani hasła |
 | wypełniać tabele danych i ustawiać serie | zrobić pliku PDF bez Makietki — rysuje go Twoja przeglądarka (→ 25.5) |
 | wgrywać, wstawiać i wymieniać zdjęcia | |
 | czytać komentarze, odpowiadać na nie i dodawać własne (→ 24.7) | |
-| zlecić plik PDF albo PNG strony i podać Ci link do pobrania (→ 25.5) | |
+| zlecić plik PDF albo PNG strony i podać Ci link do pobrania (→ 25.5) | rysować obrazów – rysuje je tylko [Asystent AI] w Makietce (→ 25.6); aplikacja AI może wgrać obraz narysowany u siebie |
+| | udostępniać projektu ani zapraszać osób (→ 24) |
+| | wgrywać czcionek, używać Biblioteki ani cofać zmian – cofniesz je w edytorze (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) |
+| | rysować kadrów komiksu ani ustawiać dymków jednym poleceniem – to robi [Asystent AI] w Makietce |
 
 Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój.
 Jeśli masz projekt otwarty, zmiany pojawiają się w edytorze po chwili. Zmiany AI łączą się z Twoimi
 jak zmiany współpracownika (→ 24.4).
+
+Kopia projektu z łącznika ma wszystkie strony, dane i obrazy. Obrazy z konta dostaje na własność przy pierwszym
+otwarciu w Makietce; do tego czasu korzysta z plików oryginału, więc usunięcie oryginału ich nie kasuje.
 
 ## 25.2 Klucz dla AI
 

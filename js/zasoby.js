@@ -216,13 +216,19 @@ export async function dataUrlZasobu(projekt, id) {
 }
 
 // Kopia projektu dostaje własne pliki (ma te same identyfikatory zasobów, ale inny identyfikator projektu).
-export async function kopiujPliki(zProjektu, doProjektu) {
+// Obrazu nie ma na tym urządzeniu (projekt z innego urządzenia albo od AI) – pobierz(sciezka) bierze go z konta; gdy
+// i to się nie uda, kopia zostaje przy pliku oryginału (sciezka), zamiast stracić obraz. Zwraca liczbę takich obrazów.
+export async function kopiujPliki(zProjektu, doProjektu, { pobierz = null } = {}) {
   const pomin = czcionki(zProjektu);
+  let zOryginalu = 0;
   for (const [id, z] of Object.entries(zProjektu?.zasoby || {})) {
     if (!z || z.dataUrl || pomin.has(id)) continue;
-    const blob = await transakcja('readonly', (m) => m.get(klucz(zProjektu, id)));
+    let blob = await transakcja('readonly', (m) => m.get(klucz(zProjektu, id)));
+    if (!blob && z.sciezka && pobierz) blob = await pobierz(z.sciezka).catch(() => null);
     if (blob) await transakcja('readwrite', (m) => m.put(blob, klucz(doProjektu, id)));
+    else if (z.sciezka && doProjektu.zasoby?.[id]) { doProjektu.zasoby[id].sciezka = z.sciezka; zOryginalu += 1; }
   }
+  return zOryginalu;
 }
 
 // Kopia robocza dużego zdjęcia (js/obrazy.js) zapamiętana między otwarciami projektu:

@@ -298,7 +298,8 @@ async function duplikujProjekt(w) {
     const zrodlo = await wczytajProjektZWpisu(w);
     const kopia = kopiujProjekt(zrodlo, `${zrodlo.nazwa} (kopia)`);
     pasek.opis(t('projekty.kopiowanieObrazow'));
-    await kopiujPliki(zrodlo, kopia); // kopia ma własne pliki obrazów – podmiana zdjęcia w niej nie rusza oryginału
+    // kopia ma własne pliki obrazów – podmiana zdjęcia w niej nie rusza oryginału; brakujące na tym urządzeniu – z konta
+    await kopiujPliki(zrodlo, kopia, { pobierz: stan.uzytkownik ? (sc) => chmura.pobierzZasob(sc) : null });
     pasek.opis(t('projekty.zapisywanieKopii'));
     await zapiszGdziekolwiek(kopia);
     powiadom(t('projekty.utworzono', { nazwa: kopia.nazwa }));

@@ -349,6 +349,16 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
     // Link chroniony (migracje udostepnienia_chronione i linki_chronione_r2_porzadki, #97): te same zasady co funkcje
     // w bazie. Pliki linku leżą w R2 (stan.pliki) w folderze „<kod>.<sekret>”; baza zwraca tylko nazwę folderu.
     // Krótkie linki (#195, migracja krotkie_linki): jeden kod na projekt, nowy kod linku → nowy krótki kod.
+    // Projekty konta wskazujące na pliki (migracja 20261122140000_kopia_projektu_ai.sql).
+    if (sc === '/rest/v1/rpc/odwolania_pliku') {
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'Brak sesji', 'PGRST301');
+      const wynik = {};
+      for (const pr of stan.projekty.filter((x) => x.owner_id === k.id)) {
+        for (const z of Object.values(pr.dane?.zasoby || {})) if ((tresc.p_sciezki || []).includes(z?.sciezka)) (wynik[z.sciezka] ||= []).includes(pr.id) || wynik[z.sciezka].push(pr.id);
+      }
+      return json(r, 200, wynik);
+    }
     if (sc.startsWith('/rest/v1/rpc/krotki_link')) {
       const k = zTokenu(req);
       const funkcja = sc.slice('/rest/v1/rpc/'.length);

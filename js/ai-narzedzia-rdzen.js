@@ -1139,7 +1139,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     return pliki;
   }
 
-  const opisZakresu = (d) => `${d.zakres === 'pelny' ? 'pełny dostęp – wszystkie projekty konta' : 'wybrane projekty'}, ${d.rola === 'edycja' ? 'czyta i zmienia' : 'tylko czyta'}${d.tworzenie ? '; możesz tworzyć i usuwać projekty (nowy_projekt, usun_projekt)' : ''}`;
+  const opisZakresu = (d) => `${d.zakres === 'pelny' ? 'pełny dostęp – wszystkie projekty konta' : 'wybrane projekty'}, ${d.rola === 'edycja' ? 'czyta i zmienia' : 'tylko czyta'}${d.tworzenie ? '; możesz tworzyć i usuwać projekty (nowy_projekt, kopiuj_projekt, usun_projekt)' : ''}`;
   const NARZEDZIA = [
     {
       name: 'projekty',
@@ -1174,6 +1174,18 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
         if (w?.blad) throw new BladBazy(w.blad);
         const s = p.sekcje[0];
         return `Utworzono projekt „${w.nazwa}” (id ${w.id}): ${s.wydruk.szerokosc_mm}×${s.wydruk.wysokosc_mm} mm, ${s.uklad}, spad ${s.wydruk.spad_mm} mm, marginesy ${s.wydruk.marginesy.gora} mm; jedna pusta strona ${strony[0].id}, sekcja ${s.id}. Pracuj na nim z projekt="${w.id}" (zacznij od przeglad_projektu).`;
+      },
+    },
+    {
+      name: 'kopiuj_projekt',
+      title: 'Kopiuj projekt',
+      description: 'Tworzy kopię całego projektu na koncie – jak „Duplikuj” w aplikacji: wszystkie strony, sekcje, wzorce, style, tabele i obrazy. Tylko klucz z pełnym dostępem, który czyta i zmienia, i tylko własny projekt konta. nazwa – opcjonalnie (domyślnie „<nazwa> (kopia)”). Kopia pojawia się od razu na liście projektów; obrazy z folderu konta kopia dostaje na własność przy pierwszym otwarciu w aplikacji. Dalej pracuj na kopii, podając projekt (id z wyniku).',
+      inputSchema: S('', { projekt: tekst('id albo nazwa projektu do skopiowania'), nazwa: tekst('Nazwa kopii (opcjonalnie)') }, ['projekt']),
+      dzialaj: async ({ projekt, nazwa }) => {
+        const id = await jakiProjekt(projekt);
+        const w = await rpc('ai_kopiuj_projekt', { p_klucz: KLUCZ_KONTA, p_projekt: id, p_nowy: globalThis.crypto.randomUUID(), p_nazwa: String(nazwa || '').trim() });
+        if (w?.blad) throw new BladBazy(w.blad);
+        return `Utworzono kopię „${w.nazwa}” (id ${w.id}): ${w.stron} stron, ${w.obrazy} obrazów. Pracuj na niej z projekt="${w.id}".`;
       },
     },
     {
@@ -1865,7 +1877,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
   }
 
   // Narzędzia konta (bez parametru „projekt” albo z własnym, jak usun_projekt) – reszta działa na wskazanym projekcie.
-  const BEZ_PROJEKTU = new Set(['projekty', 'nowy_projekt', 'usun_projekt', 'opis_formatu', 'stan_eksportu']);
+  const BEZ_PROJEKTU = new Set(['projekty', 'nowy_projekt', 'kopiuj_projekt', 'usun_projekt', 'opis_formatu', 'stan_eksportu']);
   const PARAMETR_PROJEKTU = tekst('id albo nazwa projektu (lista: narzędzie projekty); można pominąć, gdy klucz obejmuje jeden projekt.');
 
   async function obsluz(w, stanSesji = {}) {

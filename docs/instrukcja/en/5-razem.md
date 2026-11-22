@@ -116,16 +116,23 @@ which you add in the AI app.
 
 | AI can | AI cannot |
 |---|---|
-| create and delete projects (with full access) | see projects outside the key |
+| create, copy and delete projects (with full access) | see projects outside the key |
 | add, change and copy pages; add, change, align and evenly distribute elements; change styles and masters | change your account or password |
 | fill in data tables and set up series | make a PDF file without Makietka — your browser renders it (→ 25.5) |
 | upload, insert and replace photos | |
 | read comments, reply to them and add its own (→ 24.7) | |
-| request a PDF file or a PNG of a page and give you a download link (→ 25.5) | |
+| request a PDF file or a PNG of a page and give you a download link (→ 25.5) | draw pictures – only the [AI assistant] in Makietka draws them (→ 25.6); an AI app can upload a picture it drew itself |
+| | share the project or invite people (→ 24) |
+| | upload fonts, use the Library or undo changes – undo them in the editor (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) |
+| | draw comic panels or place bubbles with one command – the [AI assistant] in Makietka does that |
 
 Write to the AI normally, as you would to a graphic designer: what you want to make, in what format, how many pages, what mood.
 If you have the project open, the changes appear in the editor after a moment. The AI's changes merge with yours
 like a collaborator's changes (→ 24.4).
+
+A project copy made through the connector has all pages, data and pictures. It gets its own copies of the account
+pictures the first time it is opened in Makietka; until then it uses the original's files, so deleting the original
+does not remove them.
 
 ## 25.2 A key for AI
 

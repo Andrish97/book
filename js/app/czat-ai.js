@@ -234,7 +234,7 @@ async function przygotujNarzedzia() {
   };
   const init = await wolaj('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'makietka-czat', version: '1' } });
   // Czat działa na otwartym projekcie – bez narzędzi do innych projektów.
-  const POZA = new Set(['projekty', 'nowy_projekt', 'usun_projekt']);
+  const POZA = new Set(['projekty', 'nowy_projekt', 'kopiuj_projekt', 'usun_projekt']);
   const { tools } = await wolaj('tools/list');
   const lista = tools.filter((t) => !POZA.has(t.name)).map((t) => {
     const { projekt: _p, ...reszta } = t.inputSchema.properties || {};

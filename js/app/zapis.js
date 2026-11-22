@@ -1039,7 +1039,7 @@ async function zapytajOCalyProjekt(p, e) {
     try {
       if (stan.projekt === p) zapiszBiezacyCel(); // kopia z tym, co jest na płótnie
       const kopia = kopiujProjekt(p, `${p.nazwa} (z tego urządzenia)`);
-      await kopiujPliki(p, kopia);
+      await kopiujPliki(p, kopia, { pobierz: (sc) => chmura.pobierzZasob(sc) });
       await zapiszLokalnie(kopia, wlasciciel(), true);
       await chmura.zapiszWChmurze(kopia);
       await oznaczZsynchronizowany(kopia.id, kopia.zmieniono);

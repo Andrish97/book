@@ -146,6 +146,27 @@ test('pełny dostęp: wszystkie projekty (także udostępnione – z moją rolą
   assert.ok(!e.stan.projekty.some((p) => p.id === id));
   assert.deepEqual(e.stan.oglaszane.at(-1), { id, typ: 'DELETE' });
 
+  // Kopia projektu (zgłoszenie 22.11): strony, dane i obrazy (od AI – własny wiersz, z konta – plik oryginału); cudzy – nie.
+  const src = e.stan.projekty.find((p) => p.id === 'p-1');
+  e.stan.strony.set('p-1/s-a', { id: 's-a', sekcja: src.dane.sekcje?.[0]?.id || 'sek', obiekty: [{ id: 'o1', type: 'textbox', text: 'Styczeń' }] });
+  src.dane.zasoby = { z1: { nazwa: 'kot.png', sciezka: `${JA.id}/p-1/z1` }, z2: { nazwa: 'pies.png', sciezka: 'ai:w1' } };
+  e.stan.obrazyAi = new Map([['w1', { id: 'w1', projekt_id: 'p-1', owner_id: JA.id, nazwa: 'pies.png', typ: 'image/png', rozmiar: 3, dane: Buffer.from('abc') }]]);
+  w = await ai.wywolaj('kopiuj_projekt', { projekt: 'Kalendarz' });
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /Utworzono kopię „Kalendarz \(kopia\)” \(id [0-9a-f-]{36}\): 1 stron, 2 obrazów/);
+  const idKopii = /\(id ([0-9a-f-]{36})\)/.exec(w.tekst)[1];
+  const kop = e.stan.projekty.find((p) => p.id === idKopii);
+  assert.equal(kop.owner_id, JA.id);
+  assert.equal(kop.dane.zasoby.z1.sciezka, `${JA.id}/p-1/z1`, 'obraz z konta – plik oryginału, dopóki aplikacja nie wyśle własnego');
+  assert.match(kop.dane.zasoby.z2.sciezka, /^ai:/);
+  assert.notEqual(kop.dane.zasoby.z2.sciezka, 'ai:w1', 'obraz od AI – własny wiersz kopii');
+  assert.equal(e.stan.obrazyAi.get(kop.dane.zasoby.z2.sciezka.slice(3)).projekt_id, idKopii);
+  assert.deepEqual(e.stan.strony.get(`${idKopii}/s-a`).obiekty[0].text, 'Styczeń');
+  w = await ai.wywolaj('kopiuj_projekt', { projekt: 'p-4' });
+  assert.match(w.tekst, /tylko własny projekt/);
+  w = await ai.wywolaj('kopiuj_projekt', { projekt: 'p-1', nazwa: 'Kalendarz – wersja B' });
+  assert.match(w.tekst, /Utworzono kopię „Kalendarz – wersja B”/);
+
   // Wysyłka wprost i adres do wysyłki niosą projekt.
   w = await ai.wywolaj('adres_do_wysylki', { projekt: 'p-1' });
   assert.match(w.tekst, /\/obraz\?projekt=p-1&nazwa=/);

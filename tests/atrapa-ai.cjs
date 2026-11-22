@@ -156,6 +156,38 @@ function atrapaAi(stan) {
     return { id: p_id, nazwa: p.nazwa, wersja: 1 };
   }
 
+  // Kopia projektu przez łącznik (migracja 20261122140000_kopia_projektu_ai.sql).
+  function aiKopiujProjekt({ p_klucz, p_projekt, p_nowy, p_nazwa }) {
+    const w = kluczKonta(p_klucz);
+    if (w.blad) return w;
+    const { d } = w;
+    if (d.zakres !== 'pelny' || d.rola !== 'edycja') return { blad: 'Kopiować projekty może tylko klucz z pełnym dostępem, który czyta i zmienia (ustawienia konta → Dostęp dla AI).' };
+    const src = stan.projekty.find((x) => x.id === p_projekt);
+    if (!src || src.owner_id !== d.owner_id) return { blad: 'Skopiować można tylko własny projekt konta.' };
+    if (!p_nowy || stan.projekty.some((x) => x.id === p_nowy)) return { blad: 'Nieprawidłowy albo zajęty identyfikator kopii.' };
+    const nazwa = String(p_nazwa || '').trim() || `${src.nazwa} (kopia)`;
+    if (stan.limitProjektow && stan.projekty.filter((x) => x.owner_id === d.owner_id).length >= stan.limitProjektow) return { blad: `Masz już ${stan.limitProjektow} projektów – to limit jednego konta. Usuń albo wyeksportuj do pliku projekt, którego nie potrzebujesz, żeby założyć nowy.` };
+    const teraz = new Date().toISOString();
+    const dane = kopia(src.dane);
+    for (const k of ['udostepnienie', 'podstawa_chmury', 'wersja_chmury', 'wspolpraca_chmury']) delete dane[k];
+    let obrazyAi = 0;
+    for (const z of Object.values(dane.zasoby || {})) {
+      if (!String(z?.sciezka || '').startsWith('ai:')) continue;
+      const o = stan.obrazyAi?.get(z.sciezka.slice(3));
+      if (!o) continue;
+      const id = crypto.randomUUID();
+      stan.obrazyAi.set(id, { ...kopia(o), id, projekt_id: p_nowy, zastap: null });
+      z.sciezka = `ai:${id}`;
+      obrazyAi += 1;
+    }
+    const p = { id: p_nowy, owner_id: d.owner_id, nazwa, wersja: 1, zmieniono: teraz, dane: { ...dane, id: p_nowy, nazwa, zmieniono: teraz } };
+    stan.projekty.push(p);
+    let stron = 0;
+    for (const [k, v] of [...stan.strony]) if (k.startsWith(`${src.id}/`)) { stan.strony.set(`${p_nowy}/${k.slice(src.id.length + 1)}`, kopia(v)); stron += 1; }
+    stan.oglos?.(p, 'INSERT');
+    return { id: p_nowy, nazwa, stron, obrazy: Object.keys(dane.zasoby || {}).length, obrazy_ai: obrazyAi };
+  }
+
   function aiUsunProjekt({ p_klucz, p_projekt, p_potwierdz }) {
     const w = kluczKonta(p_klucz);
     if (w.blad) return w;
@@ -518,6 +550,7 @@ function atrapaAi(stan) {
     if (funkcja === 'ai_projekty') return aiProjekty(tresc);
     if (funkcja === 'ai_nowy_projekt') return aiNowyProjekt(tresc);
     if (funkcja === 'ai_usun_projekt') return aiUsunProjekt(tresc);
+    if (funkcja === 'ai_kopiuj_projekt') return aiKopiujProjekt(tresc);
     if (funkcja === 'ai_zapisz') return aiZapisz(tresc);
     // Eksport zlecony przez AI (#175) – wspólny stan z aplikacją (tests/atrapa-eksport.cjs).
     if (funkcja === 'ai_zlec_eksport' || funkcja === 'ai_stan_eksportu') {
