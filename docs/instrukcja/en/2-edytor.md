@@ -245,7 +245,7 @@ and your own elements. Open it with [Library] on the insert bar.
 | **Lines and dividers** | Solid, thin, thick, dashed, dotted, dash-dot, double and vertical lines; decorative dividers (wave, zigzag, with a dot, circle, star, flower, diamonds, swirls, loops, leaves…). You can change the type and weight later in the **Line** part (→ 6.2). |
 | **Labels and badges** | Labels: rounded, with cut corners, oval, outlined, wavy, scalloped, jar label, heraldic, price tag, tag, badge, stamp, postage stamp, plaque — put text in the middle. |
 | **Occasions** | Matching sets for **Christmas**, **Easter**, **birthday**, **wedding**, **baptism**, **First Communion** and **school**: a greeting header, a frame, a border and a ready card. |
-| **Backgrounds and patterns** | **Full-page patterns** (stripes, dots, polka dots, grid, plaid, herringbone, waves, zigzag, diamonds, stars, flowers, honeycomb, scales, triangles, crosses, circles), **Paper textures** (linen, cardboard, kraft paper, handmade, lined with a margin, graph paper), **Gradients** and **Blobs and watercolor**. Patterns, textures and gradients are inserted over the whole page including the bleed, beneath the content; a pattern is one vector element on the background – change its colors after opening the group (double-click). With a shape selected, a pattern can fill it (→ 6.5). |
+| **Backgrounds and patterns** | **Full-page patterns** (stripes, dots, polka dots, grid, plaid, herringbone, waves, zigzag, diamonds, stars, flowers, honeycomb, scales, triangles, crosses, circles, comic halftone, speed lines), **Paper textures** (linen, cardboard, kraft paper, handmade, lined with a margin, graph paper), **Gradients** and **Blobs and watercolor**. Patterns, textures and gradients are inserted over the whole page including the bleed, beneath the content; a pattern is one vector element on the background – change its colors after opening the group (double-click). With a shape selected, a pattern can fill it (→ 6.5). |
 | **Calendars** | A month calendar: plain, with room for notes, with week numbers (→ 4.9). |
 | **Planner** | Ready tables for planners and notebooks: to-do list, habit tracker, weekly plan, daily plan (hours), lined notes, weekday grid, shopping list, goals, budget, contacts, school timetable; **Plans**: yearly calendar (12 months on one page), monthly plan, week in columns and with priorities, meal plan; **Trackers**: mood, water, reading, prayer journal; **Lists and budget**: wish list, monthly budget; plus note grids: squares, dots, lines (every 5 mm), graph paper, isometric grid. Checkboxes are in **Shapes → Characters**. |
 | **Printable forms** | Date and signature, letter boxes, data fields, a tear-off strip with scissors, checkboxes, a 1–5 rating scale, a remarks field, a coupon, consent with signature; an order table and an attendance list (ordinary tables). |
@@ -1332,11 +1332,13 @@ In a comic section the insert bar has extra tools:
 | Tool | What it does |
 |---|---|
 | [Speech bubble] | Inserts a speech bubble (→ 4.14). Change its kind – speech, thought, shout, whisper, caption – in the panel. |
+| [Bridge] | Select two bubbles of one character (with <kbd>Shift</kbd>) – they join with a strip into one shape. Select a joined bubble to unjoin. |
 | [Effect] | Sound-effect lettering – a big outlined “BOOM!” (style **Sound effect**). Change the text, enlarge, rotate. |
 | [Panels] | A window with 9 ready panel layouts (1–9 panels). Click a preview, set **Gap between panels (mm)** and, if you like, **Bleed** – panels at the edge then run off the page up to the trim line. [Lay out panels] replaces the panels on this page; images and bubbles stay. |
 | [Split panel] | Click two points – the line between them splits the panel in two (it can be diagonal), with the same gap. <kbd>Esc</kbd> cancels. |
 | [Script] | Opens the script table in the **Data** window (→ 14). If there is none, it creates one. |
 | [Place bubbles] | Places speech bubbles with the script texts on the pages, in the right panels. |
+| [Webtoon] | Comic pages one below another as 800 px wide PNG images, cut into pieces up to 1280 px – a ZIP ready to upload to a platform for reading comics on a phone. |
 | [Characters] | Character and place cards – who appears in the comic and where it happens. |
 | [Upload pages] | Page or panel images from files or a ZIP archive – the number in the file name says where they go. |
 
@@ -1397,6 +1399,10 @@ Pages count from the first comic page; missing pages are added at the end of the
 The cards are ordinary **Postacie** (characters) and **Miejsca** (places) tables – you also see them in the **Data** window. Clicking a card opens it for editing; [Delete] removes the card (bubbles and images on the pages stay).
 
 **Preflight check** (→ 20) watches the comic: bubble text smaller than 7 pt (hard to read in print), a bubble going off the page or lying across two panels, a tail pointing outside the panels, and empty panels (no image). For a bubble warning, [Open template] selects it on the page.
+
+**Bridge.** When a character speaks twice in a row in the same panel, [Place bubbles] puts the second bubble right below the first and joins them with a bridge – the last bubble has the tail. The bridge comes out in the PDF just like on the page.
+
+**Halftone and speed lines.** In [Library] (→ 4.8), **Backgrounds and patterns** has comic patterns: **Comic halftone** (fine dots like in old comics), **Speed lines (radial)** – for a blast, surprise or close-up – and **Speed lines (horizontal)** – for speed. You can also put the same pattern on a selected shape, e.g. a panel (→ 6.5).
 
 **Language versions.** Add columns `tekst_pl`, `tekst_en`, `tekst_uk` to the script (each with the text in one
 language). [Place bubbles] then asks which column to use – the same layout gets the texts in another language.

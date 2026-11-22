@@ -23,6 +23,7 @@ import { spakuj } from './pdf-x.js';
 import { jpegCmyk } from './jpeg-cmyk.js';
 import { plytaUszlachetnienia, stanUszlachetnien, rgbNaHex } from './kolory-druku.js';
 import { t as tt } from './jezyk.js';
+import { listaDlaMostkow } from './dymek.js';
 
 const PT = 72 / 25.4;
 const ROZMIAR_POMIARU = 400; // tekst mierzymy dużą czcionką i skalujemy – jak robi to edytor
@@ -1068,6 +1069,7 @@ export async function rysujStroneWektorowo(srodowisko, strona, { obiekty, tlo, m
   const { PDFLib, pdf, czcionki, obrazy, cmyk = false, krzywe = false, dpi = 300, uwagi } = srodowisko;
   await czcionki.przygotuj(obiekty);
   await obrazy.przygotujSvg(obiekty, czcionki);
+  listaDlaMostkow(obiekty); // mostek między dymkami (#371) – para szukana na liście strony, nie na płótnie
   const dolicz = (mapa, powody) => { if (mapa) for (const p of powody) mapa.set(p, (mapa.get(p) || 0) + 1); };
   const zasoby = new StronaPdf(PDFLib, pdf, strona, obrazy);
   // Kolory tekstu i kształtów w CMYK: przez profil drukarni, gdy jest (PDF/X), inaczej prostym wzorem.

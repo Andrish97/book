@@ -91,6 +91,21 @@ const WZORY = [
   ['trojkaty', 'Trójkąty', 'trojkaty geometryczny', (W, H) => { const lista = []; for (let y = 0, k = 0; y < H; y += 9, k += 1) for (let x = k % 2 ? 5 : 0; x < W; x += 10) lista.push([[x + 5, y + 2], [x + 9, y + 8], [x + 1, y + 8]]); return { d: wielokaty(lista, W, H) }; }],
   ['krzyzyki', 'Krzyżyki', 'plusy krzyzyki punkty', (W, H) => { let d = ''; for (let y = 5, k = 0; y < H; y += 10, k += 1) for (let x = k % 2 ? 10 : 5; x < W; x += 10) d += `${odcinek(x - 1.5, y, x + 1.5, y, W, H)} ${odcinek(x, y - 1.5, x, y + 1.5, W, H)} `; return { d, linia: 0.45 }; }],
   ['kola', 'Koła', 'okregi kolka bable', (W, H) => { let d = ''; for (let y = 7, k = 0; y < H - 4; y += 12, k += 1) for (let x = k % 2 ? 13 : 7; x < W - 4; x += 12) d += `${okrag(x, y, 4)} `; return { d, linia: 0.35 }; }],
+  // Komiks (#371, plan komiksu A11): raster (kropki druku komiksowego) i linie ruchu – promieniste i poziome.
+  ['raster', 'Raster komiksowy', 'raster kropki komiks polton benday', (W, H) => { let d = ''; let k = 0; for (let y = 1; y < H; y += 1.6, k += 1) for (let x = k % 2 ? 1.8 : 1; x < W; x += 1.6) d += `${okrag(x, y, 0.42)} `; return { d }; }],
+  ['linie-ruchu', 'Linie ruchu (promieniste)', 'linie ruchu promieniste komiks akcja szybkosc wybuch', (W, H) => {
+    const cx = W / 2; const cy = H / 2; const R = Math.hypot(W, H); const r0 = Math.min(W, H) * 0.28; const los = losowe(31); const lista = [];
+    for (let i = 0; i < 72; i += 1) {
+      const a = (i / 72) * Math.PI * 2 + (los() - 0.5) * 0.04; const sz = 0.008 + los() * 0.012; const r1 = r0 * (0.9 + los() * 0.5);
+      lista.push([[cx + r1 * Math.cos(a), cy + r1 * Math.sin(a)], [cx + R * Math.cos(a - sz), cy + R * Math.sin(a - sz)], [cx + R * Math.cos(a + sz), cy + R * Math.sin(a + sz)]]);
+    }
+    return { d: wielokaty(lista, W, H) };
+  }],
+  ['linie-ruchu-poziome', 'Linie ruchu (poziome)', 'linie ruchu poziome komiks ped szybkosc', (W, H) => {
+    const los = losowe(53); let d = '';
+    for (let y = 2; y < H; y += 2.2 + los() * 2) { const x1 = los() * W * 0.5; const x2 = Math.min(W, x1 + W * (0.3 + los() * 0.6)); d += `${odcinek(x1, y, x2, y, W, H)} `; }
+    return { d, linia: 0.3 };
+  }],
 ];
 
 // Tekstury papieru: tło w kolorze papieru i drobne włókna / plamki (jedna ścieżka).

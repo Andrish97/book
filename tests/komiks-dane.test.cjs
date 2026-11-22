@@ -101,3 +101,11 @@ test('import stron: numer strony i kadru z nazwy pliku (#369)', async () => {
   assert.deepEqual(plan.kadry, [{ nazwa: 's2-k1.png', strona: 2, kadr: 1 }]);
   assert.deepEqual(plan.pominiete, ['x.png']);
 });
+
+test('webtoon: strony pocięte na kawałki do 1280 px (#371)', async () => {
+  const { kawalkiWebtoonu } = await modul('kadry.js');
+  const k = kawalkiWebtoonu([1000, 1000, 500], 1280);
+  assert.deepEqual(k.map((x) => x.h), [1280, 1220]);
+  assert.deepEqual(k[0].czesci, [{ strona: 0, sy: 0, dy: 0, h: 1000 }, { strona: 1, sy: 0, dy: 1000, h: 280 }]);
+  assert.deepEqual(k[1].czesci, [{ strona: 1, sy: 280, dy: 0, h: 720 }, { strona: 2, sy: 0, dy: 720, h: 500 }]);
+});

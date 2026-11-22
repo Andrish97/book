@@ -245,7 +245,7 @@ i Twoje własne elementy. Otwiera ją [Biblioteka] na pasku wstawiania.
 | **Linie i separatory** | Linia ciągła, cienka, gruba, przerywana, kropkowana, kreska – kropka, podwójna i pionowa; separatory ozdobne (fala, zygzak, z kropką, kółkiem, gwiazdką, kwiatkiem, rombami, zawijasy, pętelki, listki…). Rodzaj i grubość zmienisz potem w części **Linia** (→ 6.2). |
 | **Etykiety i plakietki** | Etykiety zaokrąglone, ze ściętymi rogami, owalne, z obwódką, faliste, ząbkowane, na słoik, herbowe, cenówka, metka, plakietka, pieczątka, znaczek pocztowy, tabliczka — w środek wstaw tekst. |
 | **Okolicznościowe** | Zestawy w jednym stylu na **Boże Narodzenie**, **Wielkanoc**, **urodziny**, **ślub**, **chrzest**, **Pierwszą Komunię** i **szkołę**: nagłówek z życzeniami, ramka, szlaczek i gotowa kartka. |
-| **Tła i wzory** | **Wzory na całą stronę** (paski, kropki, groszki, kratka, krata, jodełka, fale, zygzak, romby, gwiazdki, kwiatki, plaster miodu, łuski, trójkąty, krzyżyki, koła), **Tekstury papieru** (płótno lniane, karton, papier pakowy, czerpany, w linie z marginesem, milimetrowy), **Przejścia kolorów** i **Plamy i akwarela**. Wzory, tekstury i przejścia wstawiają się na całą stronę ze spadem, pod treść; wzór to jeden wektorowy element na tle – kolory zmienisz po otwarciu grupy (dwuklik). Przy zaznaczonym kształcie wzór może go wypełnić (→ 6.5). |
+| **Tła i wzory** | **Wzory na całą stronę** (paski, kropki, groszki, kratka, krata, jodełka, fale, zygzak, romby, gwiazdki, kwiatki, plaster miodu, łuski, trójkąty, krzyżyki, koła, raster komiksowy, linie ruchu), **Tekstury papieru** (płótno lniane, karton, papier pakowy, czerpany, w linie z marginesem, milimetrowy), **Przejścia kolorów** i **Plamy i akwarela**. Wzory, tekstury i przejścia wstawiają się na całą stronę ze spadem, pod treść; wzór to jeden wektorowy element na tle – kolory zmienisz po otwarciu grupy (dwuklik). Przy zaznaczonym kształcie wzór może go wypełnić (→ 6.5). |
 | **Kalendarze** | Kalendarz miesiąca: zwykły, z miejscem na notatki, z numerami tygodni (→ 4.9). |
 | **Planer** | Gotowe tabele do planerów i notesów: lista zadań, tracker nawyków, plan tygodnia, plan dnia (godziny), notatki w linie, siatka dni tygodnia, lista zakupów, cele, budżet, kontakty, plan lekcji; **Plany**: kalendarz roczny (12 miesięcy na stronie), plan miesiąca, tydzień w kolumnach i z priorytetami, plan posiłków; **Trackery**: nastrój, woda, czytanie, dziennik modlitwy; **Listy i budżet**: lista życzeń, budżet miesięczny; do tego siatki do notatek: kratka, kropki, linie (co 5 mm), papier milimetrowy, siatka izometryczna. Pola wyboru są w **Kształtach → Znaki**. |
 | **Formularze do druku** | Data i podpis, kratki na litery, pola na dane, odcinek do odcięcia z nożyczkami, pola wyboru, skala ocen 1–5, pole na uwagi, kupon, zgoda z podpisem; tabelka zamówienia i lista obecności (zwykłe tabele). |
@@ -1332,11 +1332,13 @@ W sekcji komiksu pasek wstawiania ma dodatkowe narzędzia:
 | Narzędzie | Co robi |
 |---|---|
 | [Dymek] | Wstawia dymek (→ 4.14). Rodzaj – mowa, myśl, krzyk, szept, narracja – zmienisz w panelu. |
+| [Mostek] | Zaznacz dwa dymki jednej postaci (z <kbd>Shift</kbd>) – połączą się paskiem we wspólny kształt. Zaznacz połączony dymek – rozłączysz. |
 | [Efekt] | Napis efektu dźwiękowego – „BUM!” dużymi literami z obrysem (styl **Efekt dźwiękowy**). Zmień tekst, powiększ, obróć. |
 | [Kadry] | Okno z 9 gotowymi układami kadrów (1–9 kadrów). Kliknij podgląd, ustaw **Odstęp między kadrami** (mm) i ewentualnie **Na spad** – kadry przy brzegu wychodzą wtedy poza stronę, aż do linii cięcia. [Ułóż kadry] zastępuje kadry na tej stronie; obrazy i dymki zostają. |
 | [Podziel kadr] | Kliknij dwa punkty – linia między nimi dzieli kadr na dwa (może być ukośna), z tym samym odstępem. <kbd>Esc</kbd> przerywa. |
 | [Scenariusz] | Otwiera tabelę scenariusza w oknie **Dane** (→ 14). Gdy jej nie ma – tworzy ją. |
 | [Ustaw dymki] | Stawia dymki z tekstami ze scenariusza na stronach, w odpowiednich kadrach. |
+| [Webtoon] | Strony komiksu jedna pod drugą jako obrazy PNG szerokie na 800 px, pocięte na kawałki do 1280 px – plik ZIP gotowy do wgrania na platformę z komiksami do czytania na telefonie. |
 | [Postacie] | Karty postaci i miejsc – kto występuje w komiksie i gdzie dzieje się akcja. |
 | [Wgraj strony] | Obrazy stron albo kadrów z plików albo z archiwum ZIP – numer w nazwie pliku mówi, gdzie trafią. |
 
@@ -1396,6 +1398,10 @@ Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na k
 Karty to zwykłe tabele **Postacie** i **Miejsca** – zobaczysz je też w oknie **Dane**. Kliknięcie karty otwiera ją do poprawki; [Usuń] usuwa kartę (dymki i obrazy na stronach zostają).
 
 **Sprawdź przed drukiem** (→ 20) pilnuje komiksu: tekst w dymku mniejszy niż 7 pt (w druku trudny do czytania), dymek wychodzący poza stronę albo leżący na dwóch kadrach, ogonek celujący poza kadry i puste kadry (bez obrazu). Przy uwadze o dymku [Otwórz wzór] zaznacza go na stronie.
+
+**Mostek.** Gdy postać mówi dwa razy z rzędu w tym samym kadrze, [Ustaw dymki] stawia drugi dymek tuż pod pierwszym i łączy je mostkiem – ogonek ma ostatni dymek. Mostek wychodzi w PDF jak na stronie.
+
+**Raster i linie ruchu.** W [Biblioteka] (→ 4.8) w **Tłach i wzorach** są wzory komiksowe: **Raster komiksowy** (drobne kropki jak w starych komiksach), **Linie ruchu (promieniste)** – do wybuchu, zaskoczenia, zbliżenia – i **Linie ruchu (poziome)** – do pędu. Ten sam wzór nałożysz też na zaznaczony kształt, np. kadr (→ 6.5).
 
 **Wersje językowe.** Dodaj do scenariusza kolumny `tekst_pl`, `tekst_en`, `tekst_uk` (każda z tekstem w jednym
 języku). [Ustaw dymki] zapyta wtedy, z której kolumny wziąć teksty – ten sam układ dostaje teksty w innym języku.

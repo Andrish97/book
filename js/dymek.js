@@ -17,6 +17,7 @@ export const domyslnyDymek = (d = {}) => ({
   obrys: d.obrys || '#1a1a1a',
   grubosc: Number(d.grubosc) >= 0 ? Number(d.grubosc) : 0.35,
   ...(Number(d.margines) >= 0 ? { margines: Number(d.margines) } : {}),
+  ...(d.mostek ? { mostek: String(d.mostek) } : {}), // id drugiego dymka tej samej postaci (#371)
 });
 
 // Margines dymka wokół tekstu (mm): narracja – ciasno, mowa i krzyk – więcej (zaokrąglenia, kolce), myśl – najwięcej.
@@ -108,12 +109,40 @@ export function figuryDymka(o) {
   return figury;
 }
 
+// Mostek (#371, plan komiksu A11): dwa dymki jednej postaci połączone paskiem – `dymek.mostek` = id drugiego dymka.
+// Wspólny kształt rysuje NIŻSZY z pary (oba dymki + pasek między środkami jednym obrysem), wyższy rysuje już tylko
+// swój tekst – dzięki temu obrys jest jeden, bez kreski w poprzek paska. Bez płótna (element poza stroną) – zwykły dymek.
+// Elementy rysowane poza płótnem (PDF wektorowy) – lista elementów strony do szukania pary mostka.
+export function listaDlaMostkow(obiekty) {
+  for (const o of obiekty || []) if (o?.dymek) o._elementyStrony = obiekty;
+}
+export function partnerMostka(o) {
+  const lista = o.canvas?.getObjects?.() || o._elementyStrony;
+  if (!lista || !o.id) return null;
+  const p = o.dymek?.mostek ? lista.find((x) => x.id === o.dymek.mostek && x.dymek && x !== o) : lista.find((x) => x.dymek?.mostek === o.id && x !== o);
+  return p && p.visible !== false ? { p, nizej: lista.indexOf(o) < lista.indexOf(p) } : null;
+}
+function figuryZMostkiem(o, partner) {
+  const figury = figuryDymka(o);
+  const m = fabric.util.multiplyTransformMatrices(fabric.util.invertTransform(o.calcTransformMatrix()), partner.calcTransformMatrix());
+  for (const f of figuryDymka(partner)) figury.push((ctx) => { ctx.save(); ctx.transform(...m); f(ctx); ctx.restore(); });
+  // pasek między środkami (środek elementu = 0,0); szerokość z niższego z dymków
+  const g = geometria(o); const h = Math.min(g.h, geometria(partner).h * Math.abs(partner.scaleY ?? 1) / Math.abs(o.scaleY ?? 1));
+  const [x2, y2] = [m[4], m[5]];
+  const dl = Math.hypot(x2, y2) || 1; const hw = h * 0.16;
+  const px = (-y2 / dl) * hw; const py = (x2 / dl) * hw;
+  figury.push((ctx) => { ctx.moveTo(px, py); ctx.lineTo(x2 + px, y2 + py); ctx.lineTo(x2 - px, y2 - py); ctx.lineTo(-px, -py); ctx.closePath(); });
+  return figury;
+}
+
 // Rysowanie: najpierw wszystkie obrysy podwójną grubością, potem wszystkie wypełnienia – widać zewnętrzną połowę
 // obrysu, czyli obrys całości (dymek z ogonkiem i bąblami jako jeden kształt), bez kresek w środku.
 export function rysujDymek(ctx, o) {
   const d = o.dymek;
   if (!d) return;
-  const figury = figuryDymka(o);
+  const mostek = partnerMostka(o);
+  if (mostek && !mostek.nizej) return; // kształt narysował już niższy dymek pary
+  const figury = mostek ? figuryZMostkiem(o, mostek.p) : figuryDymka(o);
   ctx.save();
   if (d.grubosc > 0 && d.obrys && d.obrys !== 'transparent') {
     ctx.lineWidth = d.grubosc * 2;

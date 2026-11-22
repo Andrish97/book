@@ -96,3 +96,23 @@ export function elementKadru(punkty, nr, { id, obrys = '#1a1a1a', grubosc = 0.6,
     kadr_nr: nr, nazwa: `Kadr ${nr}`,
   };
 }
+
+// Webtoon (#371): strony jedna pod drugą (wysokości w px przy szerokości paska) pocięte na kawałki do `max` px
+// wysokości (WEBTOON Canvas: 800 × 1280). Zwraca [{ h, czesci: [{ strona, sy, dy, h }] }] – skąd (sy w stronie)
+// i dokąd (dy w kawałku) przerysować fragment każdej strony.
+export function kawalkiWebtoonu(wysokosci, max = 1280) {
+  const suma = wysokosci.reduce((a, b) => a + b, 0);
+  const kawalki = [];
+  for (let y0 = 0; y0 < suma; y0 += max) {
+    const h = Math.min(max, suma - y0);
+    const czesci = [];
+    let y = 0;
+    wysokosci.forEach((hs, strona) => {
+      const od = Math.max(y, y0); const doY = Math.min(y + hs, y0 + h);
+      if (doY > od) czesci.push({ strona, sy: od - y, dy: od - y0, h: doY - od });
+      y += hs;
+    });
+    kawalki.push({ h, czesci });
+  }
+  return kawalki;
+}

@@ -3,11 +3,11 @@
 // układy z rynną, kadry na spad), podział kadru dwoma kliknięciami (także ukośny), scenariusz (tabela) i „Ustaw dymki”
 // (dymki z tabeli, js/dialogi.js). Działa bez AI; AI korzysta z tych samych kadrów, tabeli i dymków.
 
-import { siatkaKadrow, podzielKadr, naSpad, numerujKadry, UKLADY_KADROW } from '../kadry.js';
+import { siatkaKadrow, podzielKadr, naSpad, numerujKadry, UKLADY_KADROW, kawalkiWebtoonu } from '../kadry.js';
 import { dymkiZTabeli, kolumnyDialogu, kolumnyTekstu } from '../dialogi.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
-import { $, powiadom } from '../ui.js';
+import { $, powiadom, pobierz } from '../ui.js';
 import { stan, edytor, biezacaSekcja } from './kontekst.js';
 import { t } from '../jezyk.js';
 import { stylKomiksu, wartosciStylu, zastosujStyl } from '../style-tekstu.js';
@@ -299,6 +299,68 @@ function wybierzStrony() {
   wej.click();
 }
 
+// ---------- Webtoon (#371): strony komiksu jedna pod drugą, 800 px szerokości, kawałki do 1280 px w ZIP-ie ----------
+const wczytajObraz = (url) => new Promise((ok, zle) => { const i = new Image(); i.onload = () => ok(i); i.onerror = zle; i.src = url; });
+export async function eksportWebtoon({ szerokosc = 800, max = 1280, pobierzPlik = true } = {}) {
+  const p = stan.projekt;
+  if (!p) return null;
+  zapiszBiezacyCel();
+  const { rozwin } = await import('../serie.js');
+  const { renderujCel } = await import('../zlozenie.js');
+  const ciag = rozwin(p);
+  const egz = ciag.egzemplarze.filter((e) => !e.pusta && typSekcji(e.sekcja) === 'komiks');
+  if (!egz.length) { powiadom(t('komiks.webtoonBrak'), true); return null; }
+  powiadom(t('komiks.webtoonTrwa', { ile: egz.length }));
+  const obrazy = [];
+  for (const e of egz) obrazy.push(await wczytajObraz(await renderujCel(p, e, { szerokoscPx: szerokosc, spad: false, ciag, oryginaly: true })));
+  const kawalki = kawalkiWebtoonu(obrazy.map((o) => Math.round((o.naturalHeight * szerokosc) / o.naturalWidth)), max);
+  const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+  const zip = new JSZip();
+  for (const [i, k] of kawalki.entries()) {
+    const c = Object.assign(document.createElement('canvas'), { width: szerokosc, height: k.h });
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, szerokosc, k.h);
+    for (const q of k.czesci) {
+      const o = obrazy[q.strona]; const skala = o.naturalWidth / szerokosc;
+      ctx.drawImage(o, 0, q.sy * skala, o.naturalWidth, q.h * skala, 0, q.dy, szerokosc, q.h);
+    }
+    const blob = await new Promise((ok) => c.toBlob(ok, 'image/png'));
+    zip.file(`${String(i + 1).padStart(2, '0')}.png`, blob);
+  }
+  const plik = await zip.generateAsync({ type: 'blob' });
+  const nazwa = `${String(p.nazwa || 'komiks').replace(/[\\/:*?"<>|]+/g, '_')} – webtoon.zip`;
+  if (pobierzPlik) {
+    const url = URL.createObjectURL(plik);
+    pobierz(nazwa, url);
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+  powiadom(t('komiks.webtoonGotowe', { ile: kawalki.length }));
+  return { nazwa, kawalki: kawalki.map((k) => k.h), plik };
+}
+
+// ---------- Mostek (#371): dwa zaznaczone dymki – połącz; jeden połączony – rozłącz ----------
+export function mostekDymkow() {
+  const a = edytor.canvas.getActiveObject();
+  const lista = (a instanceof fabric.ActiveSelection ? a.getObjects() : [a]).filter((o) => o?.dymek);
+  const wszystkie = edytor.canvas.getObjects();
+  if (lista.length === 2) {
+    const [x, y] = lista.sort((p, q) => wszystkie.indexOf(p) - wszystkie.indexOf(q));
+    for (const o of wszystkie) if (o.dymek?.mostek && [x.id, y.id].includes(o.dymek.mostek)) o.dymek = { ...o.dymek, mostek: undefined };
+    x.dymek = { ...x.dymek, mostek: y.id };
+    y.dymek = { ...y.dymek, mostek: undefined };
+    powiadom(t('komiks.mostekPolaczono'));
+  } else if (lista.length === 1 && wszystkie.some((o) => o.dymek?.mostek && (o === lista[0] || o.dymek.mostek === lista[0].id))) {
+    for (const o of wszystkie) if (o.dymek?.mostek && (o === lista[0] || o.dymek.mostek === lista[0].id)) o.dymek = { ...o.dymek, mostek: undefined };
+    powiadom(t('komiks.mostekRozlaczono'));
+  } else { powiadom(t('komiks.mostekPodpowiedz'), true); return false; }
+  for (const o of wszystkie) if (o.dymek && o.dymek.mostek === undefined && 'mostek' in o.dymek) delete o.dymek.mostek;
+  edytor.canvas.requestRenderAll();
+  edytor.zatwierdz?.();
+  zaplanujZapis();
+  return true;
+}
+
 // Pasek narzędzi: przyciski z data-akcja="komiks-…".
 export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-dymek') return dymekWStylu();
@@ -309,5 +371,7 @@ export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-dymki') return ustawDymkiZWyborem();
   if (akcja === 'komiks-postacie') return oknoPostaci();
   if (akcja === 'komiks-wgraj') return wybierzStrony();
+  if (akcja === 'komiks-mostek') return mostekDymkow();
+  if (akcja === 'komiks-webtoon') return eksportWebtoon().catch((e) => { console.error(e); powiadom(e.message, true); });
   return null;
 }

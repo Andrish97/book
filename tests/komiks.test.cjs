@@ -352,3 +352,95 @@ test('komiks: kontrola przed drukiem – mały tekst, dymek poza stroną i na dw
   assert.match(opisy.strona, /Strona 1: puste kadry \(2\)|pusty kadr \(2\)/);
   assert.deepEqual(bledy, []);
 });
+
+test('komiks: webtoon – strony komiksu jedna pod drugą, 800 px, kawałki do 1280 px w ZIP-ie; raster i linie ruchu we wzorach (#371)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Pasek');
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.sekcje[0].typ = 'komiks';
+    const { nowaStrona } = await import('./js/projekt.js');
+    p.strony.push(nowaStrona('Strona 2', p.sekcje[0].id), nowaStrona('Strona 3', p.sekcje[0].id));
+    await window.seriodruk.przeladuj();
+  });
+  const pobranie = strona.waitForEvent('download');
+  await strona.click('[data-akcja="komiks-webtoon"]');
+  const plik = await pobranie;
+  assert.match(plik.suggestedFilename(), /^Pasek - webtoon\.zip$/);
+  const wynik = await strona.evaluate(async () => {
+    const m = await import('./js/app/komiks-narzedzia.js');
+    const w = await m.eksportWebtoon({ pobierzPlik: false });
+    const { biblioteka } = await import('./js/biblioteki.js');
+    const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'ZIP');
+    const zip = await JSZip.loadAsync(w.plik);
+    const pliki = Object.keys(zip.files).sort();
+    const img = await createImageBitmap(await zip.file(pliki[0]).async('blob'));
+    const wz = await import('./js/wzor-wypelnienia.js');
+    return { kawalki: w.kawalki, pliki, pierwszy: [img.width, img.height], wzory: ['raster', 'linie-ruchu', 'linie-ruchu-poziome'].map((id) => wz.WZORY.some((x) => x.id === id)) };
+  });
+  const wys = Math.round((800 * 210) / 148);
+  assert.equal(wynik.kawalki.reduce((a, b) => a + b, 0), 3 * wys, 'trzy strony A5 po 800 px szerokości');
+  assert.ok(wynik.kawalki.every((h) => h <= 1280));
+  assert.deepEqual(wynik.pliki, wynik.kawalki.map((_, i) => `${String(i + 1).padStart(2, '0')}.png`));
+  assert.deepEqual(wynik.pierwszy, [800, 1280]);
+  assert.deepEqual(wynik.wzory, [true, true, true]);
+  assert.deepEqual(bledy, []);
+});
+
+test('komiks: mostek – kolejne kwestie postaci w kadrze połączone, ręczne łączenie i rozłączanie, zapis (#371)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Mostek');
+  await strona.evaluate(async () => { window.seriodruk.stan.projekt.sekcje[0].typ = 'komiks'; await window.seriodruk.przeladuj(); });
+  await strona.click('[data-akcja="komiks-scenariusz"]');
+  await strona.keyboard.press('Escape');
+  await strona.evaluate(() => {
+    const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('rodzaj'));
+    tb.wiersze = [['1', '1', 'Ala', 'Słuchaj…', 'mowa', ''], ['1', '1', 'Ala', '…to ważne!', 'mowa', ''], ['1', '1', 'Ola', 'No?', 'mowa', ''], ['1', '2', 'Ala', 'Dalej.', 'mowa', '']];
+  });
+  await strona.click('[data-akcja="komiks-dymki"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 4);
+  const mostki = () => strona.evaluate(() => {
+    const d = window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek);
+    return d.filter((o) => o.dymek.mostek).map((o) => [o.text, d.find((x) => x.id === o.dymek.mostek)?.text]);
+  });
+  assert.deepEqual(await mostki(), [['Słuchaj…', '…to ważne!']], 'tylko kolejne kwestie Ali w kadrze 1');
+  await strona.evaluate(() => { const c = window.seriodruk.edytor.canvas; c.discardActiveObject(); c.requestRenderAll(); });
+  const kadr = await strona.evaluate(() => {
+    const e = window.seriodruk.edytor; const v = e.canvas.viewportTransform; const r = e.canvas.upperCanvasEl.getBoundingClientRect();
+    const x0 = e.strony[e.aktywna].x;
+    return { x: r.left + x0 * v[0] + v[4], y: r.top + v[5], width: 148 * v[0], height: 110 * v[3] };
+  });
+  await strona.screenshot({ path: require('node:path').join(require('node:os').tmpdir(), 'mostek.png'), clip: kadr });
+  // Po zapisie i ponownym wczytaniu mostek zostaje.
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.przeladuj(); });
+  // PDF wektorowy: mostek też w pliku (strona do PNG przez pdftoppm – pasek między dymkami jest biały, nie tło).
+  const pdf = await strona.evaluate(async () => {
+    const { stan } = window.seriodruk;
+    const { zlozPdf } = await import('./js/eksport.js');
+    const { rozwin } = await import('./js/serie.js');
+    const ciag = rozwin(stan.projekt);
+    const uwagi = new Map();
+    const blob = await zlozPdf(stan.projekt, ciag.egzemplarze.slice(0, 1), { ciag, uwagi, spad: false, znaki: false });
+    const b = new Uint8Array(await blob.arrayBuffer());
+    let s = ''; for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000));
+    return { b64: btoa(s), uwagi: [...uwagi.values()].flat().map(String) };
+  });
+  assert.deepEqual(pdf.uwagi, [], 'dymki z mostkiem wektorowo');
+  const fs = require('node:fs'); const os = require('node:os'); const path = require('node:path');
+  const plikPdf = path.join(os.tmpdir(), 'mostek.pdf');
+  fs.writeFileSync(plikPdf, Buffer.from(pdf.b64, 'base64'));
+  try { require('node:child_process').execFileSync('pdftoppm', ['-png', '-r', '60', '-singlefile', plikPdf, path.join(os.tmpdir(), 'mostek-pdf')]); } catch { /* bez pdftoppm – tylko plik */ }
+  assert.deepEqual(await mostki(), [['Słuchaj…', '…to ważne!']]);
+  // Ręcznie: zaznaczony połączony dymek – [Mostek] rozłącza; dwa zaznaczone – łączy.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.canvas.setActiveObject(e.canvas.getObjects().find((o) => o.text === '…to ważne!')); });
+  await strona.click('[data-akcja="komiks-mostek"]');
+  assert.deepEqual(await mostki(), []);
+  await strona.evaluate(() => {
+    const e = window.seriodruk.edytor; const c = e.canvas;
+    const d = c.getObjects().filter((o) => o.text === 'No?' || o.text === 'Dalej.');
+    c.setActiveObject(new fabric.ActiveSelection(d, { canvas: c }));
+  });
+  await strona.click('[data-akcja="komiks-mostek"]');
+  assert.equal((await mostki()).length, 1);
+  assert.deepEqual(bledy, []);
+});

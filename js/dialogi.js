@@ -75,6 +75,21 @@ export function dymkiZTabeli(projekt, tabela, { kolumnaTekstu = null, wymiaryStr
     kwestie.set(kp, ktora + 1);
     w.klucz = `${kp}|${ktora}`;
   }
+  // Mostek (#371): kolejne kwestie tej samej postaci w tym samym kadrze – dymki połączone paskiem.
+  let poprzedni = null;
+  const nowe = new Set();
+  const ciagDalszy = (w) => Boolean(poprzedni && w.postac && w.rodzaj !== 'narracja' && poprzedni.w.strona === w.strona && poprzedni.w.kadr === w.kadr
+    && bezOgonkow(poprzedni.w.postac) === bezOgonkow(w.postac) && poprzedni.obiekt.dymek);
+  const polacz = (w, obiekt) => {
+    if (ciagDalszy(w) && !poprzedni.obiekt.dymek.mostek) poprzedni.obiekt.dymek.mostek = obiekt.id;
+    poprzedni = { w, obiekt };
+  };
+  // Szacowana wysokość dymka (mm): wiersze z długości tekstu, pismo i marginesy – do ułożenia ciągu dalszego pod spodem.
+  const wysokoscDymka = (o) => {
+    const pismo = o.fontSize || 3.5;
+    const wiersze = Math.max(1, Math.ceil((String(o.text || '').length * pismo * 0.55) / Math.max(10, o.width || 30)));
+    return wiersze * pismo * (o.lineHeight || 1.1) + 2 * pismo * 0.7;
+  };
   for (const w of wiersze) {
     const strona = strony[w.strona - 1];
     if (!strona) { wynik.pominiete.push(`wiersz ${w.nr + 1}: nie ma strony ${w.strona}`); continue; }
@@ -92,26 +107,33 @@ export function dymkiZTabeli(projekt, tabela, { kolumnaTekstu = null, wymiaryStr
         istniejacy.nazwa = nazwa;
         wynik.zmienione += 1;
       }
+      polacz(w, istniejacy);
       continue;
     }
     const klucz = `${w.strona}|${w.kadr}`;
     const nr = wKadrze.get(klucz) || 0;
-    wKadrze.set(klucz, nr + 1);
+    if (!ciagDalszy(w)) wKadrze.set(klucz, nr + 1); // ciąg dalszy z mostkiem nie zajmuje nowego miejsca w kadrze
     const obszar = obszarKadru(strona, w.kadr, ileKadrow.get(w.strona), wymiaryStrony(strona));
     const szer = Math.min(55, Math.max(24, obszar.w * 0.42));
     // kolejne dymki kadru: na zmianę z lewej i z prawej, schodkami w dół (czytanie od lewej do prawej)
-    const left = obszar.x + 3 + (nr % 2 ? obszar.w - szer - 6 : 0);
-    const top = obszar.y + 3 + nr * Math.min(14, obszar.h / 4);
+    // ciąg dalszy kwestii tej samej postaci (mostek, #371): tuż pod poprzednim dymkiem, lekko w prawo, bez ogonka
+    const dalszy = ciagDalszy(w) ? poprzedni.obiekt : null;
+    const left = dalszy ? Math.min(obszar.x + obszar.w - szer - 3, (dalszy.left || 0) + 6) : obszar.x + 3 + (nr % 2 ? obszar.w - szer - 6 : 0);
+    const top = dalszy ? (dalszy.top || 0) + wysokoscDymka(dalszy) + 4 : obszar.y + 3 + nr * Math.min(14, obszar.h / 4);
     const d = {
       type: 'textbox', id: noweId(), left, top, width: szer, text: w.tekst, styles: [],
       fontFamily: 'Comic Neue', fontSize: Math.round((10 * 25.4 / 72) * 1000) / 1000, fontWeight: w.rodzaj === 'krzyk' ? 'bold' : 'normal',
       fill: '#1a1a1a', lineHeight: 1.1, textAlign: w.rodzaj === 'narracja' ? 'left' : 'center', strokeWidth: 0,
       wielkosc_liter: 'wielkie', spojniki: true, zasady_pl: true, nazwa,
       ...(styl ? { ...styl.wartosci, styl: styl.id, ...(w.rodzaj === 'krzyk' ? { fontWeight: 'bold' } : {}), textAlign: w.rodzaj === 'narracja' ? 'left' : 'center' } : {}),
-      dymek: domyslnyDymek({ rodzaj: w.rodzaj, wypelnienie: (w.postac && kolorPostaci(w.postac)) || undefined, ogonek: w.rodzaj === 'narracja' ? null : { x: szer * (nr % 2 ? 0.7 : 0.3), y: Math.min(28, obszar.h * 0.45) } }),
+      dymek: domyslnyDymek({ rodzaj: w.rodzaj, wypelnienie: (w.postac && kolorPostaci(w.postac)) || undefined, ogonek: w.rodzaj === 'narracja' || (dalszy && !nowe.has(dalszy)) ? null : { x: szer * (nr % 2 ? 0.7 : 0.3), y: Math.min(28, obszar.h * 0.45) } }),
       z_dialogu: { tabela: tabela.id, klucz: w.klucz, wiersz: w.nr },
     };
+    // ogonek ma ostatni dymek ciągu (para ustawiona teraz – wcześniej ustawionego ogonka nie ruszamy)
+    if (dalszy && nowe.has(dalszy)) dalszy.dymek.ogonek = null;
+    nowe.add(d);
     strona.obiekty.push(d);
+    polacz(w, d);
     uzyte.add(d);
     wynik.dodane += 1;
   }
