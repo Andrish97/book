@@ -19,7 +19,7 @@ oczywiste, proste i dobrze opisane w instrukcji.
   ```
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
-  ostatni użyty: **#370**), commit i push.
+  ostatni użyty: **#376**), commit i push.
 - Testy: `node --test --test-concurrency=3 tests/*.test.cjs` (pełny przebieg ~45 min; pojedyncze pliki szybko).
   Lint: `npx eslint js` (albo `/opt/node-tools/node_modules/.bin/eslint --no-config-lookup -c eslint.config.mjs <pliki>`).
   Po zmianie listy modułów: `node scripts/moduly-buduj.cjs`; po zmianie rdzenia łącznika AI
@@ -52,9 +52,17 @@ Testy: tests/komiks.test.cjs (7 testów), tests/komiks-dane.test.cjs.
 Ważne: kadr komiksu to polygon z polem `kadr_nr` (NIE `kadr` – to pole zajmuje kadrowanie obrazu); `kadr_nr`, `z_dialogu`
 zapisują się z projektem (js/fabric-ustawienia.js). Strona 1 scenariusza = pierwsza strona sekcji komiksu.
 
-Zostało z części A: A11 (mostek między dymkami jednej postaci, webtoon – długi pasek PNG 800 px, rastry i linie ruchu
-w bibliotece wzorów). Potem część B (AI w każdym projekcie) i C (komiks z AI) – w tym pomiar zużycia (C7) w budżecie
-ok. 5 zł; rejestr płatnych wywołań prowadź w docs/KOSZTY-TESTOW.md.
+Dalej tej samej nocy (wszystko z testami, instrukcją pl/en/uk, na main):
+- **A4 #367** style „Dialog” i „Efekt dźwiękowy” + [Efekt]; **A11 #371** mostek (też w PDF), [Webtoon], raster i linie ruchu.
+- **B2–B4 #372–#373** [Obraz AI] (koszt przed generowaniem, limit miesięczny, licznik), [Tekst AI], ✦ „Wypełnij kolumnę”
+  w oknie Dane; klucz Gemini z sejfu (#241) – zapytania z przeglądarki. Ceny: js/ai-koszty.js (cennik 22.11.2026).
+- **C1–C4, C6, C7 #374–#375** styl rysunków, obraz wzorcowy z karty, [Rysuj kadry], [Scenariusz z AI] (pomysł albo
+  dokument); pomiar: 3 strony × 3 kadry + 2 postacie = 1,51 zł (szkic), 49 s – w instrukcji 10.13 z przykładem.
+- **B5/C5 #376** narzędzia czatu: generuj_obraz, rysuj_kadry, ustaw_dymki, szacuj_koszt (zgoda z kwotą za każdym razem).
+
+Zostało: **B6** – generowanie w łączniku MCP (przez kolejkę otwartej aplikacji jak eksport PDF albo klucz na serwerze –
+B1 w wersji „klucz właściciela”); **B3** „popraw fragment obrazu” (edycja zamiast losowania); miniatury stylów (C1);
+cała strona jednym obrazem (C3 robi kadry osobno). Płatne testy: wydane ok. 1,80 zł z 5 zł (docs/KOSZTY-TESTOW.md).
 
 ## Inne otwarte wątki
 
