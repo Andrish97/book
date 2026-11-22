@@ -432,7 +432,7 @@ $('#form-nowy').addEventListener('change', (e) => {
 });
 
 // Pusty projekt z pól okna „Nowy projekt”.
-function projektZFormularza() {
+async function projektZFormularza() {
   const f = $('#form-nowy');
   const format = f.elements.format.value;
   let [w, h] = FORMATY[format] || [Number(f.elements.szerokosc_mm.value) || 148, Number(f.elements.wysokosc_mm.value) || 210];
@@ -458,13 +458,15 @@ function projektZFormularza() {
     projekt.strony.unshift(nowaStrona('Okładka', okladka.id));
     przeliczOkladki(projekt);
   }
+  // Komiks (D3): zwykły projekt z sekcją komiksu – pasek komiksu, kadry, style dymków, pusty scenariusz.
+  if (f.elements.komiks?.checked) (await import('../szablony-projektow.js')).komiksWBloku(projekt, projekt.sekcje.find((x) => !x.okladka), { przyklad: false });
   return projekt;
 }
 
 $('#dlg-nowy').addEventListener('close', async () => {
   if (edytorGotowy()) import('./gotowe-sekcje-okno.js').then((m) => m.schowajZNowegoProjektu()).catch(() => {});
   if ($('#dlg-nowy').returnValue !== 'ok') return;
-  await otworzProjekt(projektZFormularza());
+  await otworzProjekt(await projektZFormularza());
   await zapiszTeraz();
 });
 

@@ -82,7 +82,7 @@ teksty, tłumaczenie i obrazy w zwykłych trybach”.
 |---|---|---|
 | D1 | Budżet płatnych testów: do ok. 20 zł, gdy to naprawdę pomaga przetestować (rejestr w docs/KOSZTY-TESTOW.md) | ✅ przyjęte |
 | D2 | **Bez technicznych danych dla użytkownika**: w oknach nie ma nazw modeli, tokenów, „1K/2K”, angielskich promptów; jakość opisana słowami; opis obrazu pokazywany po polsku (prompt techniczny tylko wewnątrz) | do zrobienia |
-| D3 | **Komiks jako dodatek do rodzaju publikacji**: przy nowym projekcie wybór formy – książka, broszura (z sugestią okładki), zwykłe kartki, prezentacja / PDF na ekran (komiks elektroniczny) – i przełącznik „To komiks” (sekcja komiksu, pasek, scenariusz) | do zrobienia |
+| D3 | **Komiks jako dodatek do rodzaju publikacji**: przy nowym projekcie wybór formy – książka, broszura (z sugestią okładki), zwykłe kartki, prezentacja / PDF na ekran (komiks elektroniczny) – i przełącznik „To komiks” (sekcja komiksu, pasek, scenariusz) | ✅ #379 |
 | D4 | **Sprawdzić czat Makietki z Gemini na żywo**: czy wykonuje polecenia (zmiany elementów przez narzędzia) i generuje obrazy | do zrobienia |
 | D5 | **Lokalizacje jako tła/ujęcia**: obraz lokalizacji wgrany albo wygenerowany; postacie pojawiają się na tym tle w kadrach (obraz miejsca jako odniesienie) | częściowo (#374 – obraz miejsca jako odniesienie) |
 | D6 | **Ujęcia w scenariuszu**: kolumna „ujęcie” – widok ogólny, plan średni, zbliżenie na postać, z góry, zza pleców…; lista do wyboru; używane w opisie kadru | ✅ #378 |
@@ -90,7 +90,7 @@ teksty, tłumaczenie i obrazy w zwykłych trybach”.
 | D8 | Trzy jednakowe ikony czatu – różne ikony i jasne nazwy | ✅ #377 |
 | D9 | **Mniej narzędzi w pasku komiksu**: kilka głównych przycisków, reszta w menu („Więcej”), kroki w logicznej kolejności | ✅ #377 (Kadry, Dymek ▾, Komiks; AI ▾) |
 | D10 | **Spójna całość**: scenariusz, postacie, miejsca i ujęcia połączone – w scenariuszu wybór postaci/miejsca/ujęcia z list (z kart), jedno okno „Komiks” z zakładkami albo kroki | ✅ #377–#378 (okno Komiks + okno Scenariusz z listami z kart) |
-| D11 | **Ponowne generowanie z zapisanego opisu**: przy obrazie kadru widać, z czego powstał (po polsku), „Narysuj jeszcze raz” bez składania od nowa; edycja opisu | częściowo (#372 – „jeszcze raz” w oknie Obraz AI) |
+| D11 | **Ponowne generowanie z zapisanego opisu**: przy obrazie kadru widać, z czego powstał (po polsku), „Narysuj jeszcze raz” bez składania od nowa; edycja opisu | ✅ #378 (opis przy obrazie kadru, „Opis ze scenariusza”, miniatura) |
 | D12 | **Instrukcja na koniec**: wszystkie kroki komiksu dokładnie; osobno teksty AI, tłumaczenie i obrazy AI w zwykłych projektach | do zrobienia |
 
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)

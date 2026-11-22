@@ -83,8 +83,10 @@ export const SZABLONY_PROJEKTOW = [
   {
     id: 'komiks', nazwa: 'Komiks', kategoria: 'ksiazki', paleta: 'pastel',
     opis: t('szablonyProjektow.komiksOpis'),
-    slowa: 'komiks comic kadry dymki scenariusz manga zeszyt', oprawa: 'zeszytowa', komiks: true,
-    pytania: [pytanieFormatu('170x260', [['170x260', 'Komiks – 170 × 260 mm'], ['210x297', 'A4 – 210 × 297 mm'], ['148x210', 'A5 – 148 × 210 mm']]),
+    slowa: 'komiks comic kadry dymki scenariusz manga zeszyt broszura ksiazka prezentacja ekran', oprawa: 'zeszytowa', komiks: true,
+    // Forma (D3): komiks to dodatek do rodzaju publikacji – zeszyt z okładką, książka, luźne kartki albo na ekran.
+    pytania: [{ klucz: 'forma', etykieta: t('szablonyProjektow.formaKomiksu'), typ: 'wybor', domyslna: 'zeszyt', opcje: [['zeszyt', t('szablonyProjektow.formaZeszyt')], ['ksiazka', t('szablonyProjektow.formaKsiazka')], ['kartki', t('szablonyProjektow.formaKartki')], ['ekran', t('szablonyProjektow.formaEkran')]] },
+      pytanieFormatu('170x260', [['170x260', 'Komiks – 170 × 260 mm'], ['210x297', 'A4 – 210 × 297 mm'], ['148x210', 'A5 – 148 × 210 mm']]),
       pytanieStron('24', STRONY(8, 4, 15)), pytanieKrotnosci('4', ['4', '8', '16'])],
   },
   {
@@ -105,9 +107,18 @@ export function domyslneOpcjeProjektu(szablon) {
 
 const OPRAWY = { twarda: 'Okładka twarda', miekka: 'Okładka miękka', zeszytowa: 'Okładka zeszytowa' };
 
+// Komiks (D3): oprawa z wybranej formy – zeszyt (okładka zeszytowa), książka (miękka), kartki i ekran (bez okładki).
+const OPRAWA_FORMY = { zeszyt: 'zeszytowa', ksiazka: 'miekka', kartki: null, ekran: null };
+function wedlugFormy(szablon, o) {
+  if (!szablon.komiks) return szablon;
+  return { ...szablon, oprawa: OPRAWA_FORMY[o.forma] ?? (o.forma ? null : szablon.oprawa) };
+}
+
 // Krótki opis zestawu sekcji – na karcie i w szczegółach.
-export function sekcjeSzablonu(szablon, odpowiedzi = domyslneOpcjeProjektu(szablon)) {
-  const o = { ...domyslneOpcjeProjektu(szablon), ...odpowiedzi };
+export function sekcjeSzablonu(szablon0, odpowiedzi = domyslneOpcjeProjektu(szablon0)) {
+  const o = { ...domyslneOpcjeProjektu(szablon0), ...odpowiedzi };
+  const szablon = wedlugFormy(szablon0, o);
+  if (szablon.komiks && (o.forma === 'kartki' || o.forma === 'ekran')) return [t(o.forma === 'ekran' ? 'szablonyProjektow.komiksNaEkran' : 'szablonyProjektow.komiksKartki', { stron: o.stron })];
   const blok = szablon.blok ? 'blok z szablonu' : `blok ${o.stron} stron (krotność ${o.skladka})`;
   return [
     szablon.oprawa && OPRAWY[szablon.oprawa],
@@ -134,7 +145,7 @@ const U = (id) => UJECIA[id][biezacyJezyk()] || UJECIA[id].pl; // nazwa ujęcia 
 
 // Komiks (#364): sekcja typu „Komiks” z kadrami na każdej stronie (pierwsza – duży kadr u góry, dalej siatka 2 × 2)
 // i scenariuszem z przykładem – od razu widać, jak działa „Ustaw dymki”.
-function komiksWBloku(p, blok) {
+export function komiksWBloku(p, blok, { przyklad = true } = {}) {
   blok.typ = 'komiks';
   blok.nazwa = 'Komiks';
   stylKomiksu(p, 'dialog');
@@ -149,7 +160,7 @@ function komiksWBloku(p, blok) {
   p.tabele = [...(p.tabele || []), {
     id: uid('t'), nazwa: 'Scenariusz', kolumny: [...KOLUMNY_SCENARIUSZA],
     // strona, kadr, ujęcie, miejsce, w kadrze, opis sceny, postać, tekst, rodzaj
-    wiersze: [
+    wiersze: !przyklad ? [] : [
       ['1', '1', U('ogolny'), t('komiks.szablonMiejsce'), '', t('komiks.szablon1Scena'), '', t('komiks.szablon1'), 'narracja'],
       ['1', '2', U('pelny'), t('komiks.szablonMiejsce'), '', t('komiks.szablon2Scena'), t('komiks.szablonAla'), t('komiks.szablon2'), 'krzyk'],
       ['1', '3', U('sredni'), '', '', t('komiks.szablon3Scena'), t('komiks.szablonOla'), t('komiks.szablon3'), 'mowa'],
@@ -158,6 +169,7 @@ function komiksWBloku(p, blok) {
     ],
   }];
   // Karty postaci i miejsca (#368) z przykładem – obraz wzorcowy dodaje użytkownik.
+  if (!przyklad) return;
   const noweId = () => uid('t');
   zapiszKarte(p, 'postacie', { imie: t('komiks.szablonAla'), wyglad: t('komiks.szablonAlaWyglad'), znak: t('komiks.szablonAlaZnak') }, { nazwa: t('komiks.postacie'), noweId });
   zapiszKarte(p, 'postacie', { imie: t('komiks.szablonOla'), wyglad: t('komiks.szablonOlaWyglad'), znak: t('komiks.szablonOlaZnak') }, { nazwa: t('komiks.postacie'), noweId });
@@ -166,11 +178,14 @@ function komiksWBloku(p, blok) {
 
 // Buduje cały projekt z szablonu. opcje: { nazwa, odpowiedzi, paleta (obiekt albo klucz), czcionki }.
 export async function zbudujProjekt(id, opcje = {}) {
-  const sz = szablonProjektu(id);
-  if (!sz) throw new Error(`Nie ma szablonu projektu „${id}”.`);
-  const o = { ...domyslneOpcjeProjektu(sz), ...(opcje.odpowiedzi || {}) };
-  const [w, h] = String(o.format || '148x210').split('x').map(Number);
-  const wydruk = normalizujWydruk({ format: 'wlasny', szerokosc_mm: w, wysokosc_mm: h, spad_mm: 3, marginesy_mm: Math.round(Math.min(w, h) * 0.1), znaki_ciecia: true });
+  const sz0 = szablonProjektu(id);
+  if (!sz0) throw new Error(`Nie ma szablonu projektu „${id}”.`);
+  const o = { ...domyslneOpcjeProjektu(sz0), ...(opcje.odpowiedzi || {}) };
+  const sz = wedlugFormy(sz0, o);
+  const ekran = sz.komiks && o.forma === 'ekran'; // komiks na ekran: poziomo 16:9, bez spadu i znaków cięcia
+  const [w, h] = ekran ? [297, 167] : String(o.format || '148x210').split('x').map(Number);
+  const wydruk = normalizujWydruk({ format: 'wlasny', szerokosc_mm: w, wysokosc_mm: h, spad_mm: ekran ? 0 : 3, marginesy_mm: Math.round(Math.min(w, h) * 0.1), znaki_ciecia: !ekran });
+  if (sz.komiks && !sz.oprawa) o.skladka = '1'; // kartki i ekran – dowolna liczba stron
   const p = nowyProjekt(opcje.nazwa || sz.nazwa, wydruk, 'rozkladowki');
   p.style = domyslneStyle();
   const wspolne = { wydruk, wlasnyFormat: false, paleta: opcje.paleta || sz.paleta, czcionki: opcje.czcionki };

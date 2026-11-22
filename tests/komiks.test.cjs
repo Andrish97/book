@@ -491,3 +491,45 @@ test('komiks: okno Scenariusz – kadry z ujęciem i miejscem z listy, kto w kad
   ]);
   assert.deepEqual(bledy, []);
 });
+
+test('komiks: forma – zeszyt, książka, luźne kartki, na ekran (D3)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Formy');
+  const w = await strona.evaluate(async () => {
+    const m = await import('./js/szablony-projektow.js');
+    const sz = m.szablonProjektu('komiks');
+    const out = {};
+    for (const forma of ['zeszyt', 'ksiazka', 'kartki', 'ekran']) {
+      const p = await m.zbudujProjekt('komiks', { odpowiedzi: { forma, stron: '10' } });
+      const kom = p.sekcje.find((x) => x.typ === 'komiks');
+      out[forma] = { sekcje: p.sekcje.map((x) => `${x.typ}${x.okladka ? `:${x.okladka.oprawa}` : ''}`), stron: p.strony.filter((x) => x.sekcja === kom.id).length, format: [kom.wydruk.szerokosc_mm, kom.wydruk.wysokosc_mm, kom.wydruk.spad_mm], opis: m.sekcjeSzablonu(sz, { forma, stron: '10' }).join(', ') };
+    }
+    return out;
+  });
+  assert.deepEqual(w.zeszyt.sekcje, ['okladka:zeszytowa', 'komiks']);
+  assert.equal(w.zeszyt.stron, 12, 'zeszyt – wielokrotność 4');
+  assert.deepEqual(w.ksiazka.sekcje, ['okladka:miekka', 'komiks']);
+  assert.deepEqual(w.kartki.sekcje, ['komiks']);
+  assert.equal(w.kartki.stron, 10, 'kartki – dowolna liczba stron');
+  assert.deepEqual(w.ekran.sekcje, ['komiks']);
+  assert.deepEqual(w.ekran.format, [297, 167, 0], 'na ekran: poziomo 16:9 bez spadu');
+  assert.match(w.ekran.opis, /na ekran/);
+  assert.deepEqual(bledy, []);
+});
+
+test('komiks: pusty projekt z przełącznikiem „To komiks” i okładką zeszytową (D3)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.locator('[data-akcja="nowy-projekt"]:visible').first().click();
+  await strona.waitForSelector('#dlg-nowy[open]');
+  await strona.fill('#form-nowy [name="nazwa"]', 'Mój zeszyt komiksowy');
+  await strona.selectOption('#form-nowy select[name="okladka"]', 'zeszytowa');
+  await strona.check('#form-nowy input[name="komiks"]', { force: true });
+  await strona.click('#form-nowy button[value=ok]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Mój zeszyt komiksowy' && window.seriodruk.edytor?.wydruk);
+  const p = await strona.evaluate(() => { const x = window.seriodruk.stan.projekt; return { sekcje: x.sekcje.map((s) => s.typ || (s.okladka ? 'okladka' : 'zwykla')), kadry: x.strony.map((s) => (s.obiekty || []).filter((o) => o.kadr_nr).length), scen: x.tabele.some((tb) => tb.kolumny.includes('ujęcie')), style: x.style.filter((s) => s.komiks).length }; });
+  assert.deepEqual(p.sekcje, ['okladka', 'komiks']);
+  assert.deepEqual(p.kadry, [0, 3], 'okładka bez kadrów, strona komiksu z kadrami');
+  assert.equal(p.scen, true);
+  assert.equal(p.style, 2);
+  assert.deepEqual(bledy, []);
+});
