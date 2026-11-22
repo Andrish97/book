@@ -358,24 +358,56 @@ body.w-komiksie .pasek-narzedzi .tylko-komiks { display: inline-flex; }
 .uklad-kadrow input { position: absolute; opacity: 0; pointer-events: none; }
 .uklad-kadrow:has(input:checked) { border-color: var(--akcent); background: var(--akcent-tlo); }
 .uklad-kadrow:has(input:focus-visible) { outline: 2px solid var(--akcent); outline-offset: 2px; }
+/* Szersze okna komiksu i AI (#377–#378): domyślne okno ma 480 px */
+#dlg-komiks, #dlg-postacie { width: min(680px, calc(100vw - 24px)); }
+#dlg-scenariusz, #dlg-rysuj-kadry, #dlg-scenariusz-ai { width: min(840px, calc(100vw - 24px)); }
+#dlg-ai-obraz, #dlg-ai-tekst, #dlg-ai-kolumna { width: min(560px, calc(100vw - 24px)); }
+/* Okno „Komiks” krok po kroku (#377) */
+.kroki-komiksu { list-style: none; margin: 4px 0 8px; padding: 0; display: grid; gap: 10px; }
+.krok-komiksu { display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 12px 14px; border: 1px solid var(--linia); border-radius: var(--r-m); background: var(--powierzchnia); }
+.nr-kroku { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: var(--akcent); background: var(--akcent-tlo); }
+.tresc-kroku h3 { margin: 2px 0 2px; font-size: 16px; }
+.tresc-kroku p { margin: 0 0 6px; }
+.stan-kroku { font-weight: 600; font-size: 13px; }
+.przyciski-kroku { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.przyciski-kroku .przycisk { display: inline-flex; align-items: center; gap: 6px; }
+.miniatury-komiksu { display: flex; gap: 6px; margin: 2px 0 8px; }
+.miniatury-komiksu img, .miniatury-komiksu .bez-obrazu { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--akcent-tlo); display: grid; place-items: center; font-weight: 700; color: var(--akcent); border: 2px solid var(--powierzchnia); box-shadow: 0 0 0 1px var(--linia); }
+@media (max-width: 560px) { .krok-komiksu { grid-template-columns: 1fr; } .nr-kroku { display: none; } }
+.menu-przycisku { min-width: 260px; z-index: 70; }
+.menu-przycisku button > span { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+.menu-przycisku small { font-size: 12px; }
+/* Okno „Scenariusz” (#378): strony → kadry → kwestie */
+.strony-scenariusza { display: grid; gap: 14px; max-height: 62vh; overflow: auto; padding-right: 4px; }
+.strona-scenariusza { display: grid; gap: 8px; }
+.strona-scenariusza h3 { margin: 4px 0 0; font-size: 15px; }
+.kadr-scenariusza { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--linia); border-left: 4px solid var(--akcent); border-radius: var(--r-s); background: var(--powierzchnia); }
+.naglowek-kadru { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.naglowek-kadru b { min-width: 56px; }
+.naglowek-kadru select { flex: 1 1 140px; }
+.naglowek-kadru .przycisk-ikona { margin-left: auto; }
+.opis-kadru input, .kwestia input[name="tekst"] { width: 100%; }
+.w-kadrze { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.w-kadrze .znacznik { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border: 1px solid var(--linia); border-radius: 999px; font-size: 13px; cursor: pointer; }
+.w-kadrze .znacznik:has(input:checked) { border-color: var(--akcent); background: var(--akcent-tlo); }
+.kwestie { display: grid; gap: 6px; }
+.kadr-scenariusza > .przycisk, .strona-scenariusza > .przycisk, .strony-scenariusza > .przycisk { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
+.kwestia select[name="rodzaj"][hidden] { display: block; visibility: hidden; }
+.kwestia { display: grid; grid-template-columns: 130px 110px 1fr auto; gap: 6px; align-items: center; }
+@media (max-width: 640px) { .kwestia { grid-template-columns: 1fr 1fr auto; } .kwestia input[name="tekst"] { grid-column: 1 / -1; grid-row: 2; } }
 /* Okno „Generuj obraz (AI)” (#372) */
-#dlg-ai-obraz .formularz { width: min(560px, 100%); }
 #dlg-ai-obraz .rzad { display: flex; gap: 12px; flex-wrap: wrap; }
 #dlg-ai-obraz .rzad .pole { flex: 1 1 160px; }
 .koszt-ai { font-weight: 600; }
-#dlg-scenariusz-ai .formularz { width: min(680px, 100%); }
 .podglad-scenariusza .przewijany { max-height: 40vh; overflow: auto; }
 .tabela-podgladu { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tabela-podgladu td { border-top: 1px solid var(--linia); padding: 4px 6px; vertical-align: top; }
-#dlg-rysuj-kadry .formularz { width: min(640px, 100%); }
 .kadry-ai { display: grid; gap: 10px; max-height: 50vh; overflow: auto; margin-bottom: 10px; }
 .kadr-ai textarea { width: 100%; font-size: 13px; }
-#dlg-ai-tekst .formularz { width: min(560px, 100%); }
 .czynnosci-ai { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .czynnosci-ai .przycisk[aria-pressed="true"] { border-color: var(--akcent); background: var(--akcent-tlo); }
 .blad-ai { color: var(--blad); }
 /* Okno „Postacie i miejsca” (#368): karty z obrazem wzorcowym */
-.okno-postaci .formularz { width: min(640px, 100%); }
 .karty-komiksu { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; margin: 6px 0 14px; }
 .karta-komiksu { display: flex; flex-direction: column; gap: 4px; align-items: stretch; text-align: left; padding: 8px; border: 1px solid var(--linia); border-left: 4px solid var(--kolor-karty, var(--linia)); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz); cursor: pointer; font: inherit; min-height: 44px; }
 .karta-komiksu:hover { border-color: var(--akcent); }

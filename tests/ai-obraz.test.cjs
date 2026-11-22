@@ -5,7 +5,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const zlib = require('node:zlib');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, krokKomiksu, zMenu } = require('./pomoc.cjs');
 
 // PNG 2 × 2 w jednym kolorze (każde wywołanie atrapy – inny obraz).
 function png(r, g, b) {
@@ -30,7 +30,7 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   await strona.evaluate(() => localStorage.removeItem('makietka-ai-wydatki'));
   // Bez klucza: czytelny komunikat w oknie (sejf otwarty, ale pusty).
   await strona.evaluate(async () => { const { sejfKonta } = await import('./js/app/sejf-ai.js'); await sejfKonta().zaloz('haslo-do-kluczy-1'); });
-  await strona.click('[data-akcja="generuj-obraz"]');
+  await zMenu(strona, 'ai-menu', 'obraz');
   const dlg = strona.locator('#dlg-ai-obraz');
   await dlg.waitFor();
   assert.match(await dlg.locator('.koszt-ai').textContent(), /Koszt: ok\. 0,14 zł\. W tym miesiącu: 0,00 zł\./);
@@ -45,7 +45,7 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   // Ramka: prostokąt 60 × 80 mm → proporcje 3:4, obraz w środku prostokąta.
   await strona.click('[data-akcja="dodaj-prostokat"]');
   await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; o.set({ width: 60, height: 80, scaleX: 1, scaleY: 1 }); o.setCoords(); });
-  await strona.click('[data-akcja="generuj-obraz"]');
+  await zMenu(strona, 'ai-menu', 'obraz');
   await dlg.waitFor();
   assert.equal(await dlg.locator('select[name="proporcja"]').inputValue(), '3:4');
   assert.match(await dlg.locator('p.ciche').textContent(), /wypełni zaznaczoną ramkę/);
@@ -75,7 +75,7 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   assert.ok(Math.abs(wynik.miesiac - wynik.projekt) < 1e-6);
 
   // Ta sama ramka jeszcze raz: okno z poprzednim opisem; poprzedni obraz zostaje w obrazach projektu.
-  await strona.click('[data-akcja="generuj-obraz"]');
+  await zMenu(strona, 'ai-menu', 'obraz');
   assert.equal(await dlg.locator('textarea[name="opis"]').inputValue(), 'Kot w kapeluszu na dachu');
   assert.match(await dlg.locator('p.ciche').textContent(), /poprzednia wersja zostaje w obrazach projektu/);
   await dlg.locator('textarea[name="opis"]').fill('Kot w kapeluszu na dachu, noc');
@@ -85,7 +85,7 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   // Limit miesięczny: 0,10 zł – kolejne generowanie odmówione bez zapytania.
   await strona.evaluate(async () => (await import('./js/ai-koszty.js')).ustawLimit(0.1));
   await strona.evaluate(() => window.seriodruk.edytor.canvas.discardActiveObject());
-  await strona.click('[data-akcja="generuj-obraz"]');
+  await zMenu(strona, 'ai-menu', 'obraz');
   await dlg.locator('textarea[name="opis"]').fill('Pies');
   assert.match(await dlg.locator('.koszt-ai').textContent(), /Limit: 0,10 zł/);
   await dlg.locator('button[value="tak"]').click();

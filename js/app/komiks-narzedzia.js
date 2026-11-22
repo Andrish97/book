@@ -25,6 +25,8 @@ import { MODEL_TEKSTU, kosztZUzycia, zapiszWydatek, szacujTekst } from '../ai-ko
 import { czytajPlikTekstu } from '../import-tekstu.js';
 import { otwartySejf } from './sejf-ai.js';
 import { elementKadru } from '../kadry.js';
+import { KOLUMNY_SCENARIUSZA } from '../komiks-scenariusz.js';
+import { menuPrzy } from './menu-przycisku.js';
 import { generujIWstaw } from './generuj-obraz.js';
 import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu } from '../ai-koszty.js';
 import { proporcjaRamki } from '../ai-obrazy.js';
@@ -108,11 +110,12 @@ export function oknoKadrow() {
       <div class="rzad"><label class="pole waskie"><span>${t('komiks.rynna')}</span><input type="number" name="rynna" min="0" max="20" step="0.5" value="4" inputmode="decimal"></label>
       <label class="przelacznik szeroki"><input type="checkbox" name="spad"><span>${t('komiks.naSpad')}</span></label></div>
       <p class="ciche">${t('komiks.kadryZastapia')}</p>
-      <div class="przyciski-dialogu"><button class="przycisk" value="nie">${t('komiks.anuluj')}</button><button class="przycisk glowny" value="tak">${t('komiks.ulozKadry')}</button></div></form>`;
+      <div class="przyciski-dialogu"><button class="przycisk" value="podziel" data-ikona="linia" title="${t('pasekNarzedzi.komiksPodzielOpis')}">${t('pasekNarzedzi.komiksPodziel')}</button><button class="przycisk" value="nie">${t('komiks.anuluj')}</button><button class="przycisk glowny" value="tak">${t('komiks.ulozKadry')}</button></div></form>`;
     document.body.append(dlg);
   }
   const f = dlg.querySelector('form');
   dlg.addEventListener('close', () => {
+    if (dlg.returnValue === 'podziel') { zacznijPodzial(); return; } // podział kadru linią (#377 – zamiast osobnego przycisku)
     if (dlg.returnValue !== 'tak') return;
     const rynna = Math.max(0, Math.min(20, Number(String(f.elements.rynna.value).replace(',', '.')) || 0));
     const ile = ulozKadry(f.elements.uklad.value, { rynna, naSpadStrony: f.elements.spad.checked });
@@ -128,12 +131,12 @@ export const narzedziePodzialu = () => Boolean(podzial);
 export function zacznijPodzial() {
   if (!wKomiksie()) return;
   podzial = { a: null };
-  document.querySelector('[data-akcja="komiks-podziel"]')?.setAttribute('aria-pressed', 'true');
+  document.querySelector('[data-akcja="komiks-kadry"]')?.setAttribute('aria-pressed', 'true');
   powiadom(t('komiks.podzielPodpowiedz'));
 }
 export function zakonczPodzial() {
   podzial = null;
-  document.querySelector('[data-akcja="komiks-podziel"]')?.setAttribute('aria-pressed', 'false');
+  document.querySelector('[data-akcja="komiks-kadry"]')?.setAttribute('aria-pressed', 'false');
 }
 
 // Dzieli kadry przecięte linią a→b; zwraca liczbę podzielonych kadrów.
@@ -168,8 +171,8 @@ export function podlaczKomiks() {
 }
 
 // ---------- Scenariusz i dymki z tabeli ----------
-export const KOLUMNY_SCENARIUSZA = ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny'];
-const scenariuszProjektu = () => (stan.projekt.tabele || []).find((tb) => kolumnyDialogu(tb).strona >= 0 && kolumnyDialogu(tb).tekst >= 0);
+export { KOLUMNY_SCENARIUSZA };
+export const scenariuszProjektu = () => (stan.projekt.tabele || []).find((tb) => kolumnyDialogu(tb).strona >= 0 && kolumnyDialogu(tb).tekst >= 0);
 
 // Tabela scenariusza (tworzona przy pierwszym użyciu – z przykładowym wierszem) i okno Dane na niej.
 export async function otworzScenariusz({ bezOkna = false } = {}) {
@@ -177,7 +180,7 @@ export async function otworzScenariusz({ bezOkna = false } = {}) {
   let tb = scenariuszProjektu();
   if (!tb) {
     zapiszBiezacyCel();
-    tb = { id: `t_scenariusz_${Date.now().toString(36)}`, nazwa: t('komiks.scenariusz'), kolumny: [...KOLUMNY_SCENARIUSZA], wiersze: [['1', '1', t('komiks.przykladPostac'), t('komiks.przykladTekst'), 'mowa', '']] };
+    tb = { id: `t_scenariusz_${Date.now().toString(36)}`, nazwa: t('komiks.scenariusz'), kolumny: [...KOLUMNY_SCENARIUSZA], wiersze: [['1', '1', '', '', '', '', t('komiks.przykladPostac'), t('komiks.przykladTekst'), 'mowa']] };
     p.tabele = [...(p.tabele || []), tb];
     zaplanujZapis();
   }
@@ -213,7 +216,7 @@ export async function ustawDymki({ kolumnaTekstu = null } = {}) {
 }
 
 // Wybór wersji językowej przed ustawieniem dymków, gdy scenariusz ma kilka kolumn tekstu (tekst_pl, tekst_en…).
-async function ustawDymkiZWyborem() {
+export async function ustawDymkiZWyborem() {
   const tb = scenariuszProjektu();
   const kolumny = tb ? kolumnyTekstu(tb) : [];
   if (kolumny.length <= 1) return ustawDymki();
@@ -298,7 +301,7 @@ export async function importujStrony(pliki) {
   powiadom(t('komiks.wgrano', { strony: plan.strony.length, kadry }) + (pominiete.length ? ` ${t('komiks.pominieto', { lista: pominiete.slice(0, 3).join('; ') })}` : ''), pominiete.length > 0);
   return { strony: plan.strony.length, kadry, pominiete };
 }
-function wybierzStrony() {
+export function wybierzStrony() {
   let wej = $('#plik-strony-komiksu');
   if (!wej) {
     wej = Object.assign(document.createElement('input'), { type: 'file', id: 'plik-strony-komiksu', multiple: true, accept: 'image/*,.zip', hidden: true });
@@ -386,7 +389,7 @@ export function planKadrowStrony() {
   const strony = stronyKomiksu(p);
   const nr = strony.indexOf(p.strony[stan.indeks]) + 1;
   const kadry = kadryNaStronie().sort((a, b) => a.kadr_nr - b.kadr_nr);
-  const plan = kadryStrony(p, scenariuszProjektu(), nr, kadry.length);
+  const plan = kadryStrony(p, scenariuszProjektu(), nr, kadry.length, biezacyJezyk());
   return { nr, pozycje: plan.map((x, i) => ({ ...x, obiekt: kadry[i] })) };
 }
 // Rysowanie kadrów po kolei (okno [Rysuj kadry] i czat AI): obrazy wzorcowe kart, styl projektu, proporcje kadru.
@@ -542,9 +545,21 @@ export function oknoScenariuszaAi() {
   dlg.showModal();
 }
 
+// [Dymek ▾] (#377): rodzaje dymków, efekt dźwiękowy i mostek w jednym menu.
+export function menuDymka() {
+  const b = document.querySelector('[data-akcja="komiks-dymek"]');
+  const dymek = (rodzaj) => () => wStyluKomiksu(edytor.dodajDymek(rodzaj), 'dialog');
+  menuPrzy(b, [
+    ...['mowa', 'mysl', 'krzyk', 'szept', 'narracja'].map((r) => ({ ikona: 'dymek', tekst: t(`komiks.rodzaj_${r}`), wartosc: r, wykonaj: dymek(r) })),
+    '-',
+    { ikona: 'tekst', tekst: t('komiks.stylEfekt'), opis: t('komiks.efektOpis'), wartosc: 'efekt', wykonaj: efektDzwiekowy },
+    { ikona: 'link', tekst: t('pasekNarzedzi.komiksMostek'), opis: t('komiks.mostekOpis'), wartosc: 'mostek', wykonaj: mostekDymkow },
+  ]);
+}
+
 // Pasek narzędzi: przyciski z data-akcja="komiks-…".
 export function obsluzAkcjeKomiksu(akcja) {
-  if (akcja === 'komiks-dymek') return dymekWStylu();
+  if (akcja === 'komiks-dymek') return menuDymka();
   if (akcja === 'komiks-efekt') return efektDzwiekowy();
   if (akcja === 'komiks-kadry') return oknoKadrow();
   if (akcja === 'komiks-podziel') return narzedziePodzialu() ? zakonczPodzial() : zacznijPodzial();

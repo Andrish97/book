@@ -115,7 +115,7 @@ function formularz(dlg, rodzaj, karta) {
     if (!k[RODZAJE_KART[rodzaj].pola[0]]) { f.elements[RODZAJE_KART[rodzaj].pola[0]].reportValidity(); return; }
     zAi.disabled = true; zAi.textContent = t('aiObraz.trwa');
     try {
-      const w = await generujIWstaw({ opis: rodzaj === 'postacie' ? opisWzorcaPostaci(k) : opisWzorcaMiejsca(k), jakosc: 'szkic', proporcja: rodzaj === 'postacie' ? '3:4' : '4:3', styl: stylProjektu(stan.projekt), naStrone: false, potwierdzono: true });
+      const w = await generujIWstaw({ opis: rodzaj === 'postacie' ? opisWzorcaPostaci(k, biezacyJezyk()) : opisWzorcaMiejsca(k, biezacyJezyk()), jakosc: 'szkic', proporcja: rodzaj === 'postacie' ? '3:4' : '4:3', styl: stylProjektu(stan.projekt), naStrone: false, potwierdzono: true });
       k.obraz = w.nazwa;
       podglad.replaceChildren(miniatura(w.nazwa));
       wybierz.textContent = t('komiks.zmienObraz');

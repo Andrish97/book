@@ -109,3 +109,17 @@ test('webtoon: strony pocięte na kawałki do 1280 px (#371)', async () => {
   assert.deepEqual(k[0].czesci, [{ strona: 0, sy: 0, dy: 0, h: 1000 }, { strona: 1, sy: 0, dy: 1000, h: 280 }]);
   assert.deepEqual(k[1].czesci, [{ strona: 1, sy: 280, dy: 0, h: 720 }, { strona: 2, sy: 0, dy: 720, h: 500 }]);
 });
+
+test('scenariusz jako struktura: strony → kadry → kwestie, zapis do tabeli i z powrotem (#378)', async () => {
+  const m = await modul('komiks-scenariusz.js');
+  const tb = { kolumny: ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'tekst_en'], wiersze: [['1', '1', 'Ala', 'Hej', 'mowa', 'Hi'], ['1', '1', 'Ola', 'Cześć', 'mowa', 'Hello'], ['1', '2', '', '', '', '']] };
+  const s = m.scenariuszZTabeli(tb);
+  assert.deepEqual(s.map((x) => [x.nr, x.kadry.map((k) => [k.nr, k.kwestie.length])]), [[1, [[1, 2], [2, 0]]]]);
+  s[0].kadry[1].ujecie = 'zbliżenie'; s[0].kadry[1].wKadrze = ['Ala']; s[0].kadry[1].opis = 'Ala patrzy';
+  m.scenariuszDoTabeli(tb, s);
+  assert.deepEqual(tb.kolumny, ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'tekst_en', 'ujęcie', 'miejsce', 'w kadrze', 'opis sceny']);
+  assert.deepEqual(tb.wiersze[1], ['1', '1', 'Ola', 'Cześć', 'mowa', 'Hello', '', '', '', ''], 'tekst_en zostaje przy kwestii');
+  assert.deepEqual(tb.wiersze[2], ['1', '2', '', '', '', '', 'zbliżenie', '', 'Ala', 'Ala patrzy'], 'kadr bez kwestii – wiersz bez tekstu');
+  assert.equal(m.idUjecia('Close-up'), 'zblizenie');
+  assert.equal(m.idUjecia('загальний план'), 'ogolny');
+});

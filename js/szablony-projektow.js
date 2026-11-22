@@ -10,7 +10,8 @@ import { domyslneStyle, stylKomiksu } from './style-tekstu.js';
 import { wstawGotowaSekcje, usunPustyStart } from './gotowe-sekcje.js';
 import { siatkaKadrow, elementKadru, UKLADY_KADROW } from './kadry.js';
 import { zapiszKarte } from './postacie.js';
-import { t } from './jezyk.js';
+import { KOLUMNY_SCENARIUSZA, UJECIA } from './komiks-scenariusz.js';
+import { t, biezacyJezyk } from './jezyk.js';
 
 export const FORMATY_KSIAZKI = [
   ['148x210', 'A5 – 148 × 210 mm'],
@@ -129,6 +130,8 @@ function pustaSekcja(projekt, typ, nazwa, wzor) {
   return sekcja;
 }
 
+const U = (id) => UJECIA[id][biezacyJezyk()] || UJECIA[id].pl; // nazwa ujęcia w języku interfejsu (#378)
+
 // Komiks (#364): sekcja typu „Komiks” z kadrami na każdej stronie (pierwsza – duży kadr u góry, dalej siatka 2 × 2)
 // i scenariuszem z przykładem – od razu widać, jak działa „Ustaw dymki”.
 function komiksWBloku(p, blok) {
@@ -144,13 +147,14 @@ function komiksWBloku(p, blok) {
     s.obiekty = siatkaKadrow(obszar, uklad(i ? '4-siatka' : '3-duzy-gora'), 4).map((k, j) => elementKadru(k, j + 1, { id: uid('o') }));
   });
   p.tabele = [...(p.tabele || []), {
-    id: uid('t'), nazwa: 'Scenariusz', kolumny: ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny'],
+    id: uid('t'), nazwa: 'Scenariusz', kolumny: [...KOLUMNY_SCENARIUSZA],
+    // strona, kadr, ujęcie, miejsce, w kadrze, opis sceny, postać, tekst, rodzaj
     wiersze: [
-      ['1', '1', '', t('komiks.szablon1'), 'narracja', t('komiks.szablon1Scena')],
-      ['1', '2', t('komiks.szablonAla'), t('komiks.szablon2'), 'krzyk', t('komiks.szablon2Scena')],
-      ['1', '3', t('komiks.szablonOla'), t('komiks.szablon3'), 'mowa', t('komiks.szablon3Scena')],
-      ['2', '1', t('komiks.szablonAla'), t('komiks.szablon4'), 'szept', t('komiks.szablon4Scena')],
-      ['2', '2', t('komiks.szablonOla'), t('komiks.szablon5'), 'mysl', t('komiks.szablon5Scena')],
+      ['1', '1', U('ogolny'), t('komiks.szablonMiejsce'), '', t('komiks.szablon1Scena'), '', t('komiks.szablon1'), 'narracja'],
+      ['1', '2', U('pelny'), t('komiks.szablonMiejsce'), '', t('komiks.szablon2Scena'), t('komiks.szablonAla'), t('komiks.szablon2'), 'krzyk'],
+      ['1', '3', U('sredni'), '', '', t('komiks.szablon3Scena'), t('komiks.szablonOla'), t('komiks.szablon3'), 'mowa'],
+      ['2', '1', U('sredni'), '', t('komiks.szablonOla'), t('komiks.szablon4Scena'), t('komiks.szablonAla'), t('komiks.szablon4'), 'szept'],
+      ['2', '2', U('zblizenie'), '', '', t('komiks.szablon5Scena'), t('komiks.szablonOla'), t('komiks.szablon5'), 'mysl'],
     ],
   }];
   // Karty postaci i miejsca (#368) z przykładem – obraz wzorcowy dodaje użytkownik.

@@ -12,6 +12,7 @@ import { zaplanujZapis } from './zapis.js';
 import { $, powiadom } from '../ui.js';
 import { stan, edytor } from './kontekst.js';
 import { t, biezacyJezyk } from '../jezyk.js';
+import { menuPrzy } from './menu-przycisku.js';
 
 // Dopisek do każdego opisu: obraz na całą ramkę (bez białych marginesów – pomiar C7 pokazał ramki wokół obrazu)
 // i tekst zawsze w Makietce, nigdy w obrazie (plan komiksu – zasady).
@@ -108,4 +109,19 @@ export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
   dlg.returnValue = '';
   dlg.showModal();
   f.elements.opis.focus();
+}
+
+// [AI ▾] (#377): jedno wejście do AI w każdym projekcie; w komiksie także kroki komiksu.
+export async function menuAi() {
+  const b = document.querySelector('[data-akcja="ai-menu"]');
+  const { oknoTekstuAi } = await import('./tekst-ai.js');
+  const komiks = document.body.classList.contains('w-komiksie');
+  const k = komiks ? await import('./komiks-narzedzia.js') : null;
+  menuPrzy(b, [
+    { ikona: 'obraz', tekst: t('aiMenu.obraz'), opis: t('aiMenu.obrazOpis'), wartosc: 'obraz', wykonaj: () => oknoGenerowania() },
+    { ikona: 'tekst', tekst: t('aiMenu.tekst'), opis: t('aiMenu.tekstOpis'), wartosc: 'tekst', wykonaj: () => oknoTekstuAi() },
+    ...(komiks ? ['-',
+      { ikona: 'kadry', tekst: t('pasekNarzedzi.komiksRysuj'), opis: t('aiMenu.rysujOpis'), wartosc: 'rysuj', wykonaj: () => k.oknoRysujKadry() },
+      { ikona: 'komiks', tekst: t('pasekNarzedzi.komiksScenariuszAi'), opis: t('aiMenu.scenariuszOpis'), wartosc: 'scenariusz', wykonaj: () => k.oknoScenariuszaAi() }] : []),
+  ]);
 }

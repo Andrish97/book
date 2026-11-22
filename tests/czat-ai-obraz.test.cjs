@@ -3,7 +3,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt, PNG_2X2 } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, PNG_2X2, krokKomiksu, zMenu } = require('./pomoc.cjs');
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
 function sse(w) {

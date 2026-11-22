@@ -4,7 +4,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, krokKomiksu, zMenu } = require('./pomoc.cjs');
 
 const kadryStrony = (strona) => strona.evaluate(() => {
   const e = window.seriodruk.edytor;
@@ -24,7 +24,9 @@ test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenarius
     p.sekcje[0].typ = 'komiks';
     await window.seriodruk.przeladuj();
   });
-  for (const a of ['komiks-dymek', 'komiks-kadry', 'komiks-podziel', 'komiks-scenariusz', 'komiks-dymki']) {
+  // #377: w pasku tylko trzy przyciski komiksu – reszta w menu [Dymek ▾] i w oknie „Komiks”.
+  assert.equal(await strona.locator('#pasek-narzedzi .tylko-komiks').count(), 3);
+  for (const a of ['komiks-kadry', 'komiks-dymek', 'komiks-okno']) {
     assert.equal(await strona.locator(`[data-akcja="${a}"]`).isVisible(), true, `w sekcji komiksu widać ${a}`);
   }
 
@@ -69,31 +71,34 @@ test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenarius
     }, [x, y]);
     await strona.mouse.click(p.x, p.y);
   };
-  await strona.click('[data-akcja="komiks-podziel"]');
-  assert.equal(await strona.getAttribute('[data-akcja="komiks-podziel"]', 'aria-pressed'), 'true');
+  await strona.click('[data-akcja="komiks-kadry"]');
+  await dlg.locator('button[value="podziel"]').click();
+  await strona.waitForFunction(() => document.querySelector('[data-akcja="komiks-kadry"]').getAttribute('aria-pressed') === 'true');
   await kliknij(20, 40);
   await kliknij(120, 60);
   kadry = await kadryStrony(strona);
   assert.equal(kadry.length, 3, 'górny kadr podzielony na dwa');
-  assert.equal(await strona.getAttribute('[data-akcja="komiks-podziel"]', 'aria-pressed'), 'false');
+  assert.equal(await strona.getAttribute('[data-akcja="komiks-kadry"]', 'aria-pressed'), 'false');
   assert.deepEqual(kadry.map((k) => k.nr), [1, 2, 3], 'numery od nowa w kolejności czytania');
 
   // Kadry zapisują się z numerem i wracają po ponownym wczytaniu strony.
   await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.przeladuj(); });
   assert.deepEqual((await kadryStrony(strona)).map((k) => k.nr), [1, 2, 3]);
 
-  // Scenariusz: tabela z kolumnami scenariusza i oknem Dane.
-  await strona.click('[data-akcja="komiks-scenariusz"]');
+  // Scenariusz: okno Scenariusz (#378) na tabeli z kolumnami scenariusza.
+  await krokKomiksu(strona, 'scenariusz');
+  await strona.waitForSelector('#dlg-scenariusz[open]');
   const tabela = await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('postać')));
-  assert.deepEqual(tabela.kolumny, ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny']);
+  assert.deepEqual(tabela.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
   assert.equal(tabela.wiersze.length, 1, 'przykładowy wiersz');
   await strona.keyboard.press('Escape');
   // Użytkownik wpisuje dialogi (tu – wprost w tabelę).
   await strona.evaluate((id) => {
     const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.id === id);
+    tb.kolumny = ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny']; // stary układ kolumn – rozpoznawany po nazwach
     tb.wiersze = [['1', '1', 'Ala', 'Cześć, Olu!', 'mowa', ''], ['1', '2', 'Ola', 'Hej!', 'krzyk', ''], ['1', '3', '', 'Tymczasem…', 'narracja', '']];
   }, tabela.id);
-  await strona.click('[data-akcja="komiks-dymki"]');
+  await krokKomiksu(strona, 'dymki');
   const dymki = () => strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).map((o) => ({ tekst: o.text, rodzaj: o.dymek.rodzaj, x: Math.round(o.left), y: Math.round(o.top), klucz: o.z_dialogu?.klucz })));
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 3);
   let d = await dymki();
@@ -112,7 +117,7 @@ test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenarius
     tb.wiersze[0][3] = 'Dzień dobry, Olu!';
   });
   const przed = (await dymki())[0];
-  await strona.click('[data-akcja="komiks-dymki"]');
+  await krokKomiksu(strona, 'dymki');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.text === 'Dzień dobry, Olu!'));
   d = await dymki();
   assert.equal(d.length, 3);
@@ -161,7 +166,7 @@ test('komiks: szablon projektu – okładka zeszytowa, strony z kadrami, scenari
   assert.equal(k.length, 3);
   assert.deepEqual([k[0].x, k[0].y, k[0].w], [10, 10, 151], 'kadr w marginesach 10 mm: 170 – 2 × 10 = 150 mm + obrys 0,6 mm');
   assert.deepEqual(await strona.evaluate(() => { const e = window.seriodruk.edytor; e.przeliczOstrzezenia(); return e.ostrzezenia.map((x) => x.typ); }), [], 'strona z szablonu bez ostrzeżeń');
-  await strona.click('[data-akcja="komiks-dymki"]');
+  await krokKomiksu(strona, 'dymki');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 3);
   const naStronach = await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => (s.obiekty || []).filter((o) => o.dymek).length).slice(0, 4));
   assert.deepEqual(naStronach, [0, 3, 2, 0], 'strona 1 scenariusza = pierwsza strona komiksu (okładka się nie liczy)');
@@ -174,8 +179,8 @@ test('komiks: style „Dialog” i „Efekt dźwiękowy” – dymki ze scenariu
   await strona.evaluate(async () => { window.seriodruk.stan.projekt.sekcje[0].typ = 'komiks'; await window.seriodruk.przeladuj(); });
   // Przed pierwszym użyciem stylów komiksu w projekcie nie ma.
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.style.filter((s) => s.komiks).length), 0);
-  await strona.click('[data-akcja="komiks-dymek"]');
-  await strona.click('[data-akcja="komiks-efekt"]');
+  await zMenu(strona, 'komiks-dymek', 'mowa');
+  await zMenu(strona, 'komiks-dymek', 'efekt');
   const wynik = await strona.evaluate(() => {
     const p = window.seriodruk.stan.projekt;
     const e = window.seriodruk.edytor;
@@ -192,12 +197,12 @@ test('komiks: style „Dialog” i „Efekt dźwiękowy” – dymki ze scenariu
   assert.deepEqual(wynik.dymek, [true, 'Comic Neue', 'wielkie', 'center']);
   assert.deepEqual(wynik.efekt, ['BUM!', 'Bangers', '#1a1a1a', 'stroke', true]);
   // Drugi dymek nie dodaje drugiego stylu.
-  await strona.click('[data-akcja="komiks-dymek"]');
+  await zMenu(strona, 'komiks-dymek', 'mowa');
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.style.filter((s) => s.komiks === 'dialog').length), 1);
   // Dymki ze scenariusza dostają styl „Dialog”.
-  await strona.click('[data-akcja="komiks-scenariusz"]');
+  await krokKomiksu(strona, 'scenariusz');
   await strona.keyboard.press('Escape');
-  await strona.click('[data-akcja="komiks-dymki"]');
+  await krokKomiksu(strona, 'dymki');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.z_dialogu).length === 1);
   const zeScenariusza = await strona.evaluate(() => {
     const p = window.seriodruk.stan.projekt;
@@ -213,7 +218,7 @@ test('komiks: karty postaci i miejsc – dodanie z obrazem i kolorem dymka, tabe
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Postacie');
   await strona.evaluate(async () => { window.seriodruk.stan.projekt.sekcje[0].typ = 'komiks'; await window.seriodruk.przeladuj(); });
-  await strona.click('[data-akcja="komiks-postacie"]');
+  await krokKomiksu(strona, 'postacie');
   const dlg = strona.locator('#dlg-postacie');
   await dlg.waitFor();
   assert.equal(await dlg.locator('.karta-komiksu:not(.dodaj)').count(), 0, 'na początku bez kart');
@@ -243,19 +248,20 @@ test('komiks: karty postaci i miejsc – dodanie z obrazem i kolorem dymka, tabe
   await dlg.locator('button[value="zamknij"]').click();
 
   // Dymki Ali ze scenariusza mają kolor z karty.
-  await strona.click('[data-akcja="komiks-scenariusz"]');
+  await krokKomiksu(strona, 'scenariusz');
   await strona.keyboard.press('Escape');
   await strona.evaluate(() => {
     const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('rodzaj'));
+    tb.kolumny = ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny']; // stary układ kolumn – rozpoznawany po nazwach
     tb.wiersze = [['1', '1', 'Ala', 'Cześć!', 'mowa', ''], ['1', '1', 'Ola', 'Hej!', 'mowa', '']];
   });
-  await strona.click('[data-akcja="komiks-dymki"]');
+  await krokKomiksu(strona, 'dymki');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.z_dialogu).length === 2);
   const kolory = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.z_dialogu).map((o) => [o.text, o.dymek.wypelnienie]));
   assert.deepEqual(kolory, [['Cześć!', '#ffeeaa'], ['Hej!', '#ffffff']]);
 
   // Poprawka karty (opis) i usunięcie.
-  await strona.click('[data-akcja="komiks-postacie"]');
+  await krokKomiksu(strona, 'postacie');
   await dlg.locator('.karta-komiksu:not(.dodaj)').first().click();
   assert.equal(await dlg.locator('input[name="imie"]').inputValue(), 'Ala');
   await dlg.locator('input[name="charakter"]').fill('odważna');
@@ -293,7 +299,7 @@ test('komiks: wgraj strony – 01.png na spad (kadry strony znikają, dymki zost
     z.file('__MACOSX/._03.png', 'x');
     return z.generateAsync({ type: 'base64' });
   }, PNG_2X2.toString('base64'));
-  await strona.click('[data-akcja="komiks-wgraj"]');
+  await krokKomiksu(strona, 'wgraj');
   await strona.setInputFiles('#plik-strony-komiksu', [
     { name: '01.png', mimeType: 'image/png', buffer: PNG_2X2 },
     { name: 's02-k1.png', mimeType: 'image/png', buffer: PNG_2X2 },
@@ -364,7 +370,7 @@ test('komiks: webtoon – strony komiksu jedna pod drugą, 800 px, kawałki do 1
     await window.seriodruk.przeladuj();
   });
   const pobranie = strona.waitForEvent('download');
-  await strona.click('[data-akcja="komiks-webtoon"]');
+  await krokKomiksu(strona, 'webtoon');
   const plik = await pobranie;
   assert.match(plik.suggestedFilename(), /^Pasek - webtoon\.zip$/);
   const wynik = await strona.evaluate(async () => {
@@ -391,13 +397,14 @@ test('komiks: mostek – kolejne kwestie postaci w kadrze połączone, ręczne �
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Mostek');
   await strona.evaluate(async () => { window.seriodruk.stan.projekt.sekcje[0].typ = 'komiks'; await window.seriodruk.przeladuj(); });
-  await strona.click('[data-akcja="komiks-scenariusz"]');
+  await krokKomiksu(strona, 'scenariusz');
   await strona.keyboard.press('Escape');
   await strona.evaluate(() => {
     const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('rodzaj'));
+    tb.kolumny = ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny']; // stary układ kolumn – rozpoznawany po nazwach
     tb.wiersze = [['1', '1', 'Ala', 'Słuchaj…', 'mowa', ''], ['1', '1', 'Ala', '…to ważne!', 'mowa', ''], ['1', '1', 'Ola', 'No?', 'mowa', ''], ['1', '2', 'Ala', 'Dalej.', 'mowa', '']];
   });
-  await strona.click('[data-akcja="komiks-dymki"]');
+  await krokKomiksu(strona, 'dymki');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 4);
   const mostki = () => strona.evaluate(() => {
     const d = window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek);
@@ -433,14 +440,54 @@ test('komiks: mostek – kolejne kwestie postaci w kadrze połączone, ręczne �
   assert.deepEqual(await mostki(), [['Słuchaj…', '…to ważne!']]);
   // Ręcznie: zaznaczony połączony dymek – [Mostek] rozłącza; dwa zaznaczone – łączy.
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.canvas.setActiveObject(e.canvas.getObjects().find((o) => o.text === '…to ważne!')); });
-  await strona.click('[data-akcja="komiks-mostek"]');
+  await zMenu(strona, 'komiks-dymek', 'mostek');
   assert.deepEqual(await mostki(), []);
   await strona.evaluate(() => {
     const e = window.seriodruk.edytor; const c = e.canvas;
     const d = c.getObjects().filter((o) => o.text === 'No?' || o.text === 'Dalej.');
     c.setActiveObject(new fabric.ActiveSelection(d, { canvas: c }));
   });
-  await strona.click('[data-akcja="komiks-mostek"]');
+  await zMenu(strona, 'komiks-dymek', 'mostek');
   assert.equal((await mostki()).length, 1);
+  assert.deepEqual(bledy, []);
+});
+
+test('komiks: okno Scenariusz – kadry z ujęciem i miejscem z listy, kto w kadrze, kwestie, zapis do tabeli (#378)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Scenariusz w oknie');
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.sekcje[0].typ = 'komiks';
+    const { zapiszKarte } = await import('./js/postacie.js');
+    zapiszKarte(p, 'postacie', { imie: 'Ala', wyglad: 'rude warkocze' });
+    zapiszKarte(p, 'postacie', { imie: 'Ola', wyglad: 'okulary' });
+    zapiszKarte(p, 'miejsca', { nazwa: 'Rynek', opis: 'fontanna' });
+    await window.seriodruk.przeladuj();
+  });
+  await krokKomiksu(strona, 'scenariusz');
+  const dlg = strona.locator('#dlg-scenariusz');
+  await dlg.waitFor();
+  const kadr1 = dlg.locator('[data-strona="1"] [data-kadr="1"]');
+  assert.deepEqual(await kadr1.locator('select[name="miejsce"] option').allTextContents(), ['Miejsce: –', 'Rynek']);
+  assert.ok((await kadr1.locator('select[name="ujecie"] option').allTextContents()).includes('zbliżenie'));
+  await kadr1.locator('select[name="ujecie"]').selectOption('widok ogólny');
+  await kadr1.locator('select[name="miejsce"]').selectOption('Rynek');
+  await kadr1.locator('input[name="opis"]').fill('Ala i Ola na rynku');
+  await kadr1.locator('.w-kadrze input[value="Ola"]').check();
+  // przykładowa kwestia z nowej tabeli: Ala → zmiana tekstu; druga kwestia: Ola
+  await kadr1.locator('.kwestia input[name="tekst"]').first().fill('Patrz!');
+  await kadr1.getByRole('button', { name: 'Kwestia' }).click();
+  await kadr1.locator('.kwestia').nth(1).locator('select[name="postac"]').selectOption('Ola');
+  await kadr1.locator('.kwestia').nth(1).locator('input[name="tekst"]').fill('Gdzie?');
+  await dlg.locator('[data-strona="1"]').getByRole('button', { name: 'Kadr', exact: true }).click();
+  await dlg.locator('[data-strona="1"] [data-kadr="2"] select[name="ujecie"]').selectOption('zbliżenie');
+  await dlg.locator('button[value="tak"]').click();
+  await strona.waitForFunction(() => !document.querySelector('#dlg-scenariusz').open);
+  const wiersze = await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('ujęcie')).wiersze);
+  assert.deepEqual(wiersze, [
+    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala i Ola na rynku', 'Ala', 'Patrz!', 'mowa'],
+    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala i Ola na rynku', 'Ola', 'Gdzie?', 'mowa'],
+    ['1', '2', 'zbliżenie', '', '', '', '', '', ''],
+  ]);
   assert.deepEqual(bledy, []);
 });

@@ -4,6 +4,7 @@
 // (js/postacie.js). Moduł bez zależności od edytora.
 
 import { zapiszKarte, karty } from './postacie.js';
+import { nazwyUjec, scenariuszDoTabeli } from './komiks-scenariusz.js';
 
 const RODZAJE = ['mowa', 'mysl', 'krzyk', 'szept', 'narracja'];
 
@@ -13,7 +14,7 @@ export function zapytanieScenariusza({ zrodlo, tekst, stron = 3, kadrow = 3, jez
     : `The user gives an idea in a few sentences. Write a short comic script: exactly ${stron} pages, ${kadrow} panels per page, a clear beginning, middle and ending, short natural dialogue (max 15 words per bubble).`;
   return {
     systemInstruction: { parts: [{ text: `${jak} Write all dialogue, captions, descriptions and names in the language with code "${jezyk}" (unless the document is in another language – then keep the document's language for dialogue). Answer with JSON only:
-{"tytul": string, "postacie": [{"imie": string, "wyglad": string (age, hair, clothes – for drawing), "znak": string (one distinctive feature), "charakter": string}], "miejsca": [{"nazwa": string, "opis": string, "pora": string}], "sceny": [{"strona": number, "kadr": number, "postac": string ("" for a caption), "tekst": string, "rodzaj": "mowa"|"mysl"|"krzyk"|"szept"|"narracja", "opis_sceny": string (what the panel shows, for the artist), "miejsce": string (name from "miejsca" or "")}]}
+{"tytul": string, "postacie": [{"imie": string, "wyglad": string (age, hair, clothes – for drawing), "znak": string (one distinctive feature), "charakter": string}], "miejsca": [{"nazwa": string, "opis": string, "pora": string}], "sceny": [{"strona": number, "kadr": number, "postac": string ("" for a caption), "tekst": string, "rodzaj": "mowa"|"mysl"|"krzyk"|"szept"|"narracja", "opis_sceny": string (what the panel shows, for the artist), "miejsce": string (name from "miejsca" or ""), "ujecie": one of ${JSON.stringify(nazwyUjec(jezyk))}, "w_kadrze": [names of characters visible in the panel]}]}
 Every panel needs at least one row in "sceny" (a caption or a line). Pages and panels are numbered from 1.` }] },
     contents: [{ role: 'user', parts: [{ text: tekst }] }],
     generationConfig: { temperature: zrodlo === 'dokument' ? 0.2 : 0.8, responseMimeType: 'application/json' },
@@ -28,6 +29,7 @@ export function scenariuszZOdpowiedzi(tekst) {
   const sceny = (Array.isArray(d?.sceny) ? d.sceny : []).map((w) => ({
     strona: Math.max(1, parseInt(w.strona, 10) || 1), kadr: Math.max(1, parseInt(w.kadr, 10) || 1), postac: s(w.postac), tekst: s(w.tekst),
     rodzaj: RODZAJE.includes(s(w.rodzaj)) ? s(w.rodzaj) : (s(w.postac) ? 'mowa' : 'narracja'), opis_sceny: s(w.opis_sceny), miejsce: s(w.miejsce),
+    ujecie: s(w.ujecie), w_kadrze: (Array.isArray(w.w_kadrze) ? w.w_kadrze : String(w.w_kadrze || '').split(',')).map(s).filter(Boolean),
   })).filter((w) => w.tekst || w.opis_sceny).sort((a, b) => a.strona - b.strona || a.kadr - b.kadr);
   if (!sceny.length) throw new Error('Model nie rozpisał żadnej sceny – dopisz więcej szczegółów i spróbuj jeszcze raz.');
   return {
@@ -38,20 +40,21 @@ export function scenariuszZOdpowiedzi(tekst) {
   };
 }
 
-export const KOLUMNY_Z_MIEJSCEM = ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny', 'miejsce'];
-
-// Zapis: tabela scenariusza (zastępuje wiersze; brakująca kolumna „miejsce” dochodzi) i karty (istniejące po imieniu/
-// nazwie – uzupełnione tylko puste pola, nowe – dopisane).
+// Zapis: tabela scenariusza (strony → kadry → kwestie, js/komiks-scenariusz.js) i karty (istniejące po imieniu/nazwie –
+// uzupełnione tylko puste pola, nowe – dopisane).
 export function zapiszScenariusz(projekt, tabela, sc, opcje = {}) {
-  if (!tabela.kolumny.includes('miejsce')) { tabela.kolumny.push('miejsce'); tabela.wiersze.forEach((w) => w.push('')); }
-  const i = (n) => tabela.kolumny.indexOf(n);
-  tabela.wiersze = sc.sceny.map((w) => {
-    const r = tabela.kolumny.map(() => '');
-    r[i('strona')] = String(w.strona); r[i('kadr')] = String(w.kadr); r[i('postać')] = w.postac; r[i('tekst')] = w.tekst; r[i('rodzaj')] = w.rodzaj;
-    if (i('opis sceny') >= 0) r[i('opis sceny')] = w.opis_sceny;
-    r[i('miejsce')] = w.miejsce;
-    return r;
-  });
+  const strony = new Map();
+  for (const w of sc.sceny) {
+    if (!strony.has(w.strona)) strony.set(w.strona, new Map());
+    const kadry = strony.get(w.strona);
+    if (!kadry.has(w.kadr)) kadry.set(w.kadr, { nr: w.kadr, ujecie: '', miejsce: '', wKadrze: [], opis: '', kwestie: [] });
+    const k = kadry.get(w.kadr);
+    k.ujecie ||= w.ujecie || ''; k.miejsce ||= w.miejsce; k.opis ||= w.opis_sceny;
+    for (const i of w.w_kadrze || []) if (!k.wKadrze.includes(i)) k.wKadrze.push(i);
+    if (w.tekst || w.postac) k.kwestie.push({ postac: w.postac, tekst: w.tekst, rodzaj: w.rodzaj });
+  }
+  tabela.wiersze = []; // AI pisze scenariusz od nowa
+  scenariuszDoTabeli(tabela, [...strony.entries()].sort((a, b) => a[0] - b[0]).map(([nr, k]) => ({ nr, kadry: [...k.values()].sort((a, b) => a.nr - b.nr) })));
   const bez = (x) => x.toLowerCase().trim();
   for (const [rodzaj, lista, klucz] of [['postacie', sc.postacie, 'imie'], ['miejsca', sc.miejsca, 'nazwa']]) {
     const jest = karty(projekt, rodzaj);

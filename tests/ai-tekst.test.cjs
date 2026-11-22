@@ -3,7 +3,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, krokKomiksu, zMenu } = require('./pomoc.cjs');
 
 test('tekst AI: przetłumacz zaznaczoną ramkę, podgląd, zastąp i cofnij', async (t) => {
   const { strona, bledy } = await otworz(t);
@@ -15,12 +15,12 @@ test('tekst AI: przetłumacz zaznaczoną ramkę, podgląd, zastąp i cofnij', as
   });
   await nowyProjekt(strona, 'Tekst AI');
   await strona.evaluate(async () => { const { sejfKonta } = await import('./js/app/sejf-ai.js'); const s = sejfKonta(); await s.zaloz('haslo-do-kluczy-1'); await s.ustaw('gemini', 'klucz-testowy'); });
-  await strona.click('[data-akcja="tekst-ai"]');
+  await zMenu(strona, 'ai-menu', 'tekst');
   assert.match(await strona.textContent('#powiadomienie'), /Najpierw zaznacz ramkę tekstu/);
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; o.set({ text: 'Zapraszamy na święto, {imie}!' }); window.seriodruk.edytor.zatwierdz?.(); });
   await strona.waitForTimeout(1200); // osobny krok cofania
-  await strona.click('[data-akcja="tekst-ai"]');
+  await zMenu(strona, 'ai-menu', 'tekst');
   const dlg = strona.locator('#dlg-ai-tekst');
   await dlg.waitFor();
   assert.equal(await dlg.locator('[data-czynnosc]').count(), 8);

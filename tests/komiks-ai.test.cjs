@@ -4,7 +4,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const zlib = require('node:zlib');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, krokKomiksu, zMenu } = require('./pomoc.cjs');
 
 function png(r, g, b) {
   const crc = (buf) => { let c = ~0; for (const x of buf) { c ^= x; for (let k = 0; k < 8; k += 1) c = (c >>> 1) ^ (0xedb88320 & -(c & 1)); } return ~c >>> 0; };
@@ -38,7 +38,7 @@ test('komiks AI: styl, obraz wzorcowy z opisu, rysowanie kadrów strony z odnies
   await strona.waitForFunction(() => document.body.classList.contains('w-komiksie'));
 
   // C1: styl – akwarela; C2: obraz wzorcowy Ali z opisu.
-  await strona.click('[data-akcja="komiks-postacie"]');
+  await krokKomiksu(strona, 'postacie');
   const dlg = strona.locator('#dlg-postacie');
   await dlg.locator('select[name="styl"]').selectOption('akwarela');
   await dlg.locator('.karta-komiksu:not(.dodaj)').first().click();
@@ -48,19 +48,19 @@ test('komiks AI: styl, obraz wzorcowy z opisu, rysowanie kadrów strony z odnies
   await dlg.locator('.karty-komiksu').first().waitFor();
   await dlg.locator('button[value="zamknij"]').click();
   const wzor = zapytania[0];
-  assert.match(wzor.contents[0].parts.at(-1).text, /^Character reference image: Ala, 8 lat, rude warkocze, zielona sukienka; distinctive feature: żółty plecak.*Style: delicate watercolour/);
+  assert.match(wzor.contents[0].parts.at(-1).text, /^Obraz wzorcowy postaci: Ala, 8 lat, rude warkocze, zielona sukienka; znak rozpoznawczy: żółty plecak\. Cała sylwetka.*Style: delicate watercolour/);
   assert.equal(wzor.generationConfig.imageConfig.aspectRatio, '3:4');
   const karta = await strona.evaluate(async () => (await import('./js/postacie.js')).karty(window.seriodruk.stan.projekt, 'postacie')[0]);
-  assert.match(karta.obraz, /^ai-character-reference-image-ala.*\.png$/);
+  assert.match(karta.obraz, /^ai-obraz-wzorcowy-postaci-ala.*\.png$/);
 
   // C3: Rysuj kadry strony 1 – opisy ze scenariusza i kart, obraz Ali jako odniesienie, obrazy w kadrach.
-  await strona.click('[data-akcja="komiks-rysuj"]');
+  await zMenu(strona, 'ai-menu', 'rysuj');
   const r = strona.locator('#dlg-rysuj-kadry');
   await r.waitFor();
   assert.match(await r.locator('h2').textContent(), /strony 1/);
   assert.equal(await r.locator('.kadr-ai').count(), 3);
   const opis2 = await r.locator('textarea[name="o1"]').inputValue();
-  assert.match(opis2, /Scene: Ala biegnie ulicą\. Ala: 8 lat, rude warkocze, zielona sukienka, always with żółty plecak\..*reference images.*speech bubbles/);
+  assert.match(opis2, /^Kadr 2\. Ujęcie: plan pełny \(full shot[^)]*\)\. Scena: Ala biegnie ulicą\. W kadrze: Ala – 8 lat, rude warkocze, zielona sukienka, zawsze: żółty plecak\. Miejsce \(tło\): Miasteczko.*Obrazy wzorcowe pokazują po kolei: Ala – zachowaj ich wygląd\. Zostaw w górnej części kadru wolne miejsce na dymki\.$/);
   assert.match(await r.locator('.koszt-ai').textContent(), /Do narysowania: 3\. Koszt: ok\. 0,4[0-9] zł/);
   await r.locator('input[name="k0"]').uncheck({ force: true });
   assert.match(await r.locator('.koszt-ai').textContent(), /Do narysowania: 2\./);
@@ -87,9 +87,13 @@ test('komiks AI: opisy kadrów ze scenariusza (moduł)', async () => {
   const scen = { id: 's', kolumny: ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny', 'miejsce'], wiersze: [['1', '1', '', 'Rano…', 'narracja', 'Rynek o świcie', ''], ['1', '2', 'Ola', 'Hej!', 'mowa', 'Ola i Ala przy fontannie', 'Rynek'], ['2', '1', 'Ala', 'X', 'mowa', '', '']] };
   const k = m.kadryStrony(projekt, scen, 1, 3);
   assert.deepEqual(k.map((x) => [x.kadr, x.postacie.map((p) => p.imie), x.miejsce?.nazwa ?? null]), [[1, [], 'Rynek'], [2, ['Ala', 'Ola'], 'Rynek'], [3, [], null]]);
-  assert.match(k[0].opis, /Scene: Rynek o świcie\. Place: Rynek, fontanna, time of day: ranek\./);
-  assert.doesNotMatch(k[0].opis, /speech bubbles/, 'narracja bez postaci – bez miejsca na dymki? narracja ma dymek prostokątny, ale bez mówiącego');
-  assert.match(k[2].opis, /establishing shot/);
+  assert.match(k[0].opis, /^Kadr 1\. Scena: Rynek o świcie\. Miejsce \(tło\): Rynek, fontanna, pora dnia: ranek\. Zostaw/);
+  assert.match(k[2].opis, /Kadr otwierający/);
+  // ujęcie i osoba w kadrze bez kwestii (#378)
+  const sc2 = { id: 's2', kolumny: ['strona', 'kadr', 'ujęcie', 'w kadrze', 'opis sceny', 'postać', 'tekst', 'rodzaj'], wiersze: [['1', '1', 'zbliżenie', 'Ola', 'Ola się dziwi', '', '', '']] };
+  const z = m.kadryStrony(projekt, sc2, 1, 1, 'en')[0];
+  assert.deepEqual(z.postacie.map((p) => p.imie), ['Ola']);
+  assert.match(z.opis, /^Panel 1\. Shot: zbliżenie \(close-up on the face[^)]*\)\. Scene: Ola się dziwi\. In the panel: Ola – okulary\.$/);
   assert.equal(m.stylProjektu({ komiks_ai: { styl: 'manga' } }), m.STYLE_RYSUNKOW.manga);
 });
 
@@ -112,7 +116,7 @@ test('komiks AI: scenariusz z pomysłu i z dokumentu – podgląd, zapis do tabe
     zapiszKarte(p, 'postacie', { imie: 'Ala', wyglad: '', znak: 'żółty plecak' });
     await window.seriodruk.przeladuj();
   });
-  await strona.click('[data-akcja="komiks-scenariusz-ai"]');
+  await krokKomiksu(strona, 'scenariusz-ai');
   const dlg = strona.locator('#dlg-scenariusz-ai');
   await dlg.waitFor();
   await dlg.locator('textarea[name="pomysl"]').fill('Ala znajduje paczkę z kotkiem.');
@@ -131,15 +135,15 @@ test('komiks AI: scenariusz z pomysłu i z dokumentu – podgląd, zapis do tabe
     const tb = x.tabele.find((q) => q.kolumny.includes('opis sceny'));
     return { kolumny: tb.kolumny, wiersze: tb.wiersze, postacie: karty(x, 'postacie').map((k) => [k.imie, k.znak, k.wyglad]), miejsca: karty(x, 'miejsca').map((k) => k.nazwa), stron: x.strony.length, kadry: x.strony.map((s) => (s.obiekty || []).filter((o) => o.kadr_nr).length) };
   });
-  assert.deepEqual(p.kolumny, ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny', 'miejsce']);
-  assert.deepEqual(p.wiersze[2], ['2', '1', 'Ala', 'Kotek!', 'mowa', 'Kotek w paczce', ''], 'zły rodzaj dymka → mowa');
+  assert.deepEqual(p.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
+  assert.deepEqual(p.wiersze[2], ['2', '1', '', '', '', 'Kotek w paczce', 'Ala', 'Kotek!', 'mowa'], 'zły rodzaj dymka → mowa');
   assert.deepEqual(p.postacie, [['Ala', 'żółty plecak', 'rude warkocze'], ['Kot Filemon', 'biała łatka', 'rudy kotek']], 'istniejąca karta: puste pola uzupełnione, wypełnione zostają');
   assert.deepEqual(p.miejsca, ['Podwórko']);
   assert.equal(p.stron, 2, 'strona 2 doszła');
   assert.deepEqual(p.kadry, [2, 3], 'kadry według scenariusza');
 
   // Z dokumentu: plik tekstowy, dialogi dosłownie.
-  await strona.click('[data-akcja="komiks-scenariusz-ai"]');
+  await krokKomiksu(strona, 'scenariusz-ai');
   await dlg.locator('input[name="zrodlo"][value="dokument"]').check({ force: true });
   await dlg.locator('input[name="plik"]').setInputFiles({ name: 'scenariusz.txt', mimeType: 'text/plain', buffer: Buffer.from('STRONA 1\nAla: Paczka!\nNarrator: Był ranek.') });
   await dlg.locator('[data-rola="rozpisz"]').click();

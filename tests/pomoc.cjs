@@ -783,5 +783,16 @@ async function zamknijAi(strona) {
   await strona.evaluate(async () => (await import('./js/app/dostep-ai.js')).zamknijDostepAi());
 }
 
+// Komiks (#377): krok w oknie „Komiks” (przycisk z data-krok-akcja) i pozycja z menu pod przyciskiem paska
+// ([Dymek ▾], [AI ▾]) – tak jak klika użytkownik.
+async function krokKomiksu(strona, akcja) {
+  await strona.click('[data-akcja="komiks-okno"]');
+  await strona.click(`#dlg-komiks [data-krok-akcja="${akcja}"]`);
+}
+async function zMenu(strona, przycisk, wartosc) {
+  await strona.click(`[data-akcja="${przycisk}"]`);
+  await strona.click(`.menu-przycisku [data-wartosc="${wartosc}"]`);
+}
+
 module.exports = {
-  krotkieLinkiGoscia, oknoAi, zamknijAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno };
+  krotkieLinkiGoscia, oknoAi, zamknijAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno, krokKomiksu, zMenu };

@@ -12,6 +12,12 @@ const P = {
   wielokat: '<path d="M12 4.5 20 19H4z"/>',
   malarz: '<rect x="4" y="3.5" width="13" height="5" rx="1"/><path d="M17 6h2.5v5H11v3"/><rect x="9.5" y="14" width="3" height="6.5" rx="1"/>',
   zapisz_w_bibliotece: '<path d="M6 3.5h12a1 1 0 0 1 1 1v16l-7-4.5-7 4.5v-16a1 1 0 0 1 1-1z"/><path d="M12 7.5v6M9 10.5h6"/>',
+  // Komiks i AI (#377): dymek (owal z ogonkiem – inny niż komentarz), kadry (strona z kadrami), komiks (zeszyt z dymkiem),
+  // iskry (AI).
+  dymek: '<path d="M12 4.5c4.7 0 8.5 2.9 8.5 6.5s-3.8 6.5-8.5 6.5c-.8 0-1.6-.1-2.4-.3L5 19.5l1.3-3.6C4.5 14.7 3.5 13 3.5 11c0-3.6 3.8-6.5 8.5-6.5z"/><path d="M12 8v3.2M12 13.6h.01"/>',
+  kadry: '<rect x="3.5" y="3.5" width="17" height="7" rx="1"/><rect x="3.5" y="13" width="7.5" height="7.5" rx="1"/><rect x="13.5" y="13" width="7" height="7.5" rx="1"/>',
+  komiks: '<path d="M5 3.5h11.5a1.5 1.5 0 0 1 1.5 1.5v14.5a1 1 0 0 1-1 1H5.5A1.5 1.5 0 0 1 4 19V4.5a1 1 0 0 1 1-1z"/><path d="M7 8.5c0-1.4 1.6-2.5 3.5-2.5s3.5 1.1 3.5 2.5-1.6 2.5-3.5 2.5h-.6L8 12.3l.4-1.6C7.6 10.2 7 9.4 7 8.5z"/><path d="M7.5 15h7.5M7.5 17.5h5"/>',
+  iskry: '<path d="M10 3.5l1.6 4.4L16 9.5l-4.4 1.6L10 15.5l-1.6-4.4L4 9.5l4.4-1.6z"/><path d="M17.5 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/>',
   komentarz: '<path d="M5 4.5h14a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5h-7l-4.5 3.5V16.5H5A1.5 1.5 0 0 1 3.5 15V6A1.5 1.5 0 0 1 5 4.5z"/><path d="M8 9h8M8 12.5h5"/>',
   znajdz: '<circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5.5 5.5"/><path d="M8 10.5h5"/>',
   pisownia: '<path d="M4 15 8 5l4 10M5.5 11.5h5"/><path d="m13 15 3 3 5-6"/>',

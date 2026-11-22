@@ -85,11 +85,11 @@ teksty, tłumaczenie i obrazy w zwykłych trybach”.
 | D3 | **Komiks jako dodatek do rodzaju publikacji**: przy nowym projekcie wybór formy – książka, broszura (z sugestią okładki), zwykłe kartki, prezentacja / PDF na ekran (komiks elektroniczny) – i przełącznik „To komiks” (sekcja komiksu, pasek, scenariusz) | do zrobienia |
 | D4 | **Sprawdzić czat Makietki z Gemini na żywo**: czy wykonuje polecenia (zmiany elementów przez narzędzia) i generuje obrazy | do zrobienia |
 | D5 | **Lokalizacje jako tła/ujęcia**: obraz lokalizacji wgrany albo wygenerowany; postacie pojawiają się na tym tle w kadrach (obraz miejsca jako odniesienie) | częściowo (#374 – obraz miejsca jako odniesienie) |
-| D6 | **Ujęcia w scenariuszu**: kolumna „ujęcie” – widok ogólny, plan średni, zbliżenie na postać, z góry, zza pleców…; lista do wyboru; używane w opisie kadru | do zrobienia |
+| D6 | **Ujęcia w scenariuszu**: kolumna „ujęcie” – widok ogólny, plan średni, zbliżenie na postać, z góry, zza pleców…; lista do wyboru; używane w opisie kadru | ✅ #378 |
 | D7 | Przy kluczach AI: oznaczenie modelu „tylko tekst” / „tekst i obrazy”; każdy model tekstowy zmienia projekt przez narzędzia Makietki | do zrobienia |
-| D8 | Trzy jednakowe ikony czatu – różne ikony i jasne nazwy | do zrobienia |
-| D9 | **Mniej narzędzi w pasku komiksu**: kilka głównych przycisków, reszta w menu („Więcej”), kroki w logicznej kolejności | do zrobienia |
-| D10 | **Spójna całość**: scenariusz, postacie, miejsca i ujęcia połączone – w scenariuszu wybór postaci/miejsca/ujęcia z list (z kart), jedno okno „Komiks” z zakładkami albo kroki | do zrobienia |
+| D8 | Trzy jednakowe ikony czatu – różne ikony i jasne nazwy | ✅ #377 |
+| D9 | **Mniej narzędzi w pasku komiksu**: kilka głównych przycisków, reszta w menu („Więcej”), kroki w logicznej kolejności | ✅ #377 (Kadry, Dymek ▾, Komiks; AI ▾) |
+| D10 | **Spójna całość**: scenariusz, postacie, miejsca i ujęcia połączone – w scenariuszu wybór postaci/miejsca/ujęcia z list (z kart), jedno okno „Komiks” z zakładkami albo kroki | ✅ #377–#378 (okno Komiks + okno Scenariusz z listami z kart) |
 | D11 | **Ponowne generowanie z zapisanego opisu**: przy obrazie kadru widać, z czego powstał (po polsku), „Narysuj jeszcze raz” bez składania od nowa; edycja opisu | częściowo (#372 – „jeszcze raz” w oknie Obraz AI) |
 | D12 | **Instrukcja na koniec**: wszystkie kroki komiksu dokładnie; osobno teksty AI, tłumaczenie i obrazy AI w zwykłych projektach | do zrobienia |
 

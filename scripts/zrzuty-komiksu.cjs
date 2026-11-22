@@ -4,7 +4,7 @@
 //
 // Użycie:  node scripts/zrzuty-komiksu.cjs [adres] [ciemny] [en|uk]
 
-const { otworz } = require('../tests/pomoc.cjs');
+const { otworz, krokKomiksu, zMenu } = require('../tests/pomoc.cjs');
 
 async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
   const sprzatanie = [];
@@ -30,7 +30,7 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
       await window.seriodruk.przejdzDoStrony(x.strony.findIndex((s) => s.sekcja === kom.id));
     });
     await d.waitForFunction(() => document.body.classList.contains('w-komiksie'));
-    await d.click('[data-akcja="komiks-dymki"]');
+    await krokKomiksu(d, 'dymki');
     await d.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 3);
     await d.evaluate(() => { const c = window.seriodruk.edytor.canvas; c.discardActiveObject(); c.requestRenderAll(); document.querySelector('#powiadomienie')?.setAttribute('hidden', ''); });
     await d.waitForTimeout(600);
@@ -44,7 +44,7 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
     // Obraz AI (#372): okno z opisem i kosztem – kadr 1 zaznaczony (bez generowania, bez kosztów).
     await d.evaluate(() => { const e = window.seriodruk.edytor; e.canvas.setActiveObject(e.canvas.getObjects().find((o) => o.kadr_nr === 1)); e.canvas.requestRenderAll(); });
     await naJezykZrzutu(); // okno składa napisy przy otwarciu (kadr() wraca do polskiego po każdym zrzucie)
-    await d.click('[data-akcja="generuj-obraz"]');
+    await zMenu(d, 'ai-menu', 'obraz');
     await d.waitForSelector('#dlg-ai-obraz[open]');
     await d.evaluate(async () => { const { t } = await import('./js/jezyk.js'); const o = document.querySelector('#dlg-ai-obraz textarea'); o.value = t('aiObraz.przyklad').replace(/^(np\.|e\.g\.|напр\.)\s*/, ''); o.dispatchEvent(new Event('input')); });
     await d.waitForTimeout(300);
@@ -65,7 +65,7 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
       zapiszKarte(p, 'miejsca', { ...m, obraz: await obraz(miasto, 'miasteczko.svg') });
     });
     await naJezykZrzutu();
-    await d.click('[data-akcja="komiks-postacie"]');
+    await krokKomiksu(d, 'postacie');
     await d.waitForSelector('#dlg-postacie[open] .karta-komiksu img');
     await d.waitForTimeout(400);
     await kadr(d, 'k-komiks-postacie.png', { obszar: '#dlg-postacie .formularz', zaznacz: '#dlg-postacie [data-akcja-karty="dodaj-postacie"]', margines: 0 });
