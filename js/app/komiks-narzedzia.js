@@ -18,6 +18,13 @@ import { przyjmijPlik, wymiaryPliku, poNazwie } from '../obrazy-projektu.js';
 import { nowaStrona, uid, uporzadkujStrony } from '../projekt.js';
 import { biblioteka } from '../biblioteki.js';
 import { kadryStrony, stylProjektu } from '../komiks-ai.js';
+import { zapytanieScenariusza, scenariuszZOdpowiedzi, zapiszScenariusz } from '../komiks-scenariusz-ai.js';
+import { tekstZOdpowiedzi } from '../ai-tekst.js';
+import { zadanie } from '../ai-dostawcy.js';
+import { MODEL_TEKSTU, kosztZUzycia, zapiszWydatek, szacujTekst } from '../ai-koszty.js';
+import { czytajPlikTekstu } from '../import-tekstu.js';
+import { otwartySejf } from './sejf-ai.js';
+import { elementKadru } from '../kadry.js';
 import { generujIWstaw } from './generuj-obraz.js';
 import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu } from '../ai-koszty.js';
 import { proporcjaRamki } from '../ai-obrazy.js';
@@ -165,7 +172,7 @@ export const KOLUMNY_SCENARIUSZA = ['strona', 'kadr', 'postać', 'tekst', 'rodza
 const scenariuszProjektu = () => (stan.projekt.tabele || []).find((tb) => kolumnyDialogu(tb).strona >= 0 && kolumnyDialogu(tb).tekst >= 0);
 
 // Tabela scenariusza (tworzona przy pierwszym użyciu – z przykładowym wierszem) i okno Dane na niej.
-export async function otworzScenariusz() {
+export async function otworzScenariusz({ bezOkna = false } = {}) {
   const p = stan.projekt;
   let tb = scenariuszProjektu();
   if (!tb) {
@@ -175,7 +182,7 @@ export async function otworzScenariusz() {
     zaplanujZapis();
   }
   const dane = window.seriodruk?.dane;
-  if (dane) { dane.otworz(); dane.idTabeli = tb.id; dane.rysuj?.(); }
+  if (dane && !bezOkna) { dane.otworz(); dane.idTabeli = tb.id; dane.rysuj?.(); }
   return tb;
 }
 
@@ -432,6 +439,103 @@ export function oknoRysujKadry() {
   dlg.showModal();
 }
 
+// ---------- Scenariusz z AI (C4, C6, #375): z pomysłu albo z dokumentu → podgląd → tabela scenariusza i karty ----------
+const UKLAD_DLA = { 1: '1', 2: '2-pion', 3: '3-duzy-gora', 4: '4-siatka', 5: '5', 6: '6-siatka' };
+// Strony komiksu z za małą liczbą kadrów (i bez obrazów w kadrach) dostają układ na tyle kadrów, ile ma scenariusz.
+function dopasujKadry(p, sc) {
+  const sekcja = p.sekcje.find((x) => typSekcji(x) === 'komiks') || p.sekcje[0];
+  const potrzeba = Math.max(...sc.sceny.map((w) => w.strona));
+  for (let n = stronyKomiksu(p).length + 1; n <= potrzeba; n += 1) p.strony.push(nowaStrona(`Strona ${n}`, sekcja.id));
+  uporzadkujStrony(p);
+  const strony = stronyKomiksu(p);
+  const w = sekcja.wydruk; const m = w.marginesy || {};
+  const obszar = { x: m.zewnetrzny ?? 10, y: m.gora ?? 10, w: w.szerokosc_mm - (m.zewnetrzny ?? 10) - (m.wewnetrzny ?? 10), h: w.wysokosc_mm - (m.gora ?? 10) - (m.dol ?? 10) };
+  for (let n = 1; n <= potrzeba; n += 1) {
+    const ile = Math.min(6, Math.max(...sc.sceny.filter((x) => x.strona === n).map((x) => x.kadr), 1));
+    const st = strony[n - 1];
+    const kadry = (st.obiekty || []).filter((o) => o.kadr_nr != null);
+    if (kadry.length >= ile || kadry.some((o) => o.zasob) || (st.obiekty || []).some((o) => o.type === 'image')) continue;
+    const nowe = siatkaKadrow(obszar, UKLADY_KADROW.find((u) => u.id === UKLAD_DLA[ile]).wiersze, 4).map((q, j) => elementKadru(q, j + 1, { id: uid('o') }));
+    st.obiekty = [...nowe, ...(st.obiekty || []).filter((o) => o.kadr_nr == null)];
+  }
+}
+export async function rozpiszScenariusz({ zrodlo, tekst, stron, jezyk }) {
+  const klucz = (await otwartySejf())?.klucz('gemini');
+  if (!klucz) throw new Error(t('aiObraz.brakKlucza'));
+  const odp = await zadanie(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_TEKSTU}:generateContent`, {
+    method: 'POST', headers: { 'content-type': 'application/json', 'x-goog-api-key': klucz }, body: JSON.stringify(zapytanieScenariusza({ zrodlo, tekst, stron, jezyk })),
+  });
+  const { tekst: json, uzycie } = tekstZOdpowiedzi(odp);
+  const zl = kosztZUzycia(MODEL_TEKSTU, uzycie) || 0;
+  zapiszWydatek(zl, { projekt: stan.projekt, model: MODEL_TEKSTU, rodzaj: 'scenariusz' });
+  return { sc: scenariuszZOdpowiedzi(json), zl };
+}
+export function oknoScenariuszaAi() {
+  if (!wKomiksie()) return;
+  let dlg = $('#dlg-scenariusz-ai');
+  if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'dlg-scenariusz-ai'; document.body.append(dlg); }
+  dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${t('komiks.scenAiTytul')}</h2>
+    <div class="przelacznik-segmentowy" role="radiogroup"><label><input type="radio" name="zrodlo" value="pomysl" checked><span>${t('komiks.scenAiZPomyslu')}</span></label><label><input type="radio" name="zrodlo" value="dokument"><span>${t('komiks.scenAiZDokumentu')}</span></label></div>
+    <div data-zrodlo="pomysl"><label class="pole"><span>${t('komiks.scenAiPomysl')}</span><textarea name="pomysl" rows="4"></textarea></label>
+      <label class="pole waskie"><span>${t('komiks.scenAiStron')}</span><input type="number" name="stron" min="1" max="12" value="3"></label></div>
+    <div data-zrodlo="dokument" hidden><label class="pole"><span>${t('komiks.scenAiPlik')}</span><input type="file" name="plik" accept=".txt,.md,.markdown,.docx,.odt"></label><p class="ciche">${t('komiks.scenAiPlikOpis')}</p></div>
+    <p class="ciche">${t('komiks.scenAiOpis')}</p>
+    <div class="podglad-scenariusza" hidden></div>
+    <p class="koszt-ai" aria-live="polite">${t('komiks.scenAiKoszt', { zl: opisKosztu(szacujTekst({ znakiWe: 3000, znakiWy: 4000 }), biezacyJezyk()) })}</p><p class="blad-ai" role="alert" hidden></p>
+    <div class="przyciski-dialogu"><button class="przycisk" type="button" data-rola="anuluj">${t('komiks.anuluj')}</button><button class="przycisk" type="button" data-rola="rozpisz">${t('komiks.scenAiRozpisz')}</button><button class="przycisk glowny" type="submit" value="tak" disabled>${t('komiks.scenAiZapisz')}</button></div></form>`;
+  const f = dlg.querySelector('form');
+  f.elements.pomysl.placeholder = t('komiks.scenAiPrzyklad');
+  const blad = dlg.querySelector('.blad-ai');
+  const podglad = dlg.querySelector('.podglad-scenariusza');
+  const zapisz = f.querySelector('button[value="tak"]');
+  let wynik = null;
+  f.addEventListener('change', (e) => {
+    if (e.target.name !== 'zrodlo') return;
+    for (const d of dlg.querySelectorAll('[data-zrodlo]')) d.hidden = d.dataset.zrodlo !== f.elements.zrodlo.value;
+  });
+  dlg.querySelector('[data-rola="anuluj"]').onclick = () => dlg.close('nie');
+  dlg.querySelector('[data-rola="rozpisz"]').onclick = async (e) => {
+    const b = e.currentTarget;
+    blad.hidden = true;
+    try {
+      const zrodlo = f.elements.zrodlo.value;
+      let tekst = f.elements.pomysl.value.trim();
+      if (zrodlo === 'dokument') {
+        const plik = f.elements.plik.files?.[0];
+        if (!plik) throw new Error(t('komiks.scenAiBrakPliku'));
+        const JSZip = /\.(docx|odt)$/i.test(plik.name) ? await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP') : null;
+        tekst = (await czytajPlikTekstu(plik, JSZip)).akapity.map((a) => a.tekst).join('\n').slice(0, 60000);
+      }
+      if (!tekst) throw new Error(t('komiks.scenAiBrakPomyslu'));
+      b.disabled = true; b.textContent = t('aiTekst.trwa');
+      const r = await rozpiszScenariusz({ zrodlo, tekst, stron: Number(f.elements.stron.value) || 3, jezyk: biezacyJezyk() });
+      wynik = r.sc;
+      const esc = (x) => String(x).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      podglad.innerHTML = `<p><b>${esc(wynik.tytul)}</b> – ${t('komiks.scenAiPodsumowanie', { stron: Math.max(...wynik.sceny.map((w) => w.strona)), wierszy: wynik.sceny.length })}</p>
+        <p class="ciche">${t('komiks.postacie')}: ${wynik.postacie.map((p) => esc(p.imie)).join(', ') || '–'} · ${t('komiks.miejsca')}: ${wynik.miejsca.map((m) => esc(m.nazwa)).join(', ') || '–'}</p>
+        <div class="przewijany"><table class="tabela-podgladu"><tbody>${wynik.sceny.map((w) => `<tr><td>${w.strona}/${w.kadr}</td><td>${esc(w.postac)}</td><td>${esc(w.tekst)}</td><td class="ciche">${esc(w.opis_sceny)}</td></tr>`).join('')}</tbody></table></div>`;
+      podglad.hidden = false;
+      zapisz.disabled = false;
+      dlg.querySelector('.koszt-ai').textContent = t('komiks.scenAiKosztPo', { zl: opisKosztu(r.zl, biezacyJezyk()) });
+    } catch (er) { blad.textContent = er.message; blad.hidden = false; } finally { b.disabled = false; b.textContent = t('komiks.scenAiRozpisz'); }
+  };
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    if (!wynik) return;
+    zapiszBiezacyCel();
+    const p = stan.projekt;
+    const tb = scenariuszProjektu() || await otworzScenariusz({ bezOkna: true });
+    const w = zapiszScenariusz(p, tb, wynik, { postacie: { nazwa: t('komiks.postacie') }, miejsca: { nazwa: t('komiks.miejsca') } });
+    dopasujKadry(p, wynik);
+    await zaladujCel();
+    zaplanujZapis();
+    dlg.close('tak');
+    powiadom(t('komiks.scenAiZapisano', { wierszy: w.wierszy, stron: w.stron }));
+  };
+  dlg.returnValue = '';
+  dlg.showModal();
+}
+
 // Pasek narzędzi: przyciski z data-akcja="komiks-…".
 export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-dymek') return dymekWStylu();
@@ -442,6 +546,7 @@ export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-dymki') return ustawDymkiZWyborem();
   if (akcja === 'komiks-postacie') return oknoPostaci();
   if (akcja === 'komiks-rysuj') return oknoRysujKadry();
+  if (akcja === 'komiks-scenariusz-ai') return oknoScenariuszaAi();
   if (akcja === 'komiks-wgraj') return wybierzStrony();
   if (akcja === 'komiks-mostek') return mostekDymkow();
   if (akcja === 'komiks-webtoon') return eksportWebtoon().catch((e) => { console.error(e); powiadom(e.message, true); });

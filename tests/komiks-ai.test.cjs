@@ -4,7 +4,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const zlib = require('node:zlib');
-const { otworz } = require('./pomoc.cjs');
+const { otworz, nowyProjekt } = require('./pomoc.cjs');
 
 function png(r, g, b) {
   const crc = (buf) => { let c = ~0; for (const x of buf) { c ^= x; for (let k = 0; k < 8; k += 1) c = (c >>> 1) ^ (0xedb88320 & -(c & 1)); } return ~c >>> 0; };
@@ -91,4 +91,60 @@ test('komiks AI: opisy kadrów ze scenariusza (moduł)', async () => {
   assert.doesNotMatch(k[0].opis, /speech bubbles/, 'narracja bez postaci – bez miejsca na dymki? narracja ma dymek prostokątny, ale bez mówiącego');
   assert.match(k[2].opis, /establishing shot/);
   assert.equal(m.stylProjektu({ komiks_ai: { styl: 'manga' } }), m.STYLE_RYSUNKOW.manga);
+});
+
+test('komiks AI: scenariusz z pomysłu i z dokumentu – podgląd, zapis do tabeli i kart, kadry na stronach (#375)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  const zapytania = [];
+  const odpowiedz = { tytul: 'Kotek w paczce', postacie: [{ imie: 'Ala', wyglad: 'rude warkocze', znak: 'plecak', charakter: 'odważna' }, { imie: 'Kot Filemon', wyglad: 'rudy kotek', znak: 'biała łatka', charakter: '' }], miejsca: [{ nazwa: 'Podwórko', opis: 'trawa i płot', pora: 'ranek' }],
+    sceny: [{ strona: 1, kadr: 1, postac: '', tekst: 'Był ranek.', rodzaj: 'narracja', opis_sceny: 'Podwórko', miejsce: 'Podwórko' }, { strona: 1, kadr: 2, postac: 'Ala', tekst: 'Paczka!', rodzaj: 'krzyk', opis_sceny: 'Ala widzi paczkę', miejsce: 'Podwórko' },
+      { strona: 2, kadr: 1, postac: 'Ala', tekst: 'Kotek!', rodzaj: 'zly-rodzaj', opis_sceny: 'Kotek w paczce', miejsce: '' }, { strona: 2, kadr: 2, postac: 'Ala', tekst: 'Zostaje z nami.', rodzaj: 'mowa', opis_sceny: '', miejsce: '' }, { strona: 2, kadr: 3, postac: 'Kot Filemon', tekst: 'Miau!', rodzaj: 'mowa', opis_sceny: 'Kotek się uśmiecha', miejsce: '' }] };
+  await strona.route('https://generativelanguage.googleapis.com/**', async (r) => {
+    zapytania.push(JSON.parse(r.request().postData() || '{}'));
+    await r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(odpowiedz) }] } }], usageMetadata: { promptTokenCount: 900, candidatesTokenCount: 700 } }) });
+  });
+  await nowyProjekt(strona, 'Scenariusz AI');
+  await strona.evaluate(async () => {
+    const { sejfKonta } = await import('./js/app/sejf-ai.js'); const s = sejfKonta(); await s.zaloz('haslo-do-kluczy-1'); await s.ustaw('gemini', 'klucz-testowy');
+    const p = window.seriodruk.stan.projekt;
+    p.sekcje[0].typ = 'komiks';
+    const { zapiszKarte } = await import('./js/postacie.js');
+    zapiszKarte(p, 'postacie', { imie: 'Ala', wyglad: '', znak: 'żółty plecak' });
+    await window.seriodruk.przeladuj();
+  });
+  await strona.click('[data-akcja="komiks-scenariusz-ai"]');
+  const dlg = strona.locator('#dlg-scenariusz-ai');
+  await dlg.waitFor();
+  await dlg.locator('textarea[name="pomysl"]').fill('Ala znajduje paczkę z kotkiem.');
+  await dlg.locator('input[name="stron"]').fill('2');
+  assert.equal(await dlg.locator('button[value="tak"]').isDisabled(), true);
+  await dlg.locator('[data-rola="rozpisz"]').click();
+  await dlg.locator('.podglad-scenariusza:not([hidden])').waitFor();
+  assert.match(await dlg.locator('.podglad-scenariusza').textContent(), /Kotek w paczce – 2 strony, 5 wierszy.*Ala, Kot Filemon.*Podwórko/s);
+  assert.match(zapytania[0].systemInstruction.parts[0].text, /exactly 2 pages, 3 panels per page.*language with code "pl"/s);
+  assert.equal(zapytania[0].generationConfig.responseMimeType, 'application/json');
+  await dlg.locator('button[value="tak"]').click();
+  await strona.waitForFunction(() => !document.querySelector('#dlg-scenariusz-ai').open);
+  const p = await strona.evaluate(async () => {
+    const x = window.seriodruk.stan.projekt;
+    const { karty } = await import('./js/postacie.js');
+    const tb = x.tabele.find((q) => q.kolumny.includes('opis sceny'));
+    return { kolumny: tb.kolumny, wiersze: tb.wiersze, postacie: karty(x, 'postacie').map((k) => [k.imie, k.znak, k.wyglad]), miejsca: karty(x, 'miejsca').map((k) => k.nazwa), stron: x.strony.length, kadry: x.strony.map((s) => (s.obiekty || []).filter((o) => o.kadr_nr).length) };
+  });
+  assert.deepEqual(p.kolumny, ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny', 'miejsce']);
+  assert.deepEqual(p.wiersze[2], ['2', '1', 'Ala', 'Kotek!', 'mowa', 'Kotek w paczce', ''], 'zły rodzaj dymka → mowa');
+  assert.deepEqual(p.postacie, [['Ala', 'żółty plecak', 'rude warkocze'], ['Kot Filemon', 'biała łatka', 'rudy kotek']], 'istniejąca karta: puste pola uzupełnione, wypełnione zostają');
+  assert.deepEqual(p.miejsca, ['Podwórko']);
+  assert.equal(p.stron, 2, 'strona 2 doszła');
+  assert.deepEqual(p.kadry, [2, 3], 'kadry według scenariusza');
+
+  // Z dokumentu: plik tekstowy, dialogi dosłownie.
+  await strona.click('[data-akcja="komiks-scenariusz-ai"]');
+  await dlg.locator('input[name="zrodlo"][value="dokument"]').check({ force: true });
+  await dlg.locator('input[name="plik"]').setInputFiles({ name: 'scenariusz.txt', mimeType: 'text/plain', buffer: Buffer.from('STRONA 1\nAla: Paczka!\nNarrator: Był ranek.') });
+  await dlg.locator('[data-rola="rozpisz"]').click();
+  await dlg.locator('.podglad-scenariusza:not([hidden])').waitFor();
+  assert.match(zapytania[1].systemInstruction.parts[0].text, /Keep the dialogue text exactly/);
+  assert.equal(zapytania[1].contents[0].parts[0].text, 'STRONA 1\nAla: Paczka!\nNarrator: Był ranek.');
+  assert.deepEqual(bledy, []);
 });

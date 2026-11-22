@@ -363,6 +363,10 @@ body.w-komiksie .pasek-narzedzi .tylko-komiks { display: inline-flex; }
 #dlg-ai-obraz .rzad { display: flex; gap: 12px; flex-wrap: wrap; }
 #dlg-ai-obraz .rzad .pole { flex: 1 1 160px; }
 .koszt-ai { font-weight: 600; }
+#dlg-scenariusz-ai .formularz { width: min(680px, 100%); }
+.podglad-scenariusza .przewijany { max-height: 40vh; overflow: auto; }
+.tabela-podgladu { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tabela-podgladu td { border-top: 1px solid var(--linia); padding: 4px 6px; vertical-align: top; }
 #dlg-rysuj-kadry .formularz { width: min(640px, 100%); }
 .kadry-ai { display: grid; gap: 10px; max-height: 50vh; overflow: auto; margin-bottom: 10px; }
 .kadr-ai textarea { width: 100%; font-size: 13px; }

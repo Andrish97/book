@@ -1382,6 +1382,7 @@ W sekcji komiksu pasek wstawiania ma dodatkowe narzędzia:
 | [Scenariusz] | Otwiera tabelę scenariusza w oknie **Dane** (→ 14). Gdy jej nie ma – tworzy ją. |
 | [Ustaw dymki] | Stawia dymki z tekstami ze scenariusza na stronach, w odpowiednich kadrach. |
 | [Webtoon] | Strony komiksu jedna pod drugą jako obrazy PNG szerokie na 800 px, pocięte na kawałki do 1280 px – plik ZIP gotowy do wgrania na platformę z komiksami do czytania na telefonie. |
+| [Scenariusz z AI] | Scenariusz z pomysłu w kilku zdaniach albo z dokumentu – strony, kadry, dialogi, postacie i miejsca (opis niżej). |
 | [Rysuj kadry] | Obrazy z AI do kadrów tej strony – opisy składa Makietka ze scenariusza i kart postaci (opis niżej). |
 | [Postacie] | Karty postaci i miejsc – kto występuje w komiksie i gdzie dzieje się akcja. |
 | [Wgraj strony] | Obrazy stron albo kadrów z plików albo z archiwum ZIP – numer w nazwie pliku mówi, gdzie trafią. |
@@ -1447,6 +1448,18 @@ Karty to zwykłe tabele **Postacie** i **Miejsca** – zobaczysz je też w oknie
 
 **Raster i linie ruchu.** W [Biblioteka] (→ 4.8) w **Tłach i wzorach** są wzory komiksowe: **Raster komiksowy** (drobne kropki jak w starych komiksach), **Linie ruchu (promieniste)** – do wybuchu, zaskoczenia, zbliżenia – i **Linie ruchu (poziome)** – do pędu. Ten sam wzór nałożysz też na zaznaczony kształt, np. kadr (→ 6.5).
 
+**Scenariusz z AI.** [Scenariusz z AI] rozpisuje komiks za Ciebie:
+
+- **Z pomysłu** – opisz historię w 3–5 zdaniach i podaj, ile stron. AI napisze krótkie dialogi, narrację, opisy scen,
+  postacie (z wyglądem do rysowania) i miejsca.
+- **Z dokumentu** – wybierz scenariusz albo opowiadanie z Worda (.docx), LibreOffice (.odt), Markdowna (.md) albo
+  zwykły tekst (.txt); z Google Docs pobierz plik jako Microsoft Word. AI rozpozna strony, kadry i kto mówi, a dialogi
+  zostawi dosłownie.
+
+[Rozpisz] pokazuje podgląd (strony, kadry, kto mówi, tekst, opis sceny); [Zapisz scenariusz] wpisuje wiersze do tabeli
+**Scenariusz**, dopisuje karty postaci i miejsc (istniejące karty tylko uzupełnia) i dokłada kadry na stronach, które
+ich nie mają. Koszt – kilka groszy.
+
 **Komiks z AI.** Obrazy do kadrów może narysować Google Gemini (klucz → 7.11). Nie piszesz poleceń dla AI – Makietka
 składa je sama z tego, co już masz:
 
@@ -1460,6 +1473,12 @@ składa je sama z tego, co już masz:
 5. Sprawdź koszt i kliknij [Rysuj]. Kadry wypełniają się po kolei; potem [Ustaw dymki].
 
 Obraz w kadrze poprawisz jak każdy obraz z AI: zaznacz kadr → [Obraz AI] (→ 7.11).
+
+**Ile to kosztuje – przykład.** Komiks na 3 strony po 3 kadry z dwiema postaciami (Ala i Ola) w jakości **Szkic**:
+2 obrazy wzorcowe + 9 kadrów = 11 obrazów, **ok. 1,50 zł** i niecała minuta. Scenariusz z pomysłu kosztuje ok. 0,01 zł.
+Na 24 strony (ok. 85 obrazów) wyjdzie ok. 12 zł w szkicu; w jakości **Dokładny** – mniej więcej trzy razy tyle.
+
+![Strona 1 przykładowego komiksu narysowana przez AI (Szkic), z dymkami ze scenariusza](k-komiks-ai-przyklad.png)
 
 **Wersje językowe.** Dodaj do scenariusza kolumny `tekst_pl`, `tekst_en`, `tekst_uk` (każda z tekstem w jednym
 języku). [Ustaw dymki] zapyta wtedy, z której kolumny wziąć teksty – ten sam układ dostaje teksty w innym języku.

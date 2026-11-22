@@ -550,6 +550,7 @@ export const akcje = {
   'komiks-dymki': () => obsluzAkcjeKomiksu('komiks-dymki'),
   'komiks-postacie': () => obsluzAkcjeKomiksu('komiks-postacie'),
   'komiks-rysuj': () => obsluzAkcjeKomiksu('komiks-rysuj'),
+  'komiks-scenariusz-ai': () => obsluzAkcjeKomiksu('komiks-scenariusz-ai'),
   'komiks-wgraj': () => obsluzAkcjeKomiksu('komiks-wgraj'),
   'komiks-webtoon': () => obsluzAkcjeKomiksu('komiks-webtoon'),
   'dodaj-elipse': () => edytor.dodajElipse(),

@@ -13,8 +13,9 @@ import { $, powiadom } from '../ui.js';
 import { stan, edytor } from './kontekst.js';
 import { t, biezacyJezyk } from '../jezyk.js';
 
-// Dopisek do każdego opisu: tekst zawsze w Makietce, nigdy w obrazie (plan komiksu – zasady).
-export const BEZ_NAPISOW = 'Do not draw any text, letters, words, numbers, signs, logos or captions anywhere in the image.';
+// Dopisek do każdego opisu: obraz na całą ramkę (bez białych marginesów – pomiar C7 pokazał ramki wokół obrazu)
+// i tekst zawsze w Makietce, nigdy w obrazie (plan komiksu – zasady).
+export const BEZ_NAPISOW = 'Full-bleed picture that fills the whole canvas edge to edge – no border, no frame, no white margin. Do not draw any text, letters, words, numbers, shop signs, logos or captions anywhere in the image.';
 export const pelnyOpis = (opis, { styl = '', dopisek = '' } = {}) => [opis.trim(), styl && `Style: ${styl}.`, dopisek, BEZ_NAPISOW].filter(Boolean).join(' ');
 
 // Ramka dla obrazu: zaznaczony kształt (także kadr komiksu) albo obraz; inaczej null.

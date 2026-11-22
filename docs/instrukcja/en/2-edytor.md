@@ -1382,6 +1382,7 @@ In a comic section the insert bar has extra tools:
 | [Script] | Opens the script table in the **Data** window (→ 14). If there is none, it creates one. |
 | [Place bubbles] | Places speech bubbles with the script texts on the pages, in the right panels. |
 | [Webtoon] | Comic pages one below another as 800 px wide PNG images, cut into pieces up to 1280 px – a ZIP ready to upload to a platform for reading comics on a phone. |
+| [Script with AI] | A script from an idea in a few sentences or from a document – pages, panels, dialogue, characters and places (described below). |
 | [Draw panels] | AI images for this page's panels – Makietka builds the descriptions from the script and character cards (described below). |
 | [Characters] | Character and place cards – who appears in the comic and where it happens. |
 | [Upload pages] | Page or panel images from files or a ZIP archive – the number in the file name says where they go. |
@@ -1448,6 +1449,18 @@ The cards are ordinary **Postacie** (characters) and **Miejsca** (places) tables
 
 **Halftone and speed lines.** In [Library] (→ 4.8), **Backgrounds and patterns** has comic patterns: **Comic halftone** (fine dots like in old comics), **Speed lines (radial)** – for a blast, surprise or close-up – and **Speed lines (horizontal)** – for speed. You can also put the same pattern on a selected shape, e.g. a panel (→ 6.5).
 
+**Script with AI.** [Script with AI] writes the comic out for you:
+
+- **From an idea** – describe the story in 3–5 sentences and say how many pages. AI writes short dialogue, captions,
+  scene descriptions, characters (with an appearance for drawing) and places.
+- **From a document** – choose a script or story in Word (.docx), LibreOffice (.odt), Markdown (.md) or plain text
+  (.txt); from Google Docs download the file as Microsoft Word. AI recognises pages, panels and who speaks, and keeps
+  the dialogue word for word.
+
+[Write it out] shows a preview (pages, panels, who speaks, text, scene); [Save script] writes the rows into the
+**Scenariusz** table, adds character and place cards (existing cards are only completed) and adds panels to pages that
+have none. Cost – a few grosz.
+
 **Comic with AI.** Google Gemini can draw the panel images (key → 7.11). You do not write prompts – Makietka builds
 them from what you already have:
 
@@ -1463,6 +1476,13 @@ them from what you already have:
 5. Check the cost and click [Draw]. The panels fill one by one; then [Place bubbles].
 
 Fix an image in a panel like any AI image: select the panel → [AI image] (→ 7.11).
+
+**What it costs – an example.** A 3-page comic with 3 panels per page and two characters (Ala and Ola) in **Draft**
+quality: 2 reference images + 9 panels = 11 images, **about 1.50 PLN** (about $0.38) and under a minute. A script from an
+idea costs about 0.01 PLN. For 24 pages (about 85 images) expect about 12 PLN in draft; in **Detailed** quality roughly
+three times as much.
+
+![Page 1 of the example comic drawn by AI (Draft), with bubbles from the script](k-komiks-ai-przyklad.png)
 
 **Language versions.** Add columns `tekst_pl`, `tekst_en`, `tekst_uk` to the script (each with the text in one
 language). [Place bubbles] then asks which column to use – the same layout gets the texts in another language.
