@@ -389,6 +389,19 @@ export function planKadrowStrony() {
   const plan = kadryStrony(p, scenariuszProjektu(), nr, kadry.length);
   return { nr, pozycje: plan.map((x, i) => ({ ...x, obiekt: kadry[i] })) };
 }
+// Rysowanie kadrów po kolei (okno [Rysuj kadry] i czat AI): obrazy wzorcowe kart, styl projektu, proporcje kadru.
+export async function rysujPozycje(pozycje, { jakosc = 'szkic', postep = () => {}, wynik = { zl: 0, gotowe: 0 } } = {}) {
+  for (const x of pozycje) {
+    postep(wynik.gotowe + 1);
+    const wzorce = (await Promise.all([...x.postacie.map((q) => q.obraz), x.miejsce?.obraz].filter(Boolean).map(wzorzecKarty))).filter(Boolean);
+    const o = x.obiekt;
+    const w = await generujIWstaw({ opis: x.opis, jakosc, proporcja: proporcjaRamki(o.width * o.scaleX, o.height * o.scaleY), cel: o, wzorce, styl: stylProjektu(stan.projekt), potwierdzono: true });
+    wynik.zl += w.zl; wynik.gotowe += 1;
+  }
+  return wynik;
+}
+export const szacujPozycje = (pozycje, jakosc = 'szkic') => pozycje.reduce((a, x) => a + szacujObraz({ ...JAKOSCI_OBRAZU[jakosc], znakiOpisu: x.opis.length + 300, wzorce: x.postacie.filter((q) => q.obraz).length + (x.miejsce?.obraz ? 1 : 0) }), 0);
+
 export function oknoRysujKadry() {
   if (!wKomiksie()) return;
   zapiszBiezacyCel();
@@ -419,20 +432,13 @@ export function oknoRysujKadry() {
     if (!lista.length) return;
     const przycisk = f.querySelector('button[value="tak"]');
     przycisk.disabled = true; blad.hidden = true;
-    let zl = 0; let gotowe = 0;
+    const stan0 = { zl: 0, gotowe: 0 };
     try {
-      for (const i of lista) {
-        przycisk.textContent = t('komiks.rysujTrwa', { z: gotowe + 1, ile: lista.length });
-        const x = pozycje[i];
-        const wzorce = (await Promise.all([...x.postacie.map((q) => q.obraz), x.miejsce?.obraz].filter(Boolean).map(wzorzecKarty))).filter(Boolean);
-        const o = x.obiekt;
-        const w = await generujIWstaw({ opis: f.elements[`o${i}`].value, jakosc: f.elements.jakosc.value, proporcja: proporcjaRamki(o.width * o.scaleX, o.height * o.scaleY), cel: o, wzorce, styl: stylProjektu(stan.projekt), potwierdzono: true });
-        zl += w.zl; gotowe += 1;
-      }
+      await rysujPozycje(lista.map((i) => ({ ...pozycje[i], opis: f.elements[`o${i}`].value })), { jakosc: f.elements.jakosc.value, postep: (z) => { przycisk.textContent = t('komiks.rysujTrwa', { z, ile: lista.length }); }, wynik: stan0 });
       dlg.close('tak');
-      powiadom(t('komiks.rysujGotowe', { ile: gotowe, zl: opisKosztu(zl, biezacyJezyk()) }));
+      powiadom(t('komiks.rysujGotowe', { ile: stan0.gotowe, zl: opisKosztu(stan0.zl, biezacyJezyk()) }));
     } catch (er) {
-      blad.textContent = `${gotowe ? `${t('komiks.rysujCzesciowo', { ile: gotowe })} ` : ''}${er.message}`; blad.hidden = false;
+      blad.textContent = `${stan0.gotowe ? `${t('komiks.rysujCzesciowo', { ile: stan0.gotowe })} ` : ''}${er.message}`; blad.hidden = false;
     } finally { przycisk.disabled = false; przycisk.textContent = t('komiks.rysuj'); }
   };
   dlg.returnValue = '';

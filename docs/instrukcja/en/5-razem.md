@@ -282,6 +282,14 @@ retries the request twice by itself before reporting an error.
 changes, and the AI is told you didn't allow it and asks what to do instead. The same goes for "copy
 and paste" mode: the question appears when the pasted chat answer contains such a change.
 
+**Images and comics in the chat.** The assistant also has app tools: **generuj_obraz** (an image from a description into
+the selected frame or onto the page, like [AI image] → 7.11), **rysuj_kadry** (comic page panels from the script and
+cards, → 10.13), **ustaw_dymki** (place bubbles) and **szacuj_koszt** (estimate cost). Google Gemini draws the images with
+the Gemini key from your vault, even when you chat with another provider. Before every paid drawing the chat asks with
+the amount, e.g. “AI wants to generate the image “Cat in a hat” (cost about 0.14 PLN). Allow?” – there is no
+[Always allow in this conversation] here; after [Don't allow] nothing is charged. Example: “Draw the panels of page 2
+and place the bubbles”.
+
 ## 25.7 AI that can open web pages (no connector)
 
 The connector address (→ 25.2) **opened like an ordinary web page** shows a description of the access and a list of tools in plain text.

@@ -12,6 +12,7 @@ import { otwartySejf, sejfKonta, maKluczeDoPrzeniesienia } from './sejf-ai.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
 import { wymagaZgody } from '../zgoda-ai.js';
+import { NARZEDZIA_LOKALNE, nazwyLokalne, wykonajLokalne } from './czat-narzedzia-lokalne.js';
 import { t as tt } from '../jezyk.js';
 
 const dlg = $('#dlg-czat-ai');
@@ -28,8 +29,9 @@ let trwa = false;
 let zawszePozwalaj = false; // „Zawsze pozwalaj w tej rozmowie” (#255) – do nowej rozmowy
 
 // Zgoda na groźną zmianę (#255): pytanie w rozmowie z przyciskami. Zwraca true – wolno, false – nie.
-function zapytajOZgode(opis) {
-  if (zawszePozwalaj) return Promise.resolve(true);
+// kosztuje=true (#376): wydatek – pytanie za każdym razem, bez przycisku „Zawsze pozwalaj”.
+function zapytajOZgode(opis, { kosztuje = false } = {}) {
+  if (zawszePozwalaj && !kosztuje) return Promise.resolve(true);
   return new Promise((gotowe) => {
     const li = dopisz('zgoda', `AI chce ${opis}. Pozwolić?`);
     const rzad = Object.assign(document.createElement('div'), { className: 'rzad-przyciskow' });
@@ -40,7 +42,7 @@ function zapytajOZgode(opis) {
       gotowe(wolno);
     };
     const przycisk = (tekst, klasa, fn) => { const b = Object.assign(document.createElement('button'), { type: 'button', className: `przycisk maly ${klasa}`, textContent: tekst }); b.addEventListener('click', fn); return b; };
-    rzad.append(przycisk(tt('czatAi.pozwol'), 'glowny', () => koniec(true)), przycisk(tt('czatAi.zawszePozwalajWTej'), '', () => koniec(true, true)), przycisk(tt('czatAi.niePozwalaj'), 'niebezpieczny', () => koniec(false)));
+    rzad.append(przycisk(tt('czatAi.pozwol'), 'glowny', () => koniec(true)), ...(kosztuje ? [] : [przycisk(tt('czatAi.zawszePozwalajWTej'), '', () => koniec(true, true))]), przycisk(tt('czatAi.niePozwalaj'), 'niebezpieczny', () => koniec(false)));
     li.append(rzad);
     lista.scrollTop = lista.scrollHeight;
     rzad.querySelector('button').focus();
@@ -235,6 +237,8 @@ async function przygotujNarzedzia() {
     const { projekt: _p, ...reszta } = t.inputSchema.properties || {};
     return { name: t.name, description: t.description, inputSchema: { ...t.inputSchema, properties: reszta, required: (t.inputSchema.required || []).filter((r) => r !== 'projekt') } };
   });
+  // Narzędzia aplikacji (#376): obraz z AI, kadry komiksu, dymki, koszt – tylko gdy AI może zmieniać projekt.
+  if (rola === 'edycja') lista.push(...NARZEDZIA_LOKALNE);
   narzedzia = { projekt, rola, lista, instrukcje: init?.instructions || '', wolaj };
   return narzedzia;
 }
@@ -395,6 +399,13 @@ async function wyslij(tekst) {
         if (opisZgody) {
           czeka.textContent = tt('czatAi.czekamNaTwojaZgode');
           if (!await zapytajOZgode(opisZgody)) return { tekst: ODMOWA, blad: true };
+        }
+        if (nazwyLokalne.has(nazwa)) {
+          try {
+            const tekst = await wykonajLokalne(nazwa, argumenty || {}, { zgoda: (opis) => { czeka.textContent = tt('czatAi.czekamNaTwojaZgode'); return zapytajOZgode(opis, { kosztuje: true }); } });
+            if (tekst === null) return { tekst: ODMOWA, blad: true };
+            return { tekst, blad: false };
+          } catch (er) { return { tekst: er.message, blad: true }; }
         }
         const r = await n.wolaj('tools/call', { name: nazwa, arguments: argumenty });
         if (!/^(czytaj|przeglad|projekty|obrazy_projektu|komentarze|stan_eksportu|opis_formatu|kontrola)/.test(nazwa)) zmiany = true;

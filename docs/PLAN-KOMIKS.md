@@ -49,8 +49,8 @@ Po A7 da się robić pełne komiksy z obrazami z dowolnego generatora.
 | B2 | **Koszty**: ceny w konfiguracji, potwierdzenie przed każdym generowaniem („3 obrazy, ok. 1,50 zł – generować?”), licznik (obraz, projekt, miesiąc), miesięczny limit wydatków | ✅ #372 (obrazy; teksty – przy B4) |
 | B3 | **Generuj obraz** / **Generuj do ramki**: opis po polsku, proporcje z ramki, wynik w obrazach projektu; przy obrazie prompt, model i wersje (powrót jednym kliknięciem); **popraw obraz** (edycja fragmentu zamiast losowania od nowa) | ✅ #372 (bez „popraw fragment” – później) |
 | B4 | **Tekst**: skróć, wydłuż, zmień ton, przetłumacz (pl/uk/en) na zaznaczonym tekście; **wypełnij kolumnę tabeli** | ✅ #373 |
-| B5 | **Czat AI** (jest, #241) z Gemini: te same narzędzia co łącznik MCP + generowanie obrazów; generowanie zawsze po potwierdzeniu kosztu | częściowo jest |
-| B6 | Te same narzędzia w **łączniku MCP** (Claude, ChatGPT) – generowanie wykonuje serwer kluczem z B1 | do zrobienia |
+| B5 | **Czat AI** (jest, #241) z Gemini: te same narzędzia co łącznik MCP + generowanie obrazów; generowanie zawsze po potwierdzeniu kosztu | ✅ #376 (generuj_obraz, rysuj_kadry, ustaw_dymki, szacuj_koszt; zgoda z kwotą) |
+| B6 | Te same narzędzia w **łączniku MCP** (Claude, ChatGPT) – generowanie wykonuje serwer kluczem z B1 | do zrobienia – generowanie w łączniku przez kolejkę otwartej aplikacji (jak eksport) albo klucz na serwerze |
 
 ## Część C – AI w trybie komiksu (na częściach A i B)
 
@@ -60,7 +60,7 @@ Po A7 da się robić pełne komiksy z obrazami z dowolnego generatora.
 | C2 | **Wzorce postaci i miejsc** z karty (Nano Banana Pro) | ✅ #374 (szkic 1K; Pro do wyboru w oknie Obraz AI) |
 | C3 | **Strona ze sceny**: prompt składa Makietka (styl, układ kadrów, kto/co/emocja/plan w każdym kadrze, miejsce i światło, obrazy wzorcowe postaci i miejsca, „no text, leave space for speech bubbles”); najpierw szkic 1K, zaakceptowana w 2K albo Pro | ✅ #374 – kadry strony osobno (nie cała strona jednym obrazem); szkic, potem Dokładny |
 | C4 | **Pomysł → scenariusz** w czacie: 3–5 zdań, pomocnik dzieli na sceny i dialogi, poprawki zwykłymi słowami | ✅ #375 (osobne okno „Scenariusz z AI”, nie w czacie) |
-| C5 | Funkcje czatu i łącznika: `ustaw_scenariusz`, `zapisz_postac`, `zapisz_miejsce`, `generuj_wzorzec`, `generuj_strone`, `popraw_kadr`, `ustaw_dymki`, `szacuj_koszt`; kontekst czatu: lista scen, postacie (imię + znak), styl, bieżąca strona | do zrobienia |
+| C5 | Funkcje czatu i łącznika: `ustaw_scenariusz`, `zapisz_postac`, `zapisz_miejsce`, `generuj_wzorzec`, `generuj_strone`, `popraw_kadr`, `ustaw_dymki`, `szacuj_koszt`; kontekst czatu: lista scen, postacie (imię + znak), styl, bieżąca strona | ✅ #376 w czacie (karty i scenariusz – narzędzia tabel); w łączniku MCP – z B6 |
 | C6 | **Import scenariusza z dokumentu** (TXT, DOCX, Markdown, Google Docs jako DOCX – odczyt już jest, #216): AI rozpoznaje układ dokumentu i rozpisuje go na sceny/strony, kadry, dialogi (kto, tekst, rodzaj dymka) oraz listę postaci i miejsc; podgląd do poprawienia przed zapisem; wynik w tabeli scenariusza i w kartach postaci. Osobna droga obok „od pomysłu do komiksu” | ✅ #375 |
 | C7 | **Pomiar zużycia** na prostym komiksie (np. 3 strony, 2 postacie): koszt tekstu i obrazów w zł – do instrukcji i do szacunków w aplikacji | ✅ #375: 3 strony × 3 kadry + 2 wzorce = 1,51 zł, 49 s (szkic) |
 

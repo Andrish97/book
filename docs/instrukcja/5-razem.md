@@ -282,6 +282,13 @@ sama ponawia zapytanie dwa razy, zanim zgłosi błąd.
 nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj
 i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.
 
+**Obrazy i komiks w czacie.** Asystent ma też narzędzia aplikacji: **generuj_obraz** (obraz z opisu do zaznaczonej
+ramki albo na stronę, jak [Obraz AI] → 7.11), **rysuj_kadry** (kadry strony komiksu ze scenariusza i kart, → 10.13),
+**ustaw_dymki** i **szacuj_koszt**. Obrazy rysuje Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym
+dostawcą. Przed każdym płatnym rysowaniem w rozmowie pojawia się pytanie z kwotą, np. „AI chce wygenerować obraz
+„Kot w kapeluszu” (koszt ok. 0,14 zł). Pozwolić?” – tu nie ma [Zawsze pozwalaj w tej rozmowie]; po [Nie pozwalaj]
+nic nie kosztuje. Przykład: „Narysuj kadry strony 2 i ustaw dymki”.
+
 ## 25.7 AI, które umie otwierać strony (bez łącznika)
 
 Adres łącznika (→ 25.2) **otwarty jak zwykła strona** pokazuje opis dostępu i listę narzędzi w czystym tekście.
