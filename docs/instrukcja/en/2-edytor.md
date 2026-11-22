@@ -654,14 +654,25 @@ changes the word in all places in that text.
 - `{…}` fields, numbers, words with digits, web addresses and emails are skipped.
 - You can turn spell checking off in the view menu: **Check spelling**.
 
-## 5.17 AI text
+## 5.17 AI text: fixing and translating
 
-Select a text frame (or, while typing, part of the text) and click [AI text] on the insert bar. Choose what to do:
-[Shorten], [Expand], [Simpler], [More formal], [Fix mistakes], [To Polish], [To English] or [To Ukrainian].
-The result appears in the window – you can still edit it – and [Replace] puts it in place of the text
-(<kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes). Fields in braces, e.g. `{name}`, stay unchanged.
+AI can fix, shorten or translate a text – in every project. Google Gemini writes it with your key (how to get a key –
+→ 7.11); one change costs a fraction of a grosz.
 
-Google Gemini writes it with your key (as for images, → 7.11); one change costs a fraction of a grosz.
+1. Select a text frame – you change the whole text. Or double-click into the text and select a part – you change only
+   that part.
+2. Click [AI ▾] on the insert bar → **Improve or translate text…**.
+3. Click what to do: [Shorten], [Expand], [Simpler], [More formal], [Fix mistakes], [To Polish], [To English] or
+   [To Ukrainian].
+4. After a moment the result is in the **Result (you can edit it)** field. Edit it if you like, or click another
+   button to try something else.
+5. [Replace] puts the result in place of the text. <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes.
+
+Fields in braces, e.g. `{name}`, stay unchanged.
+
+**Translating a whole project.** For many texts at once (e.g. a calendar in three languages) keep the texts in a data
+table and translate the column: the **✦** button next to the column name in the **Data** window (→ 14.6), e.g.
+“translate the opis column into English”. Other changes in many places at once can be done by the AI Assistant (→ 25.6).
 
 # 6. Shapes, lines and colors
 
@@ -898,29 +909,44 @@ Border, rounding and soft edges are also carried over by [Copy style] (→ 4.13)
 
 ## 7.11 AI image
 
-[AI image] on the insert bar draws an image from a description – in every project, not only comics. Google Gemini
-draws it with your key; you pay Google, and Makietka shows the cost before every generation.
+AI draws an image from a description – in every project, not only comics. Google Gemini draws it with your key; you
+pay Google, and Makietka shows the cost before every generation.
 
 ![The AI image window](k-obraz-ai.png)
 
-1. Select the frame, shape or comic panel the image should fill (with nothing selected, it goes to the middle of the page).
-2. Click [AI image] and describe what should be in the picture – who, doing what, where, in what style.
-3. Choose the **Quality**: **Draft** (cheapest, for trying), **Detailed** (for print) or **Best** (characters and
-   details). The **Proportions** come from the frame.
-4. Check the **Cost** and click [Generate]. After 10–30 seconds the image is in the frame and in **Project images**.
+1. Select the frame, shape or comic panel the image should fill. With nothing selected, the image goes to the middle
+   of the page.
+2. Click [AI ▾] on the insert bar → **Image from a description…**.
+3. In the **What should be in the picture** field describe it in your own words: who, doing what, where, what mood and
+   style, e.g. “A red-haired girl with a yellow backpack waving in a cobbled lane, morning, colourful children's
+   illustration”.
+4. Choose the **Quality**: **Draft – fast and cheapest** (for trying), **Detailed – for print** or **Best – characters
+   and details**.
+5. The **Image shape** (square, portrait, landscape, panorama, tall) is matched to the frame – change it only for an
+   image placed on the page.
+6. Check the **Cost** (and how much you have spent this month) and click [Generate]. After 10–30 seconds the image is
+   in the frame and in the **Project images** window.
 
-| Quality | Model | Approx. cost per image |
+| Quality | What for | Approx. cost per image |
 |---|---|---|
-| Draft | Gemini 3.1 Flash Lite Image, 1K | 0.14 PLN (about $0.034) |
-| Detailed | Gemini 3.1 Flash Image, 2K | 0.41 PLN (about $0.10) |
-| Best | Gemini 3 Pro Image, 2K | 0.55 PLN (about $0.14) |
+| Draft | trying, preview, images for the screen | 0.14 PLN (about $0.034) |
+| Detailed | print | 0.41 PLN (about $0.10) |
+| Best | print, characters and small details | 0.55 PLN (about $0.14) |
 
-- **No lettering in the image** – Makietka asks the model not to draw any. You add text in Makietka (bubbles, text
-  frames), so it is easy to fix and translate.
-- **Again:** select a frame with an AI image and click [AI image] – the window has the previous description; edit it
-  or generate unchanged. Earlier versions stay in **Project images** – go back with one choice (→ 7.5).
-- **How much you spent:** [Account settings] → **Artificial intelligence** shows this month's spending on this
-  device; there you can also set a **Monthly limit** – above it Makietka will not generate an image.
+- **No lettering in the image** – Makietka asks the AI not to draw any, and to fill the whole frame, with no white
+  edges. You add text in Makietka (text frames, speech bubbles), so it is easy to fix and translate.
+- **Again:** select the frame with the AI image and click [AI ▾] → **Image from a description…** again. The window has
+  the description the current image was made from – change what you like in it, or generate unchanged. Earlier
+  versions stay in **Project images** – go back to them with one choice (→ 7.5).
+- **Fix the current picture:** when the frame already has a picture (from AI or your own), the window asks **What to do
+  with the picture in the frame**. Choose **Fix the current picture – describe only the change** and write just the
+  change, e.g. “give the girl a red hat” or “make it evening”. The AI gets the current picture and changes only what
+  you ask for – the rest stays. **Draw it again from scratch** draws the whole picture from the description.
+- **How much you spent:** [Account settings] → **Artificial intelligence** shows this month's spending on this device.
+  There you can also set the **Monthly limit for AI images and texts** – once it is exceeded, Makietka will not
+  generate an image or text until you change the limit.
+- The AI Assistant can also draw an image when you ask, e.g. “put a photo of a sunset over the sea on page 3”
+  (→ 25.6) – before drawing it asks for your consent and tells you the cost.
 
 **How to get a Gemini key**
 
@@ -1363,132 +1389,220 @@ at 90°, how far it reaches from the card, and whether it hides inside the card 
 
 ## 10.13 Comic
 
-You make a comic in a section of type **Comic**. The easiest start is the template: **New project** → **Start from:
-Template** → **Comic**. You get a saddle-stitched cover and 24 comic pages (170 × 260 mm, you can change it), ready
-panels on every page, and a **Scenariusz** (script) table in the data with a sample scene. You can also add a comic
-section to any project ([Section], type **Comic**). Everything works without AI.
+A comic is an add-on to an ordinary publication: a booklet, a book, loose sheets or a file for viewing on screen.
+Everything works without AI; AI (marked with a star ✦) can help write the script and draw the panels.
 
-![A comic page with panels and bubbles from the script; “Panels” and “Place bubbles” on the bar](k-komiks.png)
+**How to start**
 
-In a comic section the insert bar has extra tools:
+- **From a template:** **New project** → **Start from: Template** → **Comic**. You get pages with ready panels,
+  a sample script, cards for two characters (Ala and Ola) and a place (Small town).
+- **From a blank page:** **New project** → **Start from: Blank page** → tick **It is a comic – panels, bubbles, script and
+  characters**.
+- **In an existing project:** [Section] → type **Comic** (→ 10.4).
 
-| Tool | What it does |
+In the template you choose the comic's **Form**:
+
+| Form | What you get |
 |---|---|
-| [Speech bubble] | Inserts a speech bubble (→ 4.14). Change its kind – speech, thought, shout, whisper, caption – in the panel. |
-| [Bridge] | Select two bubbles of one character (with <kbd>Shift</kbd>) – they join with a strip into one shape. Select a joined bubble to unjoin. |
-| [Effect] | Sound-effect lettering – a big outlined “BOOM!” (style **Sound effect**). Change the text, enlarge, rotate. |
-| [Panels] | A window with 9 ready panel layouts (1–9 panels). Click a preview, set **Gap between panels (mm)** and, if you like, **Bleed** – panels at the edge then run off the page up to the trim line. [Lay out panels] replaces the panels on this page; images and bubbles stay. |
-| [Split panel] | Click two points – the line between them splits the panel in two (it can be diagonal), with the same gap. <kbd>Esc</kbd> cancels. |
-| [Script] | Opens the script table in the **Data** window (→ 14). If there is none, it creates one. |
-| [Place bubbles] | Places speech bubbles with the script texts on the pages, in the right panels. |
-| [Webtoon] | Comic pages one below another as 800 px wide PNG images, cut into pieces up to 1280 px – a ZIP ready to upload to a platform for reading comics on a phone. |
-| [Script with AI] | A script from an idea in a few sentences or from a document – pages, panels, dialogue, characters and places (described below). |
-| [Draw panels] | AI images for this page's panels – Makietka builds the descriptions from the script and character cards (described below). |
-| [Characters] | Character and place cards – who appears in the comic and where it happens. |
-| [Upload pages] | Page or panel images from files or a ZIP archive – the number in the file name says where they go. |
+| **Booklet with a cover – for print** | A booklet cover (with room for a title and a drawing) and the comic pages, saddle-stitched. |
+| **Paperback book – for print** | A cover with a spine and the comic pages. |
+| **Loose sheets – no cover** | Just the comic pages, e.g. for printing at home. |
+| **On screen – PDF or presentation (landscape)** | Landscape pages like slides, without bleed – for viewing in the preview or as an on-screen PDF. |
+
+![A comic page with panels and bubbles; Panels, Speech bubble and Comic on the bar](k-komiks.png)
+
+**The comic bar.** On a comic page the insert bar has three buttons:
+
+| Button | What it does |
+|---|---|
+| [Panels] | A ready panel layout for this page, the gap between panels, bleed; in the same window [Split panel]. |
+| [Speech bubble ▾] | A menu: bubble **Speech**, **Thought**, **Shout**, **Whisper**, **Caption**, **Sound effect** (“BOOM!”) and **Bridge** (joins two bubbles of one character). |
+| [Comic] | The **Comic step by step** window – the whole comic in five steps (described below). |
+
+The AI tools are in the [AI ▾] menu (→ 7.11): in a comic it also has **Draw panels** and **Script with AI**.
+
+### Comic step by step
+
+[Comic] opens a window with five steps. Each step shows what is already there (e.g. “Done: 5 lines on 2 pages.”).
+Do them in order or go back to any of them – each button opens its own window.
+
+![The Comic step by step window](k-komiks-okno.png)
+
+1. **Story** – [Open the script] (the **Script** window, below) or [Write with AI…] (Script with AI, below).
+2. **Characters and places** – [Characters and places…]: character and place cards and the **Drawing style**.
+   The thumbnails show the reference images.
+3. **Panels and images** – [Panel layout…], [Draw this page's panels…] (AI) or [Upload finished pages…].
+4. **Speech bubbles** – [Place bubbles]: texts from the script go into bubbles in the panels.
+5. **Finished comic** – [Preview], [PDF…] (for print or for the screen) and [Webtoon] (a strip for reading on a phone).
+
+### Step 1. Script
+
+The **Script** window shows the comic page by page: panels in each page, lines in each panel. You don't have to type
+numbers or remember column names.
+
+![The Script window: page, panels, shot, place, who is in the panel and the lines](k-komiks-scenariusz.png)
+
+In each panel:
+
+| Field | What to choose or type |
+|---|---|
+| **Shot** | How the scene is seen: **wide shot** (the whole place), **full shot** (characters from head to toe), **medium shot** (from the waist up), **close-up** (the face), **detail** (an important object), **from above**, **from below**, **over the shoulder**. **Shot: any** – no requirements. |
+| **Place** | A place from the cards (step 2) – its description and image become the panel's background. |
+| **Also in the panel** | Tick the characters visible in the panel, including those who say nothing. Those who speak are in the panel anyway. |
+| **What the panel shows** | Briefly, e.g. “Ala runs down the lane, houses behind her”. It does not go on the page – it is a description for the artist or the AI. |
+| **Lines** | [+ Line]: **Who speaks** (a character from the cards or **Caption**), **Bubble kind** (speech, thought, shout, whisper) and **Bubble text**. The bin icon deletes the line. |
+
+[+ Panel] adds a panel on the page, [+ Page] – a new script page; the bin icon next to a panel deletes the panel.
+[Save] saves the script. You add characters and places in step 2 – then you pick them here from a list.
+
+**For advanced users.** The script is an ordinary **Scenariusz** (script) data table (one row per line, columns
+**strona** (page), **kadr** (panel), **ujęcie** (shot), **miejsce** (place), **w kadrze** (in the panel), **opis sceny**
+(scene), **postać** (character), **tekst** (text), **rodzaj** (kind)). [Table] in the Script window opens it in the
+**Data** window (→ 14) – there you can paste a script from a spreadsheet (→ 14.3) or add columns with other languages.
+Page 1 is the first page of the comic (the cover does not count).
+
+**Script with AI.** [Write with AI…] in step 1 (or [AI ▾] → **Script with AI**) writes the comic out for you:
+
+1. Choose **From an idea** and describe the story in 3–5 sentences, e.g. “Two friends, Ala and Ola, find a parcel at
+   their door. Inside there is a kitten…”, and set **How many pages**.
+   Or choose **From a document** and a file with a script or story: Word (.docx), LibreOffice (.odt), Markdown (.md)
+   or plain text (.txt). From Google Docs: **File → Download → Microsoft Word**. Dialogue from the document is kept
+   word for word.
+2. Click [Write it out]. After a few seconds you see a preview: pages, panels, who speaks, text, what the panel shows.
+3. [Save script] – the script goes into the **Script** window (with shots, places and characters in the panels),
+   character and place cards are created (existing cards are only completed), and pages without panels get panels.
+   [Back] returns to the description without saving.
+
+Cost – about 0.01 PLN; you see it before writing it out.
+
+### Step 2. Characters and places
+
+[Characters and places…] opens the cards. Describe a character once – the description and reference image make sure
+it looks the same in every panel (for you, an artist or the AI).
+
+![Character and place cards](k-komiks-postacie.png)
+
+- **Character:** **Name**, **Appearance** (e.g. “8 years old, red braids, green dress”), **Distinctive feature** (e.g.
+  “yellow backpack”), **Personality**, **Reference image** and **Bubble colour** (this character's bubbles get this
+  background colour; white – a normal bubble).
+- **Place:** **Place** (name), **Description**, **Time of day**, **Light** and **Reference image** – a view of the place
+  itself, without characters. In panels with this place (chosen in the script) the place's image is the background,
+  and the characters stand on it.
+- **Reference image:** [Choose image…] – a drawing or photo from your device; or [Draw from description (AI)] – AI draws
+  it from the card fields in the comic's style (you see the cost before drawing, about 0.14 PLN). A character – the
+  whole figure on a white background; a place – a wide view without people.
+- **Drawing style** (at the top of the window): **Colourful storybook**, **Watercolour**, **Simple cartoon**,
+  **Manga (black and white)** or **Retro comic** – it applies to all AI images in this comic.
+
+![Character card](k-komiks-postac.png)
+
+Clicking a card opens it for editing, [Save] saves it, [Delete] removes the card (bubbles and images on the pages
+stay). The cards are ordinary **Postacie** (characters) and **Miejsca** (places) tables – you also see them in the
+**Data** window.
+
+### Step 3. Panels and images
+
+**Panel layout.** [Panels] on the bar (or [Panel layout…] in step 3) shows 9 ready layouts (1–9 panels). Click
+a preview, set **Gap between panels (mm)** and, if you like, **Bleed** – panels at the edge then run off the page,
+up to the trim line. [Lay out panels] replaces the panels on this page; images and bubbles stay.
+[Split panel] in this window: click two points on the page – the line between them splits the panel in two (it can
+be diagonal). <kbd>Esc</kbd> ends.
 
 ![The Panels window – 9 ready layouts](k-komiks-kadry.png)
 
-**Panels.** A panel is a shape with a white fill and a black outline, numbered in reading order (rows from the top,
-left to right within a row – you see it in the layers as “Kadr 1”, “Kadr 2”…). Move and change it like any shape,
-and put an image into a panel like into any shape (→ 7) – e.g. by dragging a file onto the panel. A character can
-break out of the panel: just place the image normally, above the panel.
+A panel is a shape with a white fill and a black outline, numbered in reading order (rows from the top, left to right
+within a row – in the layers “Panel 1”, “Panel 2”…). Move and change it like any shape; put an image into a panel
+like into any shape (→ 7.7), e.g. by dragging a file onto the panel. A character can break out of the panel – then
+place the image above the panel.
 
-**The script** is an ordinary data table. Each row is one speech bubble:
+**Draw panels (AI).** Open a comic page and click [Draw this page's panels…] in step 3 (or [AI ▾] → **Draw
+panels**). You don't write instructions for the AI – Makietka builds them from the script and the cards:
 
-| Column | What to enter |
-|---|---|
-| **strona** (page) | Comic page number – 1 is the first page of the comic section (the cover does not count). |
-| **kadr** (panel) | Panel number on that page (as in the layers). |
-| **postać** (character) | Who speaks – e.g. Ala. Leave empty for a caption. |
-| **tekst** (text) | The bubble text. |
-| **rodzaj** (kind) | `mowa` (speech), `myśl` (thought), `krzyk` (shout), `szept` (whisper) or `narracja` (caption). Empty – speech. |
-| **opis sceny** (scene) | What the panel shows – for you or the artist; it does not go on the page. |
+1. The window shows each panel of the page: a thumbnail, a field with the description and a tick box. The description
+   is in plain words, e.g. “Panel 2. Shot: full shot. Scene: Ala runs down the street. In the panel: Ala – 8 years
+   old, red braids…, always with: yellow backpack. Place (background): Small town…”.
+2. Edit the description if you like. Panels with an image are unticked – tick them to draw them again.
+3. Choose the **Quality** and check the cost below the list.
+4. [Draw] – the panels fill one by one (“Drawing 2 of 3…”). The reference images of the characters and the place go
+   to the AI together with the description, so the characters and the background look the same in every panel.
+   There is no lettering in the images – the text is in the bubbles.
 
-Type the script in the **Data** window or paste it from a spreadsheet (→ 14.3). English names work too – columns
-`page`, `panel`, `character`, `text`, `kind` and kinds `speech`, `thought`, `shout`, `whisper`, `caption`.
+**Draw again.** Don't like an image? Open [Draw this page's panels…] again and tick that panel. The description field
+shows the description **the current image was made from** – change one word or draw again unchanged. [Description
+from the script] goes back to a freshly built description (e.g. after changing the script or a card). Earlier images
+stay in **Project images** (→ 7.5). A small change in one panel (e.g. “Ala should have her eyes closed”) needs no
+redrawing: select the panel → [AI ▾] → **Image from a description…** → **Fix the current picture – describe only the
+change** (→ 7.11).
 
-**Example, step by step**
-
-1. Create a project from the **Comic** template and open the first comic page (after the cover).
-2. Click [Script]. The table has sample rows, e.g. `1 | 2 | Ala | Ola! Come quick! | krzyk`.
-   Edit them or type your own and close the window.
-3. Click [Place bubbles]. Speech bubbles appear on the pages – each in its panel, with the tail pointing down.
-4. Move the bubbles and tail ends to fit the drawing.
-5. Changing a text in the script? Click [Place bubbles] again – only the text changes; bubbles you moved stay
-   where they are. A row deleted from the script removes its bubble.
-
-**Comic styles.** Bubbles from [Speech bubble] and [Place bubbles] use the **Dialogue** style (Comic Neue, capitals, centred), and [Effect] uses **Sound effect** (Bangers, yellow with a black outline). The styles are added to the project the first time you use them; changing a style (→ 5.4) changes all bubbles or effects at once. In a Ukrainian project both styles use Pangolin – Comic Neue and Bangers have no Cyrillic.
-
-**Ready page drawings.** Have pages drawn or generated in another program? Click [Upload pages] and choose many files at once or one ZIP file. The file name says where the image goes:
+**Ready page drawings.** Have pages drawn in another program? Click [Upload finished pages…] and choose many files at
+once or one ZIP file. The file name says where the image goes:
 
 | File name | Where it goes |
 |---|---|
 | `01.png`, `page 7.jpg` | The whole page 1 (7) with bleed. That page's panels disappear (they are already in the drawing); bubbles stay above the image. |
 | `s03-k2.png`, `p3_panel2.jpg` | Panel 2 on page 3 – the image fills the panel (move it by double-clicking, → 7). |
 
-Pages count from the first comic page; missing pages are added at the end of the section. Files without a number (e.g. `cover.png`) are skipped – the app tells you which.
+Pages count from the first comic page; missing pages are added at the end of the section. Files without a number
+(e.g. `cover.png`) are skipped – Makietka tells you which.
 
-**Characters and places.** [Characters] opens the cards: for a character **Name**, **Appearance**, **Distinctive feature**, **Personality**, **Reference image** (a drawing or photo from your device – it goes to the project images) and **Bubble colour**; for a place **Place**, **Description**, **Time of day**, **Light** and an image. Describe a character once – the description and image are the model for every scene (for you, an artist or an image generator). The **Comic** template has sample cards for Ala, Ola and the town.
+### Step 4. Speech bubbles
 
-![Character and place cards](k-komiks-postacie.png)
+[Place bubbles] puts bubbles with the script texts into the right panels, with the tail pointing down. Then:
 
-1. Click [Characters], then **Add character**.
-2. Type the name and appearance, e.g. “8 years old, red braids, green dress”.
-3. [Choose image…] – a drawing of the character from your device.
-4. Set a **Bubble colour** if this character's bubbles should stand out (white – a normal bubble) and click [Save].
-5. [Place bubbles] – bubbles of the character with this name in the script get its colour.
+1. Move the bubbles and tail ends to where they fit the drawing.
+2. Fixing the script? Click [Place bubbles] again – only the text changes; bubbles you moved stay where they are.
+   A line deleted from the script removes its bubble.
 
-![Character card](k-komiks-postac.png)
+- When a character speaks twice in a row in the same panel, the second bubble goes below the first and is joined to
+  it with a **bridge**. By hand: select two bubbles (with <kbd>Shift</kbd>) → [Speech bubble ▾] → **Bridge**; select
+  a joined bubble and choose **Bridge** again – you unjoin them.
+- You can also insert a bubble by hand: [Speech bubble ▾] → a kind (→ 4.14). **Sound effect** is a big outlined
+  “BOOM!” – change the text, enlarge, rotate.
+- **Comic styles.** Bubbles use the **Dialogue** style (Comic Neue, capitals), effects the **Sound effect** style
+  (Bangers, yellow with a black outline). Changing a style (→ 5.4) changes all bubbles or effects at once. In
+  a Ukrainian project both styles use the Pangolin font (with Cyrillic).
+- **Language versions.** Add columns `tekst_en`, `tekst_uk`… to the script table (the **Data** window). [Place bubbles]
+  then asks which column to take the texts from – the same comic gets the texts in another language. AI can also
+  translate a column: the **✦** button next to the column name (→ 14.6), e.g. “translate the tekst column into
+  English”.
 
-The cards are ordinary **Postacie** (characters) and **Miejsca** (places) tables – you also see them in the **Data** window. Clicking a card opens it for editing; [Delete] removes the card (bubbles and images on the pages stay).
+### Step 5. Finished comic
 
-**Preflight check** (→ 20) watches the comic: bubble text smaller than 7 pt (hard to read in print), a bubble going off the page or lying across two panels, a tail pointing outside the panels, and empty panels (no image). For a bubble warning, [Open template] selects it on the page.
+- [Preview] – the whole comic page by page or in spreads (→ 19).
+- [PDF…] – a file for the print shop or for the screen (→ 21). Save a comic in the **On screen** form as an on-screen
+  PDF – you open it on a computer or phone like a presentation.
+- [Webtoon] – the comic pages one below another as images in a ZIP file, ready to upload to a platform for reading
+  comics on a phone.
 
-**Bridge.** When a character speaks twice in a row in the same panel, [Place bubbles] puts the second bubble right below the first and joins them with a bridge – the last bubble has the tail. The bridge comes out in the PDF just like on the page.
+**Preflight check** (→ 20) watches the comic: bubble text smaller than 7 pt, a bubble going off the page or lying
+across two panels, a tail pointing outside the panels, and empty panels (no image). For a bubble warning,
+[Open template] selects it on the page.
 
-**Halftone and speed lines.** In [Library] (→ 4.8), **Backgrounds and patterns** has comic patterns: **Comic halftone** (fine dots like in old comics), **Speed lines (radial)** – for a blast, surprise or close-up – and **Speed lines (horizontal)** – for speed. You can also put the same pattern on a selected shape, e.g. a panel (→ 6.5).
+**Halftone and speed lines.** In [Library] (→ 4.8), **Backgrounds and patterns** has comic patterns: **Comic
+halftone**, **Speed lines (radial)** – for a blast or surprise – and **Speed lines (horizontal)** – for speed. You can
+put the same pattern on a selected shape, e.g. a panel (→ 6.5).
 
-**Script with AI.** [Script with AI] writes the comic out for you:
+### Example: an AI comic from idea to PDF
 
-- **From an idea** – describe the story in 3–5 sentences and say how many pages. AI writes short dialogue, captions,
-  scene descriptions, characters (with an appearance for drawing) and places.
-- **From a document** – choose a script or story in Word (.docx), LibreOffice (.odt), Markdown (.md) or plain text
-  (.txt); from Google Docs download the file as Microsoft Word. AI recognises pages, panels and who speaks, and keeps
-  the dialogue word for word.
+1. **New project** → **Start from: Template** → **Comic**, form **Booklet with a cover – for print**, 8 pages.
+2. [Comic] → step 1 [Write with AI…] → **From an idea**: “Ala and Ola find a parcel with a kitten at their door and
+   look for its owner”, **How many pages**: 3 → [Write it out] → [Save script].
+3. Step 1 [Open the script] – look through the panels; e.g. in panel 1 of page 1 set the shot **wide shot** and the
+   place **Small town**. [Save].
+4. Step 2 [Characters and places…] – choose the **Drawing style**, in each card [Draw from description (AI)] → [Save].
+5. Go to the first comic page. Step 3 [Draw this page's panels…] → [Draw]. Repeat on the following pages.
+6. Step 4 [Place bubbles] and move the bubbles to where they fit.
+7. Step 5 [PDF…].
 
-[Write it out] shows a preview (pages, panels, who speaks, text, scene); [Save script] writes the rows into the
-**Scenariusz** table, adds character and place cards (existing cards are only completed) and adds panels to pages that
-have none. Cost – a few grosz.
-
-**Comic with AI.** Google Gemini can draw the panel images (key → 7.11). You do not write prompts – Makietka builds
-them from what you already have:
-
-1. [Characters] → **Drawing style**: colourful storybook, watercolour, simple cartoon, manga or retro comic – it
-   applies to all images of this comic.
-2. In a character (and place) card, [Draw from description (AI)] draws a **reference image** from the card fields
-   (about 0.14 PLN). Save the card. The reference image then goes to every panel with this character – they look the
-   same on every page.
-3. Fill in the **opis sceny** (scene) column of the script – what the panel shows, e.g. “Ala runs down the street”.
-4. On a comic page click [Draw panels]. The window shows each panel with a ready description (scene, characters with
-   appearance and feature, place, style, “leave room for bubbles”) – edit it or untick a panel. Panels with an image
-   are unticked.
-5. Check the cost and click [Draw]. The panels fill one by one; then [Place bubbles].
-
-Fix an image in a panel like any AI image: select the panel → [AI image] (→ 7.11).
-
-**What it costs – an example.** A 3-page comic with 3 panels per page and two characters (Ala and Ola) in **Draft**
-quality: 2 reference images + 9 panels = 11 images, **about 1.50 PLN** (about $0.38) and under a minute. A script from an
-idea costs about 0.01 PLN. For 24 pages (about 85 images) expect about 12 PLN in draft; in **Detailed** quality roughly
-three times as much.
+**What it costs.** 3 pages with 3 panels each and two characters in **Draft** quality: 2 reference images + 9 panels =
+11 images, **about 1.50 PLN** (about $0.38) and a few minutes. The script – about 0.01 PLN. For 24 pages (about
+85 images) expect about 12 PLN in draft; in **Detailed** quality roughly three times as much. Makietka shows the cost
+before every drawing.
 
 ![Page 1 of the example comic drawn by AI (Draft), with bubbles from the script](k-komiks-ai-przyklad.png)
 
-**Language versions.** Add columns `tekst_pl`, `tekst_en`, `tekst_uk` to the script (each with the text in one
-language). [Place bubbles] then asks which column to use – the same layout gets the texts in another language.
-
-> Tip: Make the panel images in any program or generator –
-> the text always stays in Makietka's bubbles, not in the image, so it is easy to fix and translate.
+> Tip: You can make the panel images in any program – the text always stays in Makietka's bubbles, not in the image,
+> so it is easy to fix and translate.
 
 # 11. Master pages
 

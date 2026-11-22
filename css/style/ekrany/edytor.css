@@ -392,7 +392,7 @@ body.w-komiksie .pasek-narzedzi .tylko-komiks { display: inline-flex; }
 .w-kadrze .znacznik:has(input:checked) { border-color: var(--akcent); background: var(--akcent-tlo); }
 .kwestie { display: grid; gap: 6px; }
 .kadr-scenariusza > .przycisk, .strona-scenariusza > .przycisk, .strony-scenariusza > .przycisk { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
-.kwestia select[name="rodzaj"][hidden] { display: block; visibility: hidden; }
+.kwestia select.bez-rodzaju, .kwestia :has(> select.bez-rodzaju) { visibility: hidden; } /* lista zastąpiona własną (wybor-natywny) – chowamy opakowanie */
 .kwestia { display: grid; grid-template-columns: 130px 110px 1fr auto; gap: 6px; align-items: center; }
 @media (max-width: 640px) { .kwestia { grid-template-columns: 1fr 1fr auto; } .kwestia input[name="tekst"] { grid-column: 1 / -1; grid-row: 2; } }
 /* Okno „Generuj obraz (AI)” (#372) */
@@ -1445,3 +1445,4 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .dialog-makieta.makieta-pelna > .formularz > :not(.naglowek-dialogu, .makieta-scena, .makieta-sterowanie) { display: none; }
 .dialog-makieta:fullscreen { background: var(--powierzchnia); }
 .dialog-makieta.makieta-pelna .makieta-model, .dialog-makieta.makieta-pelna [data-akcja="makieta-pobierz"] { display: none; }
+#dlg-ai-obraz .tryb-ai { border: 0; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 12px; } #dlg-ai-obraz .tryb-ai legend { padding: 0; margin-bottom: 4px; }

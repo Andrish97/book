@@ -7,6 +7,7 @@ import { generujObraz, proporcjaRamki, blobZBase64 } from '../ai-obrazy.js';
 import { JAKOSCI_OBRAZU, szacujObraz, kosztZUzycia, opisKosztu, wydatki, zapiszWydatek, wLimicie } from '../ai-koszty.js';
 import { zadanie } from '../ai-dostawcy.js';
 import { przyjmijPlik } from '../obrazy-projektu.js';
+import { dataUrlZasobu } from '../zasoby.js';
 import { otwartySejf } from './sejf-ai.js';
 import { zaplanujZapis } from './zapis.js';
 import { $, powiadom } from '../ui.js';
@@ -17,6 +18,8 @@ import { menuPrzy } from './menu-przycisku.js';
 // Dopisek do każdego opisu: obraz na całą ramkę (bez białych marginesów – pomiar C7 pokazał ramki wokół obrazu)
 // i tekst zawsze w Makietce, nigdy w obrazie (plan komiksu – zasady).
 export const BEZ_NAPISOW = 'Full-bleed picture that fills the whole canvas edge to edge – no border, no frame, no white margin. Do not draw any text, letters, words, numbers, shop signs, logos or captions anywhere in the image.';
+// Poprawka istniejącego obrazu (plan AI B3): obraz idzie do modelu jako wzorzec, a opis to sama zmiana.
+export const DOPISEK_POPRAWKI = 'Edit the attached image: apply only the change described above and keep everything else – composition, characters, colours, light and style – exactly the same.';
 export const pelnyOpis = (opis, { styl = '', dopisek = '' } = {}) => [opis.trim(), styl && `Style: ${styl}.`, dopisek, BEZ_NAPISOW].filter(Boolean).join(' ');
 
 // Ramka dla obrazu: zaznaczony kształt (także kadr komiksu) albo obraz; inaczej null.
@@ -36,8 +39,18 @@ async function wstaw(id, nazwa, cel) {
 
 // Generowanie z gotowych ustawień (okno, „Jeszcze raz”, czat, komiks). naStrone=false – tylko do obrazów projektu
 // (np. obraz wzorcowy karty postaci). Zwraca { id, nazwa, zl }.
-export async function generujIWstaw({ opis, jakosc = 'szkic', proporcja, cel = null, wzorce = [], styl = '', dopisek = '', potwierdzono = false, naStrone = true }) {
+export async function generujIWstaw({ opis, jakosc = 'szkic', proporcja, cel = null, wzorce = [], styl = '', dopisek = '', potwierdzono = false, naStrone = true, poprawka = null }) {
   const { model, rozdzielczosc } = JAKOSCI_OBRAZU[jakosc] || JAKOSCI_OBRAZU.szkic;
+  let opisZapisu = opis;
+  if (poprawka) {
+    // obraz do poprawy jako jedyny wzorzec; w obrazach projektu zostaje opis całości (pierwotny + zmiana)
+    const m = /^data:([^;]+);base64,(.*)$/.exec(await dataUrlZasobu(stan.projekt, poprawka).catch(() => '') || '');
+    if (!m) throw new Error(t('aiObraz.brakObrazu'));
+    wzorce = [{ typ: m[1], dane: m[2] }];
+    dopisek = DOPISEK_POPRAWKI;
+    const baza = stan.projekt.zasoby[poprawka]?.ai?.opis;
+    opisZapisu = baza ? `${baza.trim().replace(/[.!]?$/, '.')} ${opis.trim()}` : opis;
+  }
   const szac = szacujObraz({ model, rozdzielczosc, znakiOpisu: opis.length + 200, wzorce: wzorce.length });
   if (!wLimicie(szac)) throw new Error(t('aiObraz.ponadLimit', { limit: opisKosztu(wydatki().limit) }));
   const sejf = await otwartySejf();
@@ -49,7 +62,7 @@ export async function generujIWstaw({ opis, jakosc = 'szkic', proporcja, cel = n
   const roz = w.typ.includes('jpeg') ? 'jpg' : (w.typ.split('/')[1] || 'png');
   const slowa = opis.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 32) || 'obraz';
   const { id, nazwa } = await przyjmijPlik(stan.projekt, blobZBase64(w.dane, w.typ), `ai-${slowa}.${roz}`);
-  stan.projekt.zasoby[id].ai = { opis, jakosc, model, proporcja, rozdzielczosc, styl, zl: Math.round(zl * 10000) / 10000, data: new Date().toISOString(), potwierdzono };
+  stan.projekt.zasoby[id].ai = { opis: opisZapisu, jakosc, model, proporcja, rozdzielczosc, styl, zl: Math.round(zl * 10000) / 10000, data: new Date().toISOString(), potwierdzono, ...(poprawka ? { poprawka: opis, z: poprawka } : {}) };
   if (naStrone) await wstaw(id, nazwa, cel);
   zaplanujZapis();
   return { id, nazwa, zl };
@@ -75,6 +88,9 @@ export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
   if (!opcjeProp.includes(prop)) opcjeProp.push(prop);
   dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${t('aiObraz.tytul')}</h2>
     <p class="ciche">${t(cel ? 'aiObraz.opisRamka' : 'aiObraz.opisStrona')}${poprzedni ? ` ${t('aiObraz.poprzedni')}` : ''}</p>
+    ${cel?.zasob ? `<fieldset class="tryb-ai" role="radiogroup"><legend class="ciche">${t('aiObraz.tryb')}</legend>
+      <label class="znacznik"><input type="radio" name="tryb" value="nowy" checked><span>${t('aiObraz.trybNowy')}</span></label>
+      <label class="znacznik"><input type="radio" name="tryb" value="popraw"><span>${t('aiObraz.trybPopraw')}</span></label></fieldset>` : ''}
     <label class="pole"><span>${t('aiObraz.coNaObrazie')}</span><textarea name="opis" rows="4" required></textarea></label>
     <div class="rzad"><label class="pole"><span>${t('aiObraz.jakosc')}</span><select name="jakosc">
       <option value="szkic">${t('aiObraz.jakoscSzkic')}</option><option value="dokladny">${t('aiObraz.jakoscDokladny')}</option><option value="pro">${t('aiObraz.jakoscPro')}</option></select></label>
@@ -88,9 +104,21 @@ export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
   f.elements.jakosc.value = jakosc;
   const koszt = dlg.querySelector('.koszt-ai');
   const blad = dlg.querySelector('.blad-ai');
+  const poprawiam = () => f.elements.tryb?.value === 'popraw';
+  // „Popraw obecny obraz”: opis to sama zmiana; „Narysuj od nowa”: cały opis (wraca szkic z pola).
+  const szkice = { nowy: opis, popraw: '' };
+  let tryb = 'nowy';
+  for (const r of f.querySelectorAll('[name="tryb"]')) {
+    r.addEventListener('change', () => {
+      szkice[tryb] = f.elements.opis.value; tryb = r.value;
+      f.elements.opis.value = szkice[tryb];
+      f.elements.opis.placeholder = t(tryb === 'popraw' ? 'aiObraz.przykladPoprawki' : 'aiObraz.przyklad');
+      policz(); f.elements.opis.focus();
+    });
+  }
   const policz = () => {
     const { model, rozdzielczosc } = JAKOSCI_OBRAZU[f.elements.jakosc.value];
-    const zl = szacujObraz({ model, rozdzielczosc, znakiOpisu: f.elements.opis.value.length + 200 });
+    const zl = szacujObraz({ model, rozdzielczosc, znakiOpisu: f.elements.opis.value.length + 200, wzorce: poprawiam() ? 1 : 0 });
     const w = wydatki();
     koszt.textContent = t('aiObraz.koszt', { zl: opisKosztu(zl, biezacyJezyk()), miesiac: opisKosztu(w.zl, biezacyJezyk()) })
       + (w.limit ? ` ${t('aiObraz.limit', { limit: opisKosztu(w.limit, biezacyJezyk()) })}` : '');
@@ -106,7 +134,7 @@ export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
     przycisk.disabled = true; przycisk.textContent = t('aiObraz.trwa');
     blad.hidden = true;
     try {
-      const w = await generujIWstaw({ opis: f.elements.opis.value, jakosc: f.elements.jakosc.value, proporcja: f.elements.proporcja.value, cel, potwierdzono: true });
+      const w = await generujIWstaw({ opis: f.elements.opis.value, jakosc: f.elements.jakosc.value, proporcja: f.elements.proporcja.value, cel, potwierdzono: true, poprawka: poprawiam() ? cel.zasob : null });
       dlg.close('tak');
       powiadom(t('aiObraz.gotowe', { zl: opisKosztu(w.zl, biezacyJezyk()) }));
     } catch (er) {

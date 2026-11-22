@@ -19,7 +19,7 @@ oczywiste, proste i dobrze opisane w instrukcji.
   ```
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
-  ostatni użyty: **#376**), commit i push.
+  ostatni użyty: **#382**), commit i push.
 - Testy: `node --test --test-concurrency=3 tests/*.test.cjs` (pełny przebieg ~45 min; pojedyncze pliki szybko).
   Lint: `npx eslint js` (albo `/opt/node-tools/node_modules/.bin/eslint --no-config-lookup -c eslint.config.mjs <pliki>`).
   Po zmianie listy modułów: `node scripts/moduly-buduj.cjs`; po zmianie rdzenia łącznika AI
@@ -34,8 +34,8 @@ oczywiste, proste i dobrze opisane w instrukcji.
 
 - Zmienna środowiska **`GEMINI_API_KEY`** w środowisku „Book” (nowa sesja ją widzi). Nie wypisuj klucza.
 - Sprawdzenie bez kosztów: `curl -s -o /tmp/m.json -w "%{http_code}\n" -H "x-goog-api-key: $GEMINI_API_KEY" "https://generativelanguage.googleapis.com/v1beta/models?pageSize=200"`.
-- **Budżet testów: najwyżej ok. 5 zł** z ok. 40 zł na koncie właściciela. Głównie teksty; obrazy oszczędnie (tańszy model,
-  1K). Zapisuj każde płatne wywołanie z szacowanym kosztem (np. w scratchpadzie) i zatrzymaj testy przed limitem.
+- **Budżet testów: do ok. 20 zł** (zgoda właściciela 22.11, „gdy to naprawdę pomaga przetestować”); wydane ok. 2,55 zł.
+  Głównie teksty; obrazy oszczędnie (szkic). Zapisuj każde płatne wywołanie z szacowanym kosztem (np. w scratchpadzie) i zatrzymaj testy przed limitem.
 - Do zrobienia przy kluczu: pomiar zużycia na prostym komiksie (np. 3 strony, 2 postacie) – koszt w zł do instrukcji.
 - W aplikacji testy przechodzą „jak użytkownik”: konto testowe w przeglądarce testowej (tests/pomoc.cjs `otworz`),
   klucz wklejony w ustawieniach AI tak jak zrobiłby to użytkownik.
@@ -60,9 +60,17 @@ Dalej tej samej nocy (wszystko z testami, instrukcją pl/en/uk, na main):
   dokument); pomiar: 3 strony × 3 kadry + 2 postacie = 1,51 zł (szkic), 49 s – w instrukcji 10.13 z przykładem.
 - **B5/C5 #376** narzędzia czatu: generuj_obraz, rysuj_kadry, ustaw_dymki, szacuj_koszt (zgoda z kwotą za każdym razem).
 
-Zostało: **B6** – generowanie w łączniku MCP (przez kolejkę otwartej aplikacji jak eksport PDF albo klucz na serwerze –
-B1 w wersji „klucz właściciela”); **B3** „popraw fragment obrazu” (edycja zamiast losowania); miniatury stylów (C1);
-cała strona jednym obrazem (C3 robi kadry osobno). Płatne testy: wydane ok. 1,80 zł z 5 zł (docs/KOSZTY-TESTOW.md).
+- **Uwagi właściciela D1–D12 (#377–#382, plan: docs/PLAN-KOMIKS.md, część D)** – wszystkie zrobione:
+  pasek komiksu z trzema przyciskami ([Kadry], [Dymek ▾], [Komiks]) i menu [AI ▾] w każdym projekcie; okno „Komiks krok
+  po kroku” (js/app/komiks-okno.js); okno „Scenariusz” z ujęciami, miejscami i „też w kadrze”
+  (js/app/komiks-scenariusz-okno.js, js/komiks-scenariusz.js); forma komiksu w szablonie (zeszyt, książka, kartki,
+  ekran) i „To komiks” w pustym projekcie; obraz miejsca jako tło kadru; ponowne rysowanie z zapisanego opisu;
+  „Popraw obecny obraz” (B3); oznaczenia dostawców AI „rozmowa i zmiany w projekcie” / „i obrazy”; czat z Gemini
+  sprawdzony na żywo (3 błędy poprawione, #380); instrukcja 10.13, 5.17, 7.11, 25.6 (pl/en/uk) ze zrzutami.
+
+Zostało (nieobowiązkowe): **B6** – generowanie w łączniku MCP (przez kolejkę otwartej aplikacji jak eksport PDF albo
+klucz na serwerze); „Popraw obraz” także w czacie; miniatury stylów (C1); cała strona jednym obrazem (C3 robi kadry
+osobno). Płatne testy: docs/KOSZTY-TESTOW.md.
 
 ## Inne otwarte wątki
 

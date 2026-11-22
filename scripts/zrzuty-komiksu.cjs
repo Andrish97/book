@@ -1,5 +1,5 @@
 // Zrzuty instrukcji do komiksu (#364, rozdział 10.13): k-komiks.png (strona komiksu z kadrami i dymkami, pasek
-// narzędzi komiksu), k-komiks-kadry.png (okno „Kadry”), k-komiks-postacie.png i k-komiks-postac.png (karty postaci, #368). Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje
+// narzędzi komiksu), k-komiks-kadry.png (okno „Kadry”), k-komiks-postacie.png i k-komiks-postac.png (karty postaci, #368), k-komiks-okno.png i k-komiks-scenariusz.png (#377–#378). Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje
 // zrobZrzutyKomiksu na końcu; tu można je zrobić osobno.
 //
 // Użycie:  node scripts/zrzuty-komiksu.cjs [adres] [ciemny] [en|uk]
@@ -34,7 +34,7 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
     await d.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 3);
     await d.evaluate(() => { const c = window.seriodruk.edytor.canvas; c.discardActiveObject(); c.requestRenderAll(); document.querySelector('#powiadomienie')?.setAttribute('hidden', ''); });
     await d.waitForTimeout(600);
-    await kadr(d, 'k-komiks.png', { obszar: '#obszar-roboczy', zaznacz: ['[data-akcja="komiks-kadry"]', '[data-akcja="komiks-dymki"]'], margines: 0 });
+    await kadr(d, 'k-komiks.png', { obszar: '#obszar-roboczy', zaznacz: ['[data-akcja="komiks-kadry"]', '[data-akcja="komiks-dymek"]', '[data-akcja="komiks-okno"]'], margines: 0 });
     // Okno „Kadry”.
     await d.click('[data-akcja="komiks-kadry"]');
     await d.waitForSelector('#dlg-kadry[open]');
@@ -74,6 +74,19 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
     await d.waitForTimeout(300);
     await kadr(d, 'k-komiks-postac.png', { obszar: '#dlg-postacie .formularz', margines: 0 });
     await d.locator('#dlg-postacie .przyciski-dialogu .przycisk:not(.glowny):not(.niebezpieczny)').click();
+    await d.evaluate(() => document.querySelector('#dlg-postacie').close());
+    // Okno „Komiks krok po kroku” (#377) i okno „Scenariusz” (#378).
+    await naJezykZrzutu();
+    await d.click('[data-akcja="komiks-okno"]');
+    await d.waitForSelector('#dlg-komiks[open] .krok-komiksu');
+    await d.waitForTimeout(400);
+    await kadr(d, 'k-komiks-okno.png', { obszar: '#dlg-komiks .formularz', zaznacz: '#dlg-komiks [data-krok-akcja="scenariusz"]', margines: 0 });
+    await naJezykZrzutu();
+    await d.click('#dlg-komiks [data-krok-akcja="scenariusz"]');
+    await d.waitForSelector('#dlg-scenariusz[open] .kadr-scenariusza');
+    await d.waitForTimeout(400);
+    await kadr(d, 'k-komiks-scenariusz.png', { obszar: '#dlg-scenariusz .formularz', zaznacz: '#dlg-scenariusz [data-strona="1"] [data-kadr="2"]', margines: 0 });
+    await d.click('#dlg-scenariusz [data-rola="anuluj"]');
   } finally {
     for (const f of sprzatanie) await f();
   }

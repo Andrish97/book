@@ -235,7 +235,9 @@ No separate AI app needed: in the editor, the **⋯** menu → [AI assistant (ow
 (on a phone — a window).
 
 1. **Provider** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok),
-   OpenRouter (hundreds of models from one account) or **Other – OpenAI-compatible API** (with its own address).
+   OpenRouter (hundreds of models from one account) or **Other – OpenAI-compatible API** (with its own address). Next
+   to the name you see what it can do: **chat and project changes** – every provider reads and changes the project with
+   Makietka's tools; **and images** – Google Gemini also draws images.
 2. **API key** — from the chosen provider ([Where do I get a key?] leads to their page). With OpenRouter, instead of
    pasting a key, [Sign in with OpenRouter] is enough — you sign in and approve access on their side.
 3. **Model** — the list of models comes from the provider after you enter the key; you can also type a name.
@@ -282,13 +284,22 @@ retries the request twice by itself before reporting an error.
 changes, and the AI is told you didn't allow it and asks what to do instead. The same goes for "copy
 and paste" mode: the question appears when the pasted chat answer contains such a change.
 
-**Images and comics in the chat.** The assistant also has app tools: **generuj_obraz** (an image from a description into
-the selected frame or onto the page, like [AI image] → 7.11), **rysuj_kadry** (comic page panels from the script and
-cards, → 10.13), **ustaw_dymki** (place bubbles) and **szacuj_koszt** (estimate cost). Google Gemini draws the images with
-the Gemini key from your vault, even when you chat with another provider. Before every paid drawing the chat asks with
-the amount, e.g. “AI wants to generate the image “Cat in a hat” (cost about 0.14 PLN). Allow?” – there is no
-[Always allow in this conversation] here; after [Don't allow] nothing is charged. Example: “Draw the panels of page 2
-and place the bubbles”.
+**Images and comics in the chat.** The assistant can also draw: an image from a description into a frame or onto the
+page (like [AI ▾] → **Image from a description…**, → 7.11), comic page panels from the script and cards (→ 10.13),
+bubbles from the script and a cost estimate. Google Gemini draws the images with the Gemini key from your vault, even
+when you chat with another provider. Before every paid drawing the chat asks with the amount, e.g. “AI wants to
+generate the image “Tulips in the garden” (cost about 0.14 PLN). Allow?” – there is no [Always allow in this
+conversation] here; after [Don't allow] nothing is charged. The assistant draws in **Draft** quality unless you ask
+for better.
+
+Example requests:
+
+- “Add the title Spring in the garden on this page, a frame below it, and draw tulips in it.”
+- “Draw the panels of page 2 of the comic and place the bubbles.”
+- “How much will it cost to draw 10 images for print?”
+- “Translate all the texts on this page into English.”
+
+Changes and images appear in the editor during the conversation – the chat doesn't have to be closed.
 
 ## 25.7 AI that can open web pages (no connector)
 

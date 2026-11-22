@@ -77,8 +77,8 @@ export async function oknoScenariusza() {
           const rodzaj = wybor('rodzaj', RODZAJE.map((r) => [r, t(`komiks.rodzaj_${r}`)]), q.rodzaj || 'mowa', t('scenariusz.rodzaj'));
           kto.addEventListener('change', () => { q.postac = kto.value; if (!kto.value) { q.rodzaj = 'narracja'; rodzaj.value = 'narracja'; } else if (q.rodzaj === 'narracja') { q.rodzaj = 'mowa'; rodzaj.value = 'mowa'; } });
           rodzaj.addEventListener('change', () => { q.rodzaj = rodzaj.value; });
-          rodzaj.hidden = !q.postac; // narracja – bez wyboru rodzaju dymka
-          kto.addEventListener('change', () => { rodzaj.hidden = !kto.value; });
+          rodzaj.classList.toggle('bez-rodzaju', !q.postac); // narracja – bez wyboru rodzaju dymka (miejsce w siatce zostaje)
+          kto.addEventListener('change', () => { rodzaj.classList.toggle('bez-rodzaju', !kto.value); });
           const tekst = el('input', { type: 'text', name: 'tekst', placeholder: t('scenariusz.tekstPrzyklad'), 'aria-label': t('scenariusz.tekst') });
           tekst.value = q.tekst;
           tekst.addEventListener('input', () => { q.tekst = tekst.value; });

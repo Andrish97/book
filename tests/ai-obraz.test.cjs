@@ -82,6 +82,20 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   await dlg.locator('button[value="tak"]').click();
   await strona.waitForFunction(() => !document.querySelector('#dlg-ai-obraz').open);
   assert.equal(await strona.evaluate(() => Object.values(window.seriodruk.stan.projekt.zasoby).filter((x) => x.ai).length), 2, 'dwie wersje w obrazach projektu');
+  // Popraw obecny obraz (B3): opis to sama zmiana, obraz z ramki idzie do modelu jako wzorzec.
+  await zMenu(strona, 'ai-menu', 'obraz');
+  await dlg.locator('input[name="tryb"][value="popraw"]').check({ force: true });
+  assert.equal(await dlg.locator('textarea[name="opis"]').inputValue(), '', 'przy poprawce pole opisu puste');
+  assert.match(await dlg.locator('textarea[name="opis"]').getAttribute('placeholder'), /kapelusz/);
+  await dlg.locator('textarea[name="opis"]').fill('dodaj motyla');
+  await dlg.locator('button[value="tak"]').click();
+  await strona.waitForFunction(() => !document.querySelector('#dlg-ai-obraz').open);
+  const zp = zapytania[2].tresc.contents[0].parts;
+  assert.equal(zp.length, 2, 'obraz z ramki + opis');
+  assert.equal(zp[0].inline_data.mime_type, 'image/png');
+  assert.match(zp[1].text, /^dodaj motyla Edit the attached image/);
+  assert.deepEqual(await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; const z = p.zasoby[window.seriodruk.edytor.aktywny.zasob].ai; return [z.opis, z.poprawka]; }),
+    ['Kot w kapeluszu na dachu, noc. dodaj motyla', 'dodaj motyla'], 'w obrazach projektu opis całości');
   // Limit miesięczny: 0,10 zł – kolejne generowanie odmówione bez zapytania.
   await strona.evaluate(async () => (await import('./js/ai-koszty.js')).ustawLimit(0.1));
   await strona.evaluate(() => window.seriodruk.edytor.canvas.discardActiveObject());
@@ -91,7 +105,7 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   await dlg.locator('button[value="tak"]').click();
   await dlg.locator('.blad-ai:not([hidden])').waitFor();
   assert.match(await dlg.locator('.blad-ai').textContent(), /przekroczyłoby miesięczny limit/);
-  assert.equal(zapytania.length, 2);
+  assert.equal(zapytania.length, 3);
   assert.deepEqual(bledy, []);
 });
 

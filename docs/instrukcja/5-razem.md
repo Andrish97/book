@@ -235,7 +235,9 @@ Bez osobnej aplikacji AI: w edytorze menu **⋯** → [Asystent AI (własny kluc
 (na telefonie — okno).
 
 1. **Dostawca** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok),
-   OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem).
+   OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem). Przy nazwie
+   widać, co potrafi: **rozmowa i zmiany w projekcie** – każdy dostawca czyta i zmienia projekt narzędziami Makietki;
+   **i obrazy** – Google Gemini dodatkowo rysuje obrazy.
 2. **Klucz API** — od wybranego dostawcy ([Gdzie wziąć klucz?] prowadzi do jego strony). Przy OpenRouter zamiast
    wklejać klucz wystarczy [Zaloguj przez OpenRouter] — zalogujesz się i zatwierdzisz dostęp u nich.
 3. **Model** — lista modeli przychodzi od dostawcy po wpisaniu klucza; można też wpisać nazwę.
@@ -282,12 +284,21 @@ sama ponawia zapytanie dwa razy, zanim zgłosi błąd.
 nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj
 i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.
 
-**Obrazy i komiks w czacie.** Asystent ma też narzędzia aplikacji: **generuj_obraz** (obraz z opisu do zaznaczonej
-ramki albo na stronę, jak [Obraz AI] → 7.11), **rysuj_kadry** (kadry strony komiksu ze scenariusza i kart, → 10.13),
-**ustaw_dymki** i **szacuj_koszt**. Obrazy rysuje Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym
-dostawcą. Przed każdym płatnym rysowaniem w rozmowie pojawia się pytanie z kwotą, np. „AI chce wygenerować obraz
-„Kot w kapeluszu” (koszt ok. 0,14 zł). Pozwolić?” – tu nie ma [Zawsze pozwalaj w tej rozmowie]; po [Nie pozwalaj]
-nic nie kosztuje. Przykład: „Narysuj kadry strony 2 i ustaw dymki”.
+**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak [AI ▾] → **Obraz
+z opisu…**, → 7.11), kadry strony komiksu ze scenariusza i kart (→ 10.13), dymki ze scenariusza i szacunek kosztu.
+Obrazy rysuje Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym dostawcą. Przed każdym płatnym
+rysowaniem w rozmowie pojawia się pytanie z kwotą, np. „AI chce wygenerować obraz „Tulipany w ogrodzie” (koszt ok.
+0,14 zł). Pozwolić?” – tu nie ma [Zawsze pozwalaj w tej rozmowie]; po [Nie pozwalaj] nic nie kosztuje. Asystent
+rysuje w jakości **Szkic**, chyba że poprosisz o lepszą.
+
+Przykłady poleceń:
+
+- „Dodaj na tej stronie tytuł Wiosna w ogrodzie, pod nim ramkę i narysuj w niej tulipany.”
+- „Narysuj kadry strony 2 komiksu i ustaw dymki.”
+- „Ile będzie kosztowało narysowanie 10 obrazów do druku?”
+- „Przetłumacz wszystkie teksty na tej stronie na angielski.”
+
+Zmiany i obrazy pojawiają się w edytorze w trakcie rozmowy – czat nie musi być zamknięty.
 
 ## 25.7 AI, które umie otwierać strony (bez łącznika)
 
