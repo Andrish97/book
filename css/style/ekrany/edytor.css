@@ -358,6 +358,12 @@ body.w-komiksie .pasek-narzedzi .tylko-komiks { display: inline-flex; }
 .uklad-kadrow input { position: absolute; opacity: 0; pointer-events: none; }
 .uklad-kadrow:has(input:checked) { border-color: var(--akcent); background: var(--akcent-tlo); }
 .uklad-kadrow:has(input:focus-visible) { outline: 2px solid var(--akcent); outline-offset: 2px; }
+/* Okno „Generuj obraz (AI)” (#372) */
+#dlg-ai-obraz .formularz { width: min(560px, 100%); }
+#dlg-ai-obraz .rzad { display: flex; gap: 12px; flex-wrap: wrap; }
+#dlg-ai-obraz .rzad .pole { flex: 1 1 160px; }
+.koszt-ai { font-weight: 600; }
+.blad-ai { color: var(--blad); }
 /* Okno „Postacie i miejsca” (#368): karty z obrazem wzorcowym */
 .okno-postaci .formularz { width: min(640px, 100%); }
 .karty-komiksu { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; margin: 6px 0 14px; }

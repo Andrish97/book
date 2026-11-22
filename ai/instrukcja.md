@@ -913,6 +913,34 @@ Część **Miękkie krawędzie** (zdjęcie i kształty): **Szerokość przejści
 
 Obramowanie, zaokrąglenie i miękkie krawędzie przenosi też **Kopiuj wygląd** (rozdział „4.13 Kopiuj wygląd (malarz formatów)”).
 
+### 7.11 Obraz AI
+
+**Obraz AI** na pasku wstawiania rysuje obraz z opisu – w każdym projekcie, nie tylko w komiksie. Rysuje go Google Gemini Twoim kluczem; koszt rozliczasz u Google, a Makietka pokazuje go przed każdym generowaniem.
+
+![Okno Obraz AI](https://makietka.app/img/instrukcja/k-obraz-ai.png)
+
+1. Zaznacz ramkę, kształt albo kadr komiksu, który ma wypełnić obraz (bez zaznaczenia obraz trafi na środek strony).
+2. Kliknij **Obraz AI** i opisz po polsku, co ma być na obrazie – kto, co robi, gdzie, jaki styl.
+3. Wybierz **Jakość**: **Szkic** (najtaniej, do prób), **Dokładny** (do druku) albo **Najlepszy** (postacie i szczegóły). **Proporcje** są z ramki.
+4. Sprawdź **Koszt** i kliknij **Generuj**. Po 10–30 sekundach obraz jest w ramce i w oknie **Obrazy projektu**.
+
+| Jakość | Model | Ok. koszt jednego obrazu |
+|---|---|---|
+| Szkic | Gemini 3.1 Flash Lite Image, 1K | 0,14 zł |
+| Dokładny | Gemini 3.1 Flash Image, 2K | 0,41 zł |
+| Najlepszy | Gemini 3 Pro Image, 2K | 0,55 zł |
+
+- **Napisów w obrazie nie ma** – Makietka prosi model, żeby ich nie rysował. Tekst dodajesz w Makietce (dymki, ramki tekstu), więc łatwo go poprawić i przetłumaczyć.
+- **Jeszcze raz:** zaznacz ramkę z obrazem z AI i kliknij **Obraz AI** – okno ma poprzedni opis; popraw go albo generuj bez zmian. Poprzednie wersje zostają w **Obrazach projektu** – wrócisz do nich jednym wyborem (rozdział „7.5 Okno Obrazy projektu”).
+- **Ile wydałeś:** **Ustawienia konta** → **Sztuczna inteligencja** pokazuje wydatki z tego miesiąca na tym urządzeniu; tam ustawisz też **Miesięczny limit wydatków** – po jego przekroczeniu Makietka nie wygeneruje obrazu.
+
+**Jak zdobyć klucz Gemini**
+
+1. Wejdź na stronę Google AI Studio (aistudio.google.com) i zaloguj się kontem Google.
+2. Kliknij **Get API key** → **Create API key**. Skopiuj klucz.
+3. Żeby generować obrazy, w Google AI Studio włącz płatności (**Billing**) – bez nich działają tylko darmowe teksty.
+4. W Makietce: **Ustawienia konta** → **Sztuczna inteligencja** → **Czat w Makietce** → **Dodaj klucz** → **Google Gemini**, wklej klucz. Za pierwszym razem ustalisz **hasło do kluczy AI** – klucz jest zaszyfrowany (rozdział „25.6 Asystent AI w Makietce (własny klucz)”).
+
 ## 8. Tabela
 
 Tabela na stronie — do cenników, planów, list. To co innego niż tabela danych do powielania stron (rozdział „14 Tabele danych”).

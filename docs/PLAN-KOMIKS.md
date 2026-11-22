@@ -45,9 +45,9 @@ Po A7 da się robić pełne komiksy z obrazami z dowolnego generatora.
 
 | # | Co | Stan |
 |---|---|---|
-| B1 | **Klucz Gemini po stronie serwera** (Supabase Edge Function, zaszyfrowany; własny klucz albo klucz właściciela rozliczany poza aplikacją) + instrukcja „jak zdobyć klucz” z obrazkami | do zrobienia |
-| B2 | **Koszty**: ceny w konfiguracji, potwierdzenie przed każdym generowaniem („3 obrazy, ok. 1,50 zł – generować?”), licznik (obraz, projekt, miesiąc), miesięczny limit wydatków | do zrobienia |
-| B3 | **Generuj obraz** / **Generuj do ramki**: opis po polsku, proporcje z ramki, wynik w obrazach projektu; przy obrazie prompt, model i wersje (powrót jednym kliknięciem); **popraw obraz** (edycja fragmentu zamiast losowania od nowa) | do zrobienia |
+| B1 | **Klucz Gemini po stronie serwera** (Supabase Edge Function, zaszyfrowany; własny klucz albo klucz właściciela rozliczany poza aplikacją) + instrukcja „jak zdobyć klucz” z obrazkami | klucz z sejfu (#241) w przeglądarce ✅ #372; klucz właściciela na serwerze – później; instrukcja „jak zdobyć klucz” ✅ 7.11 |
+| B2 | **Koszty**: ceny w konfiguracji, potwierdzenie przed każdym generowaniem („3 obrazy, ok. 1,50 zł – generować?”), licznik (obraz, projekt, miesiąc), miesięczny limit wydatków | ✅ #372 (obrazy; teksty – przy B4) |
+| B3 | **Generuj obraz** / **Generuj do ramki**: opis po polsku, proporcje z ramki, wynik w obrazach projektu; przy obrazie prompt, model i wersje (powrót jednym kliknięciem); **popraw obraz** (edycja fragmentu zamiast losowania od nowa) | ✅ #372 (bez „popraw fragment” – później) |
 | B4 | **Tekst**: skróć, wydłuż, zmień ton, przetłumacz (pl/uk/en) na zaznaczonym tekście; **wypełnij kolumnę tabeli** | do zrobienia |
 | B5 | **Czat AI** (jest, #241) z Gemini: te same narzędzia co łącznik MCP + generowanie obrazów; generowanie zawsze po potwierdzeniu kosztu | częściowo jest |
 | B6 | Te same narzędzia w **łączniku MCP** (Claude, ChatGPT) – generowanie wykonuje serwer kluczem z B1 | do zrobienia |

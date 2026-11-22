@@ -887,6 +887,40 @@ smoothly fades into transparency; 0 means a sharp edge. **Type**:
 
 Border, rounding and soft edges are also carried over by [Copy style] (→ 4.13).
 
+## 7.11 AI image
+
+[AI image] on the insert bar draws an image from a description – in every project, not only comics. Google Gemini
+draws it with your key; you pay Google, and Makietka shows the cost before every generation.
+
+![The AI image window](k-obraz-ai.png)
+
+1. Select the frame, shape or comic panel the image should fill (with nothing selected, it goes to the middle of the page).
+2. Click [AI image] and describe what should be in the picture – who, doing what, where, in what style.
+3. Choose the **Quality**: **Draft** (cheapest, for trying), **Detailed** (for print) or **Best** (characters and
+   details). The **Proportions** come from the frame.
+4. Check the **Cost** and click [Generate]. After 10–30 seconds the image is in the frame and in **Project images**.
+
+| Quality | Model | Approx. cost per image |
+|---|---|---|
+| Draft | Gemini 3.1 Flash Lite Image, 1K | 0.14 PLN (about $0.034) |
+| Detailed | Gemini 3.1 Flash Image, 2K | 0.41 PLN (about $0.10) |
+| Best | Gemini 3 Pro Image, 2K | 0.55 PLN (about $0.14) |
+
+- **No lettering in the image** – Makietka asks the model not to draw any. You add text in Makietka (bubbles, text
+  frames), so it is easy to fix and translate.
+- **Again:** select a frame with an AI image and click [AI image] – the window has the previous description; edit it
+  or generate unchanged. Earlier versions stay in **Project images** – go back with one choice (→ 7.5).
+- **How much you spent:** [Account settings] → **Artificial intelligence** shows this month's spending on this
+  device; there you can also set a **Monthly limit** – above it Makietka will not generate an image.
+
+**How to get a Gemini key**
+
+1. Go to Google AI Studio (aistudio.google.com) and sign in with a Google account.
+2. Click **Get API key** → **Create API key**. Copy the key.
+3. To generate images, turn on **Billing** in Google AI Studio – without it only free texts work.
+4. In Makietka: [Account settings] → **Artificial intelligence** → **Chat in Makietka** → [Add key] → **Google Gemini**,
+   paste the key. The first time you set an **AI keys password** – the key is encrypted (→ 25.6).
+
 # 8. Table
 
 A table on the page — for price lists, schedules, lists. This is different from a data table for duplicating pages (→ 14).

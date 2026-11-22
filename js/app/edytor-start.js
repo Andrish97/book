@@ -23,6 +23,7 @@ import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
 import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
 import { obsluzAkcje, podlaczSkladanke } from './skladanka-narzedzia.js'; // narzędzia składanki (#233)
 import { obsluzAkcjeKomiksu, podlaczKomiks } from './komiks-narzedzia.js'; // narzędzia komiksu (#364)
+import { oknoGenerowania } from './generuj-obraz.js'; // obraz z AI (#372)
 import { toZaznaczenie } from '../fabric-ustawienia.js';
 import { opisObiektu, WIELOKATY, podgladWielokata } from '../edytor.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
@@ -536,6 +537,7 @@ export const akcje = {
   'skladanka-szablon': () => obsluzAkcje('skladanka-szablon'),
   'skladanka-instrukcja': () => obsluzAkcje('skladanka-instrukcja'),
   // Komiks (#364): dymek, kadry, podział kadru, scenariusz, dymki ze scenariusza.
+  'generuj-obraz': () => oknoGenerowania(),
   'komiks-dymek': () => obsluzAkcjeKomiksu('komiks-dymek'),
   'komiks-efekt': () => obsluzAkcjeKomiksu('komiks-efekt'),
   'komiks-mostek': () => obsluzAkcjeKomiksu('komiks-mostek'),

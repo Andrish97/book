@@ -13,7 +13,8 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
     await d.emulateMedia({ colorScheme: ciemny ? 'dark' : 'light' });
     // Język zrzutu już przy tworzeniu projektu – przykładowy scenariusz, karty i style powstają w tym języku.
     const jezyk = process.argv.slice(3).find((x) => ['en', 'uk'].includes(x));
-    if (jezyk) await d.evaluate(async (j) => (await import('./js/jezyk.js')).ustawJezyk(j, { zapamietaj: false }), jezyk);
+    const naJezykZrzutu = async () => { if (jezyk) await d.evaluate(async (j) => (await import('./js/jezyk.js')).ustawJezyk(j, { zapamietaj: false }), jezyk); };
+    await naJezykZrzutu();
     // Nowy projekt z szablonu „Komiks” – tak jak użytkownik.
     await d.locator('[data-akcja="nowy-projekt"]:visible').first().click();
     await d.waitForSelector('#dlg-nowy[open]');
@@ -40,6 +41,15 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
     await d.waitForTimeout(300);
     await kadr(d, 'k-komiks-kadry.png', { obszar: '#dlg-kadry .formularz', zaznacz: '#dlg-kadry .uklad-kadrow:has(input:checked)', margines: 0 });
     await d.click('#dlg-kadry button[value="nie"]');
+    // Obraz AI (#372): okno z opisem i kosztem – kadr 1 zaznaczony (bez generowania, bez kosztów).
+    await d.evaluate(() => { const e = window.seriodruk.edytor; e.canvas.setActiveObject(e.canvas.getObjects().find((o) => o.kadr_nr === 1)); e.canvas.requestRenderAll(); });
+    await naJezykZrzutu(); // okno składa napisy przy otwarciu (kadr() wraca do polskiego po każdym zrzucie)
+    await d.click('[data-akcja="generuj-obraz"]');
+    await d.waitForSelector('#dlg-ai-obraz[open]');
+    await d.evaluate(async () => { const { t } = await import('./js/jezyk.js'); const o = document.querySelector('#dlg-ai-obraz textarea'); o.value = t('aiObraz.przyklad').replace(/^(np\.|e\.g\.|напр\.)\s*/, ''); o.dispatchEvent(new Event('input')); });
+    await d.waitForTimeout(300);
+    await kadr(d, 'k-obraz-ai.png', { obszar: '#dlg-ai-obraz .formularz', zaznacz: '#dlg-ai-obraz button[value="tak"]', margines: 0 });
+    await d.click('#dlg-ai-obraz [data-rola="anuluj"]');
     // Postacie i miejsca: obrazy wzorcowe (proste rysunki SVG) do przykładowych kart z szablonu.
     await d.evaluate(async () => {
       const { przyjmijPlik } = await import('./js/obrazy-projektu.js');
@@ -54,6 +64,7 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
       const [m] = karty(p, 'miejsca');
       zapiszKarte(p, 'miejsca', { ...m, obraz: await obraz(miasto, 'miasteczko.svg') });
     });
+    await naJezykZrzutu();
     await d.click('[data-akcja="komiks-postacie"]');
     await d.waitForSelector('#dlg-postacie[open] .karta-komiksu img');
     await d.waitForTimeout(400);

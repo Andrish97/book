@@ -67,7 +67,8 @@ async function odpowiedz(url, opcje) {
   }
 }
 
-async function zadanie(url, opcje) {
+// JSON odpowiedzi dostawcy z ponawianiem i czytelnymi błędami – także dla generowania obrazów (js/ai-obrazy.js, #372).
+export async function zadanie(url, opcje) {
   const tekst = await (await odpowiedz(url, opcje)).text();
   try { return tekst ? JSON.parse(tekst) : null; } catch { return null; }
 }

@@ -17,6 +17,7 @@ import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
 import { DOSTAWCY, modeleDostawcy } from '../ai-dostawcy.js';
+import { wydatki, ustawLimit, opisKosztu } from '../ai-koszty.js';
 import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
 import { wpiszNazwe, t as tt } from '../jezyk.js';
@@ -670,7 +671,18 @@ $('#dostep-ai-nowy').addEventListener('change', (e) => {
 $('#dostep-ai').dataset.gotowy = '1'; // moduł wczytany – przyciski działają (testy czekają na to)
 
 // Krótkie podsumowanie w ustawieniach konta: ile kluczy działa.
+// Limit wydatków na AI w miesiącu (#372) – na tym urządzeniu; obok suma z tego miesiąca.
+function pokazWydatki() {
+  const w = wydatki();
+  const pole = $('#ust-ai-limit');
+  if (pole && document.activeElement !== pole) pole.value = String(w.limit || 0);
+  const info = $('#ust-ai-wydatki');
+  if (info) info.textContent = tt('ustAi.wydanoWMiesiacu', { zl: opisKosztu(w.zl) });
+}
+$('#ust-ai-limit')?.addEventListener('change', (e) => { ustawLimit(String(e.target.value).replace(',', '.')); pokazWydatki(); });
+
 export async function podsumowanieKluczy() {
+  pokazWydatki();
   const el = $('#ust-ai-opis');
   if (!el) return;
   try {
