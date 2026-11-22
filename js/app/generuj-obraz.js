@@ -55,6 +55,13 @@ export async function generujIWstaw({ opis, jakosc = 'szkic', proporcja, cel = n
   return { id, nazwa, zl };
 }
 
+// Proporcje słowami (D2): „Pionowy (3:4)” zamiast samych liczb.
+const nazwaProporcji = (p) => {
+  const [a, b] = p.split(':').map(Number);
+  const rodzaj = a === b ? 'kwadrat' : a < b ? (a / b < 0.6 ? 'wysoki' : 'pionowy') : (a / b > 1.7 ? 'szeroki' : 'poziomy');
+  return `${t(`aiObraz.ksztalt_${rodzaj}`)} (${p})`;
+};
+
 export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
   if (!stan.projekt || !edytor.canvas) return;
   const cel = ramka();
@@ -71,7 +78,7 @@ export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
     <label class="pole"><span>${t('aiObraz.coNaObrazie')}</span><textarea name="opis" rows="4" required></textarea></label>
     <div class="rzad"><label class="pole"><span>${t('aiObraz.jakosc')}</span><select name="jakosc">
       <option value="szkic">${t('aiObraz.jakoscSzkic')}</option><option value="dokladny">${t('aiObraz.jakoscDokladny')}</option><option value="pro">${t('aiObraz.jakoscPro')}</option></select></label>
-    <label class="pole"><span>${t('aiObraz.proporcje')}</span><select name="proporcja">${opcjeProp.map((p) => `<option${p === prop ? ' selected' : ''}>${p}</option>`).join('')}</select></label></div>
+    <label class="pole"><span>${t('aiObraz.proporcje')}</span><select name="proporcja">${opcjeProp.map((p) => `<option value="${p}"${p === prop ? ' selected' : ''}>${nazwaProporcji(p)}</option>`).join('')}</select></label></div>
     <p class="koszt-ai" aria-live="polite"></p>
     <p class="blad-ai" role="alert" hidden></p>
     <div class="przyciski-dialogu"><button class="przycisk" value="nie" type="button" data-rola="anuluj">${t('komiks.anuluj')}</button><button class="przycisk glowny" value="tak" type="submit">${t('aiObraz.generuj')}</button></div></form>`;

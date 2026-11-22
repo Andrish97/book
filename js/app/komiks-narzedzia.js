@@ -30,7 +30,7 @@ import { menuPrzy } from './menu-przycisku.js';
 import { generujIWstaw } from './generuj-obraz.js';
 import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu } from '../ai-koszty.js';
 import { proporcjaRamki } from '../ai-obrazy.js';
-import { dataUrlZasobu } from '../zasoby.js';
+import { dataUrlZasobu, adresZasobu } from '../zasoby.js';
 
 export const wKomiksie = () => stan.tryb === 'strona' && typSekcji(biezacaSekcja()) === 'komiks';
 
@@ -390,7 +390,8 @@ export function planKadrowStrony() {
   const nr = strony.indexOf(p.strony[stan.indeks]) + 1;
   const kadry = kadryNaStronie().sort((a, b) => a.kadr_nr - b.kadr_nr);
   const plan = kadryStrony(p, scenariuszProjektu(), nr, kadry.length, biezacyJezyk());
-  return { nr, pozycje: plan.map((x, i) => ({ ...x, obiekt: kadry[i] })) };
+  // kadr z obrazem z AI: opis, z którego powstał (D11 – „jeszcze raz” bez składania od nowa)
+  return { nr, pozycje: plan.map((x, i) => ({ ...x, obiekt: kadry[i], poprzedni: kadry[i]?.zasob ? p.zasoby[kadry[i].zasob]?.ai?.opis || '' : '' })) };
 }
 // Rysowanie kadrów po kolei (okno [Rysuj kadry] i czat AI): obrazy wzorcowe kart, styl projektu, proporcje kadru.
 export async function rysujPozycje(pozycje, { jakosc = 'szkic', postep = () => {}, wynik = { zl: 0, gotowe: 0 } } = {}) {
@@ -413,12 +414,13 @@ export function oknoRysujKadry() {
   let dlg = $('#dlg-rysuj-kadry');
   if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'dlg-rysuj-kadry'; document.body.append(dlg); }
   dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${t('komiks.rysujTytul', { nr })}</h2><p class="ciche">${t('komiks.rysujOpis')}</p>
-    <div class="kadry-ai">${pozycje.map((x, i) => `<div class="kadr-ai"><label class="przelacznik"><input type="checkbox" name="k${i}"${x.obiekt.zasob ? '' : ' checked'}><span>${t('komiks.kadrNr', { nr: x.kadr })}${x.postacie.length ? ` – ${x.postacie.map((q) => q.imie).join(', ')}` : ''}${x.obiekt.zasob ? ` ${t('komiks.rysujMaObraz')}` : ''}</span></label><textarea name="o${i}" rows="3"></textarea></div>`).join('')}</div>
+    <div class="kadry-ai">${pozycje.map((x, i) => `<div class="kadr-ai"><div class="naglowek-kadru-ai">${x.obiekt.zasob ? `<img class="miniatura-kadru" alt="" src="${adresZasobu(stan.projekt.zasoby[x.obiekt.zasob]) || ''}">` : '<span class="miniatura-kadru pusta" aria-hidden="true"></span>'}<label class="przelacznik"><input type="checkbox" name="k${i}"${x.obiekt.zasob ? '' : ' checked'}><span>${t('komiks.kadrNr', { nr: x.kadr })}${x.postacie.length ? ` – ${x.postacie.map((q) => q.imie).join(', ')}` : ''}${x.obiekt.zasob ? ` ${t('komiks.rysujMaObraz')}` : ''}</span></label>${x.poprzedni ? `<button type="button" class="przycisk maly" data-ze-scenariusza="${i}">${t('komiks.rysujZeScenariusza')}</button>` : ''}</div><textarea name="o${i}" rows="3"></textarea>${x.poprzedni ? `<p class="ciche">${t('komiks.rysujPoprzedni')}</p>` : ''}</div>`).join('')}</div>
     <label class="pole"><span>${t('aiObraz.jakosc')}</span><select name="jakosc"><option value="szkic">${t('aiObraz.jakoscSzkic')}</option><option value="dokladny">${t('aiObraz.jakoscDokladny')}</option><option value="pro">${t('aiObraz.jakoscPro')}</option></select></label>
     <p class="koszt-ai" aria-live="polite"></p><p class="blad-ai" role="alert" hidden></p>
     <div class="przyciski-dialogu"><button class="przycisk" type="button" data-rola="anuluj">${t('komiks.anuluj')}</button><button class="przycisk glowny" type="submit" value="tak">${t('komiks.rysuj')}</button></div></form>`;
   const f = dlg.querySelector('form');
-  pozycje.forEach((x, i) => { f.elements[`o${i}`].value = x.opis; });
+  pozycje.forEach((x, i) => { f.elements[`o${i}`].value = x.poprzedni || x.opis; });
+  for (const b of dlg.querySelectorAll('[data-ze-scenariusza]')) b.addEventListener('click', () => { const i = Number(b.dataset.zeScenariusza); f.elements[`o${i}`].value = pozycje[i].opis; f.elements[`k${i}`].checked = true; f.dispatchEvent(new Event('change')); });
   const wybrane = () => pozycje.map((x, i) => i).filter((i) => f.elements[`k${i}`].checked);
   const policz = () => {
     const j = JAKOSCI_OBRAZU[f.elements.jakosc.value];

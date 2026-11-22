@@ -404,6 +404,10 @@ body.w-komiksie .pasek-narzedzi .tylko-komiks { display: inline-flex; }
 .tabela-podgladu td { border-top: 1px solid var(--linia); padding: 4px 6px; vertical-align: top; }
 .kadry-ai { display: grid; gap: 10px; max-height: 50vh; overflow: auto; margin-bottom: 10px; }
 .kadr-ai textarea { width: 100%; font-size: 13px; }
+.naglowek-kadru-ai { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.naglowek-kadru-ai .przycisk { margin-left: auto; }
+.miniatura-kadru { width: 44px; height: 44px; object-fit: cover; border-radius: var(--r-s); border: 1px solid var(--linia); flex: none; }
+.miniatura-kadru.pusta { background: repeating-linear-gradient(45deg, var(--akcent-tlo), var(--akcent-tlo) 4px, transparent 4px, transparent 8px); }
 .czynnosci-ai { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .czynnosci-ai .przycisk[aria-pressed="true"] { border-color: var(--akcent); background: var(--akcent-tlo); }
 .blad-ai { color: var(--blad); }

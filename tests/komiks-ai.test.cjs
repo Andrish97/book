@@ -74,6 +74,18 @@ test('komiks AI: styl, obraz wzorcowy z opisu, rysowanie kadrów strony z odnies
   assert.match(kadr2.contents[0].parts[1].text, /Style: delicate watercolour.*Do not draw any text/);
   const kadry = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.kadr_nr).sort((a, b) => a.kadr_nr - b.kadr_nr).map((o) => Boolean(o.zasob)));
   assert.deepEqual(kadry, [false, true, true]);
+  // D11: ponownie – kadr z obrazem ma opis, z którego powstał, miniaturę i „Opis ze scenariusza”; jest odznaczony.
+  await strona.evaluate(async () => { const { zapiszTeraz } = window.seriodruk; await zapiszTeraz(); });
+  await zMenu(strona, 'ai-menu', 'rysuj');
+  await r.waitFor();
+  assert.equal(await r.locator('textarea[name="o1"]').inputValue(), opis2, 'opis zapisany przy obrazie');
+  assert.equal(await r.locator('input[name="k1"]').isChecked(), false);
+  assert.equal(await r.locator('.kadr-ai').nth(1).locator('img.miniatura-kadru').count(), 1);
+  await r.locator('textarea[name="o1"]').fill('Ala biegnie, noc');
+  await r.locator('[data-ze-scenariusza="1"]').click();
+  assert.equal(await r.locator('textarea[name="o1"]').inputValue(), opis2);
+  assert.equal(await r.locator('input[name="k1"]').isChecked(), true);
+  await r.locator('[data-rola="anuluj"]').click();
   assert.deepEqual(bledy, []);
 });
 
