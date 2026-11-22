@@ -3,7 +3,8 @@
 // Kosztują – czat nie pyta o zgodę (uwaga E4), tylko pokazuje w rozmowie, co rysuje i ile to mniej więcej kosztuje;
 // bezpiecznikiem jest miesięczny limit wydatków. Klucz Gemini – z sejfu (#241), jak w oknie Obraz AI.
 
-import { pelnyOpis } from './generuj-obraz.js';
+import { pelnyOpis, DOPISEK_POPRAWKI } from './generuj-obraz.js';
+import { dataUrlZasobu } from '../zasoby.js';
 import { generujObraz, PROPORCJE } from '../ai-obrazy.js';
 import { zadanie } from '../ai-dostawcy.js';
 import { otwartySejf } from './sejf-ai.js';
@@ -18,7 +19,7 @@ export const NARZEDZIA_LOKALNE = [
   {
     name: 'generuj_obraz',
     description: 'Generuje obraz z opisu (Google Gemini, klucz użytkownika), wgrywa go do obrazów projektu i wstawia: do ramki (element – id kształtu, kadru albo prostokąta na stronie gdzie; obraz ją wypełnia) albo na środek strony. Kosztuje (szkic ok. 0,14 zł) – użytkownik widzi koszt w rozmowie. Nie umieszczaj tekstu w obrazie; napisy dodaje się w Makietce.',
-    inputSchema: { type: 'object', properties: { opis: { type: 'string', description: 'Co ma być na obrazie – w języku, w którym pisze użytkownik (zobaczy ten opis przy pytaniu o zgodę).' }, gdzie: { type: 'string', description: '„strona:<id strony>” – strona z ramką albo strona, na którą wstawić obraz.' }, element: { type: 'string', description: 'Id ramki na tej stronie (opcjonalnie).' }, jakosc: JAKOSC, proporcja: { type: 'string', description: 'Kształt obrazu, np. 3:4 (pion), 4:3 (poziom), 1:1 – zgodny z ramką.' } }, required: ['opis', 'gdzie'] },
+    inputSchema: { type: 'object', properties: { opis: { type: 'string', description: 'Co ma być na obrazie – w języku, w którym pisze użytkownik (zobaczy ten opis przy pytaniu o zgodę).' }, gdzie: { type: 'string', description: '„strona:<id strony>” – strona z ramką albo strona, na którą wstawić obraz.' }, element: { type: 'string', description: 'Id ramki na tej stronie (opcjonalnie).' }, jakosc: JAKOSC, proporcja: { type: 'string', description: 'Kształt obrazu, np. 3:4 (pion), 4:3 (poziom), 1:1 – zgodny z ramką.' }, popraw: { type: 'boolean', description: 'true – popraw obraz, który już jest w elemencie (element wymagany): opis to TYLKO zmiana, np. „dodaj kapelusz”; reszta obrazu zostaje.' } }, required: ['opis', 'gdzie'] },
   },
   {
     name: 'rysuj_kadry',
@@ -73,7 +74,15 @@ export async function wykonajLokalne(nazwa, a, { informuj = () => {}, wolaj }) {
     const klucz = (await otwartySejf())?.klucz('gemini');
     if (!klucz) throw new Error('Użytkownik nie ma klucza Google Gemini – obrazy rysuje tylko Gemini. Poproś o dodanie klucza w Ustawieniach konta → Sztuczna inteligencja.');
     const proporcja = PROPORCJE.includes(a.proporcja) ? a.proporcja : '1:1';
-    const w = await generujObraz({ klucz, model: q.model, fetchJson: zadanie, opis: pelnyOpis(String(a.opis)), proporcja, rozdzielczosc: q.rozdzielczosc });
+    // Poprawka (E5): obraz z elementu jako wzorzec, opis to sama zmiana.
+    let wzorce = [];
+    if (a.popraw) {
+      const el = a.element && stan.projekt.strony.flatMap((s) => s.obiekty || []).find((o) => o.id === a.element);
+      const m = el?.zasob ? /^data:([^;]+);base64,(.*)$/.exec(await dataUrlZasobu(stan.projekt, el.zasob).catch(() => '') || '') : null;
+      if (!m) throw new Error('Do poprawki podaj element, w którym jest już obraz (element = id ramki albo obrazu).');
+      wzorce = [{ typ: m[1], dane: m[2] }];
+    }
+    const w = await generujObraz({ klucz, model: q.model, fetchJson: zadanie, opis: pelnyOpis(String(a.opis), { dopisek: a.popraw ? DOPISEK_POPRAWKI : '' }), proporcja, rozdzielczosc: q.rozdzielczosc, wzorce });
     const koszt = kosztZUzycia(q.model, w.uzycie) ?? zl;
     zapiszWydatek(koszt, { model: q.model, rodzaj: 'obraz' });
     const tekst = (r) => (r?.content || []).map((c) => c.text || '').join('\n');

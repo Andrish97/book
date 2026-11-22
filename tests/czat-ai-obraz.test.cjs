@@ -32,9 +32,9 @@ test('czat AI: generuj_obraz bez pytania, koszt w rozmowie, obraz w ramce; limit
     const body = JSON.parse(r.request().postData());
     claude.push(body);
     const krok = claude.length;
-    const odp = krok === 1 || krok === 3
-      ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: `tu${krok}`, name: 'generuj_obraz', input: { opis: 'Kot w kapeluszu', element: idRamki, gdzie: `strona:${idStrony}` } }] }
-      : { stop_reason: 'end_turn', content: [{ type: 'text', text: krok === 2 ? 'Gotowe, obraz w ramce.' : 'Dobrze, nie generuję.' }] };
+    const odp = krok % 2
+      ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: `tu${krok}`, name: 'generuj_obraz', input: krok === 3 ? { opis: 'dodaj motyla', element: idRamki, gdzie: `strona:${idStrony}`, popraw: true } : { opis: 'Kot w kapeluszu', element: idRamki, gdzie: `strona:${idStrony}` } }] }
+      : { stop_reason: 'end_turn', content: [{ type: 'text', text: { 2: 'Gotowe, obraz w ramce.', 4: 'Poprawione, motyl dodany.' }[krok] || 'Dobrze, nie generuję.' }] };
     await r.fulfill({ contentType: 'text/event-stream', headers: { 'access-control-allow-origin': '*' }, body: sse({ id: `m${krok}`, ...odp }) });
   });
   await kontekst.route('https://generativelanguage.googleapis.com/**', async (r) => {
@@ -57,12 +57,20 @@ test('czat AI: generuj_obraz bez pytania, koszt w rozmowie, obraz w ramce; limit
   assert.equal(gemini.length, 1);
   await strona.waitForFunction((id) => Boolean(window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === id)?.zasob), idRamki, { timeout: 15000 });
   assert.match(JSON.stringify(claude[1].messages.at(-1)), /Obraz gotowy \(id [^)]+\) w elemencie/);
-  // Limit miesięczny 0,10 zł: druga prośba – błąd dla AI, bez wywołania Gemini.
+  // Poprawka obrazu z czatu (E5): obecny obraz ramki idzie do Gemini jako wzorzec, opis to sama zmiana.
+  await strona.fill('#czat-ai-tekst', 'Dodaj motyla');
+  await strona.press('#czat-ai-tekst', 'Enter');
+  await strona.waitForFunction(() => /motyl dodany/.test(document.querySelector('#czat-ai-wiadomosci').textContent), null, { timeout: 20000 });
+  assert.equal(gemini.length, 2);
+  const czesci = gemini[1].contents[0].parts;
+  assert.equal(czesci[0].inline_data.mime_type, 'image/png', 'obraz z ramki jako wzorzec');
+  assert.match(czesci.at(-1).text, /^dodaj motyla Edit the attached image/);
+  // Limit miesięczny 0,10 zł: kolejna prośba – błąd dla AI, bez wywołania Gemini.
   await strona.evaluate(async () => (await import('./js/ai-koszty.js')).ustawLimit(0.1));
   await strona.fill('#czat-ai-tekst', 'Jeszcze raz');
   await strona.press('#czat-ai-tekst', 'Enter');
   await strona.waitForFunction(() => /nie generuję/.test(document.querySelector('#czat-ai-wiadomosci').textContent), null, { timeout: 20000 });
-  assert.match(JSON.stringify(claude[3].messages.at(-1)), /miesięczny limit/);
-  assert.equal(gemini.length, 1, 'ponad limit – nic nie wygenerowano');
+  assert.match(JSON.stringify(claude[5].messages.at(-1)), /miesięczny limit/);
+  assert.equal(gemini.length, 2, 'ponad limit – nic nie wygenerowano');
   assert.deepEqual(bledy, []);
 });

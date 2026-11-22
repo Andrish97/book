@@ -1495,7 +1495,7 @@ w każdym kadrze (dla Ciebie, rysownika albo AI).
 - **Obraz wzorcowy:** [Wybierz obraz…] – rysunek albo zdjęcie z urządzenia; albo [Narysuj z opisu (AI)] – AI rysuje go
   z pól karty w stylu komiksu (koszt widać przed rysowaniem, ok. 0,14 zł). Postać – cała sylwetka na białym tle;
   miejsce – szeroki widok bez ludzi.
-- **Styl rysunków** (u góry okna): **Kolorowa bajka**, **Akwarela**, **Prosty cartoon**, **Manga (czarno-biała)** albo
+- **Styl rysunków** (u góry okna; każdy kafelek pokazuje tę samą przykładową scenę w danym stylu): **Kolorowa bajka**, **Akwarela**, **Prosty cartoon**, **Manga (czarno-biała)** albo
   **Komiks retro** – obowiązuje we wszystkich obrazach z AI w tym komiksie.
 
 ![Karta postaci](k-komiks-postac.png)
@@ -1527,6 +1527,14 @@ pasku). Nie piszesz poleceń dla AI – Makietka składa je ze scenariusza i kar
 3. Wybierz **Jakość** i sprawdź koszt pod listą.
 4. [Rysuj] – kadry wypełniają się po kolei („Rysuję 2 z 3…”). Obrazy wzorcowe postaci i miejsca idą do AI razem
    z opisem, więc postacie i tło wyglądają tak samo w każdym kadrze. Napisów w obrazach nie ma – tekst jest w dymkach.
+
+**Cała strona jednym obrazem.** W oknie rysowania zaznacz **Cała strona jednym obrazem – taniej i spójniej; AI rysuje
+też ramki kadrów (kadry strony zastąpi obraz, dymki zostają)**. AI dostaje opisy wszystkich kadrów naraz, układ kadrów
+strony i obrazy wzorcowe postaci, i rysuje całą stronę – z ramkami kadrów, jednym światłem i jedną kreską. Kosztuje
+tyle co jeden obraz (np. ok. 0,14 zł w szkicu zamiast ok. 0,42 zł za trzy kadry). Obraz kładzie się na całą stronę ze
+spadem, a kadry strony znikają (są już na obrazie). Gdy chcesz poprawiać kadry osobno, rysuj kadr po kadrze.
+
+![Cała strona komiksu narysowana jednym obrazem (Szkic) – przed dodaniem dymków](k-komiks-cala-strona.jpg)
 
 **Rysuj jeszcze raz.** Obraz się nie podoba? Otwórz znów [Rysuj kadry tej strony…] i zaznacz ten kadr. Pole opisu
 pokazuje opis, **z którego powstał obecny obraz** – popraw jedno słowo albo narysuj jeszcze raz bez zmian. [Opis ze

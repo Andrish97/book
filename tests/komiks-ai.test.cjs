@@ -40,7 +40,7 @@ test('komiks AI: styl, obraz wzorcowy z opisu, rysowanie kadrów strony z odnies
   // C1: styl – akwarela; C2: obraz wzorcowy Ali z opisu.
   await krokKomiksu(strona, 'postacie');
   const dlg = strona.locator('#dlg-postacie');
-  await dlg.locator('select[name="styl"]').selectOption('akwarela');
+  await dlg.locator('input[name="styl"][value="akwarela"]').check({ force: true });
   await dlg.locator('.karta-komiksu:not(.dodaj)').first().click();
   await dlg.locator('[data-akcja-karty="obraz-ai"]').click();
   await dlg.locator('.obraz-karty img').waitFor();
@@ -60,7 +60,7 @@ test('komiks AI: styl, obraz wzorcowy z opisu, rysowanie kadrów strony z odnies
   assert.match(await r.locator('h2').textContent(), /strony 1/);
   assert.equal(await r.locator('.kadr-ai').count(), 3);
   const opis2 = await r.locator('textarea[name="o1"]').inputValue();
-  assert.match(opis2, /^Kadr 2\. Ujęcie: plan pełny \(full shot[^)]*\)\. Scena: Ala biegnie ulicą\. W kadrze: Ala – 8 lat, rude warkocze, zielona sukienka, zawsze: żółty plecak\. Miejsce \(tło\): Miasteczko.*Obrazy wzorcowe pokazują po kolei: Ala – zachowaj ich wygląd\. Zostaw w górnej części kadru wolne miejsce na dymki\.$/);
+  assert.match(opis2, /^Kadr 2\. Ujęcie: plan pełny \(full shot[^)]*\)\. Scena: Ala biegnie ulicą\. W kadrze: Ala – 8 lat, rude warkocze, zielona sukienka, zawsze: żółty plecak\. Miejsce \(tło\): Miasteczko.*Obrazy wzorcowe pokazują po kolei: Ala – zachowaj ich wygląd\. Zostaw w górnej części kadru spokojne tło na dymki – nie rysuj dymków ani pustych ramek\.$/);
   assert.match(await r.locator('.koszt-ai').textContent(), /Do narysowania: 3\. Koszt: ok\. 0,4[0-9] zł/);
   await r.locator('input[name="k0"]').uncheck({ force: true });
   assert.match(await r.locator('.koszt-ai').textContent(), /Do narysowania: 2\./);
@@ -85,7 +85,18 @@ test('komiks AI: styl, obraz wzorcowy z opisu, rysowanie kadrów strony z odnies
   await r.locator('[data-ze-scenariusza="1"]').click();
   assert.equal(await r.locator('textarea[name="o1"]').inputValue(), opis2);
   assert.equal(await r.locator('input[name="k1"]').isChecked(), true);
-  await r.locator('[data-rola="anuluj"]').click();
+  // C3/E5: cała strona jednym obrazem – jedno zapytanie z opisami wszystkich kadrów, obraz na całą stronę, kadry znikają.
+  await r.locator('input[name="cala"]').check({ force: true });
+  assert.match(await r.locator('.koszt-ai').textContent(), /Jeden obraz na całą stronę\. Koszt: ok\. 0,1[0-9] zł/);
+  await r.locator('button[value="tak"]').click();
+  await strona.waitForFunction(() => !document.querySelector('#dlg-rysuj-kadry').open, null, { timeout: 15000 });
+  assert.match(await strona.textContent('#powiadomienie'), /Strona narysowana jednym obrazem/);
+  assert.equal(zapytania.length, 4, 'jeden obraz zamiast trzech');
+  const cala = zapytania[3];
+  assert.match(cala.contents[0].parts.at(-1).text, /^One complete comic book page with 3 panels in reading order \(row 1: 1 panel, row 2: 2 panels\).*Kadr 1\..*Kadr 2\..*Kadr 3\..*Style: delicate watercolour/);
+  assert.equal(cala.contents[0].parts[0].inline_data.mime_type, 'image/png', 'obraz wzorcowy Ali');
+  const naStronie = await strona.evaluate(() => { const e = window.seriodruk.edytor; const o = e.canvas.getObjects(); return { kadry: o.filter((x) => x.kadr_nr).length, obraz: o.filter((x) => x.type === 'image' && x.zasob).length }; });
+  assert.deepEqual(naStronie, { kadry: 0, obraz: 1 });
   assert.deepEqual(bledy, []);
 });
 

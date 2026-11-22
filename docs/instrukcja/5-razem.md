@@ -303,6 +303,7 @@ Przykłady poleceń:
 - „Narysuj kadry strony 2 komiksu i ustaw dymki.”
 - „Ile będzie kosztowało narysowanie 10 obrazów do druku?”
 - „Przetłumacz wszystkie teksty na tej stronie na angielski.”
+- „W obrazie na stronie 2 dodaj dziewczynce czerwony kapelusz.” – asystent poprawia obecny obraz, reszta zostaje.
 
 Zmiany i obrazy pojawiają się w edytorze w trakcie rozmowy – czat nie musi być zamknięty.
 

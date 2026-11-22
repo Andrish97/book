@@ -406,6 +406,33 @@ export async function rysujPozycje(pozycje, { jakosc = 'szkic', postep = () => {
 }
 export const szacujPozycje = (pozycje, jakosc = 'szkic') => pozycje.reduce((a, x) => a + szacujObraz({ ...JAKOSCI_OBRAZU[jakosc], znakiOpisu: x.opis.length + 300, wzorce: x.postacie.filter((q) => q.obraz).length + (x.miejsce?.obraz ? 1 : 0) }), 0);
 
+// Cała strona komiksu jednym obrazem (C3, E5): jeden obraz z ramkami kadrów narysowanymi przez AI – taniej niż kadr po
+// kadrze i spójniej (jedno światło, jedna kreska). Opisy kadrów w kolejności czytania, układ rzędów z kadrów strony,
+// obrazy wzorcowe wszystkich postaci i miejsc. Obraz idzie na całą stronę ze spadem, kadry strony znikają (są na
+// obrazie), dymki zostają nad nim.
+export function opisCalejStrony(pozycje, opisy) {
+  const rzedy = [];
+  for (const x of [...pozycje].sort((a, b) => a.obiekt.top - b.obiekt.top || a.obiekt.left - b.obiekt.left)) {
+    const r = rzedy.find((q) => Math.abs(q.top - x.obiekt.top) < 8);
+    if (r) r.ile += 1; else rzedy.push({ top: x.obiekt.top, ile: 1 });
+  }
+  const uklad = rzedy.map((r, i) => `row ${i + 1}: ${r.ile} panel${r.ile > 1 ? 's' : ''}`).join(', ');
+  return `One complete comic book page with ${pozycje.length} panels in reading order (${uklad}), thin black panel borders and narrow white gutters between panels. Keep a calm, uncluttered background in the upper part of each panel (speech bubbles are added later) – do not draw any speech bubbles, caption boxes or empty frames. ${opisy.map((o) => o.trim()).join(' ')}`;
+}
+export async function rysujCalaStrone(pozycje, opisy, { jakosc = 'szkic' } = {}) {
+  zapiszBiezacyCel();
+  const strona = stan.projekt.strony[stan.indeks];
+  const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: spad = 0 } = biezacaSekcja().wydruk;
+  const imiona = [...new Set(pozycje.flatMap((x) => [...x.postacie.map((q) => q.obraz), x.miejsce?.obraz]).filter(Boolean))].slice(0, 6);
+  const wzorce = (await Promise.all(imiona.map(wzorzecKarty))).filter(Boolean);
+  const wynik = await generujIWstaw({ opis: opisCalejStrony(pozycje, opisy), jakosc, proporcja: proporcjaRamki(w + 2 * spad, h + 2 * spad), wzorce, styl: stylProjektu(stan.projekt), naStrone: false, potwierdzono: true });
+  const blob = await (await fetch(await dataUrlZasobu(stan.projekt, wynik.id))).blob();
+  wstawStrone(strona, { id: wynik.id, nazwa: wynik.nazwa, idElementu: uid('o'), ...(await wymiaryPliku(blob)) }, { w, h, spad });
+  await zaladujCel();
+  zaplanujZapis();
+  return wynik;
+}
+
 export function oknoRysujKadry() {
   if (!wKomiksie()) return;
   zapiszBiezacyCel();
@@ -415,6 +442,7 @@ export function oknoRysujKadry() {
   if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'dlg-rysuj-kadry'; document.body.append(dlg); }
   dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${t('komiks.rysujTytul', { nr })}</h2><p class="ciche">${t('komiks.rysujOpis')}</p>
     <div class="kadry-ai">${pozycje.map((x, i) => `<div class="kadr-ai"><div class="naglowek-kadru-ai">${x.obiekt.zasob ? `<img class="miniatura-kadru" alt="" src="${adresZasobu(stan.projekt.zasoby[x.obiekt.zasob]) || ''}">` : '<span class="miniatura-kadru pusta" aria-hidden="true"></span>'}<label class="przelacznik"><input type="checkbox" name="k${i}"${x.obiekt.zasob ? '' : ' checked'}><span>${t('komiks.kadrNr', { nr: x.kadr })}${x.postacie.length ? ` – ${x.postacie.map((q) => q.imie).join(', ')}` : ''}${x.obiekt.zasob ? ` ${t('komiks.rysujMaObraz')}` : ''}</span></label>${x.poprzedni ? `<button type="button" class="przycisk maly" data-ze-scenariusza="${i}">${t('komiks.rysujZeScenariusza')}</button>` : ''}</div><textarea name="o${i}" rows="3"></textarea>${x.poprzedni ? `<p class="ciche">${t('komiks.rysujPoprzedni')}</p>` : ''}</div>`).join('')}</div>
+    <label class="przelacznik"><input type="checkbox" name="cala"><span>${t('komiks.rysujCalaStrone')}</span></label>
     <label class="pole"><span>${t('aiObraz.jakosc')}</span><select name="jakosc"><option value="szkic">${t('aiObraz.jakoscSzkic')}</option><option value="dokladny">${t('aiObraz.jakoscDokladny')}</option><option value="pro">${t('aiObraz.jakoscPro')}</option></select></label>
     <p class="koszt-ai" aria-live="polite"></p><p class="blad-ai" role="alert" hidden></p>
     <div class="przyciski-dialogu"><button class="przycisk" type="button" data-rola="anuluj">${t('komiks.anuluj')}</button><button class="przycisk glowny" type="submit" value="tak">${t('komiks.rysuj')}</button></div></form>`;
@@ -424,6 +452,12 @@ export function oknoRysujKadry() {
   const wybrane = () => pozycje.map((x, i) => i).filter((i) => f.elements[`k${i}`].checked);
   const policz = () => {
     const j = JAKOSCI_OBRAZU[f.elements.jakosc.value];
+    if (f.elements.cala.checked) {
+      // jeden obraz: wszystkie opisy, wzorce wszystkich postaci i miejsc
+      const zl = szacujObraz({ ...j, znakiOpisu: pozycje.reduce((a, x, i) => a + f.elements[`o${i}`].value.length, 400), wzorce: Math.min(6, new Set(pozycje.flatMap((x) => [...x.postacie.map((q) => q.obraz), x.miejsce?.obraz]).filter(Boolean)).size) });
+      dlg.querySelector('.koszt-ai').textContent = t('komiks.rysujKosztStrony', { zl: opisKosztu(zl, biezacyJezyk()) });
+      return;
+    }
     const zl = wybrane().reduce((a, i) => a + szacujObraz({ ...j, znakiOpisu: f.elements[`o${i}`].value.length + 300, wzorce: pozycje[i].postacie.filter((q) => q.obraz).length + (pozycje[i].miejsce?.obraz ? 1 : 0) }), 0);
     dlg.querySelector('.koszt-ai').textContent = t('komiks.rysujKoszt', { ile: wybrane().length, zl: opisKosztu(zl, biezacyJezyk()) });
   };
@@ -434,8 +468,17 @@ export function oknoRysujKadry() {
   f.onsubmit = async (e) => {
     e.preventDefault();
     const lista = wybrane();
-    if (!lista.length) return;
     const przycisk = f.querySelector('button[value="tak"]');
+    if (f.elements.cala.checked) {
+      przycisk.disabled = true; blad.hidden = true; przycisk.textContent = t('aiObraz.trwa');
+      try {
+        const w = await rysujCalaStrone(pozycje, pozycje.map((x, i) => f.elements[`o${i}`].value), { jakosc: f.elements.jakosc.value });
+        dlg.close('tak');
+        powiadom(t('komiks.rysujStroneGotowe', { zl: opisKosztu(w.zl, biezacyJezyk()) }));
+      } catch (er) { blad.textContent = er.message; blad.hidden = false; } finally { przycisk.disabled = false; przycisk.textContent = t('komiks.rysuj'); }
+      return;
+    }
+    if (!lista.length) return;
     przycisk.disabled = true; blad.hidden = true;
     const stan0 = { zl: 0, gotowe: 0 };
     try {

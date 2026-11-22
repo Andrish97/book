@@ -12,4 +12,10 @@ cennika w js/ai-koszty.js (kurs 4,00 zł/$ – zaokrąglony w górę).
 | 22.11.2026 | Scenariusz z pomysłu (Kuba i karmnik, 2 strony), z Node | gemini-3.1-flash-lite | 319 / 916 | 0,006 zł |
 | 22.11.2026 | Czat Makietki z Gemini na żywo (D4): 5 rozmów – dwie odrzucone przez Gemini (błąd schematu narzędzi, poprawiony), trzy z rysowaniem tulipanów (2 × szkic, 1 × dokładny) | gemini-3.5-flash-lite + obrazy | ok. 5000 / 1500 na rozmowę | ok. 0,75 zł |
 
-**Suma: ok. 2,55 zł** (budżet po uwagach właściciela: do ok. 20 zł)
+| 22.11.2026 | Miniatury stylów rysunków (E5/C1): 5 obrazów, ta sama scena w każdym stylu (img/style/) | gemini-3.1-flash-lite-image 1K | ok. 7600 wyj. | ok. 0,70 zł |
+
+| 22.11.2026 | Cała strona komiksu jednym obrazem (E5/C3) – próba jakości: 3 kadry, ramki rysowane przez AI | gemini-3.1-flash-lite-image 1K | 346 / 1598 | ok. 0,14 zł |
+
+| 22.11.2026 | Cała strona – druga próba po poprawce polecenia (bez pustych ramek na dymki) | gemini-3.1-flash-lite-image 1K | 366 / 1497 | ok. 0,14 zł |
+
+**Suma: ok. 3,55 zł** (budżet po uwagach właściciela: do ok. 20 zł)

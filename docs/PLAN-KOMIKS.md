@@ -106,7 +106,7 @@ pytać o zgodę [na koszt] – raczej informujemy użytkownika w sekcji dodawani
 | E2 | Komiks w Bibliotece: kategoria „Komiks” – dymki, efekty, układy kadrów, raster i linie ruchu, skróty do okien komiksu | ✅ #386 |
 | E3 | Emocje i działania postaci w kadrze: przy każdej postaci w kadrze – emocja (lista) i co robi; idą do opisu obrazu i do scenariusza z AI | ✅ #385 |
 | E4 | Bez pytania o zgodę na koszt (czat i narzędzia): koszt orientacyjny w ustawieniach AI przy kluczach; limit miesięczny zostaje jako bezpiecznik | ✅ #384 |
-| E5 | Dodatkowe: „popraw obraz” w czacie, miniatury stylów rysunków, cała strona komiksu jednym obrazem, obrazy w łączniku MCP (B6) | do zrobienia |
+| E5 | Dodatkowe: „popraw obraz” w czacie, miniatury stylów rysunków, cała strona komiksu jednym obrazem, obrazy w łączniku MCP (B6) | ✅ #387 (bez B6 – obrazy w łączniku MCP zostają na później) |
 
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 

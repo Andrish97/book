@@ -1370,7 +1370,7 @@ Koszt – ok. jeden grosz; widać go przed rozpisaniem.
 - **Postać:** **Imię**, **Wygląd** (np. „8 lat, rude warkocze, zielona sukienka”), **Znak rozpoznawczy** (np. „żółty plecak”), **Charakter**, **Obraz wzorcowy** i **Kolor dymka** (dymki tej postaci dostaną ten kolor tła; biały – zwykły dymek).
 - **Miejsce:** **Miejsce** (nazwa), **Opis**, **Pora dnia**, **Światło** i **Obraz wzorcowy** – widok samego miejsca, bez postaci. W kadrach z tym miejscem (wybranym w scenariuszu) obraz miejsca jest tłem, a postacie stają na nim.
 - **Obraz wzorcowy:** **Wybierz obraz…** – rysunek albo zdjęcie z urządzenia; albo **Narysuj z opisu (AI)** – AI rysuje go z pól karty w stylu komiksu (koszt widać przed rysowaniem, ok. 0,14 zł). Postać – cała sylwetka na białym tle; miejsce – szeroki widok bez ludzi.
-- **Styl rysunków** (u góry okna): **Kolorowa bajka**, **Akwarela**, **Prosty cartoon**, **Manga (czarno-biała)** albo **Komiks retro** – obowiązuje we wszystkich obrazach z AI w tym komiksie.
+- **Styl rysunków** (u góry okna; każdy kafelek pokazuje tę samą przykładową scenę w danym stylu): **Kolorowa bajka**, **Akwarela**, **Prosty cartoon**, **Manga (czarno-biała)** albo **Komiks retro** – obowiązuje we wszystkich obrazach z AI w tym komiksie.
 
 ![Karta postaci](https://makietka.app/img/instrukcja/k-komiks-postac.png)
 
@@ -1390,6 +1390,10 @@ Kadr to kształt z białym tłem i czarnym obrysem, z numerem w kolejności czyt
 2. Popraw opis, jeśli chcesz. Kadry z obrazem są odznaczone – zaznacz je, żeby narysować jeszcze raz.
 3. Wybierz **Jakość** i sprawdź koszt pod listą.
 4. **Rysuj** – kadry wypełniają się po kolei („Rysuję 2 z 3…”). Obrazy wzorcowe postaci i miejsca idą do AI razem z opisem, więc postacie i tło wyglądają tak samo w każdym kadrze. Napisów w obrazach nie ma – tekst jest w dymkach.
+
+**Cała strona jednym obrazem.** W oknie rysowania zaznacz **Cała strona jednym obrazem – taniej i spójniej; AI rysuje też ramki kadrów (kadry strony zastąpi obraz, dymki zostają)**. AI dostaje opisy wszystkich kadrów naraz, układ kadrów strony i obrazy wzorcowe postaci, i rysuje całą stronę – z ramkami kadrów, jednym światłem i jedną kreską. Kosztuje tyle co jeden obraz (np. ok. 0,14 zł w szkicu zamiast ok. 0,42 zł za trzy kadry). Obraz kładzie się na całą stronę ze spadem, a kadry strony znikają (są już na obrazie). Gdy chcesz poprawiać kadry osobno, rysuj kadr po kadrze.
+
+![Cała strona komiksu narysowana jednym obrazem (Szkic) – przed dodaniem dymków](https://makietka.app/img/instrukcja/k-komiks-cala-strona.jpg)
 
 **Rysuj jeszcze raz.** Obraz się nie podoba? Otwórz znów **Rysuj kadry tej strony…** i zaznacz ten kadr. Pole opisu pokazuje opis, **z którego powstał obecny obraz** – popraw jedno słowo albo narysuj jeszcze raz bez zmian. **Opis ze scenariusza** wraca do opisu złożonego od nowa (np. po zmianie scenariusza albo karty). Poprzednie obrazy zostają w **Obrazach projektu** (rozdział „7.5 Okno Obrazy projektu”). Drobną zmianę w jednym kadrze (np. „Ala ma mieć zamknięte oczy”) zrobisz bez rysowania od nowa: zaznacz kadr → **Popraw obraz** na pasku (rozdział „7.11 Obraz AI”).
 
@@ -2615,6 +2619,7 @@ Przykłady poleceń:
 - „Narysuj kadry strony 2 komiksu i ustaw dymki.”
 - „Ile będzie kosztowało narysowanie 10 obrazów do druku?”
 - „Przetłumacz wszystkie teksty na tej stronie na angielski.”
+- „W obrazie na stronie 2 dodaj dziewczynce czerwony kapelusz.” – asystent poprawia obecny obraz, reszta zostaje.
 
 Zmiany i obrazy pojawiają się w edytorze w trakcie rozmowy – czat nie musi być zamknięty.
 

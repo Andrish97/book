@@ -1461,3 +1461,12 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .pasek-narzedzi.dalej-lewo { -webkit-mask-image: linear-gradient(to left, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to left, var(--czern) calc(100% - 28px), transparent); }
 .pasek-narzedzi.dalej-lewo.dalej-prawo { -webkit-mask-image: linear-gradient(to right, transparent, var(--czern) 28px, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, var(--czern) 28px, var(--czern) calc(100% - 28px), transparent); }
 .podglad-biblioteki .ikona-biblioteki-komiksu { display: block; margin: auto; }
+/* Wybór stylu rysunków (C1, E5): kafelki z przykładowym obrazkiem. */
+.wybor-stylu { border: 0; padding: 0; margin: 0 0 12px; }
+.wybor-stylu legend { font-weight: 600; margin-bottom: 6px; padding: 0; }
+.style-rysunkow { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 8px; margin-bottom: 4px; }
+.styl-rysunkow { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px; border: 2px solid var(--linia); border-radius: var(--r-s, 8px); cursor: pointer; font-size: 12px; text-align: center; }
+.styl-rysunkow img { width: 80px; height: 80px; border-radius: 6px; object-fit: cover; }
+.styl-rysunkow input { position: absolute; opacity: 0; pointer-events: none; }
+.styl-rysunkow:has(input:checked) { border-color: var(--akcent); background: var(--akcent-tlo); }
+.styl-rysunkow:has(input:focus-visible) { outline: 2px solid var(--akcent); outline-offset: 2px; }

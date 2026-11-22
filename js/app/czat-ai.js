@@ -402,7 +402,7 @@ async function wyslij(tekst) {
         if (nazwyLokalne.has(nazwa)) {
           // Narzędzie w aplikacji (#376) działa na projekcie w edytorze: najpierw zmiany AI z konta (np. ramka dodana
           // przed chwilą przez dodaj_elementy), potem wysyłka tego, co zrobiło – kolejne narzędzia AI je widzą (#380).
-          if (zmiany && nazwa !== 'generuj_obraz') { await sprawdzKonto(); await synchronizuj().catch(() => {}); zmiany = false; }
+          if (zmiany && (nazwa !== 'generuj_obraz' || argumenty?.popraw)) { await sprawdzKonto(); await synchronizuj().catch(() => {}); zmiany = false; }
           try {
             const tekst = await wykonajLokalne(nazwa, argumenty || {}, { wolaj: n.wolaj, informuj: (tekst) => dopisz('narzedzie', tekst) });
             if (tekst === null) return { tekst: ODMOWA, blad: true };

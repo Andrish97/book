@@ -1501,7 +1501,7 @@ it looks the same in every panel (for you, an artist or the AI).
 - **Reference image:** [Choose image…] – a drawing or photo from your device; or [Draw from description (AI)] – AI draws
   it from the card fields in the comic's style (you see the cost before drawing, about 0.14 PLN). A character – the
   whole figure on a white background; a place – a wide view without people.
-- **Drawing style** (at the top of the window): **Colourful storybook**, **Watercolour**, **Simple cartoon**,
+- **Drawing style** (at the top of the window; each tile shows the same sample scene in that style): **Colourful storybook**, **Watercolour**, **Simple cartoon**,
   **Manga (black and white)** or **Retro comic** – it applies to all AI images in this comic.
 
 ![Character card](k-komiks-postac.png)
@@ -1536,6 +1536,15 @@ bar). You don't write instructions for the AI – Makietka builds them from the 
 4. [Draw] – the panels fill one by one (“Drawing 2 of 3…”). The reference images of the characters and the place go
    to the AI together with the description, so the characters and the background look the same in every panel.
    There is no lettering in the images – the text is in the bubbles.
+
+**The whole page as one picture.** In the drawing window tick **The whole page as one picture – cheaper and more
+consistent; AI also draws the panel borders (the picture replaces the page's panels, bubbles stay)**. The AI gets the
+descriptions of all panels at once, the page's panel layout and the characters' reference pictures, and draws the whole
+page – with panel borders, one light and one line style. It costs as much as one picture (e.g. about 0.14 PLN in Draft
+instead of about 0.42 PLN for three panels). The picture covers the whole page with bleed, and the page's panels
+disappear (they are already in the picture). If you want to fix panels separately, draw panel by panel.
+
+![A whole comic page drawn as one picture (Draft) – before adding bubbles](k-komiks-cala-strona.jpg)
 
 **Draw again.** Don't like an image? Open [Draw this page's panels…] again and tick that panel. The description field
 shows the description **the current image was made from** – change one word or draw again unchanged. [Description

@@ -52,12 +52,17 @@ function lista(dlg) {
   dlg.replaceChildren();
   const f = el('form', { method: 'dialog', class: 'formularz' });
   f.append(el('h2', { tekst: t('komiks.postacieIMiejsca') }), el('p', { class: 'ciche', tekst: t('komiks.postacieOpis') }));
-  // Styl rysunków projektu (C1, #374) – dopisywany do każdego obrazu z AI w komiksie.
-  const styl = el('select', { name: 'styl' });
-  for (const id of Object.keys(STYLE_RYSUNKOW)) styl.append(el('option', { value: id, tekst: t(`komiks.styl_${id}`) }));
-  styl.value = stan.projekt.komiks_ai?.styl || STYL_DOMYSLNY;
-  styl.addEventListener('change', () => { stan.projekt.komiks_ai = { ...(stan.projekt.komiks_ai || {}), styl: styl.value }; zaplanujZapis(); });
-  f.append(el('label', { class: 'pole' }, el('span', { tekst: t('komiks.stylRysunkow') }), styl, el('span', { class: 'ciche', tekst: t('komiks.stylRysunkowOpis') })));
+  // Styl rysunków projektu (C1, #374) – dopisywany do każdego obrazu z AI w komiksie. Kafelki z przykładowym obrazkiem
+  // tej samej sceny w każdym stylu (img/style/, E5) – widać różnicę bez czytania opisu.
+  const wybrany = stan.projekt.komiks_ai?.styl || STYL_DOMYSLNY;
+  const style = el('div', { class: 'style-rysunkow', role: 'radiogroup', 'aria-label': t('komiks.stylRysunkow') });
+  for (const id of Object.keys(STYLE_RYSUNKOW)) {
+    const r = el('input', { type: 'radio', name: 'styl', value: id });
+    r.checked = id === wybrany;
+    r.addEventListener('change', () => { stan.projekt.komiks_ai = { ...(stan.projekt.komiks_ai || {}), styl: id }; zaplanujZapis(); });
+    style.append(el('label', { class: 'styl-rysunkow' }, r, el('img', { src: `img/style/${id}.webp`, alt: '', width: '80', height: '80', loading: 'lazy' }), el('span', { tekst: t(`komiks.styl_${id}`) })));
+  }
+  f.append(el('fieldset', { class: 'pole wybor-stylu' }, el('legend', { tekst: t('komiks.stylRysunkow') }), style, el('span', { class: 'ciche', tekst: t('komiks.stylRysunkowOpis') })));
   for (const rodzaj of ['postacie', 'miejsca']) {
     const lst = karty(stan.projekt, rodzaj);
     const siatka = el('div', { class: 'karty-komiksu', 'data-rodzaj': rodzaj });

@@ -304,6 +304,7 @@ Example requests:
 - “Draw the panels of page 2 of the comic and place the bubbles.”
 - “How much will it cost to draw 10 images for print?”
 - “Translate all the texts on this page into English.”
+- “In the picture on page 2, give the girl a red hat.” – the assistant fixes the current picture; the rest stays.
 
 Changes and images appear in the editor during the conversation – the chat doesn't have to be closed.
 
