@@ -1308,6 +1308,8 @@ Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na k
 
 Karty to zwykłe tabele **Postacie** i **Miejsca** – zobaczysz je też w oknie **Dane**. Kliknięcie karty otwiera ją do poprawki; **Usuń** usuwa kartę (dymki i obrazy na stronach zostają).
 
+**Sprawdź przed drukiem** (rozdział „20 Sprawdź przed drukiem”) pilnuje komiksu: tekst w dymku mniejszy niż 7 pt (w druku trudny do czytania), dymek wychodzący poza stronę albo leżący na dwóch kadrach, ogonek celujący poza kadry i puste kadry (bez obrazu). Przy uwadze o dymku **Otwórz wzór** zaznacza go na stronie.
+
 **Wersje językowe.** Dodaj do scenariusza kolumny `tekst_pl`, `tekst_en`, `tekst_uk` (każda z tekstem w jednym języku). **Ustaw dymki** zapyta wtedy, z której kolumny wziąć teksty – ten sam układ dostaje teksty w innym języku.
 
 > **Wskazówka:** Obrazy do kadrów możesz zrobić w dowolnym programie albo generatorze – tekst zawsze jest w dymkach Makietki, nie w obrazie, więc łatwo go poprawić i przetłumaczyć.

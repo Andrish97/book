@@ -89,6 +89,7 @@ export const MODULY_EDYTORA = [
   'js/znajdz.js',
   'js/filtry-obrazu.js',
   'js/gotowe-sekcje.js',
+  'js/komiks-kontrola.js',
   'js/ksztalty-geometria.js',
   'js/ksztalty-wiecej.js',
   'js/rozkladanie-3d.js',

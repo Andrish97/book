@@ -319,3 +319,36 @@ test('komiks: wgraj strony – 01.png na spad (kadry strony znikają, dymki zost
   assert.deepEqual(p.s3, ['image']);
   assert.deepEqual(bledy, []);
 });
+
+test('komiks: kontrola przed drukiem – mały tekst, dymek poza stroną i na dwóch kadrach, ogonek poza kadrami, puste kadry (#370)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Kontrola komiksu');
+  const uwagi = await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.sekcje[0].typ = 'komiks';
+    const { siatkaKadrow, elementKadru } = await import('./js/kadry.js');
+    const s = p.strony[0];
+    // dwa kadry jeden pod drugim: y 10–103 i 107–200
+    s.obiekty = siatkaKadrow({ x: 10, y: 10, w: 128, h: 190 }, [[1], [1]], 4).map((k, i) => elementKadru(k, i + 1, { id: `k${i}` }));
+    s.obiekty[0].zasob = 'z_obraz';
+    const dymek = (id, text, left, top, extra = {}) => ({ type: 'textbox', id, text, left, top, width: 30, height: 8, fontSize: 3.528, dymek: { rodzaj: 'mowa', ogonek: { x: 10, y: 15 } }, ...extra });
+    s.obiekty.push(
+      dymek('ok', 'Wszystko dobrze', 20, 20),
+      dymek('maly', 'Malutki', 20, 40, { fontSize: 2 }),
+      dymek('poza', 'Za brzegiem', 130, 50),
+      dymek('rynna', 'Na rynnie', 40, 99, { height: 12 }),
+      dymek('ogon', 'Ogonek w bok', 20, 60, { dymek: { rodzaj: 'mowa', ogonek: { x: -15, y: 5 } } }),
+    );
+    const { sprawdzProjekt } = await import('./js/kontrola.js');
+    return sprawdzProjekt(p).filter((u) => u.rodzaj === 'komiks').map((u) => [u.idObiektu || null, u.opis]);
+  });
+  const opisy = {};
+  for (const [id, o] of uwagi) opisy[id || 'strona'] = `${opisy[id || 'strona'] || ''} ${o}`;
+  assert.equal(opisy.ok, undefined, 'poprawny dymek bez uwag');
+  assert.match(opisy.maly, /„Malutki” ma 5\.7 pt/);
+  assert.match(opisy.poza, /wychodzi poza stronę/);
+  assert.match(opisy.rynna, /na dwóch kadrach/);
+  assert.match(opisy.ogon, /celuje poza kadry/);
+  assert.match(opisy.strona, /Strona 1: puste kadry \(2\)|pusty kadr \(2\)/);
+  assert.deepEqual(bledy, []);
+});

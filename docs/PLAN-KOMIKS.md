@@ -37,7 +37,7 @@ wydatek widoczny i potwierdzany; tekst dymków zawsze w Makietce, nigdy w obrazi
 | A9 | **Postacie i miejsca**: karty (imię, wygląd, znak rozpoznawczy, charakter, obraz wzorcowy, kolor dymka; miejsce: opis, pora dnia, światło, obraz) – na razie z obrazami wgranymi ręcznie | ✅ #368 (karty = tabele Postacie i Miejsca) |
 | A10 | **Import stron**: ZIP albo wiele plików (`01.png` → strona 1 na spad, `s03-k2.png` → kadr 2 na stronie 3) | ✅ #369 |
 | A11 | **Mostek** między dymkami jednej postaci; **webtoon** (długi pasek, PNG 800 px); **rastry i linie ruchu** w bibliotece wzorów | do zrobienia |
-| A12 | **Kontrola komiksu**: tekst w dymku < 7 pt, dymek przecina rynnę albo wchodzi w spad, ogonek poza kadrami, pusty kadr | do zrobienia |
+| A12 | **Kontrola komiksu**: tekst w dymku < 7 pt, dymek przecina rynnę albo wchodzi w spad, ogonek poza kadrami, pusty kadr | ✅ #370 |
 
 Po A7 da się robić pełne komiksy z obrazami z dowolnego generatora.
 

@@ -23,7 +23,8 @@ export const ADRES_POBIERANIA = 'https://api.makietka.app/eksport/';
 export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'format', 'oprawa', 'grzbiet', 'stron_bloku', 'papier', 'rok_kalendarza', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony', 'rozdzial', 's', 'przypis'];
 export const POLA_STYLU = ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'lineHeight', 'charSpacing', 'fill', 'textAlign',
   // Skład akapitu (#131) – jak w js/style-tekstu.js.
-  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'zasady_pl', 'lamanie_akapitu', 'wdowy', 'do_siatki', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory', 'wielkosc_liter'];
+  'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'zasady_pl', 'lamanie_akapitu', 'wdowy', 'do_siatki', 'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory', 'wielkosc_liter',
+  'stroke', 'strokeWidth', 'paintFirst']; // obrys tekstu w stylu (efekt dźwiękowy w komiksie, #367)
 export const POLA_FRAGMENTU = ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'underline', 'linethrough', 'fill'];
 const CZESCI = { sekcje: 'sekcja', wzorce: 'wzorzec', style: 'styl', tabele: 'tabela', serie: 'seria' };
 

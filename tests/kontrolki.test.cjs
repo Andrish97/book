@@ -20,7 +20,7 @@ test('własne kontrolki: lista rozwijana (mysz, klawiatura, grupy) i wybór kolo
   // Mysz: otwarcie, wybór pozycji, zmiana na płótnie i w podpisie przycisku.
   await strona.click(`${czcionka} .wybor-przycisk`);
   const zestaw = await strona.evaluate(async () => (await import('./js/czcionki.js')).CZCIONKI.map((c) => c.nazwa));
-  assert.equal(zestaw.length, 52);
+  assert.equal(zestaw.length, 55); // 52 + 3 komiksowe (#363)
   // Grupa „Użyte w projekcie” (#136) na górze: nazwa z liczbą użyć; niżej pełny zestaw.
   const pozycje = await strona.locator('.wybor-lista .wybor-opcja').allTextContents();
   const uzyte = pozycje.filter((x) => / · \d+×$/.test(x));

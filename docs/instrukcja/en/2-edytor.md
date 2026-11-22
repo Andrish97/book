@@ -1396,6 +1396,8 @@ Pages count from the first comic page; missing pages are added at the end of the
 
 The cards are ordinary **Postacie** (characters) and **Miejsca** (places) tables – you also see them in the **Data** window. Clicking a card opens it for editing; [Delete] removes the card (bubbles and images on the pages stay).
 
+**Preflight check** (→ 20) watches the comic: bubble text smaller than 7 pt (hard to read in print), a bubble going off the page or lying across two panels, a tail pointing outside the panels, and empty panels (no image). For a bubble warning, [Open template] selects it on the page.
+
 **Language versions.** Add columns `tekst_pl`, `tekst_en`, `tekst_uk` to the script (each with the text in one
 language). [Place bubbles] then asks which column to use – the same layout gets the texts in another language.
 

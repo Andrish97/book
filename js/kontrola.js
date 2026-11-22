@@ -14,6 +14,8 @@ import { obrazZNazwy } from './nazwy-obrazow.js';
 import { uwagiKolorowDruku } from './kolory-druku.js';
 import { tacKoloru, silnikTac, LIMIT_TAC } from './separacje.js';
 import { indeksKsiazki, uzywaKsiazki } from './ksiazka.js';
+import { uwagiKomiksu } from './komiks-kontrola.js';
+import { typSekcji } from './typ-sekcji.js';
 import { t as tt } from './jezyk.js';
 
 const DOKUMENTU = WSZYSTKIE_POLA_DOKUMENTU;
@@ -317,6 +319,11 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
     }));
     uwagi.push(...uwagiSkladanki(arkusze).map(({ nazwa, ...u }) => u));
     uwagi.push(...uwagiPopupu(arkusze));
+  }
+  // Komiks (#370): mały tekst w dymku, dymek poza stroną albo na dwóch kadrach, ogonek poza kadrami, puste kadry.
+  for (const sekcja of (projekt.sekcje || []).filter((x) => typSekcji(x) === 'komiks')) {
+    const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: spad = 0 } = sekcja.wydruk;
+    uwagi.push(...uwagiKomiksu(projekt.strony.filter((st) => st.sekcja === sekcja.id).map((st) => ({ strona: st, nr: pierwszyNr.get(st.id) || null, w, h, spad }))));
   }
   // Elementy uproszczone przy odczycie z innego programu (#232) – do przejrzenia; „Sprawdzone” zdejmuje oznaczenie.
   const zImportu = (lista, strona, wzorzec) => {

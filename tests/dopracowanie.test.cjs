@@ -375,7 +375,7 @@ test('lista rozwijana: w długiej liście pisanie zawęża pozycje do zawierają
   await strona.keyboard.press('ArrowDown');
   // Na górze grupa „Użyte w projekcie” (#136) – te same czcionki jeszcze raz, z liczbą użyć.
   const uzyte = await strona.evaluate(() => document.querySelectorAll('.wlasciwosci optgroup[label="Użyte w projekcie"] option').length);
-  assert.equal((await widoczne()).length, 53 + uzyte, 'cały zestaw i wgrywanie własnej');
+  assert.equal((await widoczne()).length, 56 + uzyte, 'cały zestaw (z 3 komiksowymi, #363) i wgrywanie własnej');
   assert.ok(await strona.isHidden('.wybor-filtr'));
 
   // Fragment ze środka nazwy.
@@ -388,7 +388,7 @@ test('lista rozwijana: w długiej liście pisanie zawęża pozycje do zawierają
   assert.ok(zG.length > 4 && zG.includes('Great Vibes') && zG.includes('EB Garamond') && !zG.includes('Inter'), `pozycje z „g”: ${zG}`);
   // Esc czyści szukanie (lista zostaje otwarta), dopiero drugi zamyka.
   await strona.keyboard.press('Escape');
-  assert.equal((await widoczne()).length, 53 + uzyte);
+  assert.equal((await widoczne()).length, 56 + uzyte);
   assert.equal(await strona.locator('.wybor-lista').count(), 1);
   // Bez polskich znaków i wielkości liter: „WLASNA” znajduje „własną”.
   await strona.keyboard.type('WLASNA');
