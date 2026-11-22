@@ -97,7 +97,7 @@ test('klucz z wybranymi projektami: jeden – bez wskazywania, kilka – projekt
   // Lista narzędzi: „projekt” w każdym narzędziu projektu, nie w narzędziach konta.
   const lista = (await dwa.s.obsluz({ jsonrpc: '2.0', id: 2, method: 'tools/list' })).result.tools;
   for (const n of lista) {
-    if (['projekty', 'nowy_projekt', 'opis_formatu', 'stan_eksportu'].includes(n.name)) assert.equal(n.inputSchema.properties.projekt, undefined, n.name);
+    if (['projekty', 'nowy_projekt', 'opis_formatu', 'stan_eksportu', 'biblioteka'].includes(n.name)) assert.equal(n.inputSchema.properties.projekt, undefined, n.name);
     else assert.ok(n.inputSchema.properties.projekt, n.name);
   }
   assert.deepEqual(lista.find((n) => n.name === 'usun_projekt').inputSchema.required, ['projekt', 'potwierdz']);

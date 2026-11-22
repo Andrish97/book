@@ -153,7 +153,7 @@ Kopiowanie projektu – zrobione (#391). Eksport PDF i PNG działa także przy z
 | H4 | **Udostępniać projektu (link do podglądu)** | Narzędzie „utworz_link” (z hasłem albo datą ważności); strony linku rysuje już serwer | mały–średni | publikacja treści – AI zawsze pyta użytkownika, a wynik pokazuje link do odebrania | **zrobione (#393)** – udostepnij_link ze zgodą |
 | H5 | **Zapraszać osób do projektu** | Wersja funkcji zaproszenia dla klucza AI (adres e-mail, rola) | mały | AI wysyła e-mail do człowieka – tylko na wyraźne polecenie, z potwierdzeniem adresu | raczej nie – zostawić człowiekowi |
 | H6 | **Wgrywać czcionek** | Lista czcionek dostępnych w Makietce w opis_formatu (AI wybiera z niej); własną czcionkę użytkownik wrzuca przez link_do_wgrywania | mały | – | **zrobione** – narzędzie czcionki |
-| H7 | **Wstawiać elementów z Biblioteki** | Katalog Biblioteki (kalendarze, ramki, wykresy…) przeniesiony do wspólnego kodu i narzędzie „wstaw_z_biblioteki” | duży | – | później |
+| H7 | **Wstawiać elementów z Biblioteki** | Katalog Biblioteki (kalendarze, ramki, wykresy…) przeniesiony do wspólnego kodu i narzędzie „wstaw_z_biblioteki” | mniejszy, niż się wydawało (kolejka zadań z H1/H2 już jest) | – | **zrobione (#394)** – biblioteka, wstaw_z_biblioteki |
 
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 

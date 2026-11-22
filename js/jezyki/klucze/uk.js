@@ -5993,6 +5993,7 @@ export default {
   "zadaniaAi.linkGotowy": "ШІ поділився проєктом «{nazwa}» за посиланням на перегляд. Анулювати його можна в Перегляд → Поділитися.",
   "zadaniaAi.nieOtwarto": "Не вдалося відкрити проєкт для завдання ШІ.",
   "zadaniaAi.nieUdalo": "Не вдалося: {co} – {opis}",
+  "zadaniaAi.rodzaj.biblioteka": "елемент із Бібліотеки",
   "zadaniaAi.rodzaj.dymki": "бульбашки коміксу",
   "zadaniaAi.rodzaj.kadry": "кадри коміксу",
   "zadaniaAi.rodzaj.link": "посилання на перегляд",

@@ -25,7 +25,7 @@ function atrapaEksportu(stan) {
       const zadanie = funkcja === 'ai_zlec_zadanie';
       const d = sprawdzKlucz(tresc.p_klucz, zadanie);
       if (d.blad) return d;
-      if (zadanie && !['link', 'obraz', 'kadry', 'dymki'].includes(tresc.p_rodzaj)) return { blad: 'Rodzaj zadania: link, obraz, kadry albo dymki.' };
+      if (zadanie && !['link', 'obraz', 'kadry', 'dymki', 'biblioteka'].includes(tresc.p_rodzaj)) return { blad: 'Rodzaj zadania: link, obraz, kadry, dymki albo biblioteka.' };
       if (!zadanie && !['pdf', 'png'].includes(tresc.p_rodzaj)) return { blad: 'Rodzaj pliku: pdf albo png.' };
       const ust = tresc.p_ustawienia ?? {};
       if (!ust || typeof ust !== 'object' || Array.isArray(ust)) return { blad: 'Ustawienia eksportu to obiekt JSON.' };
@@ -84,7 +84,7 @@ function atrapaEksportu(stan) {
       return json(z);
     }
     if (funkcja === 'zakoncz_zadanie') {
-      const z = moje.find((x) => x.id === tresc.p_id && x.stan === 'w_toku' && x.karta === String(tresc.p_karta || '').slice(0, 80) && ['link', 'obraz', 'kadry', 'dymki'].includes(x.rodzaj));
+      const z = moje.find((x) => x.id === tresc.p_id && x.stan === 'w_toku' && x.karta === String(tresc.p_karta || '').slice(0, 80) && ['link', 'obraz', 'kadry', 'dymki', 'biblioteka'].includes(x.rodzaj));
       if (!z) throw Object.assign(new Error('To zadanie przyjęła inna karta albo już je zakończono'), { status: 400, message: 'To zadanie przyjęła inna karta albo już je zakończono' });
       const blad = tresc.p_blad ?? null;
       Object.assign(z, { stan: blad === null ? 'gotowe' : 'blad', wynik: tresc.p_wynik && typeof tresc.p_wynik === 'object' ? tresc.p_wynik : {}, blad, zmieniono: teraz() });

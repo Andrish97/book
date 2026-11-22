@@ -124,8 +124,9 @@ which you add in the AI app.
 | undo its latest series of changes – it first tells you what will be undone and asks (→ 25.9) | |
 | request a PDF file or a PNG of a page and give you a download link (→ 25.5) | invite people to the project (→ 24) |
 | draw pictures with your Gemini key, draw comic panels and place bubbles – in the open Makietka (→ 25.10) | |
+| insert ready-made elements from the Library: frames, icons, calendars, charts, ornaments and more (→ 25.10) | |
 | create a preview link – only with your consent, also with a password or an expiry date (→ 25.10) | |
-| | upload fonts or use the Library (it knows the font list and picks only from it) |
+| | upload fonts (it knows the font list and picks only from it) |
 
 Write to the AI normally, as you would to a graphic designer: what you want to make, in what format, how many pages, what mood.
 If you have the project open, the changes appear in the editor after a moment. The AI's changes merge with yours
@@ -365,10 +366,11 @@ Some things the AI connected through the connector asks Makietka, open in your b
 | **Picture from a description** | Makietka draws the picture with your Google Gemini key (→ 25.6) and puts it in a frame or on the page. |
 | **Comic panels** | Makietka draws pictures for the page's panels from the script and character cards (→ 10.13). |
 | **Bubbles** | Makietka places speech bubbles from the script table on the comic pages. |
+| **Library element** | Makietka puts the chosen Library element (→ 4.8) on the page, where the AI says – like your click in the Library window. The AI knows the whole catalogue and searches it itself, even when Makietka is closed. |
 | **Preview link** | Makietka creates a link like [Share] in the preview (→ 23), with a password or expiry date if you give them. |
 
 A bar at the bottom of the screen shows what the AI asked for, and a moment later the change is in the project. Pictures,
-panels and bubbles are done by the tab with this project open; a tab showing the project list opens it by itself. When
+panels, bubbles and Library elements are done by the tab with this project open; a tab showing the project list opens it by itself. When
 Makietka isn't open, the AI gives you a link – once you open it, the task runs by itself. A key with pictures switched off can't request pictures or panels,
 and a key without PDF and PNG files can't request a link (→ 25.2).
 

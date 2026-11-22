@@ -564,7 +564,7 @@ function atrapaAi(stan) {
     // Eksport zlecony przez AI (#175) – wspólny stan z aplikacją (tests/atrapa-eksport.cjs).
     if (funkcja === 'ai_zlec_eksport' || funkcja === 'ai_zlec_zadanie' || funkcja === 'ai_stan_eksportu') {
       if (funkcja === 'ai_zlec_eksport') { const bz = zakresBrak(tresc.p_klucz, 'eksport'); if (bz) return bz; }
-      if (funkcja === 'ai_zlec_zadanie' && tresc.p_rodzaj !== 'dymki') { const bz = zakresBrak(tresc.p_klucz, tresc.p_rodzaj === 'link' ? 'eksport' : 'obrazy'); if (bz) return bz; }
+      if (funkcja === 'ai_zlec_zadanie' && !['dymki', 'biblioteka'].includes(tresc.p_rodzaj)) { const bz = zakresBrak(tresc.p_klucz, tresc.p_rodzaj === 'link' ? 'eksport' : 'obrazy'); if (bz) return bz; }
       stan.eksport = stan.eksport || atrapaEksportu(stan);
       return stan.eksport.ai(funkcja, tresc, { sprawdzKlucz, kluczKonta });
     }

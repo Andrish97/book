@@ -10,9 +10,9 @@ import { czekajNaEdytor } from './doczytaj.js';
 import { wpisyProjektow, wczytajProjektZWpisu } from './projekty.js';
 import { t } from '../jezyk.js';
 
-export const RODZAJE_ZADAN = ['link', 'obraz', 'kadry', 'dymki'];
+export const RODZAJE_ZADAN = ['link', 'obraz', 'kadry', 'dymki', 'biblioteka'];
 // Te rodzaje potrzebują projektu otwartego w edytorze.
-export const W_EDYTORZE = ['obraz', 'kadry', 'dymki'];
+export const W_EDYTORZE = ['obraz', 'kadry', 'dymki', 'biblioteka'];
 
 const czekaj = (ms) => new Promise((ok) => { setTimeout(ok, ms); });
 
@@ -51,12 +51,37 @@ async function wEdytorze(z, pasek) {
   await otworzProjekt(z.projekt_id);
   const { wykonajLokalne } = await import('./czat-narzedzia-lokalne.js');
   const u = z.ustawienia || {};
+  if (z.rodzaj === 'biblioteka') return wstawElement(u);
   if (z.rodzaj === 'dymki') return { opis: await wykonajLokalne('ustaw_dymki', { kolumna: u.kolumna }, {}) };
   await kluczGemini();
   const informuj = (tekst) => pasek.opis(tekst);
   if (z.rodzaj === 'kadry') return { opis: await wykonajLokalne('rysuj_kadry', u, { informuj }) };
   const { wolajDlaProjektu } = await import('./czat-ai.js');
   return { opis: await wykonajLokalne('generuj_obraz', u, { informuj, wolaj: await wolajDlaProjektu(z.projekt_id) }) };
+}
+
+// Element z Biblioteki (plan H7): na wskazanej stronie, jak kliknięcie w oknie Biblioteki; x, y – środek w mm strony.
+async function wstawElement(u) {
+  const ed = await czekajNaEdytor();
+  await import('./biblioteka-okno.js');
+  const { elementBiblioteki } = await import('../biblioteka.js');
+  const el = elementBiblioteki(u.kategoria, u.element);
+  if (!el) throw new Error(`W Bibliotece nie ma elementu ${u.kategoria}/${u.element}.`);
+  const idStrony = String(u.gdzie || '').replace(/^strona:/, '');
+  const nr = stan.projekt.strony.findIndex((s) => s.id === idStrony);
+  if (nr < 0) throw new Error(`Projekt nie ma strony „${idStrony}”.`);
+  await ed.przejdzDoStrony(nr);
+  const e = window.seriodruk.edytor;
+  e.odznacz?.();
+  const s = e.strony[e.aktywna];
+  const punkt = Number.isFinite(u.x) && Number.isFinite(u.y) ? { x: s.x + u.x, y: u.y } : null;
+  const obj = await el.wstaw(e, punkt);
+  e.zatwierdz?.();
+  await ed.zapiszTeraz();
+  if (!obj?.id) return { opis: `Wstawiono „${el.nazwa}”.` };
+  const r = obj.getBoundingRect?.() || {};
+  const mm = (v) => Math.round(v * 10) / 10;
+  return { opis: `Wstawiono „${el.nazwa}” na stronie ${idStrony}: element ${obj.id}, x ${mm((r.left ?? 0) - s.x)} mm, y ${mm(r.top ?? 0)} mm, ${mm(r.width ?? 0)} × ${mm(r.height ?? 0)} mm. Zmienisz go narzędziem zmien_elementy.` };
 }
 
 // Wykonuje przyjęte zadanie i oddaje wynik łącznikowi. rpc – funkcja bazy, karta – ta karta (przyjmij_eksport).

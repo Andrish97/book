@@ -5993,6 +5993,7 @@ export default {
   "zadaniaAi.linkGotowy": "AI udostępniło projekt „{nazwa}” linkiem do podglądu. Link unieważnisz w Podgląd → Udostępnij.",
   "zadaniaAi.nieOtwarto": "Nie udało się otworzyć projektu dla zadania AI.",
   "zadaniaAi.nieUdalo": "Nie udało się: {co} – {opis}",
+  "zadaniaAi.rodzaj.biblioteka": "element z Biblioteki",
   "zadaniaAi.rodzaj.dymki": "dymki komiksu",
   "zadaniaAi.rodzaj.kadry": "kadry komiksu",
   "zadaniaAi.rodzaj.link": "link do podglądu",

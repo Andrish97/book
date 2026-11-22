@@ -126,6 +126,8 @@ Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekt
 | `generuj_obraz` | obraz z opisu kluczem Gemini użytkownika, do ramki (`element`) albo na stronę (`gdzie`); `jakosc`, `proporcja`, `popraw`; robi otwarta aplikacja, kosztuje (miesięczny limit) |
 | `rysuj_kadry` | obrazy do kadrów strony komiksu (`strona`, opcjonalnie `kadry`, `jakosc`); robi otwarta aplikacja w edytorze |
 | `ustaw_dymki` | dymki z tabeli scenariusza na stronach komiksu (`kolumna` – inna wersja językowa); robi otwarta aplikacja |
+| `biblioteka` | katalog Biblioteki (bez projektu): bez parametrów – kategorie; `szukaj` – elementy pasujące do słów; `kategoria` – elementy kategorii |
+| `wstaw_z_biblioteki` | element Biblioteki (`kategoria`, `element`) na stronę `gdzie`, opcjonalnie `x`, `y` – środek w mm strony; robi otwarta aplikacja, wynik: id nowego elementu, położenie i rozmiar |
 | `cofnij_zmiany_ai` | cofa ostatnią serię zmian AI (zapisy w odstępach do 15 minut): strony usunięte wracają, dodane znikają; `sprawdz: true` – tylko informacja, co zostanie cofnięte (od–do, liczba zapisów, liczba późniejszych zmian); cofać tylko na prośbę użytkownika |
 | `czcionki` | czcionki do użycia w projekcie (pole fontFamily): wbudowane, pogrupowane, z informacją o pogrubieniu i kursywie, oraz wgrane do projektu |
 | `zmien_tabele` | tabela danych: komórki, kolumny, wiersze (także `[pomiń]`), listy dozwolonych wartości; nowa tabela |
@@ -224,7 +226,7 @@ Adres: `https://api.makietka.app/rest/v1/rpc/<funkcja>`, `POST`, nagłówek `api
 
 `ai_cofnij_zmiany(p_klucz, p_tylko_sprawdz)` – seria zmian AI projektu z klucza: przy `p_tylko_sprawdz` → `{"od", "do", "zapisow", "pozniej"}` albo `{"brak": true}`; bez – cofnięcie → `{"ok", "od", "do", "zapisow", "pozniej", "strony", "wersja"}`. Klucz, który czyta i zmienia.
 
-`ai_zlec_zadanie(p_klucz, p_rodzaj, p_ustawienia)` – zadanie dla otwartej aplikacji: `link`, `obraz`, `kadry`, `dymki` (klucz czyta i zmienia) → zlecenie jak z `ai_zlec_eksport`; stan: `ai_stan_eksportu`, wynik w polu `wynik` (`link`: `{"adres", "haslo", "wazny_do"}`; pozostałe: `{"opis"}`).
+`ai_zlec_zadanie(p_klucz, p_rodzaj, p_ustawienia)` – zadanie dla otwartej aplikacji: `link`, `obraz`, `kadry`, `dymki`, `biblioteka` (klucz czyta i zmienia) → zlecenie jak z `ai_zlec_eksport`; stan: `ai_stan_eksportu`, wynik w polu `wynik` (`link`: `{"adres", "haslo", "wazny_do"}`; pozostałe: `{"opis"}`).
 
 ### `ai_projekt` – odczyt
 

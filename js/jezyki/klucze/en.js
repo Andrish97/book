@@ -5993,6 +5993,7 @@ export default {
   "zadaniaAi.linkGotowy": "The AI shared “{nazwa}” with a preview link. You can revoke it in Preview → Share.",
   "zadaniaAi.nieOtwarto": "Couldn't open the project for the AI task.",
   "zadaniaAi.nieUdalo": "Couldn't do it: {co} – {opis}",
+  "zadaniaAi.rodzaj.biblioteka": "element from the Library",
   "zadaniaAi.rodzaj.dymki": "comic speech bubbles",
   "zadaniaAi.rodzaj.kadry": "comic panels",
   "zadaniaAi.rodzaj.link": "preview link",
