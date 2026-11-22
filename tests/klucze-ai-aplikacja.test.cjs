@@ -35,7 +35,7 @@ async function lacznik(t, baza, klucz) {
 test('ustawienia konta → Dostęp dla AI: klucz z pełnym dostępem; AI tworzy projekt (lista na żywo) i usuwa otwarty projekt', async (t) => {
   const { strona, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Pierwszy');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await zapisano(strona);
   const idPierwszego = await strona.evaluate(() => window.seriodruk.stan.projekt.id);
   for (let i = 0; i < 60 && !baza.projekty.some((p) => p.id === idPierwszego); i += 1) await strona.waitForTimeout(250);

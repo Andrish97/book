@@ -23,7 +23,8 @@ import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
 import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
 import { obsluzAkcje, podlaczSkladanke } from './skladanka-narzedzia.js'; // narzędzia składanki (#233)
 import { obsluzAkcjeKomiksu, podlaczKomiks } from './komiks-narzedzia.js'; // narzędzia komiksu (#364)
-import { oknoGenerowania, menuAi, akcjaAi } from './generuj-obraz.js'; // obraz z AI (#372), menu AI (#377)
+import { oknoGenerowania, menuAi, akcjaAi } from './generuj-obraz.js';
+import { menuPrzy } from './menu-przycisku.js'; // obraz z AI (#372), menu AI (#377)
 import { oknoKomiksu } from './komiks-okno.js'; // okno „Komiks” krok po kroku (#377)
 import { oknoTekstuAi, oknoKolumnyAi } from './tekst-ai.js'; // tekst z AI (#373)
 dane.wypelnijKolumneAi = oknoKolumnyAi; // ✦ przy kolumnie w oknie Dane (#373)
@@ -543,6 +544,7 @@ export const akcje = {
   // Komiks (#364): dymek, kadry, podział kadru, scenariusz, dymki ze scenariusza.
   'generuj-obraz': () => oknoGenerowania(),
   'ai-menu': () => menuAi(),
+  'ksztalty-menu': () => menuKsztaltow(),
   'ai-obraz': () => akcjaAi('ai-obraz'),
   'ai-popraw-obraz': () => akcjaAi('ai-popraw-obraz'),
   'ai-tekst': () => akcjaAi('ai-tekst'),
@@ -990,7 +992,39 @@ document.addEventListener('zestaw-marki-wybrany', (e) => {
 // ---------- Telefon: ⋯ paska wstawiania (#139, #142) ----------
 // Narzędzia, które nie mieszczą się w pasku na małym ekranie (wielokąt, rysowanie, pióro, komentarz, „Kopiuj
 // wygląd”), są w menu pod ⋯. Gdy któreś działa, ⋯ pokazuje jego ikonę i jest wciśnięty – stuknięcie kończy narzędzie.
-const NARZEDZIA_W_MENU = ['rysuj', 'pioro', 'komentarz'];
+const NARZEDZIA_W_MENU = ['komentarz'];
+// [Kształty ▾] (uwaga F1): prostokąt, elipsa, wielokąt, linia, rysowanie odręczne i pióro pod jednym przyciskiem. Gdy
+// rysowanie albo pióro działa, przycisk pokazuje jego ikonę i jest wciśnięty – kliknięcie kończy narzędzie.
+const RYSOWANIE = ['rysuj', 'pioro'];
+const aktywneRysowanie = () => RYSOWANIE.find((a) => $(`.pasek-narzedzi [data-akcja="${a}"]`)?.getAttribute('aria-pressed') === 'true') || null;
+function menuKsztaltow() {
+  const akt = aktywneRysowanie();
+  if (akt) { akcje[akt](); return; }
+  const poz = (akcja, ikonaN, klucz, skrot) => ({ ikona: ikonaN, tekst: t(klucz), opis: skrot, wartosc: akcja, wykonaj: () => akcje[akcja]() });
+  menuPrzy($('[data-akcja="ksztalty-menu"]'), [
+    poz('dodaj-prostokat', 'prostokat', 'pasekNarzedzi.prostokat', 'R'),
+    poz('dodaj-elipse', 'elipsa', 'pasekNarzedzi.elipsa', 'E'),
+    poz('dodaj-wielokat', 'wielokat', 'menuNarzedzi.wielokatAlboGwiazda', 'P'),
+    poz('dodaj-linie', 'linia', 'pasekNarzedzi.linia', 'L'),
+    '-',
+    poz('rysuj', 'rysuj', 'menuNarzedzi.rysowanieOdreczne', 'B'),
+    poz('pioro', 'pioro', 'pasekNarzedzi.pioro', 'N'),
+  ]);
+}
+function odswiezKsztalty() {
+  const b = $('[data-akcja="ksztalty-menu"]');
+  if (!b) return;
+  const akt = aktywneRysowanie();
+  const nazwa = akt || 'ksztalty';
+  if (b.dataset.ikona !== nazwa) {
+    b.dataset.ikona = nazwa;
+    b.querySelector(':scope > svg.ikona')?.remove();
+    b.insertAdjacentHTML('afterbegin', ikona(nazwa));
+  }
+  if (b.getAttribute('aria-pressed') !== String(Boolean(akt))) b.setAttribute('aria-pressed', String(Boolean(akt)));
+  const tytul = akt ? t('pasekNarzedzi.zakonczRysowanie') : t('pasekNarzedzi.ksztaltyOpis');
+  if (b.title !== tytul) b.title = tytul;
+}
 function aktywneZMenu() {
   if (document.body.classList.contains('malarz-aktywny')) return 'malarz';
   return NARZEDZIA_W_MENU.find((a) => $(`.pasek-narzedzi [data-akcja="${a}"]`)?.getAttribute('aria-pressed') === 'true') || null;
@@ -1040,8 +1074,7 @@ function otworzWyborWielokata() {
       edytor.dodajWielokat(Number(b.dataset.boki), Boolean(b.dataset.gwiazda));
     });
   }
-  const naPasku = $('.pasek-narzedzi [data-akcja="dodaj-wielokat"]');
-  const kotwica = naPasku?.offsetParent ? naPasku : $('#przycisk-narzedzia-wiecej');
+  const kotwica = ['.pasek-narzedzi [data-akcja="dodaj-wielokat"]', '[data-akcja="ksztalty-menu"]', '#przycisk-narzedzia-wiecej'].map((x) => $(x)).find((x) => x?.offsetParent);
   if (!kotwica) { edytor.dodajWielokat(); return; }
   const r = kotwica.getBoundingClientRect();
   menu.style.top = `${Math.round(r.bottom + 6)}px`;
@@ -1052,7 +1085,7 @@ function otworzWyborWielokata() {
   const w = menu.offsetWidth;
   menu.style.left = `${Math.round(Math.max(8, Math.min(window.innerWidth - 8 - w, r.left + r.width / 2 - w / 2)))}px`;
 }
-new MutationObserver(odswiezWiecejNarzedzi).observe($('#pasek-narzedzi'), { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
+new MutationObserver(() => { odswiezWiecejNarzedzi(); odswiezKsztalty(); }).observe($('#pasek-narzedzi'), { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
 
 $('#seria-programy-ok').addEventListener('click', async (e) => {
   e.preventDefault();

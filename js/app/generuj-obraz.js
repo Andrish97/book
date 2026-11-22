@@ -165,21 +165,27 @@ export async function akcjaAi(akcja) {
 export async function menuAi() {
   const b = document.querySelector('[data-akcja="ai-menu"]');
   const { oknoTekstuAi } = await import('./tekst-ai.js');
+  const { maKluczGemini } = await import('./sejf-ai.js');
   const komiks = document.body.classList.contains('w-komiksie');
   const k = komiks ? await import('./komiks-narzedzia.js') : null;
   const zObrazem = Boolean(ramka()?.zasob);
+  // Bez klucza Gemini obrazy i teksty z okien są wyszarzone; na górze – co zrobić (uwaga F3). Asystent działa z każdym kluczem.
+  const gemini = await maKluczGemini();
+  const bez = gemini ? {} : { wylaczone: true, powod: t('aiMenu.brakKluczaOpis') };
   const klik = (akcja) => document.querySelector(`[data-akcja="${akcja}"]`)?.click();
+  const ustawienia = async () => (await import('./dostep-ai.js')).otworzDostepAi();
   menuPrzy(b, [
-    { ikona: 'obraz', tekst: t('aiMenu.obraz'), opis: t('aiMenu.obrazOpis'), wartosc: 'obraz', wykonaj: () => oknoGenerowania() },
-    ...(zObrazem ? [{ ikona: 'pioro', tekst: t('aiMenu.poprawObraz'), opis: t('aiMenu.poprawObrazOpis'), wartosc: 'popraw-obraz', wykonaj: () => oknoGenerowania({ tryb: 'popraw' }) }] : []),
-    { ikona: 'tekst', tekst: t('aiMenu.tekst'), opis: t('aiMenu.tekstOpis'), wartosc: 'tekst', wykonaj: () => oknoTekstuAi() },
-    { ikona: 'dane', tekst: t('aiMenu.kolumna'), opis: t('aiMenu.kolumnaOpis'), wartosc: 'kolumna', wykonaj: () => { klik('dane'); powiadom(t('aiMenu.kolumnaPodpowiedz')); } },
+    ...(gemini ? [] : [{ ikona: 'klucz', tekst: t('aiMenu.brakKlucza'), opis: t('aiMenu.brakKluczaOpis'), wartosc: 'brak-klucza', uwaga: true, wykonaj: ustawienia }, '-']),
+    { ikona: 'obraz-ai', tekst: t('aiMenu.obraz'), opis: t('aiMenu.obrazOpis'), wartosc: 'obraz', wykonaj: () => oknoGenerowania(), ...bez },
+    ...(zObrazem ? [{ ikona: 'popraw-ai', tekst: t('aiMenu.poprawObraz'), opis: t('aiMenu.poprawObrazOpis'), wartosc: 'popraw-obraz', wykonaj: () => oknoGenerowania({ tryb: 'popraw' }), ...bez }] : []),
+    { ikona: 'tekst-ai', tekst: t('aiMenu.tekst'), opis: t('aiMenu.tekstOpis'), wartosc: 'tekst', wykonaj: () => oknoTekstuAi(), ...bez },
+    { ikona: 'dane', tekst: t('aiMenu.kolumna'), opis: t('aiMenu.kolumnaOpis'), wartosc: 'kolumna', wykonaj: () => { klik('dane'); powiadom(t('aiMenu.kolumnaPodpowiedz')); }, ...bez },
     ...(komiks ? ['-',
-      { ikona: 'komiks', tekst: t('pasekNarzedzi.komiksScenariuszAi'), opis: t('aiMenu.scenariuszOpis'), wartosc: 'scenariusz', wykonaj: () => k.oknoScenariuszaAi() },
-      { ikona: 'uzytkownik', tekst: t('aiMenu.wzorce'), opis: t('aiMenu.wzorceOpis'), wartosc: 'wzorce', wykonaj: () => k.obsluzAkcjeKomiksu('komiks-postacie') },
-      { ikona: 'kadry', tekst: t('pasekNarzedzi.komiksRysuj'), opis: t('aiMenu.rysujOpis'), wartosc: 'rysuj', wykonaj: () => k.oknoRysujKadry() }] : []),
+      { ikona: 'komiks', tekst: t('pasekNarzedzi.komiksScenariuszAi'), opis: t('aiMenu.scenariuszOpis'), wartosc: 'scenariusz', wykonaj: () => k.oknoScenariuszaAi(), ...bez },
+      { ikona: 'uzytkownik', tekst: t('aiMenu.wzorce'), opis: t('aiMenu.wzorceOpis'), wartosc: 'wzorce', wykonaj: () => k.obsluzAkcjeKomiksu('komiks-postacie'), ...bez },
+      { ikona: 'kadry', tekst: t('pasekNarzedzi.komiksRysuj'), opis: t('aiMenu.rysujOpis'), wartosc: 'rysuj', wykonaj: () => k.oknoRysujKadry(), ...bez }] : []),
     '-',
-    { ikona: 'komentarz', tekst: t('aiMenu.asystent'), opis: t('aiMenu.asystentOpis'), wartosc: 'asystent', wykonaj: () => klik('czat-ai') },
-    { ikona: 'klucz', tekst: t('aiMenu.ustawienia'), opis: t('aiMenu.ustawieniaOpis'), wartosc: 'ustawienia', wykonaj: async () => (await import('./dostep-ai.js')).otworzDostepAi() },
+    { ikona: 'asystent', tekst: t('aiMenu.asystent'), opis: t('aiMenu.asystentOpis'), wartosc: 'asystent', wykonaj: () => akcjaAi('ai-asystent') },
+    { ikona: 'klucz', tekst: t('aiMenu.ustawienia'), opis: t('aiMenu.ustawieniaOpis'), wartosc: 'ustawienia', wykonaj: ustawienia },
   ]);
 }

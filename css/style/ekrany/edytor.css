@@ -1449,14 +1449,11 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .dialog-makieta:fullscreen { background: var(--powierzchnia); }
 .dialog-makieta.makieta-pelna .makieta-model, .dialog-makieta.makieta-pelna [data-akcja="makieta-pobierz"] { display: none; }
 #dlg-ai-obraz .tryb-ai { border: 0; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 12px; } #dlg-ai-obraz .tryb-ai legend { padding: 0; margin-bottom: 4px; }
-.koszty-ai h3 { margin: 0 0 4px; font-size: 1rem; } .tabela-kosztow-ai { border-collapse: collapse; margin: 6px 0; width: 100%; max-width: 520px; font-size: .9rem; } .tabela-kosztow-ai td { padding: 4px 8px 4px 0; border-bottom: 1px solid var(--linia, #ddd); } .tabela-kosztow-ai td:last-child { text-align: right; white-space: nowrap; }
+.koszty-ai h3 { margin: 0 0 4px; font-size: 1rem; } .tabela-kosztow-ai { border-collapse: collapse; margin: 6px 0; width: 100%; max-width: 520px; font-size: .9rem; } .tabela-kosztow-ai td { padding: 4px 8px 4px 0; border-bottom: 1px solid var(--linia); } .tabela-kosztow-ai td:last-child { text-align: right; white-space: nowrap; }
 /* Uwaga E1: z rozwiniętymi dymkami i AI pasek bywa szerszy niż obszar – nie wychodzi poza ekran, przewija się w bok. */
 .pasek-narzedzi { max-width: calc(100% - 16px); overflow-x: auto; scrollbar-width: none; }
 .pasek-narzedzi::-webkit-scrollbar { display: none; }
 .pasek-narzedzi > button { flex: none; }
-/* Grupy rozwiniętych przycisków (dymki, AI) – odstęp od sąsiednich narzędzi. */
-.pasek-narzedzi [data-akcja="komiks-dymek-mowa"], .pasek-narzedzi [data-akcja="ai-obraz"] { margin-left: 8px; }
-.pasek-narzedzi [data-akcja="komiks-mostek"], .pasek-narzedzi [data-akcja="ai-asystent"] { margin-right: 8px; }
 .pasek-narzedzi.dalej-prawo { -webkit-mask-image: linear-gradient(to right, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to right, var(--czern) calc(100% - 28px), transparent); }
 .pasek-narzedzi.dalej-lewo { -webkit-mask-image: linear-gradient(to left, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to left, var(--czern) calc(100% - 28px), transparent); }
 .pasek-narzedzi.dalej-lewo.dalej-prawo { -webkit-mask-image: linear-gradient(to right, transparent, var(--czern) 28px, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, var(--czern) 28px, var(--czern) calc(100% - 28px), transparent); }
@@ -1470,3 +1467,5 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .styl-rysunkow input { position: absolute; opacity: 0; pointer-events: none; }
 .styl-rysunkow:has(input:checked) { border-color: var(--akcent); background: var(--akcent-tlo); }
 .styl-rysunkow:has(input:focus-visible) { outline: 2px solid var(--akcent); outline-offset: 2px; }
+.menu-przycisku button:disabled { opacity: .45; cursor: not-allowed; } .menu-przycisku .uwaga-menu { background: var(--akcent-tlo); color: var(--akcent); }
+.uwaga-ai { margin: 0 0 8px; padding: 8px 10px; border-radius: var(--r-s); background: var(--akcent-tlo); color: var(--akcent); font-size: 13px; }

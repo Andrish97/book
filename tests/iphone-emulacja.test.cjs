@@ -71,7 +71,7 @@ for (const urzadzenie of ['iPhone 14', 'iPhone SE']) {
     const p = await palce(kontekst, strona);
 
     // 1. Element przeciągany palcem.
-    await strona.click('[data-akcja="dodaj-prostokat"]');
+    await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
     await strona.evaluate(() => window.seriodruk.edytor.canvas.discardActiveObject());
     const a = await srodekElementu(strona);
     await p.ciagnij([a.x, a.y], [a.x + 40, a.y + 30]);
@@ -259,7 +259,7 @@ for (const urzadzenie of ['iPhone 14', 'iPad Mini']) {
   test(`${urzadzenie} (emulacja): makieta 3D rysuje się, obraca palcem, drugie otwarcie i utrata kontekstu`, async (t) => {
     const { strona, kontekst, bledy } = await otworz(t, { urzadzenie });
     await nowyProjekt(strona, 'Makieta');
-    await strona.click('[data-akcja="dodaj-prostokat"]');
+    await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
     await strona.click('[data-akcja="podglad"]');
     await strona.waitForSelector('.podglad-strona[data-id]');
     const rysuje = () => strona.evaluate(() => {

@@ -26,7 +26,7 @@ async function projektAnny(t) {
   await nowyProjekt(strona, 'Wspólny kalendarz');
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.set({ text: 'Tytuł Anny', top: 40 }); e.aktywny.setCoords(); e.zatwierdz(); e.odznacz(); });
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.evaluate(() => window.seriodruk.edytor.odznacz());
   await zapisano(strona);
   return srodowisko;

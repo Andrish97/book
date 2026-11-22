@@ -10,7 +10,7 @@ const zapisano = (strona) => strona.waitForFunction(() => document.querySelector
 test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i łączy się z równoległą zmianą, odczyt i odebranie', async (t) => {
   const { strona, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Projekt dla AI');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.set({ text: 'Tytuł', top: 120 }); e.aktywny.setCoords(); e.zatwierdz(); e.odznacz(); });
   await zapisano(strona);
@@ -109,7 +109,7 @@ test('dostęp dla AI: klucz pokazany raz, zmiana z klucza dochodzi do edytora i 
 test('zmiana od AI przy otwartym podglądzie: podgląd przerysowuje się sam, a udostępniony link idzie za nią', async (t) => {
   const { strona, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Podgląd i AI');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony.length === 2);
   await zapisano(strona);

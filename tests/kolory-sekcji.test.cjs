@@ -135,7 +135,7 @@ test('okno „Kolory projektu”: tryb druku dla sekcji, „Jak w projekcie”, 
 test('Właściwości: farba specjalna z obecnego koloru jednym krokiem – kolor dodatkowy w projekcie i płyta w PDF', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Farba');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'rect');
   await strona.click('#wlasciwosci button.zwijak:has-text("Wykończenie druku")');
   await strona.selectOption('#wlasciwosci label:has-text("Farba specjalna") select', '+');

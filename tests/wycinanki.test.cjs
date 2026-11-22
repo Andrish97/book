@@ -10,7 +10,7 @@ test('wycinanki: cięcie, big i klej – panel, kontrola, SVG dla plotera, płyt
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Pudełko na prezent');
   // Prostokąt → „Cięcie” w panelu.
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   // Część „Kolory do druku” bywa zwinięta – przycisk jest w panelu.
   await strona.waitForSelector('#wlasciwosci [data-wykonczenie="ciecie"]', { state: 'attached' });
   await strona.evaluate(() => document.querySelector('#wlasciwosci [data-wykonczenie="ciecie"]').click());

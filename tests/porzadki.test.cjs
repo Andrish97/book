@@ -16,7 +16,7 @@ test('cofanie: jedna historia całego projektu – strony, przejścia między st
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
   await krok();
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await krok();
   await strona.evaluate(() => window.seriodruk.zapiszTeraz());
   assert.deepEqual(await elementy(), [1, 1]);
@@ -64,7 +64,7 @@ test('cofanie: jedna historia całego projektu – strony, przejścia między st
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.tabele.length === 0);
 
   // Nowa zmiana po cofnięciu odcina kroki „do przodu”.
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await krok();
   assert.ok(await strona.isDisabled('[data-akcja="ponow"]'));
   assert.deepEqual(bledy, []);
@@ -118,7 +118,7 @@ test('panel: sekcje da się zwijać i zostają zwinięte; rozkładówka jako jed
   assert.ok(await pole.isVisible());
   await strona.click('#wlasciwosci .zwijak:has-text("Seria")');
   assert.ok(await pole.isHidden());
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.keyboard.press('Escape');
   assert.ok(await strona.locator('#wlasciwosci label:has-text("Seria") select').isHidden());
   await strona.click('#wlasciwosci .zwijak:has-text("Seria")');
@@ -258,7 +258,7 @@ test('rysowanie odręczne: przeciągnięcie tworzy linię, która jest zwykłym 
   await nowyProjekt(strona, 'Rysunek');
   const przycisk = '[data-akcja="rysuj"]';
   assert.equal(await strona.getAttribute(przycisk, 'aria-pressed'), 'false');
-  await strona.click(przycisk);
+  await strona.evaluate((sel) => document.querySelector(`.pasek-narzedzi ${sel}`).click(), przycisk);
   assert.equal(await strona.getAttribute(przycisk, 'aria-pressed'), 'true');
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.rysuje), true);
 

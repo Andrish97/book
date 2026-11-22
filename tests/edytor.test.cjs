@@ -7,9 +7,9 @@ test('projekt: elementy, strony, ostrzeżenia, cofanie i zapis po odświeżeniu'
   await nowyProjekt(strona, 'Kalendarz');
 
   await strona.click('[data-akcja="dodaj-tekst"]');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
-  await strona.click('[data-akcja="dodaj-elipse"]');
-  await strona.click('[data-akcja="dodaj-linie"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-linie"]').click());
   await strona.setInputFiles('#plik-obraz', { name: 'a.png', mimeType: 'image/png', buffer: PNG_2X2 });
   await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().length === 5);
 
@@ -122,7 +122,7 @@ test('telefon: praca w pionie – panele z dołu, schowany wielokąt; trzymany p
   // Pasek wstawiania na telefonie (#139, #142): podstawowe narzędzia w pasku, reszta (wielokąt, rysowanie, pióro,
   // komentarz, „Kopiuj wygląd”) pod jego przyciskiem ⋯.
   await strona.tap('.zakladki-mobilne button.aktywny').catch(() => {});
-  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja || b.id)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'ai-menu', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja || b.id)), ['dodaj-tekst', 'ksztalty-menu', 'dodaj-obraz', 'ai-menu', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
 
   // Telefon trzymany poziomo (i każde zbyt niskie okno): plansza; przycisk wraca do projektów, gdzie poziom jest w porządku.
   const plansza = () => strona.evaluate(() => getComputedStyle(document.querySelector('#blokada-ekranu')).display);
@@ -268,7 +268,7 @@ test('telefon: arkusz właściwości – od góry, bez krzyżyka, uchwyt, elemen
 test('dotyk: jeden palec przesuwa element, dwa palce powiększają widok bez ruszania elementu', async (t) => {
   const { strona, kontekst } = await otworz(t, { widok: { width: 1024, height: 700 } });
   await nowyProjekt(strona, 'Dotyk');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.evaluate(() => window.seriodruk.edytor.canvas.discardActiveObject());
   const cdp = await kontekst.newCDPSession(strona);
   const p = await strona.evaluate(() => {
@@ -316,7 +316,7 @@ test('telefon: tabela, pióro i edycja punktów są dostępne i działają dotyk
   });
   assert.ok(pasek.lewo >= 0 && pasek.prawo <= pasek.okno, `pasek na ekranie: ${pasek.lewo}–${pasek.prawo} z ${pasek.okno}`);
   assert.deepEqual([pasek.pioro, pasek.tabela, pasek.wielokat], [false, true, false]);
-  assert.ok(await strona.evaluate(() => Boolean(document.querySelector('#menu-narzedzi [data-akcja="pioro"]'))), 'pióro w menu ⋯ paska');
+  assert.ok(await strona.isVisible('[data-akcja="ksztalty-menu"]'), 'pióro w menu [Kształty ▾]');
 
   // Tabela: wstawienie z okna i dwa stuknięcia w komórkę – pisanie w niej.
   await strona.tap('[data-akcja="dodaj-tabele"]');
@@ -334,8 +334,8 @@ test('telefon: tabela, pióro i edycja punktów są dostępne i działają dotyk
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.exitEditing(); e.canvas.discardActiveObject(); e.canvas.requestRenderAll(); });
 
   // Pióro: stuknięcia stawiają punkty, „Zakończ kształt” w panelu właściwości kończy kształt.
-  await strona.tap('#przycisk-narzedzia-wiecej');
-  await strona.tap('#menu-narzedzi [data-akcja="pioro"]');
+  await strona.tap('[data-akcja="ksztalty-menu"]');
+  await strona.tap('.menu-przycisku [data-wartosc="pioro"]');
   for (const [px, py] of [[30, 120], [90, 120], [60, 170]]) { await strona.touchscreen.tap(...(await naEkranie(px, py))); await strona.waitForTimeout(450); }
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.punktyPiora), 3);
   await strona.tap('.zakladki-mobilne [data-panel="inspektor"]');

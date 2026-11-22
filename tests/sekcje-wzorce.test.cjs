@@ -47,7 +47,7 @@ test('wzorce: kilka na stronę, pod i nad treścią, numer strony, cofanie', asy
   // Strona 2: tekst ze wzorca na dole stosu, ramka na wierzchu, własny element pomiędzy.
   await strona.click('#lista-stron li.strona >> nth=1 >> .miniatura');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1 && window.seriodruk.edytor?.canvas.getObjects().length === 2);
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   let obiekty = await naPlotnie(strona);
   assert.deepEqual(obiekty.map((o) => [o.typ, o.zWzorca]), [['textbox', true], ['ellipse', false], ['rect', true]]);
   assert.equal(obiekty[0].tekst, 'Strona 2 z 3');

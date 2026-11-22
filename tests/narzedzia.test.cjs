@@ -46,7 +46,7 @@ test('wyrównywanie do siebie, równe odstępy i wyrównanie pojedynczego elemen
 test('blokada: zablokowanego elementu nie da się przesunąć ani wyrównać, po wczytaniu nadal jest zablokowany', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Blokada');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.click('#wlasciwosci label:has-text("Zablokuj położenie") input');
   const przed = (await ramki(strona))[0];
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.canvas.setActiveObject(e.canvas.getObjects()[0]); e.przesun(10, 10); e.wyrownaj('lewo'); });

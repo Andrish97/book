@@ -25,13 +25,13 @@ test('panel: warstwy w zakładce obok właściwości (#171), nagłówek element 
   await strona.click('#zakladka-wlasciwosci');
 
   // Zaznaczony element.
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny);
   assert.deepEqual(await naglowek(strona), { rodzaj: 'element', nad: 'Zaznaczony element', tytul: 'Prostokąt', opis: '' });
   assert.equal(await strona.textContent('#licznik-warstw-zakladka'), '1', 'licznik warstw na zakładce');
 
   // Narzędzie „Rysuj”: ustawienia pędzla, inny kolor nagłówka; warstwy dalej widać.
-  await strona.click('[data-akcja="rysuj"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="rysuj"]').click());
   assert.deepEqual(await naglowek(strona), { rodzaj: 'narzedzie', nad: 'Ustawienia narzędzia', tytul: 'Rysowanie', opis: 'Tak będą wyglądać następne linie.' });
   await strona.waitForTimeout(400); // przejście koloru tła
   const tla = await strona.evaluate(() => getComputedStyle(document.querySelector('#naglowek-wlasciwosci')).backgroundColor);

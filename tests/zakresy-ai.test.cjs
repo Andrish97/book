@@ -10,7 +10,7 @@ const zapisano = (strona) => strona.waitForFunction(() => document.querySelector
 test('zakresy klucza AI: bez obrazów i stron – baza odmawia z wyjaśnieniem; po zmianie w okienku edycji – pozwala', async (t) => {
   const { strona, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Zakresy');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await zapisano(strona);
 
   await oknoAi(strona);

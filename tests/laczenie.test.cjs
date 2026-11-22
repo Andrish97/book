@@ -22,7 +22,7 @@ async function projektNaKoncie(strona, nazwa) {
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForTimeout(3400);
   await zapisano(strona);
   return strona.evaluate(() => ({ id: window.seriodruk.stan.projekt.id, strony: window.seriodruk.stan.projekt.strony.map((s) => s.id) }));
@@ -165,7 +165,7 @@ test('dwa urządzenia zmieniają różne strony i tabelę danych: obie zmiany zo
   });
 
   // Tutaj zmiana na drugiej stronie.
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await polaczono(strona);
   await zapisano(strona);
   assert.equal(await strona.locator('dialog[open]').count(), 0, 'żadnego pytania');
@@ -194,7 +194,7 @@ test('dwa urządzenia zmieniają różne strony i tabelę danych: obie zmiany zo
   // Strona z telefonu otwiera się z jego elementem; kolejna zmiana zapisuje się już zwyczajnie.
   await strona.click('#lista-stron li.strona >> nth=0 >> .miniatura');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.canvas.getObjects().some((o) => o.id === 'z-telefonu'));
-  await strona.click('[data-akcja="dodaj-linie"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-linie"]').click());
   await strona.waitForTimeout(3400);
   await zapisano(strona);
   assert.equal(baza.projekty[0].wersja, wersja + 3);
@@ -217,10 +217,10 @@ test('ta sama strona zmieniona na dwóch urządzeniach: różne elementy łącz�
     strony: { [p.strony[0]]: zElementem('Okładka z telefonu', 'tel-1'), [p.strony[1]]: zElementem('Druga z telefonu', 'tel-2') },
     dane: { tabele: [{ id: 't-tel', nazwa: 'Z telefonu', kolumny: ['imie'], wiersze: [['Ola']] }] },
   });
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await strona.click('#lista-stron li.strona >> nth=0 >> .miniatura');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 0 && window.seriodruk.edytor?.canvas.getObjects().length > 0);
-  await strona.click('[data-akcja="dodaj-linie"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-linie"]').click());
   await polaczono(strona);
   await zapisano(strona);
   assert.equal(await strona.locator('#dlg-konflikt[open]').count(), 0, 'różne elementy tej samej strony nie wymagają pytania');
@@ -285,7 +285,7 @@ test('strona ze zdjęciem dodanym na innym urządzeniu: po połączeniu obraz je
   await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((o) => o.type === 'image'));
   await strona.click('[data-akcja="strona-dodaj"]');
   await strona.waitForFunction(() => window.seriodruk.stan.indeks === 1);
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForTimeout(3400);
   await zapisano(strona);
   const p = await strona.evaluate(() => ({ id: window.seriodruk.stan.projekt.id, strony: window.seriodruk.stan.projekt.strony.map((s) => s.id) }));
@@ -298,7 +298,7 @@ test('strona ze zdjęciem dodanym na innym urządzeniu: po połączeniu obraz je
     dane: { zasoby: { ...baza.projekty[0].dane.zasoby, 'img-tel': { nazwa: 'z-telefonu.png', typ: 'image/png', rozmiar: PNG_2X2.length, sciezka } } },
   });
 
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await polaczono(strona);
   await zapisano(strona);
   assert.equal(await strona.locator('dialog[open]').count(), 0, 'żadnego pytania');

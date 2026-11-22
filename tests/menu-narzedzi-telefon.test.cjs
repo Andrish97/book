@@ -11,38 +11,42 @@ test('telefon: menu ⋯ paska wstawiania – narzędzia, stan na przycisku, kopi
   await strona.setViewportSize({ width: 360, height: 740 });
   await nowyProjekt(strona, 'Menu narzędzi');
   const widoczne = () => strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => b.offsetParent).map((b) => b.dataset.akcja || b.id));
-  assert.deepEqual(await widoczne(), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'ai-menu', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
+  assert.deepEqual(await widoczne(), ['dodaj-tekst', 'ksztalty-menu', 'dodaj-obraz', 'ai-menu', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
   const miesci = await strona.evaluate(() => { const n = document.querySelector('.pasek-narzedzi'); return n.scrollWidth <= n.clientWidth && n.getBoundingClientRect().right <= window.innerWidth; });
   assert.ok(miesci, 'pasek mieści się na 360 px');
-  // Na telefonie narzędzia AI w menu [AI ▾] (uwaga E1 – na komputerze rozwinięte na pasku).
+  // [AI ▾] (F2, F3): bez klucza Gemini na górze informacja, pozycje generowania wyszarzone; asystent i ustawienia działają.
   await strona.tap('[data-akcja="ai-menu"]');
   await strona.waitForSelector('.menu-przycisku [data-wartosc="ustawienia"]');
-  assert.deepEqual(await strona.$$eval('.menu-przycisku [data-wartosc]', (l) => l.map((b) => b.dataset.wartosc)), ['obraz', 'tekst', 'kolumna', 'asystent', 'ustawienia']);
+  assert.deepEqual(await strona.$$eval('.menu-przycisku [data-wartosc]', (l) => l.map((b) => [b.dataset.wartosc, b.disabled])),
+    [['brak-klucza', false], ['obraz', true], ['tekst', true], ['kolumna', true], ['asystent', false], ['ustawienia', false]]);
+  assert.match(await strona.textContent('.menu-przycisku [data-wartosc="brak-klucza"]'), /Nie masz klucza do generowania obrazów/);
   await strona.keyboard.press('Escape');
 
-  // Menu: wszystkie schowane narzędzia, w granicach ekranu; „Kopiuj wygląd” wymaga zaznaczenia.
+  // ⋯: komentarz i „Kopiuj wygląd” (wymaga zaznaczenia).
   await strona.tap('#przycisk-narzedzia-wiecej');
   const menu = await strona.evaluate(() => {
     const m = document.querySelector('#menu-narzedzi');
     const r = m.getBoundingClientRect();
     return { widoczne: !m.hidden, w_ekranie: r.left >= 0 && r.right <= window.innerWidth, pozycje: [...m.querySelectorAll('button')].map((b) => [b.dataset.akcja, b.disabled]) };
   });
-  assert.deepEqual(menu, { widoczne: true, w_ekranie: true, pozycje: [['dodaj-wielokat', false], ['rysuj', false], ['pioro', false], ['komentarz', false], ['malarz', true]] });
+  assert.deepEqual(menu, { widoczne: true, w_ekranie: true, pozycje: [['komentarz', false], ['malarz', true]] });
+  await strona.tap('#przycisk-narzedzia-wiecej');
 
-  // Rysowanie z menu: ⋯ pokazuje ikonę rysowania i je kończy.
-  await strona.tap('#menu-narzedzi [data-akcja="rysuj"]');
-  assert.equal(await strona.isVisible('#menu-narzedzi'), false, 'menu zamyka się po wyborze');
+  // [Kształty ▾] (F1): rysowanie – przycisk pokazuje ikonę rysowania i je kończy.
+  await strona.tap('[data-akcja="ksztalty-menu"]');
+  assert.deepEqual(await strona.$$eval('.menu-przycisku [data-wartosc]', (l) => l.map((b) => b.dataset.wartosc)), ['dodaj-prostokat', 'dodaj-elipse', 'dodaj-wielokat', 'dodaj-linie', 'rysuj', 'pioro']);
+  await strona.tap('.menu-przycisku [data-wartosc="rysuj"]');
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.rysuje), true);
-  const przycisk = () => strona.evaluate(() => { const b = document.querySelector('#przycisk-narzedzia-wiecej'); return [b.dataset.ikona, b.getAttribute('aria-pressed'), b.getAttribute('aria-label')]; });
-  assert.deepEqual(await przycisk(), ['rysuj', 'true', 'Zakończ: Rysowanie odręczne']);
-  await strona.tap('#przycisk-narzedzia-wiecej');
+  const ksztalty = () => strona.evaluate(() => { const b = document.querySelector('[data-akcja="ksztalty-menu"]'); return [b.dataset.ikona, b.getAttribute('aria-pressed')]; });
+  assert.deepEqual(await ksztalty(), ['rysuj', 'true']);
+  await strona.tap('[data-akcja="ksztalty-menu"]');
   assert.equal(await strona.evaluate(() => window.seriodruk.edytor.rysuje), false);
-  assert.deepEqual(await przycisk(), ['wiecej', 'false', 'Więcej narzędzi']);
-  assert.equal(await strona.isVisible('#menu-narzedzi'), false, 'zakończenie nie otwiera menu');
+  assert.deepEqual(await ksztalty(), ['ksztalty', 'false']);
+  assert.equal(await strona.locator('.menu-przycisku').count(), 0, 'zakończenie nie otwiera menu');
 
-  // Wielokąt z menu: wybór kształtu (#151), gwiazda 5 dodaje gwiazdę.
-  await strona.tap('#przycisk-narzedzia-wiecej');
-  await strona.tap('#menu-narzedzi [data-akcja="dodaj-wielokat"]');
+  // Wielokąt z [Kształty ▾]: wybór kształtu (#151), gwiazda 5 dodaje gwiazdę.
+  await strona.tap('[data-akcja="ksztalty-menu"]');
+  await strona.tap('.menu-przycisku [data-wartosc="dodaj-wielokat"]');
   await strona.waitForSelector('#menu-wielokata:not([hidden])');
   const wybor = await strona.evaluate(() => { const r = document.querySelector('#menu-wielokata').getBoundingClientRect(); return { n: document.querySelectorAll('#menu-wielokata [data-boki]').length, w_ekranie: r.left >= 0 && r.right <= innerWidth }; });
   assert.deepEqual(wybor, { n: 10, w_ekranie: true });
@@ -50,6 +54,7 @@ test('telefon: menu ⋯ paska wstawiania – narzędzia, stan na przycisku, kopi
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny);
   assert.deepEqual(await strona.evaluate(() => { const a = window.seriodruk.edytor.aktywny; return [a.type, a.boki, Boolean(a.gwiazda), a.points.length]; }), ['polygon', 5, true, 10]);
   assert.equal(await strona.isVisible('#menu-wielokata'), false);
+  const przycisk = () => strona.evaluate(() => { const b = document.querySelector('#przycisk-narzedzia-wiecej'); return [b.dataset.ikona, b.getAttribute('aria-pressed'), b.getAttribute('aria-label')]; });
   // Kopiuj wygląd zaznaczonego elementu – na ⋯ widać malarza, stuknięcie go kończy.
   await strona.tap('#przycisk-narzedzia-wiecej');
   assert.equal(await strona.isDisabled('#menu-narzedzi [data-akcja="malarz"]'), false);
@@ -61,10 +66,11 @@ test('telefon: menu ⋯ paska wstawiania – narzędzia, stan na przycisku, kopi
   assert.deepEqual(bledy, []);
 });
 
-test('komputer: pasek wstawiania bez ⋯ – wszystkie narzędzia widoczne', async (t) => {
+test('komputer: pasek wstawiania bez ⋯ – kształty, AI i dymki zwinięte w przyciski z menu (F1, F2)', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Menu narzędzi');
   const widoczne = await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => b.offsetParent).map((b) => b.dataset.akcja || b.id));
-  assert.deepEqual(widoczne, ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-wielokat', 'dodaj-linie', 'dodaj-obraz', 'ai-obraz', 'ai-popraw-obraz', 'ai-tekst', 'ai-asystent', 'rysuj', 'pioro', 'dodaj-tabele', 'biblioteka', 'komentarz']);
+  assert.deepEqual(widoczne, ['dodaj-tekst', 'ksztalty-menu', 'dodaj-obraz', 'ai-menu', 'dodaj-tabele', 'biblioteka', 'komentarz']);
+  assert.equal(await strona.isVisible('[data-akcja="ai-asystent"]'), true, 'Asystent AI na górnym pasku');
   assert.deepEqual(bledy, []);
 });

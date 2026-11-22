@@ -4,7 +4,7 @@ import { zamknijMenu } from '../ui.js';
 import { ikona } from '../ikony.js';
 
 let otwarte = null;
-// pozycje: [{ ikona, tekst, opis?, wykonaj }] albo '-' (separator).
+// pozycje: [{ ikona, tekst, opis?, wykonaj, wylaczone?, powod?, uwaga? }] albo '-' (separator).
 export function menuPrzy(przycisk, pozycje) {
   const bylo = otwarte?.przycisk === przycisk && !otwarte.menu.hidden;
   zamknijMenu();
@@ -23,6 +23,8 @@ export function menuPrzy(przycisk, pozycje) {
     b.querySelector('.tytul-pozycji').textContent = p.tekst;
     if (p.opis) b.querySelector('small').textContent = p.opis;
     if (p.wartosc) b.dataset.wartosc = p.wartosc;
+    if (p.wylaczone) { b.disabled = true; b.setAttribute('aria-disabled', 'true'); if (p.powod) b.title = p.powod; }
+    if (p.uwaga) b.classList.add('uwaga-menu');
     b.addEventListener('click', () => { zamknijMenu(); menu.remove(); otwarte = null; p.wykonaj(); });
     menu.append(b);
   }
@@ -34,12 +36,12 @@ export function menuPrzy(przycisk, pozycje) {
   if (m.bottom > window.innerHeight - 8) menu.style.top = `${Math.max(8, Math.round(r.top - 6 - m.height))}px`;
   przycisk.setAttribute('aria-expanded', 'true');
   otwarte = { przycisk, menu };
-  menu.querySelector('button')?.focus();
+  menu.querySelector('button:not(:disabled)')?.focus();
   menu.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { e.preventDefault(); zamknijMenu(); menu.remove(); otwarte = null; przycisk.focus(); }
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
-      const lista = [...menu.querySelectorAll('button')];
+      const lista = [...menu.querySelectorAll('button:not(:disabled)')];
       const i = lista.indexOf(document.activeElement);
       lista[(i + (e.key === 'ArrowDown' ? 1 : -1) + lista.length) % lista.length]?.focus();
     }

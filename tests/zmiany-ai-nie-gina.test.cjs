@@ -10,7 +10,7 @@ const zapisano = (strona) => strona.waitForFunction(() => document.querySelector
 test('zmiany od AI przy zamkniętym projekcie zostają po otwarciu – także przy spieszącym się zegarze urządzenia', async (t) => {
   const { strona, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Praca AI');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await zapisano(strona);
   await oknoAi(strona);
   await strona.click('[data-akcja="dostep-ai-utworz"]');
@@ -45,7 +45,7 @@ test('zmiany od AI przy zamkniętym projekcie zostają po otwarciu – także pr
   await strona.click('.karta-projektu .otworz-projekt');
   await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getObjects().some((x) => x.type === 'rect' && !x.zWzorca));
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'rect' && !x.zWzorca)?.fill === '#c1121f', null, { timeout: 15000 });
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await zapisano(strona);
   const naKoncie = baza.ai('ai_projekt', { p_klucz: klucz }).projekt.strony[0].obiekty;
   assert.equal(naKoncie.find((o) => o.type.toLowerCase() === 'rect').fill, '#c1121f', 'zmiana od AI została na koncie');

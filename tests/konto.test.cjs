@@ -252,7 +252,7 @@ test('konflikt zapisu bez punktu odniesienia: pytanie o cały projekt, zmiana z 
   await strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
   // Każdy zapis podnosi wersję: po kolejnej zmianie jest wyższa.
   const pierwsza = baza.projekty[0].wersja;
-  await strona.click('[data-akcja="dodaj-linie"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-linie"]').click());
   await new Promise((ok) => setTimeout(ok, 4500));
   assert.ok(baza.projekty[0].wersja > pierwsza, 'każdy zapis podnosi wersję');
 
@@ -264,7 +264,7 @@ test('konflikt zapisu bez punktu odniesienia: pytanie o cały projekt, zmiana z 
   baza.projekty[0].nazwa = 'Wspólny (z telefonu)';
   baza.projekty[0].dane = { ...baza.projekty[0].dane, nazwa: 'Wspólny (z telefonu)' };
 
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForSelector('#dlg-potwierdz[open]', { timeout: 15000 });
   assert.match(await strona.textContent('#potwierdz-tytul'), /zmieniono w innym miejscu/);
   assert.equal(baza.projekty[0].wersja, 7, 'nic nie zostało nadpisane przed decyzją');
@@ -280,7 +280,7 @@ test('konflikt zapisu bez punktu odniesienia: pytanie o cały projekt, zmiana z 
   assert.ok(baza.projekty.some((x) => x.nazwa === 'Wspólny (z tego urządzenia)'), 'wersja z urządzenia zachowana jako kopia na koncie');
 
   // Kolejna zmiana zapisuje się już normalnie.
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
   assert.equal(baza.projekty.find((x) => x.nazwa === 'Wspólny (z telefonu)').wersja, 8);
   assert.deepEqual(bledy, []);
@@ -345,7 +345,7 @@ test('zapis na koncie: wysyłane są tylko zmienione strony; drugie urządzenie 
 
   // Zmiana tylko na trzeciej stronie: wysłana jedna strona z trzech.
   const przed = baza.zapisy.length;
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForTimeout(3800);
   await zapisano();
   const nowe = baza.zapisy.slice(przed);

@@ -27,7 +27,7 @@ test('zmiana trafia na konto po około sekundzie; wysyłki nie biegną obok sieb
   const { strona, baza, bledy } = await otworz(t, { tryb: 'atrapa' });
   await zaloguj(strona);
   await nowyProjekt(strona, 'Na żywo 1');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await zapisano(strona);
 
   // Jedna zmiana: na koncie po około sekundzie (dawniej ponad trzy).
@@ -84,7 +84,7 @@ test('zmiana na jednym urządzeniu pojawia się na drugim bez przeładowania; li
 
   // A zakłada projekt – na B pojawia się na liście sam.
   await nowyProjekt(a.strona, 'Wspólny');
-  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await a.strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await przesunProstokat(a.strona, 20);
   await zapisano(a.strona);
   await otworzZListy(b.strona, 'Wspólny');
@@ -136,7 +136,7 @@ test('bez kanału powiadomień zmiana dochodzi przy powrocie do karty', async (t
   const a = await otworz(t, { tryb: 'atrapa', bezKanalu: true });
   await zaloguj(a.strona);
   await nowyProjekt(a.strona, 'Bez kanału');
-  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await a.strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await przesunProstokat(a.strona, 20);
   await zapisano(a.strona);
   const b = await drugieUrzadzenie(a);
@@ -261,7 +261,7 @@ test('dwa urządzenia na tej samej stronie: przesunięcie na jednym i pisanie na
   const a = await otworz(t, { tryb: 'atrapa' });
   await zaloguj(a.strona);
   await nowyProjekt(a.strona, 'Jedna strona');
-  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await a.strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await przesunProstokat(a.strona, 20);
   await a.strona.click('[data-akcja="dodaj-tekst"]');
   await a.strona.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.set({ text: 'Tytuł', top: 150 }); e.aktywny.setCoords(); e.zatwierdz(); e.odznacz(); });
@@ -315,9 +315,9 @@ test('„Cofnij” po dołączeniu zmian z innego urządzenia cofa tylko własne
   const a = await otworz(t, { tryb: 'atrapa' });
   await zaloguj(a.strona);
   await nowyProjekt(a.strona, 'Cofanie');
-  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await a.strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await przesunProstokat(a.strona, 20);
-  await a.strona.click('[data-akcja="dodaj-elipse"]');
+  await a.strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await zapisano(a.strona);
   const b = await drugieUrzadzenie(a);
   await zaloguj(b.strona);
@@ -378,11 +378,11 @@ test('otwarty podgląd odświeża się sam po zmianie z innego urządzenia: tylk
 
   // A: trzy strony, na pierwszej i trzeciej prostokąt.
   await nowyProjekt(a.strona, 'Podgląd na żywo');
-  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await a.strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await a.strona.click('[data-akcja="strona-dodaj"]');
   await a.strona.click('[data-akcja="strona-dodaj"]');
   await a.strona.waitForFunction(() => window.seriodruk.stan.indeks === 2);
-  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await a.strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await przesunProstokat(a.strona, 20);
   await zapisano(a.strona);
 

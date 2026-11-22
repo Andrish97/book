@@ -37,7 +37,7 @@ test('pióro: punkty i łuki, cofanie punktu, kształt otwarty i zamknięty, wyp
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Pióro');
   const przycisk = '[data-akcja="pioro"]';
-  await strona.click(przycisk);
+  await strona.evaluate((sel) => document.querySelector(`.pasek-narzedzi ${sel}`).click(), przycisk);
   assert.equal(await strona.getAttribute(przycisk, 'aria-pressed'), 'true');
   assert.equal(await strona.textContent('#tytul-wlasciwosci'), 'Pióro');
   const ile = () => strona.evaluate(() => window.seriodruk.edytor.punktyPiora);

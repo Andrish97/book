@@ -107,4 +107,10 @@ async function otworzSejfRaz({ pytaj = true } = {}) {
   if (przeniesiono) zapisz(PAMIEC, u);
   return s;
 }
+// Czy użytkownik ma klucz Google Gemini (obrazy i teksty AI w oknach) – bez pytania o hasło (uwaga F3).
+export async function maKluczGemini() {
+  const s = sejfKonta();
+  if (!s) return false;
+  try { return await s.ma('gemini'); } catch { return false; }
+}
 export const maKluczeDoPrzeniesienia = () => Object.values(ustawienia().dostawcy || {}).some((d) => d?.klucz);

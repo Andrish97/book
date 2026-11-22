@@ -80,8 +80,8 @@ test('model: odcienie koloru dodatkowego, rejestr, tryby i najbliższy dozwolony
 test('PDF: kolor dodatkowy jako płyta Separation; uszlachetnienia na płytach z nadrukiem; osobne pliki i pominięcie', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Druk');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.selectable !== false && o.type !== 'line').length >= 3);
   await strona.evaluate(async () => {
@@ -138,7 +138,7 @@ test('PDF: kolor dodatkowy jako płyta Separation; uszlachetnienia na płytach z
 test('PDF: „Skala szarości” – kolory samą czernią, obrazy w odcieniach szarości; „cz/b + 1 kolor” – czerń i jedna płyta', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Szary');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.type === 'rect'));
   await strona.evaluate(async () => {
     const { stan, edytor } = window.seriodruk;

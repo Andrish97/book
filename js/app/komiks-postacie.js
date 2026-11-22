@@ -115,6 +115,7 @@ function formularz(dlg, rodzaj, karta) {
   // Obraz wzorcowy z opisu (C2, #374): Gemini rysuje postać (miejsce) z pól karty w stylu projektu.
   const zAi = el('button', { type: 'button', class: 'przycisk', 'data-akcja-karty': 'obraz-ai', tekst: t('komiks.narysujZOpisu') });
   zAi.title = t('komiks.narysujZOpisuKoszt', { zl: opisKosztu(szacujObraz({ ...JAKOSCI_OBRAZU.szkic, znakiOpisu: 500 }), biezacyJezyk()) });
+  import('./sejf-ai.js').then(({ maKluczGemini }) => maKluczGemini()).then((ma) => { if (!ma) { zAi.disabled = true; zAi.title = t('aiMenu.brakKluczaOpis'); } }); // F3
   zAi.addEventListener('click', async () => {
     for (const [pole] of POLA[rodzaj]) k[pole] = f.elements[pole].value;
     if (!k[RODZAJE_KART[rodzaj].pola[0]]) { f.elements[RODZAJE_KART[rodzaj].pola[0]].reportValidity(); return; }

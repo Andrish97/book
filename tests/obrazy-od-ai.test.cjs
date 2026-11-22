@@ -140,7 +140,7 @@ test('okno „Obrazy projektu” przyjmuje archiwum ZIP (bez plików systemowych
 test('duży obraz od AI (ok. 3 MB) w kawałkach: aplikacja pobiera kawałki, skleja, sprawdza skrót, pokazuje i przenosi na konto', async (t) => {
   const { strona, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Duży obraz od AI');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.wersja_chmury, null, { timeout: 15000 });
   await zapisano(strona);
   const idProjektu = await strona.evaluate(() => window.seriodruk.stan.projekt.id);

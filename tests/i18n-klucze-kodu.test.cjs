@@ -35,7 +35,7 @@ test('klucze w kodzie: etykieta panelu z t() zmienia język bez przeładowania',
   await strona.reload();
   await strona.waitForFunction(() => document.documentElement.lang === 'en');
   await nowyProjekt(strona, 'Keys');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   const etykieta = (tekst) => strona.waitForSelector(`#wlasciwosci label:has-text("${tekst}")`, { timeout: 5000 });
   await etykieta('Lock position and size');
   const przelacz = async (j) => {

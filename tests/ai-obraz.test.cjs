@@ -28,9 +28,13 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   });
   await nowyProjekt(strona, 'Z obrazem AI');
   await strona.evaluate(() => localStorage.removeItem('makietka-ai-wydatki'));
-  // Bez klucza: czytelny komunikat w oknie (sejf otwarty, ale pusty).
+  // Bez klucza (F3): w menu [AI ▾] informacja i wyszarzone pozycje generowania; okno też mówi, czego brak.
   await strona.evaluate(async () => { const { sejfKonta } = await import('./js/app/sejf-ai.js'); await sejfKonta().zaloz('haslo-do-kluczy-1'); });
-  await zMenu(strona, 'ai-menu', 'obraz');
+  await strona.click('[data-akcja="ai-menu"]');
+  await strona.waitForSelector('.menu-przycisku [data-wartosc="brak-klucza"]');
+  assert.equal(await strona.isDisabled('.menu-przycisku [data-wartosc="obraz"]'), true);
+  await strona.keyboard.press('Escape');
+  await strona.evaluate(async () => (await import('./js/app/generuj-obraz.js')).oknoGenerowania());
   const dlg = strona.locator('#dlg-ai-obraz');
   await dlg.waitFor();
   assert.match(await dlg.locator('.koszt-ai').textContent(), /Koszt: ok\. 0,14 zł\. W tym miesiącu: 0,00 zł\./);
@@ -43,7 +47,7 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   await strona.evaluate(async () => { const { sejfKonta } = await import('./js/app/sejf-ai.js'); await sejfKonta().ustaw('gemini', 'klucz-testowy'); });
 
   // Ramka: prostokąt 60 × 80 mm → proporcje 3:4, obraz w środku prostokąta.
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.evaluate(() => { const o = window.seriodruk.edytor.aktywny; o.set({ width: 60, height: 80, scaleX: 1, scaleY: 1 }); o.setCoords(); });
   await zMenu(strona, 'ai-menu', 'obraz');
   await dlg.waitFor();
@@ -83,8 +87,7 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   await strona.waitForFunction(() => !document.querySelector('#dlg-ai-obraz').open);
   assert.equal(await strona.evaluate(() => Object.values(window.seriodruk.stan.projekt.zasoby).filter((x) => x.ai).length), 2, 'dwie wersje w obrazach projektu');
   // Przyciski AI na pasku (E1): „Popraw obraz” otwiera okno od razu w trybie poprawki; menu [AI ▾] – na telefonie.
-  assert.equal(await strona.isVisible('[data-akcja="ai-menu"]'), false, 'na komputerze bez menu ▾');
-  await strona.click('.pasek-narzedzi [data-akcja="ai-popraw-obraz"]');
+  await zMenu(strona, 'ai-menu', 'popraw-obraz');
   // Popraw obecny obraz (B3): opis to sama zmiana, obraz z ramki idzie do modelu jako wzorzec.
   await dlg.waitFor();
   assert.equal(await dlg.locator('input[name="tryb"][value="popraw"]').isChecked(), true, 'z menu – od razu tryb poprawki');

@@ -83,6 +83,8 @@ export function utworzSejf(chmura, konto) {
       return jawne;
     },
     klucz: (nazwa) => jawne?.[nazwa] || '',
+    // Czy zapisano klucz tego dostawcy – bez hasła (nazwy wpisów są jawne, szyfrowana jest tylko treść; uwaga F3).
+    async ma(nazwa) { if (jawne) return Boolean(jawne[nazwa]); const w = await wczytaj(); return Boolean(w?.klucze?.[nazwa]); },
     async ustaw(nazwa, wartosc) {
       if (!klucz) throw new Error('Sejf kluczy jest zamknięty.');
       const w = await wczytaj();

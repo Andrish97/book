@@ -65,7 +65,7 @@ test('okno „Zmień format projektu”: podgląd przed i po, zastosowanie, cofn
   const { otworz, nowyProjekt } = require('./pomoc.cjs');
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Format');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.strony[0].obiekty.length === 1);
   await strona.waitForTimeout(600);
   const przed = await strona.evaluate(() => ({ ...window.seriodruk.stan.projekt.strony[0].obiekty[0] }));

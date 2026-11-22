@@ -108,6 +108,24 @@ pytać o zgodę [na koszt] – raczej informujemy użytkownika w sekcji dodawani
 | E4 | Bez pytania o zgodę na koszt (czat i narzędzia): koszt orientacyjny w ustawieniach AI przy kluczach; limit miesięczny zostaje jako bezpiecznik | ✅ #384 |
 | E5 | Dodatkowe: „popraw obraz” w czacie, miniatury stylów rysunków, cała strona komiksu jednym obrazem, obrazy w łączniku MCP (B6) | ✅ #387 (bez B6 – obrazy w łączniku MCP zostają na później) |
 
+## Część F – uwagi właściciela z 22.11 (przedpołudnie), po części E
+
+Słowa właściciela: „Pozostałe narzędzia, takie jak kształty i inne, właśnie trzeba zwinąć. A narzędzia generowania schować
+gdzieś też albo zwinąć – chodzi o pojedyncze narzędzia, które generują obrazy albo tekst. Nie wiem, czy z AI nie umieścić
+w innym miejscu samego przycisku, który rozmawia bezpośrednio z AI i prosi np. o układ. Jeśli dla danego klucza
+niedostępne np. obrazy, to przyciski mają być wyszarzone; użytkownika trzeba poinformować, że nie ma klucza do
+generowania obrazów. Typy dymków mogą być w jednym przycisku. Zorganizuj lepiej przestrzeń. Dodaj więcej stylów, jeżeli
+da się. Możesz dodać rekwizyty postaci, żeby one były też dodawane.”
+
+| # | Co | Stan |
+|---|---|---|
+| F1 | Kształty (prostokąt, elipsa, wielokąt, linia) w jednym przycisku [Kształt ▾]; rysowanie (ołówek, pióro) w [Rysuj ▾] | ✅ #388 |
+| F2 | Generowanie (obraz, poprawka, tekst, kolumna; w komiksie scenariusz i kadry) z powrotem w [AI ▾]; „Asystent AI” (rozmowa) jako osobny, widoczny przycisk na górnym pasku | ✅ #388 |
+| F3 | Bez klucza Google Gemini pozycje generowania wyszarzone, z informacją „nie masz klucza do generowania obrazów/tekstów” i drogą do ustawień | ✅ #388 |
+| F4 | Typy dymków w jednym przycisku [Dymek ▾] (rodzaje, efekt, mostek) – także na komputerze | ✅ #388 |
+| F5 | Więcej stylów rysunków (z miniaturami) | do zrobienia |
+| F6 | Rekwizyty: karty rekwizytów (nazwa, opis, obraz wzorcowy, czyj), wybierane w kadrze w scenariuszu, w opisie i wzorcach dla AI | do zrobienia |
+
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 
 | Pozycja | Szacunek |

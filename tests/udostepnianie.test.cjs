@@ -86,7 +86,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
   const przedAktualizacja = baza.wyslania.length;
   const stanPrzed = await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano);
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForFunction((z) => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano !== z, stanPrzed, { timeout: 25000 });
   // Zmieniła się jedna strona z dwóch: narysowany i wysłany jest tylko jej obraz, do tego opis – od razu na
   // początku (nowy układ, #331) i na końcu (nowe skróty stron).

@@ -300,7 +300,7 @@ test('usunięty obraz nie wraca po łączeniu z drugim urządzeniem', async (t) 
   const b = await drugieUrzadzenie(a);
   await zaloguj(b.strona, a.baza);
   await nowyProjekt(a.strona, 'Wspólne obrazy');
-  await a.strona.click('[data-akcja="dodaj-prostokat"]');
+  await a.strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await wgraj(a.strona, await png(a.strona, '#123', 'zbedny.png'));
   await a.strona.waitForFunction(() => Object.keys(window.seriodruk.stan.projekt.zasoby).length === 1);
   await zapisano(a.strona);

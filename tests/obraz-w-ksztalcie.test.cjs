@@ -24,7 +24,7 @@ test('kształt jako ramka obrazu: wstawienie, rysowanie przycięte do kształtu,
   await nowyProjekt(strona, 'Ramki');
   await strona.setInputFiles('#pliki-zasoby', { name: 'flaga.png', mimeType: 'image/png', buffer: await dwukolorowy(strona) });
   await strona.waitForFunction(() => Object.keys(window.seriodruk.stan.projekt.zasoby).length === 1);
-  await strona.click('[data-akcja="dodaj-elipse"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'ellipse');
 
   // Panel elipsy: „Wstaw obraz do kształtu”; obraz z projektu.

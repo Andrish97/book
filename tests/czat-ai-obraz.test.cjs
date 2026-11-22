@@ -21,7 +21,7 @@ function sse(w) {
 test('czat AI: generuj_obraz bez pytania, koszt w rozmowie, obraz w ramce; limit miesięczny chroni', async (t) => {
   const { strona, kontekst, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Czat z obrazem');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   const [idRamki, idStrony] = await strona.evaluate(() => [window.seriodruk.edytor.aktywny.id, window.seriodruk.stan.projekt.strony[0].id]);
   await zapisano(strona);
   const claude = [];

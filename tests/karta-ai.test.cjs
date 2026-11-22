@@ -50,7 +50,7 @@ async function doszlo(strona, warunek, arg) {
 async function przygotuj(t) {
   const { strona, baza, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Karta i AI');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.click('[data-akcja="dodaj-tekst"]');
   await strona.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.set({ text: 'Tytuł', top: 120 }); e.aktywny.setCoords(); e.zatwierdz(); e.odznacz(); });
   await zapisano(strona);

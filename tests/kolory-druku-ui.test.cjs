@@ -19,7 +19,7 @@ test('interfejs: okno „Kolory do druku”, kolor dodatkowy w wyborze koloru (d
   await strona.waitForFunction(() => window.seriodruk.stan.projekt.kolory_dodatkowe?.[0]?.nazwa === 'PANTONE 032 C');
   await strona.click('#dlg-kolory-druku .przyciski-dialogu [data-akcja="kolory-druku-zamknij"]');
   // Prostokąt w kolorze dodatkowym, odcień 40% – kod koloru dokładnie z rejestru.
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'rect');
   await strona.click('#wlasciwosci .kolor-przycisk >> nth=0');
   await strona.waitForSelector('.kolor-okienko .kolor-paleta.spoty button');

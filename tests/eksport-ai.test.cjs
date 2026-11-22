@@ -20,7 +20,7 @@ async function poczekaj(fn, ms = 40000) {
 
 async function projektZKluczem(strona, baza) {
   await nowyProjekt(strona, 'Kalendarz dla AI');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.click('[data-akcja="dodaj-tekst"]');
   await zapisano(strona);
   const pid = await strona.evaluate(() => window.seriodruk.stan.projekt.id);

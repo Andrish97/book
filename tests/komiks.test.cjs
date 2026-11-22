@@ -24,10 +24,9 @@ test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenarius
     p.sekcje[0].typ = 'komiks';
     await window.seriodruk.przeladuj();
   });
-  // E1: na komputerze dymki i AI komiksu rozwinięte na pasku (na telefonie – menu [Dymek ▾]); reszta w oknie „Komiks”.
-  assert.deepEqual(await strona.$$eval('#pasek-narzedzi .tylko-komiks', (l) => l.filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja)),
-    ['komiks-kadry', 'komiks-dymek-mowa', 'komiks-dymek-mysl', 'komiks-dymek-krzyk', 'komiks-dymek-szept', 'komiks-dymek-narracja', 'komiks-efekt', 'komiks-mostek', 'komiks-okno', 'komiks-scenariusz-ai', 'komiks-rysuj']);
-  for (const a of ['komiks-kadry', 'komiks-dymek-mowa', 'komiks-okno']) {
+  // F4: w pasku trzy przyciski komiksu – rodzaje dymków w [Dymek ▾], AI w [AI ▾], reszta w oknie „Komiks”.
+  assert.deepEqual(await strona.$$eval('#pasek-narzedzi .tylko-komiks', (l) => l.filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja)), ['komiks-kadry', 'komiks-dymek', 'komiks-okno']);
+  for (const a of ['komiks-kadry', 'komiks-dymek', 'komiks-okno']) {
     assert.equal(await strona.locator(`[data-akcja="${a}"]`).isVisible(), true, `w sekcji komiksu widać ${a}`);
   }
 

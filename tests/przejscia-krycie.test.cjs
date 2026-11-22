@@ -8,7 +8,7 @@ const { otworz, nowyProjekt } = require('./pomoc.cjs');
 test('przejście z kryciem: panel „Krycie” przy kolorze, PDF wektorowy z maską krycia', async (t) => {
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Przejścia');
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForFunction(() => window.seriodruk.edytor.aktywny?.type === 'rect');
   // Przejście liniowe z panelu.
   await strona.evaluate(() => {

@@ -210,7 +210,8 @@ function podlaczPasekWstawiania() {
   new ResizeObserver(odswiez).observe(p);
   let zaplanowane = false; // najwyżej raz na klatkę – zmian klas w dokumencie bywa dużo
   const pozniej = () => { if (zaplanowane) return; zaplanowane = true; requestAnimationFrame(() => { zaplanowane = false; odswiez(); }); };
-  new MutationObserver(pozniej).observe(document.body, { attributes: true, attributeFilter: ['class', 'open'], subtree: true }); // wejście w komiks zmienia przyciski; otwarcie panelu obok strony
+  new MutationObserver(pozniej).observe(document.body, { attributes: true, attributeFilter: ['class'] }); // wejście w komiks zmienia przyciski
+  new MutationObserver(pozniej).observe(document.body, { attributes: true, attributeFilter: ['open'], subtree: true }); // panel obok strony
   window.addEventListener('resize', pozniej);
   odswiez();
 }

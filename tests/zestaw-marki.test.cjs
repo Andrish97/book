@@ -63,7 +63,7 @@ test('zestaw marki w aplikacji: zapis na koncie, „Marka” w wyborze koloru i 
   await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty');
   await nowyProjekt(strona, 'Marka');
   await strona.waitForFunction(() => (globalThis.makietkaMarka?.kolory || []).length === 1);
-  await strona.click('[data-akcja="dodaj-prostokat"]');
+  await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForTimeout(400);
   await strona.click('#wlasciwosci .kolor-przycisk >> nth=0');
   await strona.waitForTimeout(500);

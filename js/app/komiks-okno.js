@@ -87,4 +87,10 @@ export function oknoKomiksu() {
   edytor.canvas?.discardActiveObject();
   dlg.returnValue = '';
   dlg.showModal();
+  // Bez klucza Gemini przyciski AI wyszarzone, z informacją (uwaga F3).
+  import('./sejf-ai.js').then(({ maKluczGemini }) => maKluczGemini()).then((ma) => {
+    if (ma) return;
+    for (const b of dlg.querySelectorAll('[data-krok-akcja="scenariusz-ai"], [data-krok-akcja="rysuj"]')) { b.disabled = true; b.title = t('aiMenu.brakKluczaOpis'); }
+    f.querySelector('.ciche')?.after(el('p', { class: 'uwaga-ai', tekst: t('aiMenu.brakKluczaOpis') }));
+  });
 }

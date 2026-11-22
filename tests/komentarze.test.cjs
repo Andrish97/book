@@ -152,7 +152,7 @@ test('komentarz przy zaznaczonym elemencie i trasa #/p/<id>/k/<wątek> otwiera w
   const anna = await otworz(t, { konta: [{ ...ANNA }] });
   const { strona: a, baza } = anna;
   await nowyProjekt(a, 'Element z uwagą');
-  await a.click('[data-akcja="dodaj-prostokat"]');
+  await a.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await zapisano(a);
   const el = await a.evaluate(() => window.seriodruk.edytor.aktywny.id);
   await a.click('[data-akcja="komentarz"]');
@@ -187,7 +187,7 @@ test('komentarze: poprawka, szkic odpowiedzi przy zmianie na żywo, usunięty w�
   const anna = await otworz(t, { konta: [ANNA, BARTEK].map((k) => ({ ...k })) });
   const { strona: a, baza } = anna;
   await nowyProjekt(a, 'Brzegowe');
-  await a.click('[data-akcja="dodaj-prostokat"]');
+  await a.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await a.evaluate(() => { const e = window.seriodruk.edytor; e.aktywny.set({ left: 30, top: 40 }); e.aktywny.setCoords(); e.zatwierdz(); });
   await zapisano(a);
   const pid = baza.projekty[0].id;
