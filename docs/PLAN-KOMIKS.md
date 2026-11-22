@@ -61,6 +61,8 @@ Po A7 da się robić pełne komiksy z obrazami z dowolnego generatora.
 | C3 | **Strona ze sceny**: prompt składa Makietka (styl, układ kadrów, kto/co/emocja/plan w każdym kadrze, miejsce i światło, obrazy wzorcowe postaci i miejsca, „no text, leave space for speech bubbles”); najpierw szkic 1K, zaakceptowana w 2K albo Pro | do zrobienia |
 | C4 | **Pomysł → scenariusz** w czacie: 3–5 zdań, pomocnik dzieli na sceny i dialogi, poprawki zwykłymi słowami | do zrobienia |
 | C5 | Funkcje czatu i łącznika: `ustaw_scenariusz`, `zapisz_postac`, `zapisz_miejsce`, `generuj_wzorzec`, `generuj_strone`, `popraw_kadr`, `ustaw_dymki`, `szacuj_koszt`; kontekst czatu: lista scen, postacie (imię + znak), styl, bieżąca strona | do zrobienia |
+| C6 | **Import scenariusza z dokumentu** (TXT, DOCX, Markdown, Google Docs jako DOCX – odczyt już jest, #216): AI rozpoznaje układ dokumentu i rozpisuje go na sceny/strony, kadry, dialogi (kto, tekst, rodzaj dymka) oraz listę postaci i miejsc; podgląd do poprawienia przed zapisem; wynik w tabeli scenariusza i w kartach postaci. Osobna droga obok „od pomysłu do komiksu” | do zrobienia |
+| C7 | **Pomiar zużycia** na prostym komiksie (np. 3 strony, 2 postacie): koszt tekstu i obrazów w zł – do instrukcji i do szacunków w aplikacji | do zrobienia |
 
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 
@@ -71,5 +73,7 @@ Po A7 da się robić pełne komiksy z obrazami z dowolnego generatora.
 | Kilka stron kluczowych w Pro | ok. 10 obrazów, ok. 1,30 $ |
 | Czat i scenariusz | grosze |
 | **Razem** | **ok. 10–12 $ (ok. 40–50 zł)** |
+
+**Testy z prawdziwym kluczem**: najwyżej ok. 5 zł z budżetu właściciela (ok. 40 zł) – głównie teksty, obrazy oszczędnie (tańszy model, 1K), każde wywołanie zapisane z kosztem, po przekroczeniu limitu testy stają. **Odbiorca to laik**: jedno okno na raz, rozsądne domyślne, każdy krok w instrukcji z przykładem; na końcu przejście całego komiksu jak użytkownik.
 
 Treści, które muszą być dokładne (np. wersety), zawsze ze źródła, nie z generatora.
