@@ -2475,7 +2475,7 @@ Asystent AI (Claude, ChatGPT i inne) łączy się z Makietką przez **łącznik*
 |---|---|
 | tworzyć, kopiować i usuwać projekty (z pełnym dostępem) | zobaczyć projektów spoza klucza |
 | dodawać, zmieniać i kopiować strony; dodawać, zmieniać, wyrównywać i równo rozmieszczać elementy; zmieniać style i wzorce | zmienić Twojego konta ani hasła |
-| wypełniać tabele danych i ustawiać serie | zrobić pliku PDF bez Makietki — rysuje go Twoja przeglądarka (rozdział „25.5 Plik PDF przez AI”) |
+| wypełniać tabele danych i ustawiać serie |  |
 | wgrywać, wstawiać i wymieniać zdjęcia |  |
 | czytać komentarze, odpowiadać na nie i dodawać własne (rozdział „24.7 Komentarze”) |  |
 | zlecić plik PDF albo PNG strony i podać Ci link do pobrania (rozdział „25.5 Plik PDF przez AI”) | rysować obrazów – rysuje je tylko **Asystent AI** w Makietce (rozdział „25.6 Asystent AI w Makietce (własny klucz)”); aplikacja AI może wgrać obraz narysowany u siebie |

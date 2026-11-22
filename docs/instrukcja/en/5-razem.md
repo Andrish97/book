@@ -118,7 +118,7 @@ which you add in the AI app.
 |---|---|
 | create, copy and delete projects (with full access) | see projects outside the key |
 | add, change and copy pages; add, change, align and evenly distribute elements; change styles and masters | change your account or password |
-| fill in data tables and set up series | make a PDF file without Makietka — your browser renders it (→ 25.5) |
+| fill in data tables and set up series | |
 | upload, insert and replace photos | |
 | read comments, reply to them and add its own (→ 24.7) | |
 | request a PDF file or a PNG of a page and give you a download link (→ 25.5) | draw pictures – only the [AI assistant] in Makietka draws them (→ 25.6); an AI app can upload a picture it drew itself |

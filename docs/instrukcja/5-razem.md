@@ -118,7 +118,7 @@ który dodajesz w aplikacji AI.
 |---|---|
 | tworzyć, kopiować i usuwać projekty (z pełnym dostępem) | zobaczyć projektów spoza klucza |
 | dodawać, zmieniać i kopiować strony; dodawać, zmieniać, wyrównywać i równo rozmieszczać elementy; zmieniać style i wzorce | zmienić Twojego konta ani hasła |
-| wypełniać tabele danych i ustawiać serie | zrobić pliku PDF bez Makietki — rysuje go Twoja przeglądarka (→ 25.5) |
+| wypełniać tabele danych i ustawiać serie | |
 | wgrywać, wstawiać i wymieniać zdjęcia | |
 | czytać komentarze, odpowiadać na nie i dodawać własne (→ 24.7) | |
 | zlecić plik PDF albo PNG strony i podać Ci link do pobrania (→ 25.5) | rysować obrazów – rysuje je tylko [Asystent AI] w Makietce (→ 25.6); aplikacja AI może wgrać obraz narysowany u siebie |

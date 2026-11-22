@@ -140,6 +140,21 @@ opcje? Również scenariusz bez AI itd.?” Wcześniej: „Czy łącznik ma dost
 | G3 | „Kopiuj opisy kadrów” do darmowego AI; okno rysowania dostępne bez klucza (Rysuj wyszarzony) | ✅ #390 |
 | G4 | Scenariusz bez AI – jest (okno Scenariusz, tabela, wklejanie z arkusza); wszystko poza rysowaniem i pisaniem przez AI działa bez klucza | ✅ (bez zmian) |
 
+## Część H – łącznik AI: czego jeszcze nie potrafi i jak to dodać
+
+Słowa właściciela: „Tak, dodaj [kopiowanie projektu] i opisz, czego [łącznik] nie potrafi, żeby ewentualnie dodać.”
+Kopiowanie projektu – zrobione (#391). Eksport PDF i PNG działa także przy zamkniętej Makietce (serwer, #337).
+
+| # | Czego łącznik nie potrafi | Jak to dodać | Nakład | Ryzyko / uwagi | Polecam |
+|---|---|---|---|---|---|
+| H1 | **Rysować obrazów** (Gemini) | Zlecenie do otwartej Makietki, jak eksport PDF: łącznik składa zlecenie „obraz” (opis, ramka, jakość), karta konta z otwartym sejfem kluczy rysuje kluczem Gemini, wgrywa obraz i wstawia go; bez otwartej karty – link „otwórz Makietkę, żeby narysować”. Serwer sam nie narysuje, bo klucz zna tylko przeglądarka. | średni | koszt bez pytania – miesięczny limit i informacja w wyniku | tak, jako pierwsze |
+| H2 | **Kadry komiksu i dymki jednym poleceniem** | Ta sama kolejka co H1 (rodzaje „kadry” i „dymki”); dymki da się też ułożyć w samym łączniku, bo to obliczenia na tabeli scenariusza | średni (po H1 mały) | jak H1 | tak, po H1 |
+| H3 | **Cofać zmian** | Baza zapamiętuje stan projektu przed każdą zmianą AI (np. ostatnie 20), narzędzie „cofnij_zmiane_ai” i przycisk „Cofnij zmiany AI” w aplikacji | średni | miejsce w bazie – trzymać tylko ostatnie zmiany | tak – bezpieczeństwo |
+| H4 | **Udostępniać projektu (link do podglądu)** | Narzędzie „utworz_link” (z hasłem albo datą ważności); strony linku rysuje już serwer | mały–średni | publikacja treści – AI zawsze pyta użytkownika, a wynik pokazuje link do odebrania | tak, z potwierdzeniem |
+| H5 | **Zapraszać osób do projektu** | Wersja funkcji zaproszenia dla klucza AI (adres e-mail, rola) | mały | AI wysyła e-mail do człowieka – tylko na wyraźne polecenie, z potwierdzeniem adresu | raczej nie – zostawić człowiekowi |
+| H6 | **Wgrywać czcionek** | Lista czcionek dostępnych w Makietce w opis_formatu (AI wybiera z niej); własną czcionkę użytkownik wrzuca przez link_do_wgrywania | mały | – | tak (lista) |
+| H7 | **Wstawiać elementów z Biblioteki** | Katalog Biblioteki (kalendarze, ramki, wykresy…) przeniesiony do wspólnego kodu i narzędzie „wstaw_z_biblioteki” | duży | – | później |
+
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 
 | Pozycja | Szacunek |
