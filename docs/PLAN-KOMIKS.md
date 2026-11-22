@@ -33,12 +33,13 @@ DECYZJE, ZGŁOSZENIA, commit i push.
 
 | # | Co | Stan |
 |---|---|---|
-| C1 | **Klucz użytkownika (BYOK)** w ustawieniach (Gemini na start, Leonardo później); zapytania przez Edge Function (klucz nie wychodzi do przeglądarki innych), wynik od razu w zasobach projektu | do zrobienia |
+| C1 | **Klucz użytkownika (BYOK)**: klucze AI są już w aplikacji (sejf kluczy, #241 – zaszyfrowane, Gemini, Claude i inni); generowanie korzysta z tego samego klucza, zapytania idą z przeglądarki do dostawcy jak w czacie AI (klucz nie trafia na serwer Makietki); Leonardo dojdzie jako kolejny dostawca; wynik od razu w obrazach projektu | częściowo jest (#241) |
 | C2 | **Generuj do ramki**: zaznaczona ramka/kadr → prompt, proporcje z ramki; prompt, model, seed, siła zapisane przy obrazie; „wygeneruj ponownie” jednym kliknięciem | do zrobienia |
 | C3 | **Postacie jako referencje**: karty postaci idą do zapytania jako obrazy referencyjne (spójność bez trenowania) | do zrobienia |
 | C4 | **Styl projektu**: opis stylu w ustawieniach projektu dopisywany do każdego promptu | do zrobienia |
 | C5 | **Teksty jak w Canvie** na zaznaczonym tekście: skróć, wydłuż, zmień ton, przetłumacz (pl/uk/en) | do zrobienia |
 | C6 | **Wypełnij kolumnę tabeli** (np. „dopisz do każdego dnia krótką myśl”, „dialogi do kadrów według scenariusza”) – seria od razu rozkłada wynik na strony | do zrobienia |
+| C7 | **Obrazy z czatu**: czat AI w Makietce z modelem obrazkowym (Gemini) dostaje narzędzie „generuj obraz” – obraz trafia do obrazów projektu i od razu na stronę albo do zaznaczonej ramki (proporcje z ramki), z zapisanym promptem/modelem/ziarnem; to samo narzędzie w łączniku MCP (dla Claude) wykonuje otwarta aplikacja kluczem z sejfu (bez przechowywania klucza na serwerze) | do zrobienia (razem z C2) |
 
 Uwagi: do tekstów wystarczy tani model (Gemini Flash, Claude Haiku). Treści, które muszą być dokładne
 (np. wersety), brać ze źródła, nie z generatora – AI do quizów i opisów, zawsze ze sprawdzeniem.
