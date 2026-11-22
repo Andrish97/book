@@ -192,3 +192,15 @@ przetestowane jako konektor niestandardowy w Claude. Możemy to zrobić?”
 | I10 | Zgłoszenie w portalu | tylko właściciel (płatny plan, jego konto claude.ai) |
 
 Ściąga do formularza: docs/ZGLOSZENIE-KATALOG-CLAUDE.md.
+
+## Część J – pasek postępu (22.11, wieczór)
+
+Słowa właściciela: „Wkurza mnie pasek postępu na telefonie. On zasłania inne elementy i jest taki niefajny.” oraz
+„Jeżeli chodzi o pasek, to wszędzie mnie wkurza, bo zakrywa elementy. Lepiej by było nawet przesunąć lekko top bar
+i dać to zawsze nad top barem. Ale żeby inne elementy, takie jak okienka i tak dalej, nie były zasłaniane przez to.”
+
+| # | Co | Stan |
+|---|---|---|
+| J1 | Pasek postępu (js/postep.js) zawsze nad górnym paskiem – na każdym ekranie i urządzeniu; górny pasek i cała aplikacja przesuwają się w dół o jego wysokość, gdy jest widoczny (nic nie jest zasłaniane) | do zrobienia |
+| J2 | Okna (dialogi), menu, panele boczne i powiadomienia też nie są zasłaniane – liczą się z wysokością paska | do zrobienia |
+| J3 | Wygląd: cienki, spokojny pasek (opis + licznik + cienka linia postępu), bez dużego pudełka | do zrobienia |
