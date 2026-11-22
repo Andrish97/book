@@ -1,46 +1,71 @@
-# Plan – tryb „Komiks” i generowanie AI (zgłoszenie z 21.11.2026)
+# Plan – AI w Makietce i tryb „Komiks”
 
-Komiks to **tryb projektu** jak składanka czy makieta 3D: przy zakładaniu projektu wybiera się „Komiks”
-i edytor dostaje własne narzędzia (pasek komiksu, panele). **Generowanie obrazów i tekstów działa w każdym
-projekcie**, gdy w ustawieniach jest klucz API (BYOK) – nie tylko w komiksie.
+Źródła: uwagi z 21–22.11.2026 i dokument „Makietka: komiksy z AI — projekt funkcji” (22.11.2026).
 
-Kolejność: od tego, co daje najwięcej przy najmniejszej pracy. Każdy punkt: test, instrukcja (pl/en/uk),
-DECYZJE, ZGŁOSZENIA, commit i push.
+## Podział (najważniejsze)
 
-## Etap A – podstawy (najpierw)
+**AI w każdym projekcie – niezależnie od komiksu.** Gdy jest klucz API, w każdym projekcie (książka, kalendarz,
+planer…) działają: czat AI, generowanie obrazu (także „do ramki”), poprawki tekstu (skróć, wydłuż, zmień ton,
+przetłumacz), wypełnianie kolumny tabeli. To osobna część aplikacji – komiks z niej korzysta, ale jej nie wymaga.
 
-| # | Co | Stan |
-|---|---|---|
-| A1 | **Dymek** jako jeden element: mowa, myśl (chmurka), krzyk (zęby), szept (przerywany), narracja (prostokąt); ogonek do punktu (uchwyt), dymek rośnie z tekstem; skrót w łączniku `{type:"dymek", tekst, left, top, ogonek:{x,y}, rodzaj}` | ✅ #360 |
-| A2 | **Mostek** – dwa dymki jednej postaci połączone łącznikiem | do zrobienia |
-| A3 | **Obrys tekstu** (efekty dźwiękowe „BUM!”): gruby biały/czarny obrys liter pod wypełnieniem, w edytorze, obrazach i PDF; razem z tekstem po łuku | do zrobienia |
-| A4 | **Czcionki komiksowe** (OFL): Bangers, Comic Neue, Permanent Marker; „lettering wersalikami” (wielkość liter: wielkie – już jest) jako domyślne w dymkach komiksu | do zrobienia |
-| A5 | **Dialogi z tabeli**: kolumny strona, kadr, postać, tekst, rodzaj dymka; scenariusz jako CSV → dymki na stronach w kadrach (potem tylko przesunąć) | do zrobienia |
+**Tryb „Komiks” – rzeczy typowe dla komiksu.** Typ projektu/sekcji „Komiks” z własnym paskiem narzędzi (jak składanka):
+postacie i miejsca (karty z obrazem wzorcowym), gotowe prompty do obrazów składane same ze sceny, stylu i postaci,
+scenariusz (tabela scen i dialogów) z wklejaniem tekstów w dymki i wyborem rodzaju dymka, kadry.
 
-## Etap B – tryb „Komiks”
+**Wszystko ma być oczywiste i proste**: mało pól, rozsądne domyślne, każdy krok opisany w instrukcji (pl, en, uk)
+z przykładem. Każdy punkt: test, instrukcja, DECYZJE, ZGŁOSZENIA, commit i push.
 
-| # | Co | Stan |
-|---|---|---|
-| B1 | Typ projektu / sekcji „Komiks” z własnym paskiem narzędzi (dymki, kadry, efekty) – jak składanka | do zrobienia |
-| B2 | **Siatka kadrów z rynną**: podział strony przeciągnięciem, stały odstęp; kadry na spad, ukośne cięcia, postać wychodząca poza kadr (obraz nad krawędzią) | do zrobienia |
-| B3 | **Webtoon**: jedna długa pionowa strona, eksport cięty na PNG 800 px (bez druku) | do zrobienia |
-| B4 | **Rastry i efekty** w bibliotece wzorów: raster kropkowy (screentone), linie ruchu, linie skupienia | do zrobienia |
-| B5 | **Wersje językowe**: kolumny tekst_pl / tekst_uk / tekst_en – przełączasz język wydania i eksportujesz | do zrobienia |
-| B6 | **Biblioteka postaci i teł** w projekcie (wycięte postacie, lokacje) + strona „karta postaci” | do zrobienia |
-| B7 | **Kontrola przed drukiem komiksu**: tekst w dymku poniżej ~7 pt, dymek przecina rynnę albo wchodzi w spad, ogonek nie wskazuje kadru, pusta ramka kadru | do zrobienia |
+Zasady z dokumentu: użytkownik nie pisze promptów; postacie i miejsca zapisane raz działają w każdej scenie; każdy
+wydatek widoczny i potwierdzany; tekst dymków zawsze w Makietce, nigdy w obrazie; cały komiks da się zrobić bez AI.
 
-## Etap C – generowanie AI (w każdym projekcie, z kluczem API)
+## Część A – komiks bez AI (najpierw)
 
 | # | Co | Stan |
 |---|---|---|
-| C1 | **Klucz użytkownika (BYOK)**: klucze AI są już w aplikacji (sejf kluczy, #241 – zaszyfrowane, Gemini, Claude i inni); generowanie korzysta z tego samego klucza, zapytania idą z przeglądarki do dostawcy jak w czacie AI (klucz nie trafia na serwer Makietki); Leonardo dojdzie jako kolejny dostawca; wynik od razu w obrazach projektu | częściowo jest (#241) |
-| C2 | **Generuj do ramki**: zaznaczona ramka/kadr → prompt, proporcje z ramki; prompt, model, seed, siła zapisane przy obrazie; „wygeneruj ponownie” jednym kliknięciem | do zrobienia |
-| C3 | **Postacie jako referencje**: karty postaci idą do zapytania jako obrazy referencyjne (spójność bez trenowania) | do zrobienia |
-| C4 | **Styl projektu**: opis stylu w ustawieniach projektu dopisywany do każdego promptu | do zrobienia |
-| C5 | **Teksty jak w Canvie** na zaznaczonym tekście: skróć, wydłuż, zmień ton, przetłumacz (pl/uk/en) | do zrobienia |
-| C6 | **Wypełnij kolumnę tabeli** (np. „dopisz do każdego dnia krótką myśl”, „dialogi do kadrów według scenariusza”) – seria od razu rozkłada wynik na strony | do zrobienia |
-| C7 | **Obrazy z czatu**: czat AI w Makietce z modelem obrazkowym (Gemini) dostaje narzędzie „generuj obraz” – obraz trafia do obrazów projektu i od razu na stronę albo do zaznaczonej ramki (proporcje z ramki), z zapisanym promptem/modelem/ziarnem; to samo narzędzie w łączniku MCP (dla Claude) wykonuje otwarta aplikacja kluczem z sejfu (bez przechowywania klucza na serwerze) | do zrobienia (razem z C2) |
+| A1 | **Dymek**: mowa, myśl, krzyk, szept, narracja; ogonek przeciągany uchwytem; rośnie z tekstem; skrót w łączniku | ✅ #360 |
+| A2 | **Obrys tekstu** do efektów dźwiękowych („BUM!”) | ✅ był (#123) |
+| A3 | **Czcionki komiksowe** (OFL): Bangers (okrzyki), Comic Neue (dialogi), Pangolin (dialogi z polskimi i ukraińskimi literami); cyrylica we wszystkich czcionkach, które ją mają. Permanent Marker odpada – nie ma polskich liter | #363 |
+| A4 | Style tekstu **„Dialog”** (wersaliki – lettering) i **„Efekt dźwiękowy”** (Bangers z obrysem); dymki domyślnie w stylu „Dialog” | do zrobienia |
+| A5 | **Tryb „Komiks”**: szablon projektu i typ sekcji z paskiem narzędzi (Dymek, Kadry, Podziel kadr, Scenariusz, Postacie) | do zrobienia |
+| A6 | **Kadry**: gotowe układy 1–9 kadrów z rynną, podział kadru przeciągnięciem (także ukośny), kadr na spad, obraz w kadrze (przeciągnięcie pliku na ramkę), postać wychodząca poza kadr | geometria ✅ #362 |
+| A7 | **Scenariusz**: tabela (strona, kadr, postać, tekst, rodzaj dymka; opcjonalnie opis sceny, miejsce) – wklejasz z CSV albo wpisujesz; przycisk **„Ustaw dymki”** stawia dymki; poprawka scenariusza zmienia tylko tekst, przesunięte dymki zostają; rodzaj dymka wybierasz w tabeli albo na dymku | moduł ✅ #361 |
+| A8 | **Wersje językowe**: kolumny tekst_pl / tekst_uk / tekst_en – wybór kolumny, ten sam układ | moduł ✅ #361 |
+| A9 | **Postacie i miejsca**: karty (imię, wygląd, znak rozpoznawczy, charakter, obraz wzorcowy, kolor dymka; miejsce: opis, pora dnia, światło, obraz) – na razie z obrazami wgranymi ręcznie | do zrobienia |
+| A10 | **Import stron**: ZIP albo wiele plików (`01.png` → strona 1 na spad, `s03-k2.png` → kadr 2 na stronie 3) | do zrobienia |
+| A11 | **Mostek** między dymkami jednej postaci; **webtoon** (długi pasek, PNG 800 px); **rastry i linie ruchu** w bibliotece wzorów | do zrobienia |
+| A12 | **Kontrola komiksu**: tekst w dymku < 7 pt, dymek przecina rynnę albo wchodzi w spad, ogonek poza kadrami, pusty kadr | do zrobienia |
 
-Uwagi: do tekstów wystarczy tani model (Gemini Flash, Claude Haiku). Treści, które muszą być dokładne
-(np. wersety), brać ze źródła, nie z generatora – AI do quizów i opisów, zawsze ze sprawdzeniem.
-API (Gemini, Leonardo) jest rozliczane osobno od subskrypcji – stąd BYOK.
+Po A7 da się robić pełne komiksy z obrazami z dowolnego generatora.
+
+## Część B – AI w każdym projekcie
+
+| # | Co | Stan |
+|---|---|---|
+| B1 | **Klucz Gemini po stronie serwera** (Supabase Edge Function, zaszyfrowany; własny klucz albo klucz właściciela rozliczany poza aplikacją) + instrukcja „jak zdobyć klucz” z obrazkami | do zrobienia |
+| B2 | **Koszty**: ceny w konfiguracji, potwierdzenie przed każdym generowaniem („3 obrazy, ok. 1,50 zł – generować?”), licznik (obraz, projekt, miesiąc), miesięczny limit wydatków | do zrobienia |
+| B3 | **Generuj obraz** / **Generuj do ramki**: opis po polsku, proporcje z ramki, wynik w obrazach projektu; przy obrazie prompt, model i wersje (powrót jednym kliknięciem); **popraw obraz** (edycja fragmentu zamiast losowania od nowa) | do zrobienia |
+| B4 | **Tekst**: skróć, wydłuż, zmień ton, przetłumacz (pl/uk/en) na zaznaczonym tekście; **wypełnij kolumnę tabeli** | do zrobienia |
+| B5 | **Czat AI** (jest, #241) z Gemini: te same narzędzia co łącznik MCP + generowanie obrazów; generowanie zawsze po potwierdzeniu kosztu | częściowo jest |
+| B6 | Te same narzędzia w **łączniku MCP** (Claude, ChatGPT) – generowanie wykonuje serwer kluczem z B1 | do zrobienia |
+
+## Część C – AI w trybie komiksu (na częściach A i B)
+
+| # | Co | Stan |
+|---|---|---|
+| C1 | **Gotowe style** z miniaturami (kolorowa bajka, akwarela, prosty cartoon) – zapisany w projekcie | do zrobienia |
+| C2 | **Wzorce postaci i miejsc** z karty (Nano Banana Pro) | do zrobienia |
+| C3 | **Strona ze sceny**: prompt składa Makietka (styl, układ kadrów, kto/co/emocja/plan w każdym kadrze, miejsce i światło, obrazy wzorcowe postaci i miejsca, „no text, leave space for speech bubbles”); najpierw szkic 1K, zaakceptowana w 2K albo Pro | do zrobienia |
+| C4 | **Pomysł → scenariusz** w czacie: 3–5 zdań, pomocnik dzieli na sceny i dialogi, poprawki zwykłymi słowami | do zrobienia |
+| C5 | Funkcje czatu i łącznika: `ustaw_scenariusz`, `zapisz_postac`, `zapisz_miejsce`, `generuj_wzorzec`, `generuj_strone`, `popraw_kadr`, `ustaw_dymki`, `szacuj_koszt`; kontekst czatu: lista scen, postacie (imię + znak), styl, bieżąca strona | do zrobienia |
+
+## Koszty (szacunek z dokumentu; ceny w konfiguracji)
+
+| Pozycja | Szacunek |
+|---|---|
+| Wzorce 4 postaci i 5 miejsc (Pro, z poprawkami) | ok. 20 obrazów, ok. 2,60 $ |
+| 50 stron: szkic 1K + wersja 2K, średnio 3 obrazy na stronę | ok. 150 obrazów, ok. 6–8 $ |
+| Kilka stron kluczowych w Pro | ok. 10 obrazów, ok. 1,30 $ |
+| Czat i scenariusz | grosze |
+| **Razem** | **ok. 10–12 $ (ok. 40–50 zł)** |
+
+Treści, które muszą być dokładne (np. wersety), zawsze ze źródła, nie z generatora.
