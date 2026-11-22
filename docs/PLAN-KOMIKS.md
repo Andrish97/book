@@ -204,3 +204,7 @@ i dać to zawsze nad top barem. Ale żeby inne elementy, takie jak okienka i tak
 | J1 | Telefon: pasek postępu (js/postep.js) zawsze nad górnym paskiem; górny pasek i cała aplikacja przesuwają się w dół o jego wysokość, gdy jest widoczny (nic nie jest zasłaniane). Komputer: nie musi być nad górnym paskiem („W komputerze nie musi być nad górnym paskiem”) – ale też niczego nie zasłania (np. w wolnym miejscu górnego paska) | do zrobienia |
 | J2 | Okna (dialogi), menu, panele boczne i powiadomienia też nie są zasłaniane – liczą się z wysokością paska | do zrobienia |
 | J3 | Wygląd: cienki, spokojny pasek (opis + licznik + cienka linia postępu), bez dużego pudełka | do zrobienia |
+
+I11 (słowa właściciela: „Na końcu napisz mi tekst i opisz, jak dodać zgłoszenie”): po testach łącznika „makietka test”
+i poprawkach – gotowy tekst zgłoszenia (pola formularza po angielsku) i opis krok po kroku, jak je wysłać
+w claude.ai/directory/manage; w docs/ZGLOSZENIE-KATALOG-CLAUDE.md i w podsumowaniu dla właściciela.
