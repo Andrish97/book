@@ -723,6 +723,12 @@ Wszystkie podejrzane słowa zaznaczonego tekstu widać też w panelu, w części
 - Pomijane są pola `{…}`, liczby, słowa z cyframi, adresy stron i e-maile.
 - Wyłączysz sprawdzanie w menu widoku: **Sprawdzaj pisownię**.
 
+### 5.17 Tekst AI
+
+Zaznacz ramkę tekstu (albo, w trakcie pisania, fragment tekstu) i kliknij **Tekst AI** na pasku wstawiania. Wybierz, co zrobić: **Skróć**, **Wydłuż**, **Prościej**, **Uroczyściej**, **Popraw błędy**, **Na polski**, **Na angielski** albo **Na ukraiński**. Wynik pojawia się w oknie – możesz go jeszcze poprawić – a **Zastąp** wstawia go w miejsce tekstu (`Ctrl`+`Z` cofa). Pola w klamrach, np. `{imie}`, zostają bez zmian.
+
+Pisze Google Gemini Twoim kluczem (jak przy obrazach, rozdział „7.11 Obraz AI”); jedna zmiana kosztuje ułamek grosza.
+
 ## 6. Kształty, linie i kolory
 
 Kształty, linie, rysowanie i kolory: wypełnienia, przejścia i obrysy.
@@ -1612,6 +1618,10 @@ Przy nazwie każdej kolumny są dwa znaki:
 |---|---|
 | **≠** | Wartości w kolumnie nie powinny się powtarzać (np. hasła dnia). Powtórzone komórki są czerwone, a przed drukiem aplikacja poda strony, na których ta sama wartość wypada dwa razy. Wielkość liter i spacje nie mają znaczenia. |
 | **☰** | Lista dozwolonych wartości, np. `praca; dom; wolne`. Inne wartości są podświetlone i trafiają na listę przed drukiem; w szablonie danych komórki dostają listę rozwijaną. **Usuń listę** ją usuwa. |
+
+### 14.6 Wypełnij kolumnę z AI
+
+Przycisk **✦** przy nazwie kolumny w oknie **Dane** wpisuje wartości w kolumnę – np. „krótka myśl na ten dzień” w kalendarzu albo „jednozdaniowy opis” przy każdym produkcie. Napisz, co wpisać; AI widzi pozostałe kolumny wiersza (np. datę albo nazwę). Domyślnie wypełnia tylko **puste komórki**; okno podaje liczbę wierszy i koszt (zwykle grosze za kilkaset wierszy). Sprawdź wynik – treści, które muszą być dokładne (cytaty, wersety), bierz ze źródła.
 
 ## 15. Pola w tekście
 

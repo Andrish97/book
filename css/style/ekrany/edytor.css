@@ -363,6 +363,9 @@ body.w-komiksie .pasek-narzedzi .tylko-komiks { display: inline-flex; }
 #dlg-ai-obraz .rzad { display: flex; gap: 12px; flex-wrap: wrap; }
 #dlg-ai-obraz .rzad .pole { flex: 1 1 160px; }
 .koszt-ai { font-weight: 600; }
+#dlg-ai-tekst .formularz { width: min(560px, 100%); }
+.czynnosci-ai { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.czynnosci-ai .przycisk[aria-pressed="true"] { border-color: var(--akcent); background: var(--akcent-tlo); }
 .blad-ai { color: var(--blad); }
 /* Okno „Postacie i miejsca” (#368): karty z obrazem wzorcowym */
 .okno-postaci .formularz { width: min(640px, 100%); }

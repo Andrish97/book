@@ -91,7 +91,7 @@ export class Dane {
 
     const html = ['<thead><tr><th class="rog"></th>'];
     t.kolumny.forEach((k, i) => {
-      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="${tt('dane.nazwaKolumnyWTekscie')}"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="${tt('dane.pilnujZebyWartosciW')}" aria-label="${tt('dane.pilnujPowtorzenWKolumnie')}">≠</button><button type="button" class="lista-kolumny" data-k="${i}" aria-pressed="${Boolean(t.listy?.[k]?.length)}" title="${tt('dane.listaDozwolonychWartosciKolumny')}" aria-label="${tt('dane.listaDozwolonychWartosciKolumny2')}">☰</button><button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
+      html.push(`<th><div class="naglowek-kolumny"><span class="nazwa-kolumny" contenteditable="plaintext-only" spellcheck="false" data-k="${i}" title="${tt('dane.nazwaKolumnyWTekscie')}"></span><button type="button" class="pilnuj-kolumne" data-k="${i}" aria-pressed="${Boolean(t.unikalne?.includes(k))}" title="${tt('dane.pilnujZebyWartosciW')}" aria-label="${tt('dane.pilnujPowtorzenWKolumnie')}">≠</button><button type="button" class="lista-kolumny" data-k="${i}" aria-pressed="${Boolean(t.listy?.[k]?.length)}" title="${tt('dane.listaDozwolonychWartosciKolumny')}" aria-label="${tt('dane.listaDozwolonychWartosciKolumny2')}">☰</button>${this.wypelnijKolumneAi ? `<button type="button" class="ai-kolumny" data-k="${i}" title="${tt('dane.wypelnijAi')}" aria-label="${tt('dane.wypelnijAi')}">✦</button>` : ''}<button type="button" class="usun-kolumne" data-k="${i}" title="Usuń kolumnę" aria-label="Usuń kolumnę">×</button></div></th>`);
     });
     html.push('</tr></thead><tbody></tbody>');
     this.siatka.innerHTML = html.join('');
@@ -427,6 +427,12 @@ export class Dane {
     });
     s.addEventListener('click', async (e) => {
       const t = this.tabela();
+      // Wypełnij kolumnę z AI (#373) – okno daje aplikacja (js/app/tekst-ai.js); po wpisaniu odświeżenie i zapis.
+      const ai = e.target.closest('.ai-kolumny');
+      if (ai && this.wypelnijKolumneAi) {
+        if (await this.wypelnijKolumneAi(t, Number(ai.dataset.k))) { this.rysujTabele(); this._zmieniono(); }
+        return;
+      }
       const kolumna = e.target.closest('.usun-kolumne');
       const wiersz = e.target.closest('.usun-wiersz');
       const pilnuj = e.target.closest('.pilnuj-kolumne');

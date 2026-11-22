@@ -83,6 +83,14 @@ Next to each column name there are two signs:
 | **≠** | Values in the column shouldn't repeat (e.g. quotes of the day). Repeated cells are red, and before printing the app will list the pages where the same value appears twice. Letter case and spaces don't matter. |
 | **☰** | A list of allowed values, e.g. `praca; dom; wolne`. Other values are highlighted and go on the list before printing; in the data template the cells get a drop-down list. [Remove list] removes it. |
 
+## 14.6 Fill a column with AI
+
+The **✦** button next to a column name in the **Data** window writes values into the column – e.g. “a short thought
+for this day” in a calendar or “a one-sentence description” for each product. Write what to fill in; AI sees the other
+columns of the row (e.g. the date or name). By default it fills only **empty cells**; the window shows the number of
+rows and the cost (usually a few grosz for hundreds of rows). Check the result – content that must be exact (quotes,
+verses) should come from the source.
+
 # 15. Fields in text
 
 A field is a place in text where a value from a table or from the project goes, e.g. the page number.

@@ -654,6 +654,15 @@ zmienia słowo we wszystkich miejscach tego tekstu.
 - Pomijane są pola `{…}`, liczby, słowa z cyframi, adresy stron i e-maile.
 - Wyłączysz sprawdzanie w menu widoku: **Sprawdzaj pisownię**.
 
+## 5.17 Tekst AI
+
+Zaznacz ramkę tekstu (albo, w trakcie pisania, fragment tekstu) i kliknij [Tekst AI] na pasku wstawiania. Wybierz,
+co zrobić: [Skróć], [Wydłuż], [Prościej], [Uroczyściej], [Popraw błędy], [Na polski], [Na angielski] albo
+[Na ukraiński]. Wynik pojawia się w oknie – możesz go jeszcze poprawić – a [Zastąp] wstawia go w miejsce tekstu
+(<kbd>Ctrl</kbd>+<kbd>Z</kbd> cofa). Pola w klamrach, np. `{imie}`, zostają bez zmian.
+
+Pisze Google Gemini Twoim kluczem (jak przy obrazach, → 7.11); jedna zmiana kosztuje ułamek grosza.
+
 # 6. Kształty, linie i kolory
 
 Kształty, linie, rysowanie i kolory: wypełnienia, przejścia i obrysy.

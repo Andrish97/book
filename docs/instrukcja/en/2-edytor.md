@@ -654,6 +654,15 @@ changes the word in all places in that text.
 - `{…}` fields, numbers, words with digits, web addresses and emails are skipped.
 - You can turn spell checking off in the view menu: **Check spelling**.
 
+## 5.17 AI text
+
+Select a text frame (or, while typing, part of the text) and click [AI text] on the insert bar. Choose what to do:
+[Shorten], [Expand], [Simpler], [More formal], [Fix mistakes], [To Polish], [To English] or [To Ukrainian].
+The result appears in the window – you can still edit it – and [Replace] puts it in place of the text
+(<kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes). Fields in braces, e.g. `{name}`, stay unchanged.
+
+Google Gemini writes it with your key (as for images, → 7.11); one change costs a fraction of a grosz.
+
 # 6. Shapes, lines and colors
 
 Shapes, lines, drawing and colors: fills, gradients and strokes.

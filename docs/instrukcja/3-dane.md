@@ -83,6 +83,13 @@ Przy nazwie każdej kolumny są dwa znaki:
 | **≠** | Wartości w kolumnie nie powinny się powtarzać (np. hasła dnia). Powtórzone komórki są czerwone, a przed drukiem aplikacja poda strony, na których ta sama wartość wypada dwa razy. Wielkość liter i spacje nie mają znaczenia. |
 | **☰** | Lista dozwolonych wartości, np. `praca; dom; wolne`. Inne wartości są podświetlone i trafiają na listę przed drukiem; w szablonie danych komórki dostają listę rozwijaną. [Usuń listę] ją usuwa. |
 
+## 14.6 Wypełnij kolumnę z AI
+
+Przycisk **✦** przy nazwie kolumny w oknie **Dane** wpisuje wartości w kolumnę – np. „krótka myśl na ten dzień”
+w kalendarzu albo „jednozdaniowy opis” przy każdym produkcie. Napisz, co wpisać; AI widzi pozostałe kolumny wiersza
+(np. datę albo nazwę). Domyślnie wypełnia tylko **puste komórki**; okno podaje liczbę wierszy i koszt (zwykle grosze
+za kilkaset wierszy). Sprawdź wynik – treści, które muszą być dokładne (cytaty, wersety), bierz ze źródła.
+
 # 15. Pola w tekście
 
 Pole to miejsce w tekście, w które wchodzi wartość z tabeli albo z projektu, np. numer strony.
