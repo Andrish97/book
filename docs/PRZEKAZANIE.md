@@ -15,7 +15,7 @@ oczywiste, proste i dobrze opisane w instrukcji.
   Stopka commita:
   ```
   Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
-  Claude-Session: https://claude.ai/code/session_01RaMJ2Ntz7GzbyxDWHScWWA
+  Claude-Session: https://claude.ai/code/session_01RaMJ2SqHxhurYXGgYy6giS
   ```
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
@@ -42,35 +42,24 @@ oczywiste, proste i dobrze opisane w instrukcji.
 
 ## Stan komiksu (plan: docs/PLAN-KOMIKS.md)
 
-Gotowe i na main: dymek (#360: mowa/myśl/krzyk/szept/narracja, ogonek uchwytem, rośnie z tekstem, skrót w łączniku),
-czcionki komiksowe + cyrylica (#363), moduły z testami: js/kadry.js (#362: siatka z rynną, podział linią, spad,
-kolejność czytania), js/dialogi.js (#361: dymki ze scenariusza, wersje językowe, rozpoznawanie dymków po
-strona|kadr|postać|kolejność – przesunięte zostają).
+Gotowe i na main (22.11, sesja 01RaMJ2SqHxhurYXGgYy6giS): dymek (#360), dialogi (#361), kadry (#362), czcionki (#363),
+**tryb Komiks (#364)** – typ sekcji „Komiks” z paskiem: [Dymek], [Efekt], [Kadry], [Podziel kadr], [Scenariusz],
+[Ustaw dymki], [Postacie], [Wgraj strony]; szablon projektu „Komiks” (okładka zeszytowa, 24 strony z kadrami, scenariusz,
+przykładowe karty). **Style „Dialog” i „Efekt dźwiękowy” (#367)**, **karty postaci i miejsc (#368)** – tabele „Postacie”
+i „Miejsca” (js/postacie.js), kolor dymka postaci; **wgrywanie stron z plików/ZIP (#369)** – js/import-stron.js;
+**kontrola komiksu (#370)** – js/komiks-kontrola.js. Instrukcja 10.13 (pl/en/uk) ze zrzutami (scripts/zrzuty-komiksu.cjs).
+Testy: tests/komiks.test.cjs (7 testów), tests/komiks-dane.test.cjs.
+Ważne: kadr komiksu to polygon z polem `kadr_nr` (NIE `kadr` – to pole zajmuje kadrowanie obrazu); `kadr_nr`, `z_dialogu`
+zapisują się z projektem (js/fabric-ustawienia.js). Strona 1 scenariusza = pierwsza strona sekcji komiksu.
 
-**W toku (gałąź robocza, jeszcze niepodłączone):** `js/app/komiks-narzedzia.js` (#364) – układy kadrów (okno z 9
-układami, rynna, na spad), podział kadru dwoma kliknięciami, „Scenariusz” (tworzy tabelę i otwiera okno Dane),
-„Ustaw dymki” (z wyborem kolumny języka). Klucze `komiks.*` są już w słownikach (pl/en/uk); nowe napisy dopisuj tak samo.
-Brakuje podłączenia (wzór: składanka):
-1. js/typ-sekcji.js – typ `komiks` (nazwa, opis przez t(), ikona 'komentarz', rola 'blok');
-2. js/app/panel-strony.js – `document.body.classList.toggle('w-komiksie', … typSekcji(…) === 'komiks')`;
-3. css/style/ekrany/edytor.css – `.pasek-narzedzi .tylko-komiks { display: none; }` i `body.w-komiksie … { display: inline-flex; }`;
-4. index.html – przyciski w `#pasek-narzedzi` z klasą `tylko-komiks` i `data-akcja`: komiks-dymek, komiks-kadry,
-   komiks-podziel (aria-pressed), komiks-scenariusz, komiks-dymki (data-i18n + klucze, potem `node scripts/i18n-klucze.cjs`);
-5. js/app/edytor-start.js – akcje `'komiks-…': () => obsluzAkcjeKomiksu('komiks-…')` i `podlaczKomiks()` tam, gdzie
-   `podlaczSkladanke()`;
-6. szablon projektu „Komiks” w js/szablony-projektow.js (sekcja typu komiks, kilka stron, tabela scenariusza);
-7. CSS okna kadrów (`.uklady-kadrow`, `.uklad-kadrow` – siatka podglądów do kliknięcia);
-8. testy w przeglądarce (tests/komiks.test.cjs): pasek tylko w sekcji komiks, układ kadrów (liczba, rynna, spad),
-   podział kadru, scenariusz → Ustaw dymki → dymki na stronach, ponowne ustawienie po zmianie tekstu;
-9. instrukcja: nowy rozdział o komiksie (pl, en, uk) z przykładem krok po kroku; zrzut.
-
-Dalej według planu: style „Dialog” i „Efekt dźwiękowy” (A4), karty postaci i miejsc (A9), import stron (A10), potem AI
-(część B – w każdym projekcie, niezależnie od komiksu; część C – komiks z AI, w tym import scenariusza z dokumentu).
+Zostało z części A: A11 (mostek między dymkami jednej postaci, webtoon – długi pasek PNG 800 px, rastry i linie ruchu
+w bibliotece wzorów). Potem część B (AI w każdym projekcie) i C (komiks z AI) – w tym pomiar zużycia (C7) w budżecie
+ok. 5 zł; rejestr płatnych wywołań prowadź w docs/KOSZTY-TESTOW.md.
 
 ## Inne otwarte wątki
 
-- **Pełny przebieg testów i scalenie z main**: gałąź ma #363 (czcionki), #365 (pola w językach) i komiks w toku – przed
-  scaleniem puść cały zestaw testów (ostatni pełny: 631/632, przed zmianą czcionek).
+- **Pełny przebieg testów** 22.11: 628/635 – czerwone poprawione (liczba czcionek po #363, pola stylu w łączniku,
+  usunięty tests/_eksp.test.cjs); dostep-ai i makiety-wszystkie – chwiejne pod obciążeniem, osobno zielone. Scalone z main.
 - Rysowanie na serwerze (Cloudflare Browser Rendering) niesprawdzone na żywo – worker „book” potrzebuje powiązań
   PRZEGLADARKA i RYSOWANIE oraz sekretu SUPABASE_SERVICE_ROLE_KEY; bez nich aplikacja rysuje na urządzeniu (bez szkody).
 - Łącznik AI (js/ai-narzedzia-rdzen.js, seriodruk-mcp-rdzen.mjs) zna tylko polskie nazwy pól dokumentu – tekst z {page}
@@ -78,8 +67,8 @@ Dalej według planu: style „Dialog” i „Efekt dźwiękowy” (A4), karty po
 - Kolumny kalendarza ({dzien}, {miesiac}, {dzien_tygodnia}…) są po polsku – to nazwy kolumn tabeli. Ewentualnie
   w przyszłości: nazwy kolumn w języku projektu przy tworzeniu kalendarza.
 - Chwiejne testy (wyżej) – ustabilizować, żeby fałszywe alarmy nie zasłaniały prawdziwych.
-- Przypomnienie co godzinę: ustaw w nowej sesji własne (create_trigger, cron co godzinę, ten sam cel: „wznów pracę
-  według docs/PRZEKAZANIE.md i docs/PLAN-KOMIKS.md”). Stare zostało usunięte.
+- Przypomnienie co godzinę: w sesji 01RaMJ2SqHxhurYXGgYy6giS działa „Makietka – komiks, wznowienie (co godzinę)”
+  (trig_01BrW3sGsQbT4Wvbo5U3ZAH1). Nowa sesja: wyłącz je i ustaw własne.
 
 Zamknięte 22.11 rano: migracje bazy wdrażają się same przy wypchnięciu na main; zrzuty instrukcji en/uk są (126 + 126);
 pola dokumentu po angielsku/ukraińsku (#365); znacznik [pomiń] = [skip] = [пропустити] (#366); ukraiński „Tytuł” = „Назва”.
