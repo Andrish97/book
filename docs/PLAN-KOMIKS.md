@@ -12,6 +12,10 @@ przetłumacz), wypełnianie kolumny tabeli. To osobna część aplikacji – kom
 postacie i miejsca (karty z obrazem wzorcowym), gotowe prompty do obrazów składane same ze sceny, stylu i postaci,
 scenariusz (tabela scen i dialogów) z wklejaniem tekstów w dymki i wyborem rodzaju dymka, kadry.
 
+**Tryb komiksu jest ręczny i pod AI jednocześnie**: postacie, miejsca, scenariusz i dymki tworzy się ręcznie, ale ich
+pola są od początku takie, z jakich AI składa prompty i jakie czyta albo wypełnia (karta postaci = opis do promptu
++ obraz wzorcowy, scenariusz = sceny z opisem kadrów i dialogami). Te same karty i ta sama tabela – ręcznie albo z AI.
+
 **Wszystko ma być oczywiste i proste**: mało pól, rozsądne domyślne, każdy krok opisany w instrukcji (pl, en, uk)
 z przykładem. Każdy punkt: test, instrukcja, DECYZJE, ZGŁOSZENIA, commit i push.
 
