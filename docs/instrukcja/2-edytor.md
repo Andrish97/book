@@ -1423,6 +1423,11 @@ Obok są przyciski AI z każdego projektu: [Obraz AI], [Popraw obraz], [Tekst AI
 Gdy pasek nie mieści się w oknie, przewiń go w bok (kółkiem myszy albo palcem). Na telefonie dymki są w menu
 [Dymek ▾], a narzędzia AI – w menu [AI ▾].
 
+**Komiks w Bibliotece.** [Biblioteka] (→ 4.8) ma kategorię **Komiks**: dymki każdego rodzaju i efekt dźwiękowy, gotowe
+układy kadrów (kliknięcie zastępuje kadry na tej stronie; obrazy i dymki zostają), raster i linie ruchu, a na stronie
+komiksu także **Okna komiksu**: **Komiks krok po kroku**, **Scenariusz**, **Postacie i miejsca**, **Wgraj gotowe
+strony** i **Webtoon**. To dobra droga na telefonie, gdzie pasek jest krótszy.
+
 ### Komiks krok po kroku
 
 [Komiks] otwiera okno z pięcioma krokami. Przy każdym kroku widać, co już jest (np. „Jest: 5 kwestii na 2 stronach”).

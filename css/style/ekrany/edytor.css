@@ -1460,3 +1460,4 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .pasek-narzedzi.dalej-prawo { -webkit-mask-image: linear-gradient(to right, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to right, var(--czern) calc(100% - 28px), transparent); }
 .pasek-narzedzi.dalej-lewo { -webkit-mask-image: linear-gradient(to left, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to left, var(--czern) calc(100% - 28px), transparent); }
 .pasek-narzedzi.dalej-lewo.dalej-prawo { -webkit-mask-image: linear-gradient(to right, transparent, var(--czern) 28px, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, var(--czern) 28px, var(--czern) calc(100% - 28px), transparent); }
+.podglad-biblioteki .ikona-biblioteki-komiksu { display: block; margin: auto; }

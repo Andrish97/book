@@ -184,7 +184,20 @@ function przywrocWidok() {
 // przyciskami gaśnie (klasy dalej-lewo / dalej-prawo), żeby było widać, że jest coś dalej.
 function podlaczPasekWstawiania() {
   const p = $('#pasek-narzedzi');
+  // Panel obok strony (Biblioteka, czat, Znajdź, komentarze) leży nad prawą częścią obszaru – pasek nie wchodzi pod
+  // niego: zwęża się do wolnego miejsca po lewej i przewija w bok (uwaga E1 – dłuższy pasek na komputerze).
+  const dopasuj = () => {
+    p.style.removeProperty('max-width'); p.style.removeProperty('left'); p.style.removeProperty('transform');
+    const panel = [...document.querySelectorAll('dialog.obok-strony[open]')].find((d) => d.getBoundingClientRect().width);
+    if (!panel || !p.offsetParent) return;
+    const obszar = p.offsetParent.getBoundingClientRect();
+    const pasek = p.getBoundingClientRect();
+    const granica = panel.getBoundingClientRect().left - 12;
+    if (pasek.right <= granica) return;
+    Object.assign(p.style, { left: '8px', transform: 'none', maxWidth: `${Math.max(160, granica - obszar.left - 8)}px` });
+  };
   const odswiez = () => {
+    dopasuj();
     const zapas = p.scrollWidth - p.clientWidth;
     p.classList.toggle('dalej-prawo', zapas > 1 && p.scrollLeft < zapas - 1);
     p.classList.toggle('dalej-lewo', zapas > 1 && p.scrollLeft > 1);
@@ -195,7 +208,10 @@ function podlaczPasekWstawiania() {
     if (p.scrollWidth - p.clientWidth > 1 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { p.scrollLeft += e.deltaY; e.preventDefault(); }
   }, { passive: false });
   new ResizeObserver(odswiez).observe(p);
-  new MutationObserver(odswiez).observe(document.body, { attributes: true, attributeFilter: ['class'] }); // wejście w komiks zmienia przyciski
+  let zaplanowane = false; // najwyżej raz na klatkę – zmian klas w dokumencie bywa dużo
+  const pozniej = () => { if (zaplanowane) return; zaplanowane = true; requestAnimationFrame(() => { zaplanowane = false; odswiez(); }); };
+  new MutationObserver(pozniej).observe(document.body, { attributes: true, attributeFilter: ['class', 'open'], subtree: true }); // wejście w komiks zmienia przyciski; otwarcie panelu obok strony
+  window.addEventListener('resize', pozniej);
   odswiez();
 }
 

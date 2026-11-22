@@ -728,7 +728,7 @@ Wszystkie podejrzane słowa zaznaczonego tekstu widać też w panelu, w części
 AI poprawi, skróci albo przetłumaczy tekst – w każdym projekcie. Pisze Google Gemini Twoim kluczem (jak klucz zdobyć – rozdział „7.11 Obraz AI”); jedna zmiana kosztuje ułamek grosza.
 
 1. Zaznacz ramkę tekstu – zmienisz cały tekst. Albo kliknij w tekst dwa razy i zaznacz fragment – zmienisz tylko jego.
-2. Kliknij **AI ▾** na pasku wstawiania → **Popraw albo przetłumacz tekst…**.
+2. Kliknij **Tekst AI** na pasku wstawiania (na telefonie: **AI ▾** → **Popraw albo przetłumacz tekst…**).
 3. Kliknij, co zrobić: **Skróć**, **Wydłuż**, **Prościej**, **Uroczyściej**, **Popraw błędy**, **Na polski**, **Na angielski** albo **Na ukraiński**.
 4. Po chwili wynik jest w polu **Wynik (możesz go poprawić)**. Popraw go, jeśli chcesz, albo kliknij inny przycisk, żeby spróbować inaczej.
 5. **Zastąp** wstawia wynik w miejsce tekstu. `Ctrl`+`Z` cofa.
@@ -934,7 +934,7 @@ AI narysuje obraz z opisu – w każdym projekcie, nie tylko w komiksie. Rysuje 
 ![Okno Obraz AI](https://makietka.app/img/instrukcja/k-obraz-ai.png)
 
 1. Zaznacz ramkę, kształt albo kadr komiksu, który ma wypełnić obraz. Bez zaznaczenia obraz trafi na środek strony.
-2. Kliknij **AI ▾** na pasku wstawiania → **Obraz z opisu…**.
+2. Kliknij **Obraz AI** na pasku wstawiania (na telefonie: **AI ▾** → **Obraz z opisu…**).
 3. W polu **Co ma być na obrazie** opisz po swojemu: kto, co robi, gdzie, jaki nastrój i styl, np. „Rudowłosa dziewczynka z żółtym plecakiem macha na brukowanej uliczce, ranek, kolorowa ilustracja dla dzieci”.
 4. Wybierz **Jakość**: **Szkic – szybko i najtaniej** (do prób), **Dokładny – do druku** albo **Najlepszy – postacie i szczegóły**.
 5. **Kształt obrazu** (kwadrat, pionowy, poziomy, panorama, wysoki) jest dobrany do ramki – zmień go tylko przy obrazie na stronę.
@@ -947,10 +947,10 @@ AI narysuje obraz z opisu – w każdym projekcie, nie tylko w komiksie. Rysuje 
 | Najlepszy | druk, postacie i drobne szczegóły | 0,55 zł |
 
 - **Napisów w obrazie nie ma** – Makietka prosi AI, żeby ich nie rysowało, i żeby obraz wypełniał całą ramkę, bez białych brzegów. Tekst dodajesz w Makietce (ramki tekstu, dymki), więc łatwo go poprawić i przetłumaczyć.
-- **Jeszcze raz:** zaznacz ramkę z obrazem z AI i znów **AI ▾** → **Obraz z opisu…**. Okno ma opis, z którego powstał obecny obraz – popraw w nim, co chcesz, albo generuj bez zmian. Poprzednie wersje zostają w **Obrazach projektu** – wrócisz do nich jednym wyborem (rozdział „7.5 Okno Obrazy projektu”).
-- **Popraw obecny obraz:** gdy w ramce jest już obraz (z AI albo Twój), okno pyta **Co zrobić z obrazem w ramce**. Wybierz **Popraw obecny obraz – opisz tylko zmianę** i napisz samą zmianę, np. „dodaj dziewczynce czerwony kapelusz” albo „zmień porę na wieczór”. AI dostaje obecny obraz i zmienia tylko to, o co prosisz – reszta zostaje. **Narysuj od nowa** rysuje cały obraz z opisu.
+- **Jeszcze raz:** zaznacz ramkę z obrazem z AI i znów **Obraz AI**. Okno ma opis, z którego powstał obecny obraz – popraw w nim, co chcesz, albo generuj bez zmian. Poprzednie wersje zostają w **Obrazach projektu** – wrócisz do nich jednym wyborem (rozdział „7.5 Okno Obrazy projektu”).
+- **Popraw obecny obraz:** zaznacz ramkę z obrazem (z AI albo Twoim) i kliknij **Popraw obraz** na pasku – albo w oknie **Obraz AI** odpowiedz na pytanie **Co zrobić z obrazem w ramce**. Wybierz **Popraw obecny obraz – opisz tylko zmianę** i napisz samą zmianę, np. „dodaj dziewczynce czerwony kapelusz” albo „zmień porę na wieczór”. AI dostaje obecny obraz i zmienia tylko to, o co prosisz – reszta zostaje. **Narysuj od nowa** rysuje cały obraz z opisu.
 - **Ile wydałeś:** **Ustawienia konta** → **Sztuczna inteligencja** pokazuje wydatki z tego miesiąca na tym urządzeniu. Tam ustawisz też **Miesięczny limit wydatków na obrazy i teksty AI** – po jego przekroczeniu Makietka nie wygeneruje obrazu ani tekstu, dopóki limitu nie zmienisz.
-- Obraz narysuje też asystent AI na Twoje polecenie, np. „wstaw na stronę 3 zdjęcie zachodu słońca nad morzem” (rozdział „25.6 Asystent AI w Makietce (własny klucz)”) – przed rysowaniem zapyta o zgodę i poda koszt.
+- Obraz narysuje też asystent AI na Twoje polecenie, np. „wstaw na stronę 3 zdjęcie zachodu słońca nad morzem” (rozdział „25.6 Asystent AI w Makietce (własny klucz)”) – w rozmowie napisze, co rysuje i ile to mniej więcej kosztuje.
 
 **Jak zdobyć klucz Gemini**
 
@@ -1304,17 +1304,22 @@ W szablonie wybierasz **Formę** komiksu:
 | **Luźne kartki – bez okładki** | Same strony komiksu, np. do wydruku w domu. |
 | **Na ekran – PDF albo prezentacja (poziomo)** | Strony poziome jak slajdy, bez spadu – do oglądania w podglądzie albo jako PDF na ekran. |
 
-![Strona komiksu z kadrami i dymkami; na pasku Kadry, Dymek i Komiks](https://makietka.app/img/instrukcja/k-komiks.png)
+![Strona komiksu z kadrami i dymkami; na pasku Kadry, dymki, Mostek i Komiks](https://makietka.app/img/instrukcja/k-komiks.png)
 
-**Pasek komiksu.** Na stronie komiksu pasek wstawiania ma trzy przyciski:
+**Pasek komiksu.** Na stronie komiksu pasek wstawiania ma dodatkowe przyciski:
 
 | Przycisk | Co robi |
 |---|---|
 | **Kadry** | Gotowy układ kadrów na tej stronie, odstęp między kadrami, spad; w tym samym oknie **Podziel kadr**. |
-| **Dymek ▾** | Menu: dymek **Mowa**, **Myśl**, **Krzyk**, **Szept**, **Narracja**, **Efekt dźwiękowy** („BUM!”) i **Mostek** (łączy dwa dymki jednej postaci). |
+| **Mowa**, **Myśl**, **Krzyk**, **Szept**, **Narracja** | Wstawiają dymek tego rodzaju (rozdział „4.14 Dymek”). |
+| **Efekt** | Efekt dźwiękowy – napis „BUM!” dużymi literami z obrysem. |
+| **Mostek** | Łączy dwa zaznaczone dymki jednej postaci. |
 | **Komiks** | Okno **Komiks krok po kroku** – cały komiks w pięciu krokach (opis niżej). |
+| **Scenariusz z AI**, **Rysuj kadry** | AI pisze scenariusz i rysuje kadry tej strony (opis niżej). |
 
-Narzędzia AI są w menu **AI ▾** (rozdział „7.11 Obraz AI”): w komiksie ma ono też **Rysuj kadry** i **Scenariusz z AI**.
+Obok są przyciski AI z każdego projektu: **Obraz AI**, **Popraw obraz**, **Tekst AI** i **Asystent AI** (rozdział „5.17 Tekst AI: poprawianie i tłumaczenie”, „7.11 Obraz AI”, „25.6 Asystent AI w Makietce (własny klucz)”). Gdy pasek nie mieści się w oknie, przewiń go w bok (kółkiem myszy albo palcem). Na telefonie dymki są w menu **Dymek ▾**, a narzędzia AI – w menu **AI ▾**.
+
+**Komiks w Bibliotece.** **Biblioteka** (rozdział „4.8 Biblioteka”) ma kategorię **Komiks**: dymki każdego rodzaju i efekt dźwiękowy, gotowe układy kadrów (kliknięcie zastępuje kadry na tej stronie; obrazy i dymki zostają), raster i linie ruchu, a na stronie komiksu także **Okna komiksu**: **Komiks krok po kroku**, **Scenariusz**, **Postacie i miejsca**, **Wgraj gotowe strony** i **Webtoon**. To dobra droga na telefonie, gdzie pasek jest krótszy.
 
 #### Komiks krok po kroku
 
@@ -1340,7 +1345,7 @@ W każdym kadrze:
 |---|---|
 | **Ujęcie** | Jak widać scenę: **widok ogólny** (całe miejsce), **plan pełny** (postacie od stóp do głów), **plan średni** (od pasa w górę), **zbliżenie** (twarz), **detal** (ważny przedmiot), **z góry**, **z dołu**, **zza pleców**. **Ujęcie: dowolne** – bez wymagań. |
 | **Miejsce** | Miejsce z kart (krok 2) – jego opis i obraz będą tłem kadru. |
-| **Też w kadrze** | Zaznacz postacie widoczne w kadrze, także te, które nic nie mówią. Ci, którzy mówią, są w kadrze i tak. |
+| **Postacie w kadrze** | Zaznacz postacie widoczne w kadrze, także te, które nic nie mówią (ci, którzy mówią, są zaznaczeni sami). Przy każdej postaci w kadrze wybierz **emocję** (radość, smutek, złość, strach, zaskoczenie, ciekawość, spokój, zmęczenie) i wpisz, **co robi**, np. „biegnie, macha ręką”. AI rysuje wtedy postać z tą miną i w tym ruchu. |
 | **Co widać w kadrze** | Krótko, np. „Ala biegnie uliczką, w tle kamienice”. Nie trafia na stronę – to opis dla rysownika albo AI. |
 | **Kwestie** | **+ Kwestia**: **Kto mówi** (postać z kart albo **Narracja**), **Rodzaj dymka** (mowa, myśl, krzyk, szept) i **Tekst dymka**. Ikona kosza usuwa kwestię. |
 
@@ -1348,7 +1353,7 @@ W każdym kadrze:
 
 **Dla zaawansowanych.** Scenariusz to zwykła tabela danych **Scenariusz** (jeden wiersz na kwestię, kolumny **strona**, **kadr**, **ujęcie**, **miejsce**, **w kadrze**, **opis sceny**, **postać**, **tekst**, **rodzaj**). **Tabela** w oknie Scenariusz otwiera ją w oknie **Dane** (rozdział „14 Tabele danych”) – tam wkleisz scenariusz z arkusza (rozdział „14.3 Poprawianie danych w aplikacji”) albo dodasz kolumny z innymi językami. Strona 1 to pierwsza strona komiksu (okładka się nie liczy).
 
-**Scenariusz z AI.** **Napisz z AI…** w kroku 1 (albo **AI ▾** → **Scenariusz z AI**) rozpisuje komiks za Ciebie:
+**Scenariusz z AI.** **Napisz z AI…** w kroku 1 (albo **Scenariusz z AI** na pasku) rozpisuje komiks za Ciebie – razem z emocjami i działaniami postaci:
 
 1. Wybierz **Z pomysłu** i opisz historię w 3–5 zdaniach, np. „Dwie przyjaciółki, Ala i Ola, znajdują pod drzwiami paczkę. W środku jest kotek…”, i ustaw **Ile stron**. Albo wybierz **Z dokumentu** i plik ze scenariuszem lub opowiadaniem: Word (.docx), LibreOffice (.odt), Markdown (.md) albo tekst (.txt). Z Google Docs: **Plik → Pobierz → Microsoft Word**. Dialogi z dokumentu zostają dosłownie.
 2. Kliknij **Rozpisz**. Po kilku sekundach widzisz podgląd: strony, kadry, kto mówi, tekst, co widać w kadrze.
@@ -1379,14 +1384,14 @@ Kliknięcie karty otwiera ją do poprawki, **Zapisz** zapisuje, **Usuń** usuwa 
 
 Kadr to kształt z białym tłem i czarnym obrysem, z numerem w kolejności czytania (rzędami od góry, w rzędzie od lewej – w warstwach „Kadr 1”, „Kadr 2”…). Przesuwasz go i zmieniasz jak każdy kształt; obraz wstawisz do kadru jak do każdego kształtu (rozdział „7.7 Obraz w kształcie”), np. przeciągając plik na kadr. Postać może wychodzić poza kadr – połóż wtedy obraz nad kadrem.
 
-**Rysuj kadry (AI).** Otwórz stronę komiksu i kliknij **Rysuj kadry tej strony…** w kroku 3 (albo **AI ▾** → **Rysuj kadry**). Nie piszesz poleceń dla AI – Makietka składa je ze scenariusza i kart:
+**Rysuj kadry (AI).** Otwórz stronę komiksu i kliknij **Rysuj kadry tej strony…** w kroku 3 (albo **Rysuj kadry** na pasku). Nie piszesz poleceń dla AI – Makietka składa je ze scenariusza i kart:
 
-1. Okno pokazuje każdy kadr strony: miniaturę, pole z opisem i znacznik. Opis jest po polsku, np. „Kadr 2. Ujęcie: plan pełny. Scena: Ala biegnie ulicą. W kadrze: Ala – 8 lat, rude warkocze…, zawsze: żółty plecak. Miejsce (tło): Miasteczko…”.
+1. Okno pokazuje każdy kadr strony: miniaturę, pole z opisem i znacznik. Opis jest po polsku, np. „Kadr 2. Ujęcie: plan pełny. Scena: Ala biegnie ulicą. W kadrze: Ala – 8 lat, rude warkocze…, zawsze: żółty plecak, emocja: radość, robi: biegnie. Miejsce (tło): Miasteczko…”.
 2. Popraw opis, jeśli chcesz. Kadry z obrazem są odznaczone – zaznacz je, żeby narysować jeszcze raz.
 3. Wybierz **Jakość** i sprawdź koszt pod listą.
 4. **Rysuj** – kadry wypełniają się po kolei („Rysuję 2 z 3…”). Obrazy wzorcowe postaci i miejsca idą do AI razem z opisem, więc postacie i tło wyglądają tak samo w każdym kadrze. Napisów w obrazach nie ma – tekst jest w dymkach.
 
-**Rysuj jeszcze raz.** Obraz się nie podoba? Otwórz znów **Rysuj kadry tej strony…** i zaznacz ten kadr. Pole opisu pokazuje opis, **z którego powstał obecny obraz** – popraw jedno słowo albo narysuj jeszcze raz bez zmian. **Opis ze scenariusza** wraca do opisu złożonego od nowa (np. po zmianie scenariusza albo karty). Poprzednie obrazy zostają w **Obrazach projektu** (rozdział „7.5 Okno Obrazy projektu”). Drobną zmianę w jednym kadrze (np. „Ala ma mieć zamknięte oczy”) zrobisz bez rysowania od nowa: zaznacz kadr → **AI ▾** → **Obraz z opisu…** → **Popraw obecny obraz – opisz tylko zmianę** (rozdział „7.11 Obraz AI”).
+**Rysuj jeszcze raz.** Obraz się nie podoba? Otwórz znów **Rysuj kadry tej strony…** i zaznacz ten kadr. Pole opisu pokazuje opis, **z którego powstał obecny obraz** – popraw jedno słowo albo narysuj jeszcze raz bez zmian. **Opis ze scenariusza** wraca do opisu złożonego od nowa (np. po zmianie scenariusza albo karty). Poprzednie obrazy zostają w **Obrazach projektu** (rozdział „7.5 Okno Obrazy projektu”). Drobną zmianę w jednym kadrze (np. „Ala ma mieć zamknięte oczy”) zrobisz bez rysowania od nowa: zaznacz kadr → **Popraw obraz** na pasku (rozdział „7.11 Obraz AI”).
 
 **Gotowe rysunki stron.** Masz strony narysowane w innym programie? **Wgraj gotowe strony…** i wybierz wiele plików naraz albo jeden plik ZIP. Nazwa pliku mówi, gdzie trafi obraz:
 
@@ -1404,8 +1409,8 @@ Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na k
 1. Przesuń dymki i końce ogonków tam, gdzie pasują do rysunku.
 2. Poprawiasz scenariusz? Kliknij znów **Ustaw dymki** – zmieni się tylko tekst; przesunięte dymki zostają na miejscu. Kwestia usunięta ze scenariusza usuwa swój dymek.
 
-- Gdy postać mówi dwa razy z rzędu w tym samym kadrze, drugi dymek staje pod pierwszym i łączy się z nim **mostkiem**. Ręcznie: zaznacz dwa dymki (z `Shift`) → **Dymek ▾** → **Mostek**; zaznacz połączony dymek i wybierz **Mostek** jeszcze raz – rozłączysz.
-- Dymek wstawisz też ręcznie: **Dymek ▾** → rodzaj (rozdział „4.14 Dymek”). **Efekt dźwiękowy** to napis „BUM!” dużymi literami z obrysem – zmień tekst, powiększ, obróć.
+- Gdy postać mówi dwa razy z rzędu w tym samym kadrze, drugi dymek staje pod pierwszym i łączy się z nim **mostkiem**. Ręcznie: zaznacz dwa dymki (z `Shift`) → **Mostek**; zaznacz połączony dymek i kliknij **Mostek** jeszcze raz – rozłączysz.
+- Dymek wstawisz też ręcznie: **Mowa**, **Myśl**, **Krzyk**, **Szept** albo **Narracja** na pasku (rozdział „4.14 Dymek”). **Efekt dźwiękowy** to napis „BUM!” dużymi literami z obrysem – zmień tekst, powiększ, obróć.
 - **Style komiksu.** Dymki mają styl **Dialog** (Comic Neue, wersaliki), efekty – styl **Efekt dźwiękowy** (Bangers, żółty z czarnym obrysem). Zmiana stylu (rozdział „5.4 Style”) zmienia naraz wszystkie dymki albo efekty. W projekcie po ukraińsku oba style mają czcionkę Pangolin (z cyrylicą).
 - **Wersje językowe.** Dodaj w tabeli scenariusza (okno **Dane**) kolumny `tekst_en`, `tekst_uk`… **Ustaw dymki** zapyta wtedy, z której kolumny wziąć teksty – ten sam komiks dostaje teksty w innym języku. Kolumnę przetłumaczy też AI: przycisk **✦** przy nazwie kolumny (rozdział „14.6 Wypełnij kolumnę z AI”), np. „przetłumacz kolumnę tekst na angielski”.
 
@@ -2468,7 +2473,9 @@ Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile 
 
 ### 25.2 Klucz dla AI
 
-**Ustawienia konta** → **Sztuczna inteligencja** ma na górze przełącznik czterech dróg pracy z AI: **Czat w Makietce**, **Łącznik w aplikacji AI**, **Kopiuj i wklej** i **Czat otwierający strony**. Każda zakładka wyjaśnia, jak ta droga działa, czego potrzebujesz i ile to kosztuje, a pod spodem pokazuje Twoje klucze z przyciskiem **Edytuj** i przycisk **Dodaj klucz**. Nowy klucz dodajesz i edytujesz zawsze w okienku.
+**Ustawienia konta** → **Sztuczna inteligencja** zaczyna się od tabeli **Ile mniej więcej kosztuje AI** (przybliżone ceny z Google Gemini: poprawa i tłumaczenie tekstu oraz rozmowa – ułamek grosza, scenariusz komiksu – ok. 1 gr, obraz – ok. 0,14 zł w szkicu, 0,41 zł do druku, 0,55 zł najlepszy; przykładowy komiks 3 × 3 kadry – ok. 1,50 zł) i pola **Miesięczny limit wydatków na obrazy i teksty AI**. Okna i asystent nie pytają o zgodę na każdy obraz – koszt widać przy przycisku i w rozmowie, a limit pilnuje, żeby nie wydać za dużo.
+
+Niżej jest przełącznik czterech dróg pracy z AI: **Czat w Makietce**, **Łącznik w aplikacji AI**, **Kopiuj i wklej** i **Czat otwierający strony**. Każda zakładka wyjaśnia, jak ta droga działa, czego potrzebujesz i ile to kosztuje, a pod spodem pokazuje Twoje klucze z przyciskiem **Edytuj** i przycisk **Dodaj klucz**. Nowy klucz dodajesz i edytujesz zawsze w okienku.
 
 | Sekcja | Do czego | Koszt |
 |---|---|---|
@@ -2600,7 +2607,7 @@ Odpowiedź pojawia się w rozmowie na bieżąco, w miarę jak AI ją pisze (Anth
 
 **Zgoda na groźne zmiany.** Zanim asystent usunie strony, 3 i więcej elementów naraz, obrazy albo projekt, zmieni 3 i więcej stron jednym zapisem albo zastąpi w całości wzorce, style, tabele czy serie, w rozmowie pojawia się pytanie „AI chce … Pozwolić?” z przyciskami **Pozwól**, **Zawsze pozwalaj w tej rozmowie** i **Nie pozwalaj**. Po odmowie nic się nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.
 
-**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak **AI ▾** → **Obraz z opisu…**, rozdział „7.11 Obraz AI”), kadry strony komiksu ze scenariusza i kart (rozdział „10.13 Komiks”), dymki ze scenariusza i szacunek kosztu. Obrazy rysuje Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym dostawcą. Przed każdym płatnym rysowaniem w rozmowie pojawia się pytanie z kwotą, np. „AI chce wygenerować obraz „Tulipany w ogrodzie” (koszt ok. 0,14 zł). Pozwolić?” – tu nie ma **Zawsze pozwalaj w tej rozmowie**; po **Nie pozwalaj** nic nie kosztuje. Asystent rysuje w jakości **Szkic**, chyba że poprosisz o lepszą.
+**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak **Obraz AI**, rozdział „7.11 Obraz AI”), kadry strony komiksu ze scenariusza i kart (rozdział „10.13 Komiks”), dymki ze scenariusza i szacunek kosztu. Obrazy rysuje Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym dostawcą. Asystent nie pyta o zgodę na każdy obraz – w rozmowie pisze, co rysuje i ile to mniej więcej kosztuje, np. „🎨 Rysuję obraz „Tulipany w ogrodzie” – ok. 0,14 zł”. Bezpiecznikiem jest **miesięczny limit wydatków** w ustawieniach AI: po jego przekroczeniu asystent nic nie narysuje. Asystent rysuje w jakości **Szkic**, chyba że poprosisz o lepszą.
 
 Przykłady poleceń:
 

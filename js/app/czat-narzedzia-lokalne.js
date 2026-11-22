@@ -10,7 +10,7 @@ import { otwartySejf } from './sejf-ai.js';
 import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu, kosztZUzycia, zapiszWydatek, wLimicie, wydatki } from '../ai-koszty.js';
 import { planKadrowStrony, rysujPozycje, szacujPozycje, ustawDymki, stronyKomiksu } from './komiks-narzedzia.js';
 import { stan } from './kontekst.js';
-import { biezacyJezyk } from '../jezyk.js';
+import { biezacyJezyk, t } from '../jezyk.js';
 
 const JAKOSC = { type: 'string', enum: ['szkic', 'dokladny', 'pro'], description: 'szkic – najtaniej (używaj domyślnie), dokladny – do druku, pro – najlepszy; lepszą jakość tylko, gdy użytkownik o nią prosi' };
 
@@ -69,7 +69,7 @@ export async function wykonajLokalne(nazwa, a, { informuj = () => {}, wolaj }) {
     const q = JAKOSCI_OBRAZU[a.jakosc || 'szkic'];
     const zl = szacujObraz({ ...q, znakiOpisu: String(a.opis).length + 200 });
     limit(zl, j);
-    informuj(`🎨 Rysuję obraz „${String(a.opis).slice(0, 80)}” – ok. ${opisKosztu(zl, j)}`);
+    informuj(t('czatAi.rysujeObraz', { opis: String(a.opis).slice(0, 80), zl: opisKosztu(zl, j) }));
     const klucz = (await otwartySejf())?.klucz('gemini');
     if (!klucz) throw new Error('Użytkownik nie ma klucza Google Gemini – obrazy rysuje tylko Gemini. Poproś o dodanie klucza w Ustawieniach konta → Sztuczna inteligencja.');
     const proporcja = PROPORCJE.includes(a.proporcja) ? a.proporcja : '1:1';
@@ -94,7 +94,7 @@ export async function wykonajLokalne(nazwa, a, { informuj = () => {}, wolaj }) {
     if (!p.length) return `Na stronie ${a.strona} nie ma kadrów do narysowania.`;
     const zl = szacujPozycje(p, a.jakosc || 'szkic');
     limit(zl, j);
-    informuj(`🎨 Rysuję kadry strony ${a.strona}: ${p.length} – ok. ${opisKosztu(zl, j)}`);
+    informuj(t('czatAi.rysujeKadry', { strona: a.strona, ile: p.length, zl: opisKosztu(zl, j) }));
     const w = await rysujPozycje(p, { jakosc: a.jakosc || 'szkic' });
     return `Narysowano ${w.gotowe} kadr(y) strony ${a.strona} (koszt ok. ${opisKosztu(w.zl, j)}).`;
   }

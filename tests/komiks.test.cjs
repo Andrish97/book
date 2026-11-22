@@ -541,3 +541,21 @@ test('komiks: pusty projekt z przełącznikiem „To komiks” i okładką zeszy
   assert.equal(p.style, 2);
   assert.deepEqual(bledy, []);
 });
+
+test('komiks: Biblioteka – kategoria Komiks: dymki, efekt, układ kadrów, raster, okna komiksu (E2)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Komiks z biblioteki');
+  await strona.evaluate(async () => { window.seriodruk.stan.projekt.sekcje[0].typ = 'komiks'; await window.seriodruk.przeladuj(); });
+  await strona.click('[data-akcja="biblioteka"]');
+  await strona.click('#kategorie-biblioteki .chip-biblioteki[data-kategoria="komiks"]');
+  const kafle = await strona.$$eval('#elementy-biblioteki .kafel-biblioteki', (l) => l.map((b) => b.dataset.element));
+  for (const id of ['dymek-mowa', 'dymek-krzyk', 'efekt', 'kadry-4-siatka', 'wzor-raster', 'okno-okno', 'okno-webtoon']) assert.ok(kafle.includes(id), `jest ${id}`);
+  await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="dymek-krzyk"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.dymek));
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.dymek).dymek.rodzaj), 'krzyk');
+  await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="kadry-4-siatka"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.kadr_nr).length === 4);
+  await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="okno-okno"]');
+  await strona.waitForSelector('#dlg-komiks[open]');
+  assert.deepEqual(bledy, []);
+});

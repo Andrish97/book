@@ -28,6 +28,7 @@ export const MODULY_EDYTORA = [
   'js/app/znajdz-okno.js',
   'js/app/zrodlo-obrazu.js',
   'js/biblioteka-elementy.js',
+  'js/biblioteka-komiks.js',
   'js/biblioteka-wzorce.js',
   'js/edytor.js',
   'js/fabric-ustawienia.js',

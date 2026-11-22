@@ -233,7 +233,7 @@ export async function ustawDymkiZWyborem() {
 }
 
 // Dymek w stylu „Dialog” i napis w stylu „Efekt dźwiękowy” (#367) – styl dochodzi do projektu przy pierwszym użyciu.
-function wStyluKomiksu(obj, rodzaj) {
+export function wStyluKomiksu(obj, rodzaj) {
   if (!obj) return obj;
   const styl = stylKomiksu(stan.projekt, rodzaj);
   zastosujStyl(obj, styl);

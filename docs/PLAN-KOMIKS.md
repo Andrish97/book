@@ -103,7 +103,7 @@ pytać o zgodę [na koszt] – raczej informujemy użytkownika w sekcji dodawani
 | # | Co | Stan |
 |---|---|---|
 | E1 | Narzędzia rozwinięte na pasku (osobne przyciski AI i dymków), menu ▾ tylko na telefonie; koszty orientacyjne w ustawieniach AI (doprecyzowanie właściciela: „chodzi o ustawienia AI, nie o menu”) | ✅ #384–#385 |
-| E2 | Komiks w Bibliotece: kategoria „Komiks” – dymki, efekty, układy kadrów, raster i linie ruchu, skróty do okien komiksu | do zrobienia |
+| E2 | Komiks w Bibliotece: kategoria „Komiks” – dymki, efekty, układy kadrów, raster i linie ruchu, skróty do okien komiksu | ✅ #386 |
 | E3 | Emocje i działania postaci w kadrze: przy każdej postaci w kadrze – emocja (lista) i co robi; idą do opisu obrazu i do scenariusza z AI | ✅ #385 |
 | E4 | Bez pytania o zgodę na koszt (czat i narzędzia): koszt orientacyjny w ustawieniach AI przy kluczach; limit miesięczny zostaje jako bezpiecznik | ✅ #384 |
 | E5 | Dodatkowe: „popraw obraz” w czacie, miniatury stylów rysunków, cała strona komiksu jednym obrazem, obrazy w łączniku MCP (B6) | do zrobienia |

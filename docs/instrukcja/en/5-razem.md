@@ -129,7 +129,13 @@ like a collaborator's changes (→ 24.4).
 
 ## 25.2 A key for AI
 
-[Account settings] → **Artificial intelligence** has a switch at the top between four ways of working with AI: **Chat in Makietka**,
+[Account settings] → **Artificial intelligence** starts with the **Roughly how much AI costs** table (approximate
+prices with Google Gemini: improving and translating text and chatting – a fraction of a grosz, a comic script – about
+1 grosz, an image – about 0.14 PLN as a draft, 0.41 PLN for print, 0.55 PLN best; a sample 3 × 3 panel comic – about
+1.50 PLN) and the **Monthly limit for AI images and texts** field. The windows and the assistant don't ask for consent
+for every image – you see the cost next to the button and in the chat, and the limit makes sure you don't spend too much.
+
+Below is a switch between four ways of working with AI: **Chat in Makietka**,
 **Connector in an AI app**, **Copy and paste** and **Chat that opens web pages**. Each tab explains how that way works, what you need and how much it
 costs, and below it shows your keys with an [Edit] button and an [Add key] button. You always add and edit a new key
 in a small window.
@@ -285,12 +291,12 @@ changes, and the AI is told you didn't allow it and asks what to do instead. The
 and paste" mode: the question appears when the pasted chat answer contains such a change.
 
 **Images and comics in the chat.** The assistant can also draw: an image from a description into a frame or onto the
-page (like [AI ▾] → **Image from a description…**, → 7.11), comic page panels from the script and cards (→ 10.13),
-bubbles from the script and a cost estimate. Google Gemini draws the images with the Gemini key from your vault, even
-when you chat with another provider. Before every paid drawing the chat asks with the amount, e.g. “AI wants to
-generate the image “Tulips in the garden” (cost about 0.14 PLN). Allow?” – there is no [Always allow in this
-conversation] here; after [Don't allow] nothing is charged. The assistant draws in **Draft** quality unless you ask
-for better.
+page (like [AI image], → 7.11), comic page panels from the script and cards (→ 10.13), bubbles from the script and
+a cost estimate. Google Gemini draws the images with the Gemini key from your vault, even when you chat with another
+provider. The assistant doesn't ask for consent for every image – in the chat it writes what it is drawing and roughly
+how much it costs, e.g. “🎨 Drawing the image “Tulips in the garden” – about 0.14 PLN”. The safety net is the
+**monthly spending limit** in the AI settings: once it is exceeded, the assistant draws nothing. The assistant draws
+in **Draft** quality unless you ask for better.
 
 Example requests:
 

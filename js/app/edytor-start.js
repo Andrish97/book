@@ -64,6 +64,7 @@ import { podlaczDokWarstw, przelaczZakladkePrawa, przelaczOstrzezenia, ostrzezen
 import { dodajPolecenie } from '../paleta-polecen.js';
 import '../biblioteka-elementy.js';
 import '../biblioteka-wzorce.js'; // kategoria „Wzorce stron” (#164) – osobny moduł
+import '../biblioteka-komiks.js'; // kategoria „Komiks” (uwaga E2)
 import {
   maElementyDoWklejenia, wklejElementy, kopiujStroneDoSchowka, wklejStronyZeSchowka, kopiujSekcjeDoSchowka, wklejSekcjeZeSchowka,
 } from './schowek-okno.js';
