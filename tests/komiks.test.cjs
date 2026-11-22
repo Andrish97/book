@@ -165,3 +165,43 @@ test('komiks: szablon projektu – okładka zeszytowa, strony z kadrami, scenari
   assert.deepEqual(naStronach, [0, 3, 2, 0], 'strona 1 scenariusza = pierwsza strona komiksu (okładka się nie liczy)');
   assert.deepEqual(bledy, []);
 });
+
+test('komiks: style „Dialog” i „Efekt dźwiękowy” – dymki ze scenariusza, przyciski paska (#367)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Style komiksu');
+  await strona.evaluate(async () => { window.seriodruk.stan.projekt.sekcje[0].typ = 'komiks'; await window.seriodruk.przeladuj(); });
+  // Przed pierwszym użyciem stylów komiksu w projekcie nie ma.
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.style.filter((s) => s.komiks).length), 0);
+  await strona.click('[data-akcja="komiks-dymek"]');
+  await strona.click('[data-akcja="komiks-efekt"]');
+  const wynik = await strona.evaluate(() => {
+    const p = window.seriodruk.stan.projekt;
+    const e = window.seriodruk.edytor;
+    const styl = (r) => p.style.find((s) => s.komiks === r);
+    const dymek = e.canvas.getObjects().find((o) => o.dymek);
+    const efekt = e.canvas.getObjects().find((o) => o.styl === styl('efekt').id);
+    return {
+      style: p.style.filter((s) => s.komiks).map((s) => [s.komiks, s.nazwa, s.fontFamily]),
+      dymek: [dymek.styl === styl('dialog').id, dymek.fontFamily, dymek.wielkosc_liter, dymek.textAlign],
+      efekt: [efekt.text, efekt.fontFamily, efekt.stroke, efekt.paintFirst, efekt.strokeWidth > 0],
+    };
+  });
+  assert.deepEqual(wynik.style, [['dialog', 'Dialog', 'Comic Neue'], ['efekt', 'Efekt dźwiękowy', 'Bangers']]);
+  assert.deepEqual(wynik.dymek, [true, 'Comic Neue', 'wielkie', 'center']);
+  assert.deepEqual(wynik.efekt, ['BUM!', 'Bangers', '#1a1a1a', 'stroke', true]);
+  // Drugi dymek nie dodaje drugiego stylu.
+  await strona.click('[data-akcja="komiks-dymek"]');
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.style.filter((s) => s.komiks === 'dialog').length), 1);
+  // Dymki ze scenariusza dostają styl „Dialog”.
+  await strona.click('[data-akcja="komiks-scenariusz"]');
+  await strona.keyboard.press('Escape');
+  await strona.click('[data-akcja="komiks-dymki"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.z_dialogu).length === 1);
+  const zeScenariusza = await strona.evaluate(() => {
+    const p = window.seriodruk.stan.projekt;
+    const o = window.seriodruk.edytor.canvas.getObjects().find((x) => x.z_dialogu);
+    return o.styl === p.style.find((s) => s.komiks === 'dialog').id;
+  });
+  assert.equal(zeScenariusza, true);
+  assert.deepEqual(bledy, []);
+});

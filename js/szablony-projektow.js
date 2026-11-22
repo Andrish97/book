@@ -6,7 +6,7 @@
 import { nowyProjekt, nowaStrona, normalizujWydruk, normalizuj, uid, uporzadkujStrony } from './projekt.js';
 import { przeliczOkladki } from './okladka.js';
 import { domyslnaSpecjalna, dodajWyklejki } from './sekcje-specjalne.js';
-import { domyslneStyle } from './style-tekstu.js';
+import { domyslneStyle, stylKomiksu } from './style-tekstu.js';
 import { wstawGotowaSekcje, usunPustyStart } from './gotowe-sekcje.js';
 import { siatkaKadrow, elementKadru, UKLADY_KADROW } from './kadry.js';
 import { t } from './jezyk.js';
@@ -133,6 +133,8 @@ function pustaSekcja(projekt, typ, nazwa, wzor) {
 function komiksWBloku(p, blok) {
   blok.typ = 'komiks';
   blok.nazwa = 'Komiks';
+  stylKomiksu(p, 'dialog');
+  stylKomiksu(p, 'efekt');
   const w = blok.wydruk; const m = 10;
   w.marginesy = { gora: m, dol: m, wewnetrzny: m, zewnetrzny: m };
   const obszar = { x: m, y: m, w: w.szerokosc_mm - 2 * m, h: w.wysokosc_mm - 2 * m };

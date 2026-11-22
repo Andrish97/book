@@ -1332,6 +1332,7 @@ In a comic section the insert bar has extra tools:
 | Tool | What it does |
 |---|---|
 | [Speech bubble] | Inserts a speech bubble (→ 4.14). Change its kind – speech, thought, shout, whisper, caption – in the panel. |
+| [Effect] | Sound-effect lettering – a big outlined “BOOM!” (style **Sound effect**). Change the text, enlarge, rotate. |
 | [Panels] | A window with 9 ready panel layouts (1–9 panels). Click a preview, set **Gap between panels (mm)** and, if you like, **Bleed** – panels at the edge then run off the page up to the trim line. [Lay out panels] replaces the panels on this page; images and bubbles stay. |
 | [Split panel] | Click two points – the line between them splits the panel in two (it can be diagonal), with the same gap. <kbd>Esc</kbd> cancels. |
 | [Script] | Opens the script table in the **Data** window (→ 14). If there is none, it creates one. |
@@ -1368,10 +1369,12 @@ Type the script in the **Data** window or paste it from a spreadsheet (→ 14.3)
 5. Changing a text in the script? Click [Place bubbles] again – only the text changes; bubbles you moved stay
    where they are. A row deleted from the script removes its bubble.
 
+**Comic styles.** Bubbles from [Speech bubble] and [Place bubbles] use the **Dialogue** style (Comic Neue, capitals, centred), and [Effect] uses **Sound effect** (Bangers, yellow with a black outline). The styles are added to the project the first time you use them; changing a style (→ 5.4) changes all bubbles or effects at once. In a Ukrainian project both styles use Pangolin – Comic Neue and Bangers have no Cyrillic.
+
 **Language versions.** Add columns `tekst_pl`, `tekst_en`, `tekst_uk` to the script (each with the text in one
 language). [Place bubbles] then asks which column to use – the same layout gets the texts in another language.
 
-> Tip: Bubbles use a comic style (Comic Neue font, capitals). Make the panel images in any program or generator –
+> Tip: Make the panel images in any program or generator –
 > the text always stays in Makietka's bubbles, not in the image, so it is easy to fix and translate.
 
 # 11. Master pages

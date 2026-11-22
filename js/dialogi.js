@@ -47,7 +47,8 @@ function obszarKadru(strona, kadr, ileKadrow, wymiary) {
 
 // Dymki z tabeli: zwraca { dodane, zmienione, usuniete, pominiete: [opis] }; zmienia projekt w miejscu.
 // wymiaryStrony(strona) → { lewy, gora, szer, wys } – obszar w marginesach (mm).
-export function dymkiZTabeli(projekt, tabela, { kolumnaTekstu = null, wymiaryStrony, noweId }) {
+// styl – opcjonalny styl tekstu dymków (np. „Dialog”, #367): { id, …wartości } – nowe dymki dostają jego wygląd.
+export function dymkiZTabeli(projekt, tabela, { kolumnaTekstu = null, wymiaryStrony, noweId, styl = null }) {
   const k = kolumnyDialogu(tabela, kolumnaTekstu);
   const wynik = { dodane: 0, zmienione: 0, usuniete: 0, pominiete: [] };
   if (k.strona < 0 || k.tekst < 0) throw new Error('W tabeli brakuje kolumny „strona” albo „tekst”.');
@@ -104,6 +105,7 @@ export function dymkiZTabeli(projekt, tabela, { kolumnaTekstu = null, wymiaryStr
       fontFamily: 'Comic Neue', fontSize: Math.round((10 * 25.4 / 72) * 1000) / 1000, fontWeight: w.rodzaj === 'krzyk' ? 'bold' : 'normal',
       fill: '#1a1a1a', lineHeight: 1.1, textAlign: w.rodzaj === 'narracja' ? 'left' : 'center', strokeWidth: 0,
       wielkosc_liter: 'wielkie', spojniki: true, zasady_pl: true, nazwa,
+      ...(styl ? { ...styl.wartosci, styl: styl.id, ...(w.rodzaj === 'krzyk' ? { fontWeight: 'bold' } : {}), textAlign: w.rodzaj === 'narracja' ? 'left' : 'center' } : {}),
       dymek: domyslnyDymek({ rodzaj: w.rodzaj, ogonek: w.rodzaj === 'narracja' ? null : { x: szer * (nr % 2 ? 0.7 : 0.3), y: Math.min(28, obszar.h * 0.45) } }),
       z_dialogu: { tabela: tabela.id, klucz: w.klucz, wiersz: w.nr },
     };

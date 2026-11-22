@@ -537,6 +537,7 @@ export const akcje = {
   'skladanka-instrukcja': () => obsluzAkcje('skladanka-instrukcja'),
   // Komiks (#364): dymek, kadry, podział kadru, scenariusz, dymki ze scenariusza.
   'komiks-dymek': () => obsluzAkcjeKomiksu('komiks-dymek'),
+  'komiks-efekt': () => obsluzAkcjeKomiksu('komiks-efekt'),
   'komiks-kadry': () => obsluzAkcjeKomiksu('komiks-kadry'),
   'komiks-podziel': () => obsluzAkcjeKomiksu('komiks-podziel'),
   'komiks-scenariusz': () => obsluzAkcjeKomiksu('komiks-scenariusz'),

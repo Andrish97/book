@@ -1332,6 +1332,7 @@ W sekcji komiksu pasek wstawiania ma dodatkowe narzędzia:
 | Narzędzie | Co robi |
 |---|---|
 | [Dymek] | Wstawia dymek (→ 4.14). Rodzaj – mowa, myśl, krzyk, szept, narracja – zmienisz w panelu. |
+| [Efekt] | Napis efektu dźwiękowego – „BUM!” dużymi literami z obrysem (styl **Efekt dźwiękowy**). Zmień tekst, powiększ, obróć. |
 | [Kadry] | Okno z 9 gotowymi układami kadrów (1–9 kadrów). Kliknij podgląd, ustaw **Odstęp między kadrami** (mm) i ewentualnie **Na spad** – kadry przy brzegu wychodzą wtedy poza stronę, aż do linii cięcia. [Ułóż kadry] zastępuje kadry na tej stronie; obrazy i dymki zostają. |
 | [Podziel kadr] | Kliknij dwa punkty – linia między nimi dzieli kadr na dwa (może być ukośna), z tym samym odstępem. <kbd>Esc</kbd> przerywa. |
 | [Scenariusz] | Otwiera tabelę scenariusza w oknie **Dane** (→ 14). Gdy jej nie ma – tworzy ją. |
@@ -1367,10 +1368,12 @@ Scenariusz wpiszesz w oknie **Dane** albo wkleisz z arkusza (→ 14.3).
 5. Zmieniasz tekst w scenariuszu? Kliknij znowu [Ustaw dymki] – zmieni się tylko tekst; dymki, które przesunąłeś,
    zostają na swoim miejscu. Wiersz usunięty ze scenariusza usuwa swój dymek.
 
+**Style komiksu.** Dymki z [Dymek] i [Ustaw dymki] mają styl **Dialog** (Comic Neue, wersaliki, wyśrodkowany), a [Efekt] – styl **Efekt dźwiękowy** (Bangers, żółty z czarnym obrysem). Style dochodzą do projektu przy pierwszym użyciu; zmiana stylu (→ 5.4) zmienia naraz wszystkie dymki albo efekty. W projekcie po ukraińsku oba style mają czcionkę Pangolin – Comic Neue i Bangers nie mają cyrylicy.
+
 **Wersje językowe.** Dodaj do scenariusza kolumny `tekst_pl`, `tekst_en`, `tekst_uk` (każda z tekstem w jednym
 języku). [Ustaw dymki] zapyta wtedy, z której kolumny wziąć teksty – ten sam układ dostaje teksty w innym języku.
 
-> Wskazówka: Dymki stawiają się w stylu komiksowym (czcionka Comic Neue, wersaliki). Obrazy do kadrów możesz
+> Wskazówka: Obrazy do kadrów możesz
 > zrobić w dowolnym programie albo generatorze – tekst zawsze jest w dymkach Makietki, nie w obrazie, więc łatwo go
 > poprawić i przetłumaczyć.
 

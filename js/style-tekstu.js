@@ -3,6 +3,7 @@
 // które go używają – na każdej stronie i w każdym wzorcu.
 
 import { uid, ptNaMm } from './projekt.js';
+import { t, biezacyJezyk } from './jezyk.js';
 
 export const POLA_STYLU = [
   'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'underline', 'linethrough',
@@ -11,6 +12,7 @@ export const POLA_STYLU = [
   'dziel_wyrazy', 'dziel_min', 'dziel_przed', 'dziel_po', 'spojniki', 'zasady_pl', 'lamanie_akapitu', 'wdowy', 'do_siatki',
   'inicjal', 'inicjal_czcionka', 'inicjal_kolor', 'tabulatory',
   'wielkosc_liter', // wielkość liter jako wygląd (#167: style marki, np. etykieta WIELKIMI)
+  'stroke', 'strokeWidth', 'paintFirst', // obrys tekstu (#123) – np. efekt dźwiękowy w komiksie (#367)
 ];
 const POLA_SKLADU_STYLU = new Set(POLA_STYLU.slice(10));
 // Porównanie wartości stylu z tekstem (liczby z tolerancją, puste = wyłączone, listy po treści).
@@ -35,8 +37,33 @@ export function domyslneStyle() {
   ];
 }
 
+// Style komiksu (#367, plan komiksu A4): „Dialog” – lettering dymków (Comic Neue, wersaliki, wyśrodkowany) i „Efekt
+// dźwiękowy” – okrzyki typu „BUM!” (Bangers z czarnym obrysem). Dodawane do projektu przy pierwszym użyciu w komiksie
+// (szablon, dymki ze scenariusza, przyciski paska); rozpoznawane po polu `komiks`, nie po nazwie (nazwę można zmienić).
+// Bangers i Comic Neue nie mają cyrylicy – po ukraińsku oba style w Pangolinie.
+const cyrylica = () => biezacyJezyk() === 'uk';
+const STYLE_KOMIKSU = {
+  dialog: () => ({
+    nazwa: t('komiks.stylDialog'), ...PODSTAWA, fontFamily: cyrylica() ? 'Pangolin' : 'Comic Neue', fontSize: ptNaMm(10), lineHeight: 1.1, textAlign: 'center',
+    wielkosc_liter: 'wielkie', spojniki: true, zasady_pl: true,
+  }),
+  efekt: () => ({
+    nazwa: t('komiks.stylEfekt'), ...PODSTAWA, fontFamily: cyrylica() ? 'Pangolin' : 'Bangers', fontSize: ptNaMm(36), lineHeight: 1, textAlign: 'center',
+    charSpacing: 40, fill: '#f2c230', stroke: '#1a1a1a', strokeWidth: 0.8, paintFirst: 'stroke',
+  }),
+};
+export function stylKomiksu(projekt, rodzaj) {
+  projekt.style = projekt.style || [];
+  let s = projekt.style.find((x) => x.komiks === rodzaj);
+  if (!s && STYLE_KOMIKSU[rodzaj]) {
+    s = { id: uid('st'), ...STYLE_KOMIKSU[rodzaj](), komiks: rodzaj };
+    projekt.style.push(s);
+  }
+  return s || null;
+}
+
 // Wartości stylu do nadania tekstowi; null (wyłączone w stylu) → undefined (tekst też bez tego ustawienia).
-const wartosciStylu = (styl) => Object.fromEntries(POLA_STYLU.filter((k) => styl[k] !== undefined).map((k) => [k, styl[k] === null ? undefined : styl[k]]));
+export const wartosciStylu = (styl) => Object.fromEntries(POLA_STYLU.filter((k) => styl[k] !== undefined).map((k) => [k, styl[k] === null ? undefined : styl[k]]));
 
 export function stylZObiektu(obj, nazwa, id = uid('st')) {
   const styl = { id, nazwa };
@@ -51,6 +78,7 @@ export function stylZObiektu(obj, nazwa, id = uid('st')) {
 export function zastosujStyl(obj, styl) {
   for (const k of POLA_FRAGMENTU) obj.removeStyle?.(k);
   obj.set({ ...wartosciStylu(styl), styl: styl.id });
+  if (styl.stroke) obj.set({ strokeUniform: true });
   if (obj.scaleY && obj.scaleY !== 1) obj.set('fontSize', styl.fontSize / obj.scaleY);
   obj.initDimensions?.();
   obj.setCoords();

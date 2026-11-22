@@ -29,7 +29,7 @@ wydatek widoczny i potwierdzany; tekst dymków zawsze w Makietce, nigdy w obrazi
 | A1 | **Dymek**: mowa, myśl, krzyk, szept, narracja; ogonek przeciągany uchwytem; rośnie z tekstem; skrót w łączniku | ✅ #360 |
 | A2 | **Obrys tekstu** do efektów dźwiękowych („BUM!”) | ✅ był (#123) |
 | A3 | **Czcionki komiksowe** (OFL): Bangers (okrzyki), Comic Neue (dialogi), Pangolin (dialogi z polskimi i ukraińskimi literami); cyrylica we wszystkich czcionkach, które ją mają. Permanent Marker odpada – nie ma polskich liter | #363 |
-| A4 | Style tekstu **„Dialog”** (wersaliki – lettering) i **„Efekt dźwiękowy”** (Bangers z obrysem); dymki domyślnie w stylu „Dialog” | do zrobienia |
+| A4 | Style tekstu **„Dialog”** (wersaliki – lettering) i **„Efekt dźwiękowy”** (Bangers z obrysem); dymki domyślnie w stylu „Dialog” | ✅ #367 (też przycisk [Efekt]; po ukraińsku Pangolin) |
 | A5 | **Tryb „Komiks”**: szablon projektu i typ sekcji z paskiem narzędzi (Dymek, Kadry, Podziel kadr, Scenariusz, Postacie) | ✅ #364 (bez „Postacie” – A9) |
 | A6 | **Kadry**: gotowe układy 1–9 kadrów z rynną, podział kadru przeciągnięciem (także ukośny), kadr na spad, obraz w kadrze (przeciągnięcie pliku na ramkę), postać wychodząca poza kadr | ✅ #362, #364 (układy, podział dwoma kliknięciami, spad; obraz w kadrze jak w każdym kształcie) |
 | A7 | **Scenariusz**: tabela (strona, kadr, postać, tekst, rodzaj dymka; opcjonalnie opis sceny, miejsce) – wklejasz z CSV albo wpisujesz; przycisk **„Ustaw dymki”** stawia dymki; poprawka scenariusza zmienia tylko tekst, przesunięte dymki zostają; rodzaj dymka wybierasz w tabeli albo na dymku | ✅ #361, #364 |

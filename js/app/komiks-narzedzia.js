@@ -10,6 +10,7 @@ import { typSekcji } from '../typ-sekcji.js';
 import { $, powiadom } from '../ui.js';
 import { stan, edytor, biezacaSekcja } from './kontekst.js';
 import { t } from '../jezyk.js';
+import { stylKomiksu, wartosciStylu, zastosujStyl } from '../style-tekstu.js';
 
 export const wKomiksie = () => stan.tryb === 'strona' && typSekcji(biezacaSekcja()) === 'komiks';
 
@@ -185,7 +186,8 @@ export async function ustawDymki({ kolumnaTekstu = null } = {}) {
     return { lewy, gora: m.gora ?? 10, szer: w.szerokosc_mm - lewy - prawy, wys: w.wysokosc_mm - (m.gora ?? 10) - (m.dol ?? 10) };
   };
   let n = 0;
-  const wynik = dymkiZTabeli({ strony: stronyKomiksu(p) }, tb, { kolumnaTekstu, wymiaryStrony, noweId: () => `dym_${Date.now().toString(36)}_${(n += 1)}` });
+  const dialog = stylKomiksu(p, 'dialog');
+  const wynik = dymkiZTabeli({ strony: stronyKomiksu(p) }, tb, { styl: { id: dialog.id, wartosci: wartosciStylu(dialog) }, kolumnaTekstu, wymiaryStrony, noweId: () => `dym_${Date.now().toString(36)}_${(n += 1)}` });
   await zaladujCel();
   zaplanujZapis();
   powiadom(t('komiks.ustawionoDymki', { dodane: wynik.dodane, zmienione: wynik.zmienione, usuniete: wynik.usuniete }) + (wynik.pominiete.length ? ` ${t('komiks.pominieto', { lista: wynik.pominiete.slice(0, 3).join('; ') })}` : ''), wynik.pominiete.length > 0);
@@ -209,9 +211,27 @@ async function ustawDymkiZWyborem() {
   });
 }
 
+// Dymek w stylu „Dialog” i napis w stylu „Efekt dźwiękowy” (#367) – styl dochodzi do projektu przy pierwszym użyciu.
+function wStyluKomiksu(obj, rodzaj) {
+  if (!obj) return obj;
+  const styl = stylKomiksu(stan.projekt, rodzaj);
+  zastosujStyl(obj, styl);
+  edytor.canvas.requestRenderAll();
+  edytor.zatwierdz?.();
+  zaplanujZapis();
+  return obj;
+}
+export const dymekWStylu = () => wStyluKomiksu(edytor.dodajDymek('mowa'), 'dialog');
+export const efektDzwiekowy = () => {
+  const o = edytor.dodajTekst(t('komiks.efektTekst'));
+  if (o) o.set({ width: 70, nazwa: t('komiks.stylEfekt') });
+  return wStyluKomiksu(o, 'efekt');
+};
+
 // Pasek narzędzi: przyciski z data-akcja="komiks-…".
 export function obsluzAkcjeKomiksu(akcja) {
-  if (akcja === 'komiks-dymek') return edytor.dodajDymek('mowa');
+  if (akcja === 'komiks-dymek') return dymekWStylu();
+  if (akcja === 'komiks-efekt') return efektDzwiekowy();
   if (akcja === 'komiks-kadry') return oknoKadrow();
   if (akcja === 'komiks-podziel') return narzedziePodzialu() ? zakonczPodzial() : zacznijPodzial();
   if (akcja === 'komiks-scenariusz') return otworzScenariusz();
