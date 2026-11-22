@@ -24,9 +24,10 @@ test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenarius
     p.sekcje[0].typ = 'komiks';
     await window.seriodruk.przeladuj();
   });
-  // #377: w pasku tylko trzy przyciski komiksu – reszta w menu [Dymek ▾] i w oknie „Komiks”.
-  assert.equal(await strona.locator('#pasek-narzedzi .tylko-komiks').count(), 3);
-  for (const a of ['komiks-kadry', 'komiks-dymek', 'komiks-okno']) {
+  // E1: na komputerze dymki i AI komiksu rozwinięte na pasku (na telefonie – menu [Dymek ▾]); reszta w oknie „Komiks”.
+  assert.deepEqual(await strona.$$eval('#pasek-narzedzi .tylko-komiks', (l) => l.filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja)),
+    ['komiks-kadry', 'komiks-dymek-mowa', 'komiks-dymek-mysl', 'komiks-dymek-krzyk', 'komiks-dymek-szept', 'komiks-dymek-narracja', 'komiks-efekt', 'komiks-mostek', 'komiks-okno', 'komiks-scenariusz-ai', 'komiks-rysuj']);
+  for (const a of ['komiks-kadry', 'komiks-dymek-mowa', 'komiks-okno']) {
     assert.equal(await strona.locator(`[data-akcja="${a}"]`).isVisible(), true, `w sekcji komiksu widać ${a}`);
   }
 
@@ -89,7 +90,7 @@ test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenarius
   await krokKomiksu(strona, 'scenariusz');
   await strona.waitForSelector('#dlg-scenariusz[open]');
   const tabela = await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('postać')));
-  assert.deepEqual(tabela.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
+  assert.deepEqual(tabela.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
   assert.equal(tabela.wiersze.length, 1, 'przykładowy wiersz');
   await strona.keyboard.press('Escape');
   // Użytkownik wpisuje dialogi (tu – wprost w tabelę).
@@ -479,15 +480,22 @@ test('komiks: okno Scenariusz – kadry z ujęciem i miejscem z listy, kto w kad
   await kadr1.getByRole('button', { name: 'Kwestia' }).click();
   await kadr1.locator('.kwestia').nth(1).locator('select[name="postac"]').selectOption('Ola');
   await kadr1.locator('.kwestia').nth(1).locator('input[name="tekst"]').fill('Gdzie?');
+  // Emocje i działania postaci w kadrze (E3): mówiąca postać jest w kadrze (pole zablokowane).
+  assert.equal(await kadr1.locator('.w-kadrze input[value="Ala"]').isDisabled(), true);
+  const ala = kadr1.locator('.postac-w-kadrze:has(input[value="Ala"])');
+  await ala.locator('select[name="emocja"]').selectOption('radość');
+  await ala.locator('input[name="robi"]').fill('wskazuje palcem');
+  await kadr1.locator('.postac-w-kadrze:has(input[value="Ola"]) select[name="emocja"]').selectOption('zaskoczenie');
   await dlg.locator('[data-strona="1"]').getByRole('button', { name: 'Kadr', exact: true }).click();
   await dlg.locator('[data-strona="1"] [data-kadr="2"] select[name="ujecie"]').selectOption('zbliżenie');
+  assert.equal(await dlg.locator('[data-strona="1"] [data-kadr="2"] select[name="emocja"]').count(), 0, 'bez postaci w kadrze – bez emocji');
   await dlg.locator('button[value="tak"]').click();
   await strona.waitForFunction(() => !document.querySelector('#dlg-scenariusz').open);
   const wiersze = await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('ujęcie')).wiersze);
   assert.deepEqual(wiersze, [
-    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala i Ola na rynku', 'Ala', 'Patrz!', 'mowa'],
-    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala i Ola na rynku', 'Ola', 'Gdzie?', 'mowa'],
-    ['1', '2', 'zbliżenie', '', '', '', '', '', ''],
+    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala (radość): wskazuje palcem; Ola (zaskoczenie)', 'Ala i Ola na rynku', 'Ala', 'Patrz!', 'mowa'],
+    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala (radość): wskazuje palcem; Ola (zaskoczenie)', 'Ala i Ola na rynku', 'Ola', 'Gdzie?', 'mowa'],
+    ['1', '2', 'zbliżenie', '', '', '', '', '', '', ''],
   ]);
   assert.deepEqual(bledy, []);
 });

@@ -116,10 +116,14 @@ test('scenariusz jako struktura: strony → kadry → kwestie, zapis do tabeli i
   const s = m.scenariuszZTabeli(tb);
   assert.deepEqual(s.map((x) => [x.nr, x.kadry.map((k) => [k.nr, k.kwestie.length])]), [[1, [[1, 2], [2, 0]]]]);
   s[0].kadry[1].ujecie = 'zbliżenie'; s[0].kadry[1].wKadrze = ['Ala']; s[0].kadry[1].opis = 'Ala patrzy';
+  s[0].kadry[1].gra = [{ imie: 'Ala', emocja: 'smutek', robi: 'patrzy w okno' }];
   m.scenariuszDoTabeli(tb, s);
-  assert.deepEqual(tb.kolumny, ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'tekst_en', 'ujęcie', 'miejsce', 'w kadrze', 'opis sceny']);
-  assert.deepEqual(tb.wiersze[1], ['1', '1', 'Ola', 'Cześć', 'mowa', 'Hello', '', '', '', ''], 'tekst_en zostaje przy kwestii');
-  assert.deepEqual(tb.wiersze[2], ['1', '2', '', '', '', '', 'zbliżenie', '', 'Ala', 'Ala patrzy'], 'kadr bez kwestii – wiersz bez tekstu');
+  assert.deepEqual(tb.kolumny, ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'tekst_en', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'opis sceny']);
+  assert.deepEqual(tb.wiersze[1], ['1', '1', 'Ola', 'Cześć', 'mowa', 'Hello', '', '', '', '', ''], 'tekst_en zostaje przy kwestii');
+  assert.deepEqual(tb.wiersze[2], ['1', '2', '', '', '', '', 'zbliżenie', '', 'Ala', 'Ala (smutek): patrzy w okno', 'Ala patrzy'], 'kadr bez kwestii – wiersz bez tekstu');
+  // emocje i działania (E3): tekst ↔ lista, z powrotem z tabeli
+  assert.deepEqual(m.scenariuszZTabeli(tb)[0].kadry[1].gra, [{ imie: 'Ala', emocja: 'smutek', robi: 'patrzy w okno' }]);
+  assert.deepEqual(m.graZTekstu('Ala (radość): biegnie, macha; Ola: patrzy; Ewa (strach)'), [{ imie: 'Ala', emocja: 'radość', robi: 'biegnie, macha' }, { imie: 'Ola', emocja: '', robi: 'patrzy' }, { imie: 'Ewa', emocja: 'strach', robi: '' }]);
   assert.equal(m.idUjecia('Close-up'), 'zblizenie');
   assert.equal(m.idUjecia('загальний план'), 'ogolny');
 });

@@ -23,7 +23,7 @@ import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
 import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
 import { obsluzAkcje, podlaczSkladanke } from './skladanka-narzedzia.js'; // narzędzia składanki (#233)
 import { obsluzAkcjeKomiksu, podlaczKomiks } from './komiks-narzedzia.js'; // narzędzia komiksu (#364)
-import { oknoGenerowania, menuAi } from './generuj-obraz.js'; // obraz z AI (#372), menu AI (#377)
+import { oknoGenerowania, menuAi, akcjaAi } from './generuj-obraz.js'; // obraz z AI (#372), menu AI (#377)
 import { oknoKomiksu } from './komiks-okno.js'; // okno „Komiks” krok po kroku (#377)
 import { oknoTekstuAi, oknoKolumnyAi } from './tekst-ai.js'; // tekst z AI (#373)
 dane.wypelnijKolumneAi = oknoKolumnyAi; // ✦ przy kolumnie w oknie Dane (#373)
@@ -542,6 +542,11 @@ export const akcje = {
   // Komiks (#364): dymek, kadry, podział kadru, scenariusz, dymki ze scenariusza.
   'generuj-obraz': () => oknoGenerowania(),
   'ai-menu': () => menuAi(),
+  'ai-obraz': () => akcjaAi('ai-obraz'),
+  'ai-popraw-obraz': () => akcjaAi('ai-popraw-obraz'),
+  'ai-tekst': () => akcjaAi('ai-tekst'),
+  'ai-asystent': () => akcjaAi('ai-asystent'),
+  ...Object.fromEntries(['mowa', 'mysl', 'krzyk', 'szept', 'narracja'].map((r) => [`komiks-dymek-${r}`, () => obsluzAkcjeKomiksu(`komiks-dymek-${r}`)])),
   'komiks-okno': () => oknoKomiksu(),
   'tekst-ai': () => oknoTekstuAi(),
   'komiks-dymek': () => obsluzAkcjeKomiksu('komiks-dymek'),

@@ -190,7 +190,12 @@ function podlaczPasekWstawiania() {
     p.classList.toggle('dalej-lewo', zapas > 1 && p.scrollLeft > 1);
   };
   p.addEventListener('scroll', odswiez, { passive: true });
+  // Kółko myszy przewija pasek w bok (na komputerze, gdy rozwinięte narzędzia się nie mieszczą – uwaga E1).
+  p.addEventListener('wheel', (e) => {
+    if (p.scrollWidth - p.clientWidth > 1 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { p.scrollLeft += e.deltaY; e.preventDefault(); }
+  }, { passive: false });
   new ResizeObserver(odswiez).observe(p);
+  new MutationObserver(odswiez).observe(document.body, { attributes: true, attributeFilter: ['class'] }); // wejście w komiks zmienia przyciski
   odswiez();
 }
 

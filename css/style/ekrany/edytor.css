@@ -387,7 +387,10 @@ body.w-komiksie .pasek-narzedzi .tylko-komiks { display: inline-flex; }
 .naglowek-kadru select { flex: 1 1 140px; }
 .naglowek-kadru .przycisk-ikona { margin-left: auto; }
 .opis-kadru input, .kwestia input[name="tekst"] { width: 100%; }
-.w-kadrze { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.w-kadrze { display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.postac-w-kadrze { display: grid; grid-template-columns: 130px 140px 1fr; gap: 6px; align-items: center; }
+.postac-w-kadrze .znacznik { justify-self: start; }
+@media (max-width: 640px) { .postac-w-kadrze { grid-template-columns: 1fr 1fr; } .postac-w-kadrze input[name="robi"] { grid-column: 1 / -1; } }
 .w-kadrze .znacznik { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border: 1px solid var(--linia); border-radius: 999px; font-size: 13px; cursor: pointer; }
 .w-kadrze .znacznik:has(input:checked) { border-color: var(--akcent); background: var(--akcent-tlo); }
 .kwestie { display: grid; gap: 6px; }
@@ -1447,3 +1450,13 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .dialog-makieta.makieta-pelna .makieta-model, .dialog-makieta.makieta-pelna [data-akcja="makieta-pobierz"] { display: none; }
 #dlg-ai-obraz .tryb-ai { border: 0; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 12px; } #dlg-ai-obraz .tryb-ai legend { padding: 0; margin-bottom: 4px; }
 .koszty-ai h3 { margin: 0 0 4px; font-size: 1rem; } .tabela-kosztow-ai { border-collapse: collapse; margin: 6px 0; width: 100%; max-width: 520px; font-size: .9rem; } .tabela-kosztow-ai td { padding: 4px 8px 4px 0; border-bottom: 1px solid var(--linia, #ddd); } .tabela-kosztow-ai td:last-child { text-align: right; white-space: nowrap; }
+/* Uwaga E1: z rozwiniętymi dymkami i AI pasek bywa szerszy niż obszar – nie wychodzi poza ekran, przewija się w bok. */
+.pasek-narzedzi { max-width: calc(100% - 16px); overflow-x: auto; scrollbar-width: none; }
+.pasek-narzedzi::-webkit-scrollbar { display: none; }
+.pasek-narzedzi > button { flex: none; }
+/* Grupy rozwiniętych przycisków (dymki, AI) – odstęp od sąsiednich narzędzi. */
+.pasek-narzedzi [data-akcja="komiks-dymek-mowa"], .pasek-narzedzi [data-akcja="ai-obraz"] { margin-left: 8px; }
+.pasek-narzedzi [data-akcja="komiks-mostek"], .pasek-narzedzi [data-akcja="ai-asystent"] { margin-right: 8px; }
+.pasek-narzedzi.dalej-prawo { -webkit-mask-image: linear-gradient(to right, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to right, var(--czern) calc(100% - 28px), transparent); }
+.pasek-narzedzi.dalej-lewo { -webkit-mask-image: linear-gradient(to left, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to left, var(--czern) calc(100% - 28px), transparent); }
+.pasek-narzedzi.dalej-lewo.dalej-prawo { -webkit-mask-image: linear-gradient(to right, transparent, var(--czern) 28px, var(--czern) calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, var(--czern) 28px, var(--czern) calc(100% - 28px), transparent); }

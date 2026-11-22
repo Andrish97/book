@@ -95,17 +95,17 @@ teksty, tłumaczenie i obrazy w zwykłych trybach”.
 
 ## Część E – uwagi właściciela z 22.11 (rano), po części D
 
-Słowa właściciela (skrót): „[AI ▾] – rozwiń, żeby AI miało tam też przyciski” · „jak mieć dostęp do innych rzeczy
+Słowa właściciela (skrót): „chodzi mi o to, że informacje o kosztach teoretycznych umieścić w ustawieniach AI w ustawieniach konta, a narzędzia trzeba rozwinąć – żeby nie było menu (ewentualnie na telefonie), tylko były rozwinięte na pasku” · „[AI ▾] – rozwiń, żeby AI miało tam też przyciski” · „jak mieć dostęp do innych rzeczy
 (komiksu)? Może biblioteka niech będzie?” · „czy warto dla sceny dodać osobno emocje i działania postaci?” · „nie powinien
 pytać o zgodę [na koszt] – raczej informujemy użytkownika w sekcji dodawania kluczy, ile mniej więcej to kosztuje” ·
 „możesz zrobić rzeczy dodatkowe, które pominąłeś”.
 
 | # | Co | Stan |
 |---|---|---|
-| E1 | Menu [AI ▾] pełniejsze: wszystkie działania AI w jednym miejscu (obraz, popraw obraz, tekst, kolumna w danych, asystent AI; w komiksie scenariusz, rysowanie kadrów, obraz wzorcowy postaci) | do zrobienia |
+| E1 | Narzędzia rozwinięte na pasku (osobne przyciski AI i dymków), menu ▾ tylko na telefonie; koszty orientacyjne w ustawieniach AI (doprecyzowanie właściciela: „chodzi o ustawienia AI, nie o menu”) | ✅ #384–#385 |
 | E2 | Komiks w Bibliotece: kategoria „Komiks” – dymki, efekty, układy kadrów, raster i linie ruchu, skróty do okien komiksu | do zrobienia |
-| E3 | Emocje i działania postaci w kadrze: przy każdej postaci w kadrze – emocja (lista) i co robi; idą do opisu obrazu i do scenariusza z AI | do zrobienia |
-| E4 | Bez pytania o zgodę na koszt (czat i narzędzia): koszt orientacyjny w ustawieniach AI przy kluczach; limit miesięczny zostaje jako bezpiecznik | do zrobienia |
+| E3 | Emocje i działania postaci w kadrze: przy każdej postaci w kadrze – emocja (lista) i co robi; idą do opisu obrazu i do scenariusza z AI | ✅ #385 |
+| E4 | Bez pytania o zgodę na koszt (czat i narzędzia): koszt orientacyjny w ustawieniach AI przy kluczach; limit miesięczny zostaje jako bezpiecznik | ✅ #384 |
 | E5 | Dodatkowe: „popraw obraz” w czacie, miniatury stylów rysunków, cała strona komiksu jednym obrazem, obrazy w łączniku MCP (B6) | do zrobienia |
 
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)

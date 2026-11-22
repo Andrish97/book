@@ -129,7 +129,13 @@ jak zmiany współpracownika (→ 24.4).
 
 ## 25.2 Klucz dla AI
 
-[Ustawienia konta] → **Sztuczna inteligencja** ma na górze przełącznik czterech dróg pracy z AI: **Czat w Makietce**,
+[Ustawienia konta] → **Sztuczna inteligencja** zaczyna się od tabeli **Ile mniej więcej kosztuje AI** (przybliżone
+ceny z Google Gemini: poprawa i tłumaczenie tekstu oraz rozmowa – ułamek grosza, scenariusz komiksu – ok. 1 gr, obraz –
+ok. 0,14 zł w szkicu, 0,41 zł do druku, 0,55 zł najlepszy; przykładowy komiks 3 × 3 kadry – ok. 1,50 zł) i pola
+**Miesięczny limit wydatków na obrazy i teksty AI**. Okna i asystent nie pytają o zgodę na każdy obraz – koszt widać
+przy przycisku i w rozmowie, a limit pilnuje, żeby nie wydać za dużo.
+
+Niżej jest przełącznik czterech dróg pracy z AI: **Czat w Makietce**,
 **Łącznik w aplikacji AI**, **Kopiuj i wklej** i **Czat otwierający strony**. Każda zakładka wyjaśnia, jak ta droga działa, czego potrzebujesz i ile to
 kosztuje, a pod spodem pokazuje Twoje klucze z przyciskiem [Edytuj] i przycisk [Dodaj klucz]. Nowy klucz dodajesz
 i edytujesz zawsze w okienku.
@@ -284,12 +290,12 @@ sama ponawia zapytanie dwa razy, zanim zgłosi błąd.
 nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj
 i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.
 
-**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak [AI ▾] → **Obraz
-z opisu…**, → 7.11), kadry strony komiksu ze scenariusza i kart (→ 10.13), dymki ze scenariusza i szacunek kosztu.
-Obrazy rysuje Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym dostawcą. Przed każdym płatnym
-rysowaniem w rozmowie pojawia się pytanie z kwotą, np. „AI chce wygenerować obraz „Tulipany w ogrodzie” (koszt ok.
-0,14 zł). Pozwolić?” – tu nie ma [Zawsze pozwalaj w tej rozmowie]; po [Nie pozwalaj] nic nie kosztuje. Asystent
-rysuje w jakości **Szkic**, chyba że poprosisz o lepszą.
+**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak [Obraz AI],
+→ 7.11), kadry strony komiksu ze scenariusza i kart (→ 10.13), dymki ze scenariusza i szacunek kosztu. Obrazy rysuje
+Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym dostawcą. Asystent nie pyta o zgodę na każdy obraz
+– w rozmowie pisze, co rysuje i ile to mniej więcej kosztuje, np. „🎨 Rysuję obraz „Tulipany w ogrodzie” – ok.
+0,14 zł”. Bezpiecznikiem jest **miesięczny limit wydatków** w ustawieniach AI: po jego przekroczeniu asystent nic nie
+narysuje. Asystent rysuje w jakości **Szkic**, chyba że poprosisz o lepszą.
 
 Przykłady poleceń:
 

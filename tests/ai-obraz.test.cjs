@@ -82,11 +82,9 @@ test('obraz AI: koszt, klucz z sejfu, ramka, obrazy projektu, licznik i limit', 
   await dlg.locator('button[value="tak"]').click();
   await strona.waitForFunction(() => !document.querySelector('#dlg-ai-obraz').open);
   assert.equal(await strona.evaluate(() => Object.values(window.seriodruk.stan.projekt.zasoby).filter((x) => x.ai).length), 2, 'dwie wersje w obrazach projektu');
-  // Menu AI (E1): przy ramce z obrazem – „Popraw obraz w ramce…”, poza tym tekst, kolumna danych, asystent, klucze.
-  await strona.click('[data-akcja="ai-menu"]');
-  await strona.waitForSelector('.menu-przycisku [data-wartosc="ustawienia"]');
-  assert.deepEqual(await strona.$$eval('.menu-przycisku [data-wartosc]', (l) => l.map((b) => b.dataset.wartosc)), ['obraz', 'popraw-obraz', 'tekst', 'kolumna', 'asystent', 'ustawienia']);
-  await strona.click('.menu-przycisku [data-wartosc="popraw-obraz"]');
+  // Przyciski AI na pasku (E1): „Popraw obraz” otwiera okno od razu w trybie poprawki; menu [AI ▾] – na telefonie.
+  assert.equal(await strona.isVisible('[data-akcja="ai-menu"]'), false, 'na komputerze bez menu ▾');
+  await strona.click('.pasek-narzedzi [data-akcja="ai-popraw-obraz"]');
   // Popraw obecny obraz (B3): opis to sama zmiana, obraz z ramki idzie do modelu jako wzorzec.
   await dlg.waitFor();
   assert.equal(await dlg.locator('input[name="tryb"][value="popraw"]').isChecked(), true, 'z menu – od razu tryb poprawki');

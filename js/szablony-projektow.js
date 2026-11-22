@@ -161,11 +161,11 @@ export function komiksWBloku(p, blok, { przyklad = true } = {}) {
     id: uid('t'), nazwa: 'Scenariusz', kolumny: [...KOLUMNY_SCENARIUSZA],
     // strona, kadr, ujęcie, miejsce, w kadrze, opis sceny, postać, tekst, rodzaj
     wiersze: !przyklad ? [] : [
-      ['1', '1', U('ogolny'), t('komiks.szablonMiejsce'), '', t('komiks.szablon1Scena'), '', t('komiks.szablon1'), 'narracja'],
-      ['1', '2', U('pelny'), t('komiks.szablonMiejsce'), '', t('komiks.szablon2Scena'), t('komiks.szablonAla'), t('komiks.szablon2'), 'krzyk'],
-      ['1', '3', U('sredni'), '', '', t('komiks.szablon3Scena'), t('komiks.szablonOla'), t('komiks.szablon3'), 'mowa'],
-      ['2', '1', U('sredni'), '', t('komiks.szablonOla'), t('komiks.szablon4Scena'), t('komiks.szablonAla'), t('komiks.szablon4'), 'szept'],
-      ['2', '2', U('zblizenie'), '', '', t('komiks.szablon5Scena'), t('komiks.szablonOla'), t('komiks.szablon5'), 'mysl'],
+      ['1', '1', U('ogolny'), t('komiks.szablonMiejsce'), '', '', t('komiks.szablon1Scena'), '', t('komiks.szablon1'), 'narracja'],
+      ['1', '2', U('pelny'), t('komiks.szablonMiejsce'), '', '', t('komiks.szablon2Scena'), t('komiks.szablonAla'), t('komiks.szablon2'), 'krzyk'],
+      ['1', '3', U('sredni'), '', '', '', t('komiks.szablon3Scena'), t('komiks.szablonOla'), t('komiks.szablon3'), 'mowa'],
+      ['2', '1', U('sredni'), '', t('komiks.szablonOla'), '', t('komiks.szablon4Scena'), t('komiks.szablonAla'), t('komiks.szablon4'), 'szept'],
+      ['2', '2', U('zblizenie'), '', '', '', t('komiks.szablon5Scena'), t('komiks.szablonOla'), t('komiks.szablon5'), 'mysl'],
     ],
   }];
   // Karty postaci i miejsca (#368) z przykładem – obraz wzorcowy dodaje użytkownik.

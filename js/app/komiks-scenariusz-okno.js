@@ -3,7 +3,7 @@
 // (js/postacie.js), ujęcia z listy. Zapis do tej samej tabeli (js/komiks-scenariusz.js) – dymki, rysowanie kadrów, AI
 // i okno Dane (dla zaawansowanych) widzą to samo.
 
-import { scenariuszZTabeli, scenariuszDoTabeli, nazwyUjec } from '../komiks-scenariusz.js';
+import { scenariuszZTabeli, scenariuszDoTabeli, nazwyUjec, nazwyEmocji } from '../komiks-scenariusz.js';
 import { karty } from '../postacie.js';
 import { $, powiadom } from '../ui.js';
 import { ikona } from '../ikony.js';
@@ -39,10 +39,11 @@ export async function oknoScenariusza() {
   zapiszBiezacyCel();
   const tb = K.scenariuszProjektu() || await K.otworzScenariusz({ bezOkna: true });
   let strony = scenariuszZTabeli(tb);
-  if (!strony.length) strony = [{ nr: 1, kadry: [{ nr: 1, ujecie: '', miejsce: '', wKadrze: [], opis: '', kwestie: [] }] }];
+  if (!strony.length) strony = [{ nr: 1, kadry: [{ nr: 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], opis: '', kwestie: [] }] }];
   const postacie = karty(stan.projekt, 'postacie').map((k) => k.imie);
   const miejsca = karty(stan.projekt, 'miejsca').map((k) => k.nazwa);
   const ujecia = nazwyUjec(biezacyJezyk());
+  const emocje = nazwyEmocji(biezacyJezyk());
   let dlg = $('#dlg-scenariusz');
   if (!dlg) { dlg = el('dialog', { id: 'dlg-scenariusz', class: 'okno-scenariusza' }); document.body.append(dlg); }
   const lista = el('div', { class: 'strony-scenariusza' });
@@ -63,13 +64,34 @@ export async function oknoScenariusza() {
         const opis = el('input', { type: 'text', name: 'opis', placeholder: t('scenariusz.opisPrzyklad'), 'aria-label': t('scenariusz.coWidac') });
         opis.value = k.opis;
         opis.addEventListener('input', () => { k.opis = opis.value; });
-        // kto jest w kadrze (także bez kwestii)
+        // Postacie w kadrze (uwaga E3): kto jest widoczny (także bez kwestii) i – przy każdej obecnej – emocja i co robi.
+        k.gra ||= [];
+        const bezOgonkow = (x) => x.toLowerCase();
+        const mowi = (imie) => k.kwestie.some((q) => bezOgonkow(q.postac || '') === bezOgonkow(imie));
+        const jest = (imie) => mowi(imie) || k.wKadrze.some((x) => bezOgonkow(x) === bezOgonkow(imie));
+        const graPostaci = (imie) => {
+          let g = k.gra.find((x) => bezOgonkow(x.imie) === bezOgonkow(imie));
+          if (!g) { g = { imie, emocja: '', robi: '' }; k.gra.push(g); }
+          return g;
+        };
         const wKadrze = el('div', { class: 'w-kadrze', role: 'group', 'aria-label': t('scenariusz.wKadrze') }, el('span', { class: 'ciche', tekst: `${t('scenariusz.wKadrze')}:` }));
         for (const imie of postacie) {
+          const wiersz = el('div', { class: 'postac-w-kadrze' });
           const c = el('input', { type: 'checkbox', value: imie });
-          c.checked = k.wKadrze.some((x) => x.toLowerCase() === imie.toLowerCase());
-          c.addEventListener('change', () => { k.wKadrze = c.checked ? [...k.wKadrze, imie] : k.wKadrze.filter((x) => x.toLowerCase() !== imie.toLowerCase()); });
-          wKadrze.append(el('label', { class: 'znacznik' }, c, el('span', { tekst: imie })));
+          c.checked = jest(imie);
+          if (mowi(imie)) { c.disabled = true; c.title = t('scenariusz.mowiJestWKadrze'); }
+          c.addEventListener('change', () => { k.wKadrze = c.checked ? [...k.wKadrze, imie] : k.wKadrze.filter((x) => bezOgonkow(x) !== bezOgonkow(imie)); rysuj(); });
+          wiersz.append(el('label', { class: 'znacznik' }, c, el('span', { tekst: imie })));
+          if (jest(imie)) {
+            const g = graPostaci(imie);
+            const em = wybor('emocja', [['', t('scenariusz.emocjaBrak')], ...emocje.map((x) => [x, x])], g.emocja, t('scenariusz.emocja', { imie }));
+            em.addEventListener('change', () => { g.emocja = em.value; });
+            const robi = el('input', { type: 'text', name: 'robi', placeholder: t('scenariusz.robiPrzyklad'), 'aria-label': t('scenariusz.robi', { imie }) });
+            robi.value = g.robi;
+            robi.addEventListener('input', () => { g.robi = robi.value; });
+            wiersz.append(em, robi);
+          }
+          wKadrze.append(wiersz);
         }
         const kwestie = el('div', { class: 'kwestie' });
         for (const q of k.kwestie) {
@@ -78,7 +100,7 @@ export async function oknoScenariusza() {
           kto.addEventListener('change', () => { q.postac = kto.value; if (!kto.value) { q.rodzaj = 'narracja'; rodzaj.value = 'narracja'; } else if (q.rodzaj === 'narracja') { q.rodzaj = 'mowa'; rodzaj.value = 'mowa'; } });
           rodzaj.addEventListener('change', () => { q.rodzaj = rodzaj.value; });
           rodzaj.classList.toggle('bez-rodzaju', !q.postac); // narracja – bez wyboru rodzaju dymka (miejsce w siatce zostaje)
-          kto.addEventListener('change', () => { rodzaj.classList.toggle('bez-rodzaju', !kto.value); });
+          kto.addEventListener('change', () => { rodzaj.classList.toggle('bez-rodzaju', !kto.value); rysuj(); });
           const tekst = el('input', { type: 'text', name: 'tekst', placeholder: t('scenariusz.tekstPrzyklad'), 'aria-label': t('scenariusz.tekst') });
           tekst.value = q.tekst;
           tekst.addEventListener('input', () => { q.tekst = tekst.value; });
@@ -96,18 +118,21 @@ export async function oknoScenariusza() {
         );
         sekcja.append(kadr);
       }
-      sekcja.append(przycisk(t('scenariusz.dodajKadr'), 'kadry', () => { s.kadry.push({ nr: s.kadry.length + 1, ujecie: '', miejsce: '', wKadrze: [], opis: '', kwestie: [] }); rysuj(); }));
+      sekcja.append(przycisk(t('scenariusz.dodajKadr'), 'kadry', () => { s.kadry.push({ nr: s.kadry.length + 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], opis: '', kwestie: [] }); rysuj(); }));
       lista.append(sekcja);
     }
     lista.append(przycisk(t('scenariusz.dodajStrone'), 'strony', () => {
       const nr = (strony.at(-1)?.nr || 0) + 1;
-      strony.push({ nr, kadry: [{ nr: 1, ujecie: '', miejsce: '', wKadrze: [], opis: '', kwestie: [] }] });
+      strony.push({ nr, kadry: [{ nr: 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], opis: '', kwestie: [] }] });
       rysuj();
     }, 'przycisk'));
   };
   rysuj();
 
   const zapisz = async () => {
+    // emocje i działania tylko postaci, które są w kadrze
+    const b = (x) => String(x || '').toLowerCase();
+    for (const s of strony) for (const k of s.kadry) k.gra = (k.gra || []).filter((g) => k.kwestie.some((q) => b(q.postac) === b(g.imie)) || k.wKadrze.some((x) => b(x) === b(g.imie)));
     scenariuszDoTabeli(tb, strony);
     zaplanujZapis();
     await zaladujCel();

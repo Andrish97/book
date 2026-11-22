@@ -580,6 +580,19 @@
             <h2 data-i18n="ustAi.sztucznaInteligencja">Sztuczna inteligencja</h2>
             <p class="ciche" id="ust-ai-opis" hidden data-i18n="ustAiOpis.sprawdzam">Sprawdzam…</p>
             <!-- Koszty AI (#372): limit wydatków w miesiącu (to urządzenie) i suma z tego miesiąca. -->
+            <!-- Uwaga E4: koszt orientacyjny w jednym miejscu – czat i okna nie pytają o zgodę na każdy grosz. -->
+            <div class="koszty-ai">
+              <h3 data-i18n="ustAi.ileKosztuje">Ile mniej więcej kosztuje AI</h3>
+              <p class="ciche" data-i18n="ustAi.ileKosztujeOpis">Płacisz dostawcy AI (np. Google) Twoim kluczem – Makietka nic nie dolicza. Przybliżone ceny z Google Gemini:</p>
+              <table class="tabela-kosztow-ai">
+                <tr><td data-i18n="ustAi.kosztTekst">Poprawa, tłumaczenie tekstu, rozmowa z asystentem</td><td data-i18n="ustAi.kosztTekstZl">ułamek grosza</td></tr>
+                <tr><td data-i18n="ustAi.kosztScenariusz">Scenariusz komiksu z pomysłu</td><td data-i18n="ustAi.kosztScenariuszZl">ok. 1 gr</td></tr>
+                <tr><td data-i18n="ustAi.kosztObrazSzkic">Obraz – szkic</td><td>ok. 0,14 zł</td></tr>
+                <tr><td data-i18n="ustAi.kosztObrazDruk">Obraz do druku / najlepszy</td><td>ok. 0,41 / 0,55 zł</td></tr>
+                <tr><td data-i18n="ustAi.kosztKomiks">Komiks: 3 strony po 3 kadry, 2 postacie (szkic)</td><td>ok. 1,50 zł</td></tr>
+              </table>
+              <p class="ciche" data-i18n="ustAi.kosztyBezPytania">Okna i asystent nie pytają o zgodę na każdy obraz – koszt widać przy przycisku i w rozmowie. Bezpiecznikiem jest miesięczny limit poniżej.</p>
+            </div>
             <div class="formularz limit-ai"><label class="pole waskie"><span data-i18n="ustAi.limitMiesieczny">Miesięczny limit wydatków na obrazy i teksty AI (zł, 0 – bez limitu)</span><input type="number" id="ust-ai-limit" min="0" step="1" inputmode="decimal"></label>
             <p class="ciche" id="ust-ai-wydatki"></p></div>
             <!-- Panel AI (#247): wprost w ustawieniach, bez osobnego okna „Zarządzaj…”. -->
@@ -602,19 +615,6 @@
             <li><b>Bezpieczeństwo:</b> klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – <b>nie odczyta go nikt poza Tobą, nawet administratorzy Makietki</b>.</li>
             <li><b>Bez klucza i bez opłat:</b> w Asystencie AI wybierz „Dowolny czat bez klucza – kopiuj i wklej” – działa z każdym czatem w przeglądarce, także darmowym ChatGPT; tu nic nie dodajesz.</li>
           </ul>
-        </div>
-        <!-- Uwaga E4: koszt orientacyjny w jednym miejscu – czat i okna nie pytają o zgodę na każdy grosz. -->
-        <div class="koszty-ai">
-          <h3 data-i18n="ustAi.ileKosztuje">Ile mniej więcej kosztuje AI</h3>
-          <p class="ciche" data-i18n="ustAi.ileKosztujeOpis">Płacisz dostawcy AI (np. Google) Twoim kluczem – Makietka nic nie dolicza. Przybliżone ceny z Google Gemini:</p>
-          <table class="tabela-kosztow-ai">
-            <tr><td data-i18n="ustAi.kosztTekst">Poprawa, tłumaczenie tekstu, rozmowa z asystentem</td><td data-i18n="ustAi.kosztTekstZl">ułamek grosza</td></tr>
-            <tr><td data-i18n="ustAi.kosztScenariusz">Scenariusz komiksu z pomysłu</td><td data-i18n="ustAi.kosztScenariuszZl">ok. 1 gr</td></tr>
-            <tr><td data-i18n="ustAi.kosztObrazSzkic">Obraz – szkic</td><td>ok. 0,14 zł</td></tr>
-            <tr><td data-i18n="ustAi.kosztObrazDruk">Obraz do druku / najlepszy</td><td>ok. 0,41 / 0,55 zł</td></tr>
-            <tr><td data-i18n="ustAi.kosztKomiks">Komiks: 3 strony po 3 kadry, 2 postacie (szkic)</td><td>ok. 1,50 zł</td></tr>
-          </table>
-          <p class="ciche" data-i18n="ustAi.kosztyBezPytania">Okna i asystent nie pytają o zgodę na każdy obraz – koszt widać przy przycisku i w rozmowie. Bezpiecznikiem jest miesięczny limit wydatków (u góry ustawień AI).</p>
         </div>
         <div class="naglowek-kluczy-ai">
           <h3 data-i18n="dostepAi.twojeKluczeApi">Twoje klucze API</h3>
@@ -937,7 +937,14 @@
           <button class="tylko-skladanka" data-akcja="skladanka-instrukcja" data-ikona="pomoc" title="Instrukcja montażu: kroki z części, zgięć i par – do pobrania albo jako strona"><span data-i18n="pasekNarzedzi.instrukcja">Instrukcja</span></button>
           <!-- Komiks (#364, #377): trzy przyciski – kadry, dymek (menu) i okno „Komiks” z krokami; reszta w menu i w oknie. -->
           <button class="tylko-komiks" data-akcja="komiks-kadry" data-ikona="kadry" title="Kadry: gotowy układ kadrów na stronie, odstęp, spad, podział kadru linią" data-i18n-title="pasekNarzedzi.komiksKadryOpis"><span data-i18n="pasekNarzedzi.komiksKadry">Kadry</span></button>
-          <button class="tylko-komiks" data-akcja="komiks-dymek" data-ikona="dymek" aria-haspopup="menu" aria-expanded="false" title="Dymek: mowa, myśl, krzyk, szept, narracja, efekt dźwiękowy, mostek" data-i18n-title="pasekNarzedzi.komiksDymekOpis"><span data-i18n="pasekNarzedzi.komiksDymek">Dymek</span></button>
+          <button class="tylko-komiks zwiniete" data-akcja="komiks-dymek" data-ikona="dymek" aria-haspopup="menu" aria-expanded="false" title="Dymek: mowa, myśl, krzyk, szept, narracja, efekt dźwiękowy, mostek" data-i18n-title="pasekNarzedzi.komiksDymekOpis"><span data-i18n="pasekNarzedzi.komiksDymek">Dymek</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-dymek-mowa" data-ikona="mowa" title="Dymek: mowa" data-i18n-title="pasekNarzedzi.dymekMowaOpis"><span data-i18n="komiks.rodzaj_mowa">Mowa</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-dymek-mysl" data-ikona="mysl" title="Dymek: myśl" data-i18n-title="pasekNarzedzi.dymekMyslOpis"><span data-i18n="komiks.rodzaj_mysl">Myśl</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-dymek-krzyk" data-ikona="krzyk" title="Dymek: krzyk" data-i18n-title="pasekNarzedzi.dymekKrzykOpis"><span data-i18n="komiks.rodzaj_krzyk">Krzyk</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-dymek-szept" data-ikona="szept" title="Dymek: szept" data-i18n-title="pasekNarzedzi.dymekSzeptOpis"><span data-i18n="komiks.rodzaj_szept">Szept</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-dymek-narracja" data-ikona="narracja" title="Narracja: prostokątna ramka opowieści" data-i18n-title="pasekNarzedzi.dymekNarracjaOpis"><span data-i18n="komiks.rodzaj_narracja">Narracja</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-efekt" data-ikona="efekt" title="Efekt dźwiękowy: napis „BUM!” dużymi literami z obrysem" data-i18n-title="pasekNarzedzi.komiksEfektOpis"><span data-i18n="pasekNarzedzi.komiksEfekt">Efekt</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-mostek" data-ikona="link" title="Mostek: zaznacz dwa dymki jednej postaci – połączą się paskiem; zaznacz połączony dymek – rozłączysz" data-i18n-title="pasekNarzedzi.komiksMostekOpis"><span data-i18n="pasekNarzedzi.komiksMostek">Mostek</span></button>
           <button class="tylko-komiks" data-akcja="komiks-okno" data-ikona="komiks" title="Komiks: historia, postacie i miejsca, obrazy, dymki i gotowy komiks – krok po kroku" data-i18n-title="pasekNarzedzi.komiksOknoOpis"><span data-i18n="pasekNarzedzi.komiksOkno">Komiks</span></button>
           <button data-akcja="dodaj-tekst" data-ikona="tekst" title="Tekst (T)" data-i18n-title="pasekNarzedzi.tekstT"><span data-i18n="pasekNarzedzi.tekst">Tekst</span></button>
           <button data-akcja="dodaj-prostokat" data-ikona="prostokat" title="Prostokąt (R)" data-i18n-title="pasekNarzedzi.prostokatR"><span data-i18n="pasekNarzedzi.prostokat">Prostokąt</span></button>
@@ -945,7 +952,13 @@
           <button class="w-menu-narzedzi" data-akcja="dodaj-wielokat" data-ikona="wielokat" aria-haspopup="menu" aria-expanded="false" title="Wielokąt albo gwiazda (P)" data-i18n-title="pasekNarzedzi.wielokatAlboGwiazdaP"><span data-i18n="pasekNarzedzi.wielokat">Wielokąt</span></button>
           <button data-akcja="dodaj-linie" data-ikona="linia" title="Linia (L)" data-i18n-title="pasekNarzedzi.liniaL"><span data-i18n="pasekNarzedzi.linia">Linia</span></button>
           <button data-akcja="dodaj-obraz" data-ikona="obraz" title="Obraz: z urządzenia albo z obrazów projektu" data-i18n-title="pasekNarzedzi.obrazZUrzadzeniaAlbo"><span data-i18n="pasekNarzedzi.obraz">Obraz</span></button>
-          <button data-akcja="ai-menu" data-ikona="iskry" aria-haspopup="menu" aria-expanded="false" title="AI: obraz z opisu, poprawa i tłumaczenie tekstu" data-i18n-title="pasekNarzedzi.aiMenuOpis"><span data-i18n="pasekNarzedzi.aiMenu">AI</span></button>
+          <button class="zwiniete" data-akcja="ai-menu" data-ikona="iskry" aria-haspopup="menu" aria-expanded="false" title="AI: obraz z opisu, poprawa i tłumaczenie tekstu" data-i18n-title="pasekNarzedzi.aiMenuOpis"><span data-i18n="pasekNarzedzi.aiMenu">AI</span></button>
+          <button class="rozwiniete" data-akcja="ai-obraz" data-ikona="obraz-ai" title="Obraz AI: obraz z opisu do zaznaczonej ramki albo na stronę" data-i18n-title="pasekNarzedzi.aiObrazOpis"><span data-i18n="pasekNarzedzi.aiObraz">Obraz AI</span></button>
+          <button class="rozwiniete" data-akcja="ai-popraw-obraz" data-ikona="popraw-ai" title="Popraw obraz (AI): zaznacz ramkę z obrazem i opisz tylko zmianę" data-i18n-title="pasekNarzedzi.aiPoprawObrazOpis"><span data-i18n="pasekNarzedzi.aiPoprawObraz">Popraw obraz</span></button>
+          <button class="rozwiniete" data-akcja="ai-tekst" data-ikona="tekst-ai" title="Tekst AI: skróć, wydłuż, popraw błędy, przetłumacz zaznaczony tekst" data-i18n-title="pasekNarzedzi.aiTekstOpis"><span data-i18n="pasekNarzedzi.aiTekst">Tekst AI</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-scenariusz-ai" data-ikona="iskry" title="Scenariusz z AI: z pomysłu w kilku zdaniach albo z dokumentu (Word, Markdown, tekst) – strony, kadry, dialogi, postacie i miejsca" data-i18n-title="pasekNarzedzi.komiksScenariuszAiOpis"><span data-i18n="pasekNarzedzi.komiksScenariuszAi">Scenariusz z AI</span></button>
+          <button class="tylko-komiks rozwiniete" data-akcja="komiks-rysuj" data-ikona="kadry" title="Rysuj kadry (AI): obrazy do kadrów tej strony ze scenariusza i kart postaci – koszt widać przed rysowaniem" data-i18n-title="pasekNarzedzi.komiksRysujOpis"><span data-i18n="pasekNarzedzi.komiksRysuj">Rysuj kadry</span></button>
+          <button class="rozwiniete" data-akcja="ai-asystent" data-ikona="asystent" title="Asystent AI: napisz, co zrobić – AI zmienia projekt za Ciebie" data-i18n-title="pasekNarzedzi.aiAsystentOpis"><span data-i18n="pasekNarzedzi.aiAsystent">Asystent AI</span></button>
           <button class="w-menu-narzedzi" data-akcja="rysuj" data-ikona="rysuj" aria-pressed="false" title="Rysowanie odręczne (B) – przeciągaj po stronie; Esc kończy" data-i18n-title="pasekNarzedzi.rysowanieOdreczneBPrzeciagaj"><span data-i18n="pasekNarzedzi.rysuj">Rysuj</span></button>
           <button class="w-menu-narzedzi" data-akcja="pioro" data-ikona="pioro" aria-pressed="false" title="Pióro (N) – kliknięcia stawiają punkty, przeciągnięcie robi łuk; Enter kończy kształt" data-i18n-title="pasekNarzedzi.pioroNKliknieciaStawiaja"><span data-i18n="pasekNarzedzi.pioro">Pióro</span></button>
           <button data-akcja="dodaj-tabele" data-ikona="tabela" title="Tabela: jeden element z wierszami i kolumnami; dwuklik komórki zaczyna pisanie" data-i18n-title="pasekNarzedzi.tabelaJedenElementZ"><span data-i18n="pasekNarzedzi.tabela">Tabela</span></button>

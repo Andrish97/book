@@ -102,10 +102,10 @@ test('komiks AI: opisy kadrów ze scenariusza (moduł)', async () => {
   assert.match(k[0].opis, /^Kadr 1\. Scena: Rynek o świcie\. Miejsce \(tło\): Rynek, fontanna, pora dnia: ranek\. Zostaw/);
   assert.match(k[2].opis, /Kadr otwierający/);
   // ujęcie i osoba w kadrze bez kwestii (#378)
-  const sc2 = { id: 's2', kolumny: ['strona', 'kadr', 'ujęcie', 'w kadrze', 'opis sceny', 'postać', 'tekst', 'rodzaj'], wiersze: [['1', '1', 'zbliżenie', 'Ola', 'Ola się dziwi', '', '', '']] };
+  const sc2 = { id: 's2', kolumny: ['strona', 'kadr', 'ujęcie', 'w kadrze', 'emocje i działania', 'opis sceny', 'postać', 'tekst', 'rodzaj'], wiersze: [['1', '1', 'zbliżenie', 'Ola', 'Ola (zaskoczenie): upuszcza kubek', 'Ola się dziwi', '', '', '']] };
   const z = m.kadryStrony(projekt, sc2, 1, 1, 'en')[0];
   assert.deepEqual(z.postacie.map((p) => p.imie), ['Ola']);
-  assert.match(z.opis, /^Panel 1\. Shot: zbliżenie \(close-up on the face[^)]*\)\. Scene: Ola się dziwi\. In the panel: Ola – okulary\.$/);
+  assert.match(z.opis, /^Panel 1\. Shot: zbliżenie \(close-up on the face[^)]*\)\. Scene: Ola się dziwi\. In the panel: Ola – okulary, emotion: zaskoczenie, doing: upuszcza kubek\.$/);
   assert.equal(m.stylProjektu({ komiks_ai: { styl: 'manga' } }), m.STYLE_RYSUNKOW.manga);
 });
 
@@ -147,8 +147,8 @@ test('komiks AI: scenariusz z pomysłu i z dokumentu – podgląd, zapis do tabe
     const tb = x.tabele.find((q) => q.kolumny.includes('opis sceny'));
     return { kolumny: tb.kolumny, wiersze: tb.wiersze, postacie: karty(x, 'postacie').map((k) => [k.imie, k.znak, k.wyglad]), miejsca: karty(x, 'miejsca').map((k) => k.nazwa), stron: x.strony.length, kadry: x.strony.map((s) => (s.obiekty || []).filter((o) => o.kadr_nr).length) };
   });
-  assert.deepEqual(p.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
-  assert.deepEqual(p.wiersze[2], ['2', '1', '', '', '', 'Kotek w paczce', 'Ala', 'Kotek!', 'mowa'], 'zły rodzaj dymka → mowa');
+  assert.deepEqual(p.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
+  assert.deepEqual(p.wiersze[2], ['2', '1', '', '', '', '', 'Kotek w paczce', 'Ala', 'Kotek!', 'mowa'], 'zły rodzaj dymka → mowa');
   assert.deepEqual(p.postacie, [['Ala', 'żółty plecak', 'rude warkocze'], ['Kot Filemon', 'biała łatka', 'rudy kotek']], 'istniejąca karta: puste pola uzupełnione, wypełnione zostają');
   assert.deepEqual(p.miejsca, ['Podwórko']);
   assert.equal(p.stron, 2, 'strona 2 doszła');

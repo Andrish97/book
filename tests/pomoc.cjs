@@ -789,7 +789,18 @@ async function krokKomiksu(strona, akcja) {
   await strona.click('[data-akcja="komiks-okno"]');
   await strona.click(`#dlg-komiks [data-krok-akcja="${akcja}"]`);
 }
+// Pozycja menu [AI ▾] / [Dymek ▾]: na komputerze te narzędzia są rozwinięte na pasku (uwaga E1) – klik w przycisk;
+// na wąskim ekranie – przez menu.
+const ROZWINIETE = {
+  'ai-menu': { obraz: 'ai-obraz', 'popraw-obraz': 'ai-popraw-obraz', tekst: 'ai-tekst', asystent: 'ai-asystent', rysuj: 'komiks-rysuj', scenariusz: 'komiks-scenariusz-ai' },
+  'komiks-dymek': { mowa: 'komiks-dymek-mowa', mysl: 'komiks-dymek-mysl', krzyk: 'komiks-dymek-krzyk', szept: 'komiks-dymek-szept', narracja: 'komiks-dymek-narracja', efekt: 'komiks-efekt', mostek: 'komiks-mostek' },
+};
 async function zMenu(strona, przycisk, wartosc) {
+  const bezposredni = ROZWINIETE[przycisk]?.[wartosc];
+  if (bezposredni && await strona.locator(`.pasek-narzedzi [data-akcja="${bezposredni}"]`).isVisible()) {
+    await strona.click(`.pasek-narzedzi [data-akcja="${bezposredni}"]`);
+    return;
+  }
   await strona.click(`[data-akcja="${przycisk}"]`);
   await strona.click(`.menu-przycisku [data-wartosc="${wartosc}"]`);
 }

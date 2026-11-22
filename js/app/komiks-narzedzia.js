@@ -180,7 +180,7 @@ export async function otworzScenariusz({ bezOkna = false } = {}) {
   let tb = scenariuszProjektu();
   if (!tb) {
     zapiszBiezacyCel();
-    tb = { id: `t_scenariusz_${Date.now().toString(36)}`, nazwa: t('komiks.scenariusz'), kolumny: [...KOLUMNY_SCENARIUSZA], wiersze: [['1', '1', '', '', '', '', t('komiks.przykladPostac'), t('komiks.przykladTekst'), 'mowa']] };
+    tb = { id: `t_scenariusz_${Date.now().toString(36)}`, nazwa: t('komiks.scenariusz'), kolumny: [...KOLUMNY_SCENARIUSZA], wiersze: [['1', '1', '', '', '', '', '', t('komiks.przykladPostac'), t('komiks.przykladTekst'), 'mowa']] };
     p.tabele = [...(p.tabele || []), tb];
     zaplanujZapis();
   }
@@ -562,6 +562,8 @@ export function menuDymka() {
 // Pasek narzędzi: przyciski z data-akcja="komiks-…".
 export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-dymek') return menuDymka();
+  const rodzaj = /^komiks-dymek-(mowa|mysl|krzyk|szept|narracja)$/.exec(akcja)?.[1];
+  if (rodzaj) return wStyluKomiksu(edytor.dodajDymek(rodzaj), 'dialog');
   if (akcja === 'komiks-efekt') return efektDzwiekowy();
   if (akcja === 'komiks-kadry') return oknoKadrow();
   if (akcja === 'komiks-podziel') return narzedziePodzialu() ? zakonczPodzial() : zacznijPodzial();

@@ -149,6 +149,18 @@ export function oknoGenerowania({ opis = '', jakosc = 'szkic', tryb: trybStartow
   f.elements.opis.focus();
 }
 
+// Przyciski AI na pasku (uwaga E1 – na komputerze rozwinięte, na telefonie w menu [AI ▾]).
+export async function akcjaAi(akcja) {
+  if (akcja === 'ai-obraz') return oknoGenerowania();
+  if (akcja === 'ai-popraw-obraz') {
+    if (!ramka()?.zasob) { powiadom(t('aiMenu.poprawObrazPodpowiedz')); return undefined; }
+    return oknoGenerowania({ tryb: 'popraw' });
+  }
+  if (akcja === 'ai-tekst') return (await import('./tekst-ai.js')).oknoTekstuAi();
+  if (akcja === 'ai-asystent') return (await import('./czat-ai.js')).otworzCzatAi();
+  return undefined;
+}
+
 // [AI ▾] (#377): jedno wejście do AI w każdym projekcie; w komiksie także kroki komiksu.
 export async function menuAi() {
   const b = document.querySelector('[data-akcja="ai-menu"]');

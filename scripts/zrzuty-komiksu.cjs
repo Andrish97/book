@@ -34,7 +34,7 @@ async function zrobZrzutyKomiksu(kadr, { ciemny = false } = {}) {
     await d.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 3);
     await d.evaluate(() => { const c = window.seriodruk.edytor.canvas; c.discardActiveObject(); c.requestRenderAll(); document.querySelector('#powiadomienie')?.setAttribute('hidden', ''); });
     await d.waitForTimeout(600);
-    await kadr(d, 'k-komiks.png', { obszar: '#obszar-roboczy', zaznacz: ['[data-akcja="komiks-kadry"]', '[data-akcja="komiks-dymek"]', '[data-akcja="komiks-okno"]'], margines: 0 });
+    await kadr(d, 'k-komiks.png', { obszar: '#obszar-roboczy', zaznacz: ['[data-akcja="komiks-kadry"]', '[data-akcja="komiks-dymek-mowa"]', '[data-akcja="komiks-mostek"]', '[data-akcja="komiks-okno"]'], margines: 0 });
     // Okno „Kadry”.
     await d.click('[data-akcja="komiks-kadry"]');
     await d.waitForSelector('#dlg-kadry[open]');

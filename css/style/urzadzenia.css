@@ -443,3 +443,6 @@ dialog .przelacznik-segmentowy span { flex: 1; text-align: center; }
 @media (max-width: 760px) {
   .postepy { top: calc(var(--pasek) + 6px + var(--bezp-gora)); bottom: auto; left: 50%; transform: translateX(-50%); width: min(340px, calc(100vw - 16px)); flex-direction: column; }
 }
+/* Uwaga E1: na komputerze narzędzia dymków i AI rozwinięte na pasku; na telefonie (wąsko) – w menu Dymek ▾ i AI ▾. */
+@media (min-width: 601px) { .pasek-narzedzi .zwiniete { display: none !important; } }
+@media (max-width: 600px) { .pasek-narzedzi .rozwiniete { display: none !important; } }
