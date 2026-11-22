@@ -64,6 +64,35 @@ Po A7 da się robić pełne komiksy z obrazami z dowolnego generatora.
 | C6 | **Import scenariusza z dokumentu** (TXT, DOCX, Markdown, Google Docs jako DOCX – odczyt już jest, #216): AI rozpoznaje układ dokumentu i rozpisuje go na sceny/strony, kadry, dialogi (kto, tekst, rodzaj dymka) oraz listę postaci i miejsc; podgląd do poprawienia przed zapisem; wynik w tabeli scenariusza i w kartach postaci. Osobna droga obok „od pomysłu do komiksu” | ✅ #375 |
 | C7 | **Pomiar zużycia** na prostym komiksie (np. 3 strony, 2 postacie): koszt tekstu i obrazów w zł – do instrukcji i do szacunków w aplikacji | ✅ #375: 3 strony × 3 kadry + 2 wzorce = 1,51 zł, 49 s (szkic) |
 
+## Część D – uwagi właściciela z 22.11 (noc), po pierwszej wersji
+
+Cytaty (skrót): „Limit… możesz nawet 20 zł zużyć, jeżeli to pomoże dobrze przetestować” · „użytkownik nie powinien widzieć
+tych wszystkich technicznych danych” · „przystępne dla prostego użytkownika i ładne” · „Komiks to nie zawsze książka…
+wybrać tryb: książka, broszura albo zwykłe kartki, a dodatkowo, że to będzie komiks… przy broszurze sugestia okładki,
+w podglądzie ładniej… albo prezentacja / PDF – komiks elektroniczny” · „sprawdzić czat Makietki – czy rozwiązuje polecenia
+i generuje obrazy w Gemini” · „ujęcia / lokalizacje – wgrywać albo generować obrazki z lokalizacją, postacie pojawiają się
+na tych obrazkach” · „różne zbliżenia: widok ogólny, zbliżenie na postać… opisać w scenariuszu i potem używać” · „przy
+kluczach API zaznaczyć: tylko tekstowe albo tekst i obrazy; wszystkie tekstowe zmieniają elementy przez API Makietki” ·
+„3 takie same ikonki na czat – zmienić” · „w trybie komiksu za dużo narzędzi – połączyć albo schować” · „okno scenariusza,
+postaci, lokalizacji łączą się w spójną całość – scenariusz wie, jaka lokalizacja, zbliżenie, postacie” · „nie podoba się
+obrazek – wygeneruj ponownie i wiadomo, z jakiego promptu” · „na koniec instrukcja: wszystkie kroki dokładnie; także
+teksty, tłumaczenie i obrazy w zwykłych trybach”.
+
+| # | Co | Stan |
+|---|---|---|
+| D1 | Budżet płatnych testów: do ok. 20 zł, gdy to naprawdę pomaga przetestować (rejestr w docs/KOSZTY-TESTOW.md) | ✅ przyjęte |
+| D2 | **Bez technicznych danych dla użytkownika**: w oknach nie ma nazw modeli, tokenów, „1K/2K”, angielskich promptów; jakość opisana słowami; opis obrazu pokazywany po polsku (prompt techniczny tylko wewnątrz) | do zrobienia |
+| D3 | **Komiks jako dodatek do rodzaju publikacji**: przy nowym projekcie wybór formy – książka, broszura (z sugestią okładki), zwykłe kartki, prezentacja / PDF na ekran (komiks elektroniczny) – i przełącznik „To komiks” (sekcja komiksu, pasek, scenariusz) | do zrobienia |
+| D4 | **Sprawdzić czat Makietki z Gemini na żywo**: czy wykonuje polecenia (zmiany elementów przez narzędzia) i generuje obrazy | do zrobienia |
+| D5 | **Lokalizacje jako tła/ujęcia**: obraz lokalizacji wgrany albo wygenerowany; postacie pojawiają się na tym tle w kadrach (obraz miejsca jako odniesienie) | częściowo (#374 – obraz miejsca jako odniesienie) |
+| D6 | **Ujęcia w scenariuszu**: kolumna „ujęcie” – widok ogólny, plan średni, zbliżenie na postać, z góry, zza pleców…; lista do wyboru; używane w opisie kadru | do zrobienia |
+| D7 | Przy kluczach AI: oznaczenie modelu „tylko tekst” / „tekst i obrazy”; każdy model tekstowy zmienia projekt przez narzędzia Makietki | do zrobienia |
+| D8 | Trzy jednakowe ikony czatu – różne ikony i jasne nazwy | do zrobienia |
+| D9 | **Mniej narzędzi w pasku komiksu**: kilka głównych przycisków, reszta w menu („Więcej”), kroki w logicznej kolejności | do zrobienia |
+| D10 | **Spójna całość**: scenariusz, postacie, miejsca i ujęcia połączone – w scenariuszu wybór postaci/miejsca/ujęcia z list (z kart), jedno okno „Komiks” z zakładkami albo kroki | do zrobienia |
+| D11 | **Ponowne generowanie z zapisanego opisu**: przy obrazie kadru widać, z czego powstał (po polsku), „Narysuj jeszcze raz” bez składania od nowa; edycja opisu | częściowo (#372 – „jeszcze raz” w oknie Obraz AI) |
+| D12 | **Instrukcja na koniec**: wszystkie kroki komiksu dokładnie; osobno teksty AI, tłumaczenie i obrazy AI w zwykłych projektach | do zrobienia |
+
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 
 | Pozycja | Szacunek |
