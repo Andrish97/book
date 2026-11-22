@@ -590,7 +590,7 @@ Piszesz w dowolnej ramce, a tekst przelewa się na bieżąco. Wygląd tekstu (cz
 
 ### 5.8 Czcionki
 
-Do wyboru są 52 rodziny czcionek z polskimi znakami, które wolno używać w druku komercyjnym: bezszeryfowe do tekstu (np. Inter, Lato, Roboto), wąskie do nagłówków (Oswald, Bebas Neue), szeryfowe (Lora, Merriweather, Playfair Display, EB Garamond), odręczne i ozdobne (Caveat, Pacifico, Dancing Script) oraz maszynowe.
+Do wyboru są 55 rodzin czcionek z polskimi znakami, które wolno używać w druku komercyjnym: bezszeryfowe do tekstu (np. Inter, Lato, Roboto), wąskie do nagłówków (Oswald, Bebas Neue), szeryfowe (Lora, Merriweather, Playfair Display, EB Garamond), odręczne i ozdobne (Caveat, Pacifico, Dancing Script), komiksowe (Bangers do okrzyków, Comic Neue i Pangolin do dialogów) oraz maszynowe. Większość ma też litery ukraińskie (cyrylicę) – m.in. Inter, Roboto, Lora i Pangolin; gdy krój ich nie ma, eksport PDF o tym powie (taki tekst idzie jako obraz).
 
 **⋯** → **Czcionki projektu…** pokazuje próbki, daje pliki czcionek do pobrania (np. dla drukarni) i pozwala wgrać **własną czcionkę** (TTF, OTF, WOFF, WOFF2; każda odmiana osobno) — także z listy czcionek: **+ Wgraj własną czcionkę…**. Wgrana czcionka zostaje na koncie, w „Moich czcionkach”.
 

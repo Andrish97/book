@@ -495,10 +495,12 @@ on a new page or keep flowing. With page adding on, the next frame is created au
 
 ## 5.8 Fonts
 
-You can choose from 52 font families with Polish characters that may be used in commercial print:
+You can choose from 55 font families with Polish characters that may be used in commercial print:
 sans-serif for body text (e.g. Inter, Lato, Roboto), condensed for headings (Oswald, Bebas Neue),
 serif (Lora, Merriweather, Playfair Display, EB Garamond), handwritten and decorative (Caveat,
-Pacifico, Dancing Script), and typewriter fonts.
+Pacifico, Dancing Script), comic (Bangers for shouts, Comic Neue and Pangolin for dialogue) and typewriter fonts.
+Most also have Ukrainian letters (Cyrillic) – e.g. Inter, Roboto, Lora and Pangolin; when a font lacks them,
+the PDF export tells you (such text goes in as an image).
 
 [⋯] → [Project fonts…] shows samples, gives you font files to download (e.g. for the print shop) and lets you
 upload **your own font** (TTF, OTF, WOFF, WOFF2; each variant separately) — also from the font list:

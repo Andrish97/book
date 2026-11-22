@@ -209,7 +209,7 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
       { type: 'textbox', version: '5.3.0', left: 20, top: 145, width: 110, text: 'Własna czcionka z pliku TTF', fontSize: 7, fontFamily: 'Ozdobna', fill: '#000000', styles: [], id: 't1' },
       { type: 'textbox', version: '5.3.0', left: 20, top: 160, width: 110, text: 'Czcionka WOFF2 idzie jako krzywe', fontSize: 7, fontFamily: 'Odreczna', fill: '#000000', styles: [], id: 't2' },
       { type: 'textbox', version: '5.3.0', left: 20, top: 175, width: 110, text: 'Kursywa, której czcionka nie ma', fontSize: 7, fontFamily: 'Caveat', fontStyle: 'italic', fill: '#000000', styles: [], id: 't3' },
-      { type: 'textbox', version: '5.3.0', left: 20, top: 190, width: 110, text: 'Znak spoza czcionki: Ж', fontSize: 6, fontFamily: 'Inter', fill: '#000000', styles: [], id: 't4' },
+      { type: 'textbox', version: '5.3.0', left: 20, top: 190, width: 110, text: 'Znak spoza czcionki: 漢', fontSize: 6, fontFamily: 'Inter', fill: '#000000', styles: [], id: 't4' },
     );
     // Seria: ta sama strona trzy razy – zasoby w pliku mają być osadzone raz.
     stan.projekt.serie.push({ id: 'se1', nazwa: 'Trzy', tabela: null, tryb: 'stala', ile: 3, uklad: 'szeroki' });
@@ -223,7 +223,7 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
   assert.equal(w.stron, 3);
   // Jako obraz idzie tylko tekst ze znakiem spoza czcionki. Czcionka z pliku WOFF2 i kursywa, której czcionka
   // nie ma (przeglądarka pochyla pismo proste), są zapisane jako krzywe – ostre, ale nie do zaznaczenia.
-  assert.deepEqual(w.uwagi, [['znaku „Ж” nie ma w czcionce „Inter”', 3]]);
+  assert.deepEqual(w.uwagi, [['znaku „漢” nie ma w czcionce „Inter”', 3]]);
   assert.deepEqual([...w.jakoKrzywe].sort(), [['„Caveat” (kursywa bez własnego pliku)', 3], ['„Odreczna” (plik WOFF2)', 3]]);
   assert.equal(w.obrazy, 3, 'zdjęcie, koło PNG i jeden tekst jako obraz – teksty zapisane krzywymi nie są obrazami');
   assert.equal(w.czcionki, 1, 'na stronie jest jedna osadzona czcionka – własna z pliku TTF');
@@ -255,7 +255,7 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
   const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
   assert.equal(plik.suggestedFilename(), 'Wektor 2.pdf');
   await strona.waitForSelector('#dlg-pdf', { state: 'hidden' });
-  assert.match(await strona.textContent('#powiadomienie'), /Jako obraz zapisane zostały 3 elementy: znaku „Ж” .*\(3\)\. Tekst jako krzywe \(nie da się go zaznaczyć\) w 6 elementach: .*plik WOFF2\) \(3\)/);
+  assert.match(await strona.textContent('#powiadomienie'), /Jako obraz zapisane zostały 3 elementy: znaku „漢” .*\(3\)\. Tekst jako krzywe \(nie da się go zaznaczyć\) w 6 elementach: .*plik WOFF2\) \(3\)/);
   assert.deepEqual(bledy, []);
 });
 

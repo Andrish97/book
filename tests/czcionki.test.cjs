@@ -86,13 +86,13 @@ test('własna czcionka: wgranie z panelu tekstu, okno czcionek, zapis w projekci
   // Oficjalny zestaw czcionek aplikacji: lista rodzin z próbkami, pliki do pobrania (jedna rodzina albo cały zestaw).
   const wOknie = await strona.evaluate(async () => { const { CZCIONKI } = await import('./js/czcionki.js'); return { lista: [...document.querySelectorAll('#czcionki-zestaw li')].map((li) => li.dataset.rodzina), zestaw: CZCIONKI.map((c) => c.nazwa) }; });
   assert.deepEqual(wOknie.lista, wOknie.zestaw);
-  assert.equal(wOknie.lista.length, 52);
+  assert.equal(wOknie.lista.length, 55); // + Bangers, Comic Neue, Pangolin (#363)
   assert.match(await strona.textContent('#czcionki-zestaw li[data-rodzina="Pacifico"] .opis'), /odręczna · jedna grubość, bez kursywy/);
   assert.match(await strona.textContent('#czcionki-zestaw li[data-rodzina="Lora"] .opis'), /szeryfowa · zwykła i pogrubiona, prosta i kursywa · używana w tym projekcie/);
   const [zestaw] = await Promise.all([strona.waitForEvent('download'), strona.click('#czcionki-pobierz-zestaw')]);
   assert.equal(zestaw.suggestedFilename(), 'Czcionki Makietki.zip');
   const wZestawie = await strona.evaluate(async () => Object.keys((await window.JSZip.loadAsync(window.seriodruk.oknoCzcionek.ostatniZestaw.blob)).files).filter((n) => !n.endsWith('/')));
-  assert.equal(wZestawie.filter((n) => n.endsWith('.ttf')).length, 165, 'po jednym pliku TTF na każdą odmianę każdej z 52 rodzin');
+  assert.equal(wZestawie.filter((n) => n.endsWith('.ttf')).length, 171, 'po jednym pliku TTF na każdą odmianę każdej z 55 rodzin');
   assert.ok(wZestawie.includes('Pacifico/Pacifico-Regular.ttf') && !wZestawie.includes('Pacifico/Pacifico-Bold.ttf'), 'rodzina bez pogrubienia ma jeden plik');
   assert.ok(wZestawie.includes('Open Sans/OpenSans-BoldItalic.ttf') && wZestawie.includes('Caveat/Caveat-Bold.ttf') && wZestawie.includes('LICENCJA czcionek Makietki.txt'));
   const [jedna] = await Promise.all([strona.waitForEvent('download'), strona.click('#czcionki-zestaw li[data-rodzina="Inter"] button')]);
@@ -257,7 +257,7 @@ test('zestaw czcionek: pliki pobierają się dopiero przy użyciu; pogrubienie i
   const pobrane = () => strona.evaluate(() => performance.getEntriesByType('resource').map((r) => r.name.split('/').pop()).filter((n) => n.endsWith('.woff2')));
   const przyciski = () => strona.evaluate(() => ['Pogrubienie', 'Kursywa'].map((n) => { const b = [...document.querySelectorAll('.wlasciwosci .segmenty button')].find((x) => x.getAttribute('aria-label') === n); return [b.disabled, b.title || b.dataset.dymek || '']; })); // podpowiedź po najechaniu myszą siedzi w data-dymek (js/dymki.js)
   // Na starcie są tylko czcionka domyślna i czcionki stylów tekstu projektu (Tytuł: Playfair Display) –
-  // z 52 rodzin przeglądarka nie pobiera niczego na zapas.
+  // z 55 rodzin przeglądarka nie pobiera niczego na zapas.
   await strona.waitForTimeout(400);
   assert.ok((await pobrane()).every((n) => /^(inter|playfair-display)-/.test(n)), `na starcie tylko Inter i czcionki stylów: ${await pobrane()}`);
   assert.deepEqual(await przyciski(), [[false, 'Pogrubienie'], [false, 'Kursywa']]);
@@ -287,4 +287,21 @@ test('zestaw czcionek: pliki pobierają się dopiero przy użyciu; pogrubienie i
   await strona.selectOption('.wlasciwosci label:has-text("Czcionka") select', 'Lora');
   assert.deepEqual(await przyciski(), [[false, 'Pogrubienie'], [false, 'Kursywa']]);
   assert.deepEqual(bledy, []);
+});
+
+// #363: czcionki komiksowe i cyrylica – w PDF (TTF) są polskie litery we wszystkich nowych krojach, ukraińskie
+// w Pangolin i w krojach z cyrylicą u Google (np. Inter, Lora); ekran ma cyrylicę i polskie litery Comic Neue z TTF.
+test('czcionki komiksowe: Bangers, Comic Neue, Pangolin; polskie i ukraińskie litery w PDF i na ekranie', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const fontkit = require(path.join(__dirname, '..', 'js', 'zewnetrzne', 'fontkit-1.1.1.umd.min.js'));
+  const pdf = (f) => fontkit.create(fs.readFileSync(path.join(__dirname, '..', 'css', 'czcionki', 'pdf', `${f}.ttf`)));
+  const ma = (font, s) => [...s].every((z) => font.hasGlyphForCodePoint(z.codePointAt(0)));
+  for (const f of ['bangers-400-prosta', 'comic-neue-400-prosta', 'comic-neue-700-prosta', 'pangolin-400-prosta']) assert.ok(ma(pdf(f), 'ąęłśżźćńóĄĘŁŚŻŹĆŃÓ'), `${f}: polskie litery`);
+  for (const f of ['pangolin-400-prosta', 'inter-400-prosta', 'lora-400-prosta']) assert.ok(ma(pdf(f), 'їєіґЇЄІҐабвгґджзий'), `${f}: ukraińskie litery`);
+  const css = fs.readFileSync(path.join(__dirname, '..', 'css', 'czcionki.css'), 'utf8');
+  assert.match(css, /font-family: "Bangers"/);
+  assert.match(css, /font-family: "Pangolin"[^}]*cyrillic|pangolin-prosta-400-cyrillic/);
+  assert.match(css, /src: url\("czcionki\/pdf\/comic-neue-400-prosta\.ttf"\) format\("truetype"\)/, 'Comic Neue: polskie litery z pełnego pliku');
+  assert.ok(fs.readdirSync(path.join(__dirname, '..', 'css', 'czcionki')).some((f) => /^inter-.*-cyrillic\.woff2$/.test(f)), 'cyrylica na ekranie');
 });
