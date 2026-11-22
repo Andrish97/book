@@ -25,6 +25,7 @@
 
 import { obsluzEmail, obsluzKontakt, przebiegKolejki, przebiegPowiadomien } from './poczta.js';
 import { obsluzRysowanie, przebiegEksportow } from './rysowanie.js';
+import { obsluzKontaTestowe } from './konta-testowe.js';
 
 // Kolejka rysowania linku na serwerze (Durable Object, #335) – klasa musi być wystawiona z głównego modułu.
 export { Rysowanie } from './rysowanie.js';
@@ -465,6 +466,14 @@ export default {
         return await obsluzEksport(zapytanie, env, u);
       } catch (e) {
         return json(500, { blad: `Błąd magazynu plików: ${e.message}` }, naglowkiCors(zapytanie, true));
+      }
+    }
+    // Pula kont testowych (cloudflare/konta-testowe.js) – tylko administrator.
+    if (u.pathname === '/admin/konta-testowe') {
+      try {
+        return await obsluzKontaTestowe(zapytanie, env, { json, naglowkiCors, tokenZZapytania, uzytkownik, rpc, baza });
+      } catch (e) {
+        return json(500, { blad: `Błąd kont testowych: ${e.message}` }, naglowkiCors(zapytanie, false));
       }
     }
     // Rysowanie stron linku na serwerze (#335, cloudflare/rysowanie.js).
