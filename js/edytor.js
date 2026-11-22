@@ -3539,11 +3539,16 @@ export class Edytor extends EventTarget {
         for (const t of uwagiElementu(spec, { x1, y1, x2, y2 }, { tekst: o.type === 'textbox' })) lista.push({ id: o.id, typ: t, obiekt: opisObiektu(o) });
       }
       let typ = null;
+      // Kadr komiksu (#364): obrys leży w połowie na zewnątrz kształtu – nie liczy się do marginesu ani spadu;
+      // kadr na spad świadomie przechodzi przez margines.
+      const kadrK = o.kadr_nr != null;
+      const tolE = kadrK ? tol + (o.strokeWidth || 0) / 2 : tol;
+      const naSpadK = kadrK && (x1 < tolE || y1 < tolE || x2 > w - tolE || y2 > h - tolE);
       if (x2 < -b || y2 < -b || x1 > w + b || y1 > h + b) {
         typ = 'poza_strona';
-      } else if (x1 < -b - tol || y1 < -b - tol || x2 > w + b + tol || y2 > h + b + tol) {
+      } else if (x1 < -b - tolE || y1 < -b - tolE || x2 > w + b + tolE || y2 > h + b + tolE) {
         typ = 'poza_spadem';
-      } else if (x1 < m.lewy - tol || y1 < m.gora - tol || x2 > w - m.prawy + tol || y2 > h - m.dol + tol) {
+      } else if (!naSpadK && (x1 < m.lewy - tolE || y1 < m.gora - tolE || x2 > w - m.prawy + tolE || y2 > h - m.dol + tolE)) {
         typ = 'w_marginesie';
       }
       if (typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });

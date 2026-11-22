@@ -22,6 +22,7 @@ import './edytor-instancja.js';
 import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
 import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
 import { obsluzAkcje, podlaczSkladanke } from './skladanka-narzedzia.js'; // narzędzia składanki (#233)
+import { obsluzAkcjeKomiksu, podlaczKomiks } from './komiks-narzedzia.js'; // narzędzia komiksu (#364)
 import { toZaznaczenie } from '../fabric-ustawienia.js';
 import { opisObiektu, WIELOKATY, podgladWielokata } from '../edytor.js';
 import { obrazyZeSchowka, uporzadkujPlikSvg } from '../wklejanie.js';
@@ -534,6 +535,12 @@ export const akcje = {
   'skladanka-rozloz': () => obsluzAkcje('skladanka-rozloz'),
   'skladanka-szablon': () => obsluzAkcje('skladanka-szablon'),
   'skladanka-instrukcja': () => obsluzAkcje('skladanka-instrukcja'),
+  // Komiks (#364): dymek, kadry, podział kadru, scenariusz, dymki ze scenariusza.
+  'komiks-dymek': () => obsluzAkcjeKomiksu('komiks-dymek'),
+  'komiks-kadry': () => obsluzAkcjeKomiksu('komiks-kadry'),
+  'komiks-podziel': () => obsluzAkcjeKomiksu('komiks-podziel'),
+  'komiks-scenariusz': () => obsluzAkcjeKomiksu('komiks-scenariusz'),
+  'komiks-dymki': () => obsluzAkcjeKomiksu('komiks-dymki'),
   'dodaj-elipse': () => edytor.dodajElipse(),
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => otworzWyborWielokata(),
@@ -897,6 +904,7 @@ window.addEventListener('resize', () => {
 });
 
 podlaczSkladanke(); // kliknięcia narzędzi składanki na płótnie (#233)
+podlaczKomiks(); // podział kadru kliknięciami (#364)
 
 // Dostęp z konsoli, dla testów i skryptu zrzutów ekranu: część startowa (js/aplikacja.js) tworzy
 // window.seriodruk, a tu dochodzi to, co ma edytor. `edytor` daje tamta część (zawsze aktualny).

@@ -30,10 +30,10 @@ wydatek widoczny i potwierdzany; tekst dymków zawsze w Makietce, nigdy w obrazi
 | A2 | **Obrys tekstu** do efektów dźwiękowych („BUM!”) | ✅ był (#123) |
 | A3 | **Czcionki komiksowe** (OFL): Bangers (okrzyki), Comic Neue (dialogi), Pangolin (dialogi z polskimi i ukraińskimi literami); cyrylica we wszystkich czcionkach, które ją mają. Permanent Marker odpada – nie ma polskich liter | #363 |
 | A4 | Style tekstu **„Dialog”** (wersaliki – lettering) i **„Efekt dźwiękowy”** (Bangers z obrysem); dymki domyślnie w stylu „Dialog” | do zrobienia |
-| A5 | **Tryb „Komiks”**: szablon projektu i typ sekcji z paskiem narzędzi (Dymek, Kadry, Podziel kadr, Scenariusz, Postacie) | do zrobienia |
-| A6 | **Kadry**: gotowe układy 1–9 kadrów z rynną, podział kadru przeciągnięciem (także ukośny), kadr na spad, obraz w kadrze (przeciągnięcie pliku na ramkę), postać wychodząca poza kadr | geometria ✅ #362 |
-| A7 | **Scenariusz**: tabela (strona, kadr, postać, tekst, rodzaj dymka; opcjonalnie opis sceny, miejsce) – wklejasz z CSV albo wpisujesz; przycisk **„Ustaw dymki”** stawia dymki; poprawka scenariusza zmienia tylko tekst, przesunięte dymki zostają; rodzaj dymka wybierasz w tabeli albo na dymku | moduł ✅ #361 |
-| A8 | **Wersje językowe**: kolumny tekst_pl / tekst_uk / tekst_en – wybór kolumny, ten sam układ | moduł ✅ #361 |
+| A5 | **Tryb „Komiks”**: szablon projektu i typ sekcji z paskiem narzędzi (Dymek, Kadry, Podziel kadr, Scenariusz, Postacie) | ✅ #364 (bez „Postacie” – A9) |
+| A6 | **Kadry**: gotowe układy 1–9 kadrów z rynną, podział kadru przeciągnięciem (także ukośny), kadr na spad, obraz w kadrze (przeciągnięcie pliku na ramkę), postać wychodząca poza kadr | ✅ #362, #364 (układy, podział dwoma kliknięciami, spad; obraz w kadrze jak w każdym kształcie) |
+| A7 | **Scenariusz**: tabela (strona, kadr, postać, tekst, rodzaj dymka; opcjonalnie opis sceny, miejsce) – wklejasz z CSV albo wpisujesz; przycisk **„Ustaw dymki”** stawia dymki; poprawka scenariusza zmienia tylko tekst, przesunięte dymki zostają; rodzaj dymka wybierasz w tabeli albo na dymku | ✅ #361, #364 |
+| A8 | **Wersje językowe**: kolumny tekst_pl / tekst_uk / tekst_en – wybór kolumny, ten sam układ | ✅ #361, #364 |
 | A9 | **Postacie i miejsca**: karty (imię, wygląd, znak rozpoznawczy, charakter, obraz wzorcowy, kolor dymka; miejsce: opis, pora dnia, światło, obraz) – na razie z obrazami wgranymi ręcznie | do zrobienia |
 | A10 | **Import stron**: ZIP albo wiele plików (`01.png` → strona 1 na spad, `s03-k2.png` → kadr 2 na stronie 3) | do zrobienia |
 | A11 | **Mostek** między dymkami jednej postaci; **webtoon** (długi pasek, PNG 800 px); **rastry i linie ruchu** w bibliotece wzorów | do zrobienia |

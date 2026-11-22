@@ -36,7 +36,7 @@ test('kadry: siatka z rynną, podział linią prostą i ukośną, spad, kolejno�
   const n = numerujKadry([k[4], k[1], k[0], k[3], k[2]]);
   assert.deepEqual(n, k);
   const el = elementKadru(k[0], 1, { id: 'k1' });
-  assert.deepEqual([el.type, el.kadr, el.left, el.top, el.points[0]], ['polygon', 1, 10, 10, { x: 0, y: 0 }]);
+  assert.deepEqual([el.type, el.kadr_nr, el.left, el.top, el.points[0]], ['polygon', 1, 9.7, 9.7, { x: 0, y: 0 }], 'róg z połową obrysu 0,6 mm');
 });
 
 test('dialogi z tabeli: dymki na stronach według kadrów, ponowne wstawienie zmienia tylko tekst, usunięte wiersze znikają', async () => {
@@ -53,7 +53,7 @@ test('dialogi z tabeli: dymki na stronach według kadrów, ponowne wstawienie zm
   };
   assert.deepEqual(kolumnyTekstu(tabela), ['tekst_pl', 'tekst_en']);
   assert.equal(kolumnyDialogu(tabela).tekst, 3, 'bez wyboru – pierwsza kolumna tekstu');
-  const projekt = { strony: [{ id: 's1', obiekty: [] }, { id: 's2', obiekty: [{ type: 'polygon', kadr: 1, left: 20, top: 30, width: 100, height: 80 }] }] };
+  const projekt = { strony: [{ id: 's1', obiekty: [] }, { id: 's2', obiekty: [{ type: 'polygon', kadr_nr: 1, left: 20, top: 30, width: 100, height: 80 }] }] };
   let n = 0;
   const opcje = { wymiaryStrony: () => ({ lewy: 15, gora: 15, szer: 180, wys: 267 }), noweId: () => `d${(n += 1)}` };
   const w1 = dymkiZTabeli(projekt, tabela, opcje);

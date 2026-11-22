@@ -1,0 +1,167 @@
+// Tryb „Komiks” (#364): pasek narzędzi tylko w sekcji typu „Komiks”; kadry z gotowego układu (liczba, odstęp, spad);
+// podział kadru dwoma kliknięciami; scenariusz (tabela) → „Ustaw dymki” → dymki na stronach; poprawka tekstu
+// w scenariuszu zmienia tylko tekst, przesunięty dymek zostaje na miejscu; szablon projektu „Komiks”.
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { otworz, nowyProjekt } = require('./pomoc.cjs');
+
+const kadryStrony = (strona) => strona.evaluate(() => {
+  const e = window.seriodruk.edytor;
+  const x0 = e.strony[e.aktywna].x;
+  return e.canvas.getObjects().filter((o) => o.kadr_nr).map((o) => {
+    const r = o.getBoundingRect(); // w układzie płótna (mm); obrys dodaje pół grubości linii – zaokrąglenie wystarcza
+    return { nr: o.kadr_nr, x: Math.round(r.left - x0), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height), punkty: o.points.length };
+  }).sort((a, b) => a.nr - b.nr);
+});
+
+test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenariusz i dymki', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Mój komiks');
+  assert.equal(await strona.locator('[data-akcja="komiks-kadry"]').isVisible(), false, 'poza komiksem pasek komiksu ukryty');
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.sekcje[0].typ = 'komiks';
+    await window.seriodruk.przeladuj();
+  });
+  for (const a of ['komiks-dymek', 'komiks-kadry', 'komiks-podziel', 'komiks-scenariusz', 'komiks-dymki']) {
+    assert.equal(await strona.locator(`[data-akcja="${a}"]`).isVisible(), true, `w sekcji komiksu widać ${a}`);
+  }
+
+  // Kadry: okno z 9 układami, siatka 2 × 2 z odstępem 4 mm (A4, marginesy 10 mm).
+  await strona.click('[data-akcja="komiks-kadry"]');
+  const dlg = strona.locator('#dlg-kadry');
+  await dlg.waitFor();
+  assert.equal(await dlg.locator('.uklad-kadrow').count(), 9);
+  await dlg.locator('.uklad-kadrow').nth(5).click();
+  await dlg.locator('button[value="tak"]').click();
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.kadr_nr).length === 4);
+  const wydruk = await strona.evaluate(() => { const w = window.seriodruk.edytor.wydruk; return [w.szerokosc_mm, w.wysokosc_mm]; });
+  let kadry = await kadryStrony(strona);
+  assert.equal(kadry.length, 4, 'cztery kadry');
+  const szer = (wydruk[0] - 20 - 4) / 2;
+  assert.ok(Math.abs(kadry[0].w - szer) <= 1, `szerokość kadru ok. ${szer} mm`);
+  assert.ok(Math.abs(kadry[1].x - (kadry[0].x + kadry[0].w + 4)) <= 1, 'odstęp 4 mm');
+  assert.deepEqual(kadry.map((k) => k.nr), [1, 2, 3, 4]);
+  assert.ok(kadry[1].x > kadry[0].x && kadry[2].y > kadry[0].y, 'kolejność czytania: w prawo, potem w dół');
+  const ostrzezeniaKadrow = () => strona.evaluate(() => { const e = window.seriodruk.edytor; e.przeliczOstrzezenia(); const k = new Set(e.canvas.getObjects().filter((o) => o.kadr_nr).map((o) => o.id)); return e.ostrzezenia.filter((x) => k.has(x.id)).map((x) => x.typ); });
+  assert.deepEqual(await ostrzezeniaKadrow(), [], 'kadry przy marginesie bez ostrzeżeń (obrys się nie liczy)');
+
+  // Na spad: kadry przy krawędzi wychodzą poza stronę (spad 3 mm).
+  await strona.click('[data-akcja="komiks-kadry"]');
+  await dlg.locator('.uklad-kadrow').nth(1).click();
+  await dlg.locator('input[name="spad"]').check({ force: true });
+  await dlg.locator('button[value="tak"]').click();
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.kadr_nr).length === 2);
+  kadry = await kadryStrony(strona);
+  assert.equal(kadry.length, 2, 'nowy układ zastępuje stary');
+  assert.ok(kadry[0].x <= -2 && kadry[0].y <= -2, 'kadr na spad wychodzi poza lewy i górny brzeg');
+  assert.deepEqual(await ostrzezeniaKadrow(), [], 'kadry na spad bez ostrzeżeń');
+
+  // Podział kadru: dwa kliknięcia – linia ukośna przez górny kadr.
+  const kliknij = async (x, y) => {
+    const p = await strona.evaluate(([mx, my]) => {
+      const e = window.seriodruk.edytor;
+      const v = e.canvas.viewportTransform;
+      const r = e.canvas.upperCanvasEl.getBoundingClientRect();
+      return { x: r.left + (e.strony[e.aktywna].x + mx) * v[0] + v[4], y: r.top + my * v[3] + v[5] };
+    }, [x, y]);
+    await strona.mouse.click(p.x, p.y);
+  };
+  await strona.click('[data-akcja="komiks-podziel"]');
+  assert.equal(await strona.getAttribute('[data-akcja="komiks-podziel"]', 'aria-pressed'), 'true');
+  await kliknij(20, 40);
+  await kliknij(120, 60);
+  kadry = await kadryStrony(strona);
+  assert.equal(kadry.length, 3, 'górny kadr podzielony na dwa');
+  assert.equal(await strona.getAttribute('[data-akcja="komiks-podziel"]', 'aria-pressed'), 'false');
+  assert.deepEqual(kadry.map((k) => k.nr), [1, 2, 3], 'numery od nowa w kolejności czytania');
+
+  // Kadry zapisują się z numerem i wracają po ponownym wczytaniu strony.
+  await strona.evaluate(async () => { await window.seriodruk.zapiszTeraz(); await window.seriodruk.przeladuj(); });
+  assert.deepEqual((await kadryStrony(strona)).map((k) => k.nr), [1, 2, 3]);
+
+  // Scenariusz: tabela z kolumnami scenariusza i oknem Dane.
+  await strona.click('[data-akcja="komiks-scenariusz"]');
+  const tabela = await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('postać')));
+  assert.deepEqual(tabela.kolumny, ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny']);
+  assert.equal(tabela.wiersze.length, 1, 'przykładowy wiersz');
+  await strona.keyboard.press('Escape');
+  // Użytkownik wpisuje dialogi (tu – wprost w tabelę).
+  await strona.evaluate((id) => {
+    const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.id === id);
+    tb.wiersze = [['1', '1', 'Ala', 'Cześć, Olu!', 'mowa', ''], ['1', '2', 'Ola', 'Hej!', 'krzyk', ''], ['1', '3', '', 'Tymczasem…', 'narracja', '']];
+  }, tabela.id);
+  await strona.click('[data-akcja="komiks-dymki"]');
+  const dymki = () => strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).map((o) => ({ tekst: o.text, rodzaj: o.dymek.rodzaj, x: Math.round(o.left), y: Math.round(o.top), klucz: o.z_dialogu?.klucz })));
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 3);
+  let d = await dymki();
+  assert.deepEqual(d.map((x) => [x.tekst, x.rodzaj]), [['Cześć, Olu!', 'mowa'], ['Hej!', 'krzyk'], ['Tymczasem…', 'narracja']]);
+  kadry = await kadryStrony(strona);
+  const x0 = await strona.evaluate(() => window.seriodruk.edytor.strony[window.seriodruk.edytor.aktywna].x);
+  const k2 = kadry[1];
+  assert.ok(d[1].x - x0 >= k2.x - 1 && d[1].y >= k2.y - 1 && d[1].y < k2.y + k2.h, 'dymek kadru 2 w kadrze 2');
+
+  // Przesunięcie dymka i poprawka tekstu w scenariuszu: tekst nowy, miejsce zostaje.
+  await strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const o = e.canvas.getObjects().find((x) => x.dymek && x.text === 'Cześć, Olu!');
+    o.set({ left: o.left + 7, top: o.top + 5 }); o.setCoords(); e.zatwierdz();
+    const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('postać'));
+    tb.wiersze[0][3] = 'Dzień dobry, Olu!';
+  });
+  const przed = (await dymki())[0];
+  await strona.click('[data-akcja="komiks-dymki"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().some((o) => o.text === 'Dzień dobry, Olu!'));
+  d = await dymki();
+  assert.equal(d.length, 3);
+  assert.deepEqual([d[0].x, d[0].y], [przed.x, przed.y], 'przesunięty dymek zostaje na miejscu');
+
+  // Poza komiksem narzędzia znikają.
+  await strona.evaluate(async () => { window.seriodruk.stan.projekt.sekcje[0].typ = 'zwykla'; await window.seriodruk.przeladuj(); });
+  assert.equal(await strona.locator('[data-akcja="komiks-kadry"]').isVisible(), false);
+  assert.deepEqual(bledy, []);
+});
+
+test('komiks: szablon projektu – okładka zeszytowa, strony z kadrami, scenariusz z przykładem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.locator('[data-akcja="nowy-projekt"]:visible').first().click();
+  await strona.waitForSelector('#dlg-nowy[open]');
+  await strona.fill('#form-nowy [name="nazwa"]', 'Przygody Ali');
+  await strona.check('#form-nowy input[name="start"][value="szablon"]', { force: true });
+  await strona.click('#nowy-szablony .karta-szablonu[data-id="komiks"]');
+  await strona.waitForSelector('#nowy-szablony #gotowe-szczegoly:not([hidden])');
+  await strona.click('#gotowe-wstaw');
+  await strona.waitForFunction(() => !document.querySelector('#dlg-nowy').open && window.seriodruk.stan.projekt?.nazwa === 'Przygody Ali', null, { timeout: 15000 });
+  const p = await strona.evaluate(() => {
+    const x = window.seriodruk.stan.projekt;
+    const kom = x.sekcje.find((s) => s.typ === 'komiks');
+    const strony = x.strony.filter((s) => s.sekcja === kom.id);
+    return {
+      sekcje: x.sekcje.map((s) => s.typ), stron: strony.length, format: [kom.wydruk.szerokosc_mm, kom.wydruk.wysokosc_mm],
+      kadry: strony.slice(0, 3).map((s) => s.obiekty.filter((o) => o.kadr_nr).length),
+      scenariusz: x.tabele.find((tb) => tb.kolumny.includes('postać'))?.wiersze.length,
+    };
+  });
+  assert.deepEqual(p.sekcje, ['okladka', 'komiks']);
+  assert.equal(p.stron, 24);
+  assert.deepEqual(p.format, [170, 260]);
+  assert.deepEqual(p.kadry, [3, 4, 4], 'pierwsza strona – duży kadr i dwa mniejsze, dalej 2 × 2');
+  assert.equal(p.scenariusz, 5);
+  // Strona komiksu w edytorze: pasek komiksu i kadry na płótnie; „Ustaw dymki” stawia przykładowe dymki.
+  await strona.evaluate(async () => {
+    const x = window.seriodruk.stan.projekt;
+    const kom = x.sekcje.find((s) => s.typ === 'komiks');
+    await window.seriodruk.przejdzDoStrony(x.strony.findIndex((s) => s.sekcja === kom.id));
+  });
+  await strona.waitForFunction(() => document.body.classList.contains('w-komiksie'));
+  const k = await kadryStrony(strona);
+  assert.equal(k.length, 3);
+  assert.deepEqual([k[0].x, k[0].y, k[0].w], [10, 10, 151], 'kadr w marginesach 10 mm: 170 – 2 × 10 = 150 mm + obrys 0,6 mm');
+  assert.deepEqual(await strona.evaluate(() => { const e = window.seriodruk.edytor; e.przeliczOstrzezenia(); return e.ostrzezenia.map((x) => x.typ); }), [], 'strona z szablonu bez ostrzeżeń');
+  await strona.click('[data-akcja="komiks-dymki"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.dymek).length === 3);
+  const naStronach = await strona.evaluate(() => window.seriodruk.stan.projekt.strony.map((s) => (s.obiekty || []).filter((o) => o.dymek).length).slice(0, 4));
+  assert.deepEqual(naStronach, [0, 3, 2, 0], 'strona 1 scenariusza = pierwsza strona komiksu (okładka się nie liczy)');
+  assert.deepEqual(bledy, []);
+});

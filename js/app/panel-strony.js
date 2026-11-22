@@ -48,6 +48,7 @@ export function odswiezPasekEdytora() {
   }
   document.body.classList.toggle('tryb-wzorca', wz);
   document.body.classList.toggle('w-skladance', !wz && typSekcji(biezacaSekcja()) === 'skladanka'); // narzędzia składanki (#233)
+  document.body.classList.toggle('w-komiksie', !wz && typSekcji(biezacaSekcja()) === 'komiks'); // narzędzia komiksu (#364)
   $('#pasek-wzorca').hidden = !wz;
   if (wz) {
     const w = biezacyWzorzec();

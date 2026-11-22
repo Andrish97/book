@@ -3,7 +3,7 @@
 // układy z rynną, kadry na spad), podział kadru dwoma kliknięciami (także ukośny), scenariusz (tabela) i „Ustaw dymki”
 // (dymki z tabeli, js/dialogi.js). Działa bez AI; AI korzysta z tych samych kadrów, tabeli i dymków.
 
-import { siatkaKadrow, podzielKadr, naSpad, numerujKadry } from '../kadry.js';
+import { siatkaKadrow, podzielKadr, naSpad, numerujKadry, UKLADY_KADROW } from '../kadry.js';
 import { dymkiZTabeli, kolumnyDialogu, kolumnyTekstu } from '../dialogi.js';
 import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
@@ -13,18 +13,7 @@ import { t } from '../jezyk.js';
 
 export const wKomiksie = () => stan.tryb === 'strona' && typSekcji(biezacaSekcja()) === 'komiks';
 
-// Gotowe układy kadrów: wiersze z proporcjami szerokości kadrów (jak w js/kadry.js).
-export const UKLADY_KADROW = [
-  { id: '1', wiersze: [[1]] },
-  { id: '2-pion', wiersze: [[1], [1]] },
-  { id: '2-poziom', wiersze: [[1, 1]] },
-  { id: '3-rzedy', wiersze: [[1], [1], [1]] },
-  { id: '3-duzy-gora', wiersze: [[1], [1, 1]] },
-  { id: '4-siatka', wiersze: [[1, 1], [1, 1]] },
-  { id: '5', wiersze: [[1, 1], [1], [1, 1]] },
-  { id: '6-siatka', wiersze: [[1, 1], [1, 1], [1, 1]] },
-  { id: '9-siatka', wiersze: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] },
-];
+export { UKLADY_KADROW };
 
 const podgladUkladu = (u) => {
   const r = 2; const w = 40; const h = 54;
@@ -44,7 +33,7 @@ const STYL_KADRU = { fill: '#ffffff', stroke: '#1a1a1a', strokeWidth: 0.6, strok
 
 // Kadr na płótnie z punktów w układzie płótna.
 function nowyKadr(punkty, nr) {
-  const k = new fabric.Polygon(punkty.map((p) => ({ x: p.x, y: p.y })), { ...STYL_KADRU, kadr: nr, nazwa: t('komiks.kadrNr', { nr }) });
+  const k = new fabric.Polygon(punkty.map((p) => ({ x: p.x, y: p.y })), { ...STYL_KADRU, kadr_nr: nr, nazwa: t('komiks.kadrNr', { nr }) });
   return k;
 }
 
@@ -56,7 +45,7 @@ function punktyKadru(o) {
 
 const kadryNaStronie = () => {
   const { x0, strona } = obszarStrony();
-  return edytor.canvas.getObjects().filter((o) => o.kadr && !o.zWzorca && o.left >= x0 - 20 && o.left < x0 + strona.w + 20);
+  return edytor.canvas.getObjects().filter((o) => o.kadr_nr != null && !o.zWzorca && o.left >= x0 - 20 && o.left < x0 + strona.w + 20);
 };
 
 // Numery kadrów w kolejności czytania (po każdej zmianie kadrów).
@@ -66,7 +55,7 @@ function przenumeruj() {
   for (const o of kadry) {
     const pk = JSON.stringify(punktyKadru(o));
     const nr = kolejne.findIndex((q) => JSON.stringify(q) === pk) + 1;
-    o.set({ kadr: nr, nazwa: t('komiks.kadrNr', { nr }) });
+    o.set({ kadr_nr: nr, nazwa: t('komiks.kadrNr', { nr }) });
   }
 }
 
@@ -178,7 +167,12 @@ export async function otworzScenariusz() {
   return tb;
 }
 
-// Dymki ze scenariusza na stronach komiksu: strona w tabeli = numer strony w projekcie.
+// Dymki ze scenariusza na stronach komiksu: strona 1 w tabeli = pierwsza strona sekcji „Komiks” (okładka i inne
+// sekcje się nie liczą); projekt bez sekcji komiksu – numer strony w projekcie.
+export const stronyKomiksu = (p) => {
+  const sekcje = new Set(p.sekcje.filter((s) => typSekcji(s) === 'komiks').map((s) => s.id));
+  return sekcje.size ? p.strony.filter((s) => sekcje.has(s.sekcja)) : p.strony;
+};
 export async function ustawDymki({ kolumnaTekstu = null } = {}) {
   const tb = scenariuszProjektu();
   if (!tb) { powiadom(t('komiks.brakScenariusza'), true); return null; }
@@ -191,7 +185,7 @@ export async function ustawDymki({ kolumnaTekstu = null } = {}) {
     return { lewy, gora: m.gora ?? 10, szer: w.szerokosc_mm - lewy - prawy, wys: w.wysokosc_mm - (m.gora ?? 10) - (m.dol ?? 10) };
   };
   let n = 0;
-  const wynik = dymkiZTabeli(p, tb, { kolumnaTekstu, wymiaryStrony, noweId: () => `dym_${Date.now().toString(36)}_${(n += 1)}` });
+  const wynik = dymkiZTabeli({ strony: stronyKomiksu(p) }, tb, { kolumnaTekstu, wymiaryStrony, noweId: () => `dym_${Date.now().toString(36)}_${(n += 1)}` });
   await zaladujCel();
   zaplanujZapis();
   powiadom(t('komiks.ustawionoDymki', { dodane: wynik.dodane, zmienione: wynik.zmienione, usuniete: wynik.usuniete }) + (wynik.pominiete.length ? ` ${t('komiks.pominieto', { lista: wynik.pominiete.slice(0, 3).join('; ') })}` : ''), wynik.pominiete.length > 0);

@@ -1,7 +1,20 @@
 // Kadry komiksu (#362, plan komiksu B2): geometria siatki kadrów z rynną (stały odstęp między kadrami), podział kadru
-// linią (także ukośną), kadry na spad. Kadr to wielokąt (polygon) z polem `kadr` (numer w kolejności czytania) – może
+// linią (także ukośną), kadry na spad. Kadr to wielokąt (polygon) z polem `kadr_nr` (numer w kolejności czytania) – może
 // być ramką obrazu jak każdy kształt (obraz_kadr, #123), a obraz może wychodzić poza kadr (zwykły obraz nad nim).
 // Wszystkie wymiary w mm, punkty w układzie strony.
+
+// Gotowe układy kadrów: wiersze z proporcjami szerokości kadrów (siatkaKadrow).
+export const UKLADY_KADROW = [
+  { id: '1', wiersze: [[1]] },
+  { id: '2-pion', wiersze: [[1], [1]] },
+  { id: '2-poziom', wiersze: [[1, 1]] },
+  { id: '3-rzedy', wiersze: [[1], [1], [1]] },
+  { id: '3-duzy-gora', wiersze: [[1], [1, 1]] },
+  { id: '4-siatka', wiersze: [[1, 1], [1, 1]] },
+  { id: '5', wiersze: [[1, 1], [1], [1, 1]] },
+  { id: '6-siatka', wiersze: [[1, 1], [1, 1], [1, 1]] },
+  { id: '9-siatka', wiersze: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] },
+];
 
 const zaokr = (v) => Math.round(v * 100) / 100;
 
@@ -71,14 +84,15 @@ export function numerujKadry(kadry) {
     .map((x) => x.k);
 }
 
-// Element kadru do zapisu strony (polygon Fabric: punkty względem lewego górnego rogu, left/top = ten róg).
+// Element kadru do zapisu strony (polygon Fabric: punkty względem lewego górnego rogu kształtu).
 export function elementKadru(punkty, nr, { id, obrys = '#1a1a1a', grubosc = 0.6, tlo = '#ffffff' } = {}) {
   const minX = Math.min(...punkty.map((p) => p.x)); const minY = Math.min(...punkty.map((p) => p.y));
   const maxX = Math.max(...punkty.map((p) => p.x)); const maxY = Math.max(...punkty.map((p) => p.y));
   return {
-    type: 'polygon', id, left: minX, top: minY, width: zaokr(maxX - minX), height: zaokr(maxY - minY),
+    // left/top w Fabric to róg razem z obrysem (pół grubości linii na zewnątrz kształtu)
+    type: 'polygon', id, left: zaokr(minX - grubosc / 2), top: zaokr(minY - grubosc / 2), width: zaokr(maxX - minX), height: zaokr(maxY - minY),
     points: punkty.map((p) => ({ x: zaokr(p.x - minX), y: zaokr(p.y - minY) })),
     fill: tlo, stroke: obrys, strokeWidth: grubosc, strokeUniform: true, strokeLineJoin: 'miter',
-    kadr: nr, nazwa: `Kadr ${nr}`,
+    kadr_nr: nr, nazwa: `Kadr ${nr}`,
   };
 }

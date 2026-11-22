@@ -369,6 +369,12 @@ Trzy elementy z Biblioteki aplikacji. W `dodaj_elementy` wystarczy **skrót** �
 - `rodzaj`: `mowa` (owal z ogonkiem), `mysl` (chmurka z kółkami), `krzyk` (wybuch z kolcami), `szept` (owal z przerywanym obrysem), `narracja` (prostokątna ramka bez ogonka).
 - `ogonek`: punkt **na stronie** (mm), w który celuje ogonek – np. usta postaci; bez niego dymek nie ma ogonka. W zapisie strony ogonek jest względem lewego górnego rogu ramki tekstu (`dymek.ogonek`), więc jedzie razem z dymkiem.
 - Opcjonalnie: `width`, `fontSize`, `fontFamily`, `fill` (kolor tekstu), `wypelnienie`, `obrys`, `grubosc` (mm). Zmiana tekstu: `zmien_elementy` z `text`; zmiana rodzaju albo ogonka: `zmien_elementy` z `dymek`.
+- Dymek postawiony ze scenariusza („Ustaw dymki”) ma `z_dialogu`: `{ "tabela": id tabeli, "klucz": "strona|kadr|postać|która kwestia", "wiersz": nr }` – po zmianie tekstu w tabeli ponowne „Ustaw dymki” zmienia tylko tekst tego dymka, jego miejsce zostaje. Nie zmieniaj tego pola.
+
+### Komiks (#364)
+
+- Sekcja typu `komiks` (pole `typ` sekcji) ma pasek narzędzi komiksu. **Kadr** to `polygon` z polem `kadr_nr` (numer w kolejności czytania na stronie: rzędami od góry, w rzędzie od lewej) – białe tło, czarny obrys 0,6 mm, leży pod obrazami i dymkami. Może być ramką obrazu jak każdy kształt (`zasob`).
+- **Scenariusz** to tabela z kolumnami `strona`, `kadr`, `postać`, `tekst`, `rodzaj` (`mowa`, `mysl`, `krzyk`, `szept`, `narracja`), `opis sceny`; wersje językowe – kolumny `tekst_pl`, `tekst_en`, `tekst_uk`. `strona` 1 to pierwsza strona sekcji komiksu (okładka się nie liczy).
 
 Pozostałe elementy Biblioteki nie mają skrótu – to zwykłe elementy, które zapiszesz sam:
 - **Kalendarz roczny** z Planera to `group` tekstów: rok, nazwa każdego miesiąca i po jednym `textbox` na kolumnę dnia tygodnia (skrót dnia i liczby w kolejnych wierszach, `"textAlign": "center"`).

@@ -22,6 +22,7 @@ export const TYPY_SEKCJI = {
   trojdzielny: { nazwa: 'Kalendarz trójdzielny', opis: t('typSekcji.glowkaITrzyKalendaria'), ikona: 'planer', rodzaj: 'trojdzielny', rola: 'osobny' },
   wykrojnik: { nazwa: 'Wykrojnik', opis: t('typSekcji.kopertaTeczkaZKieszenia'), ikona: 'ksztalty', rodzaj: 'wykrojnik', rola: 'osobny' },
   skladanka: { nazwa: 'Składanka / wycinanka', opis: t('typSekcji.modelZPapieruAlbo'), ikona: 'ksztalty', rodzaj: 'skladanka', rola: 'osobny' },
+  komiks: { nazwa: 'Komiks', opis: t('typSekcji.komiksOpis'), ikona: 'komentarz', rodzaj: null, rola: 'blok' },
   arkusz: { nazwa: 'Arkusz użytków', opis: t('typSekcji.wizytowkiNaklejkiEtykietyJeden'), ikona: 'siatka', rodzaj: 'arkusz', rola: 'osobny' },
 };
 

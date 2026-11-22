@@ -8,6 +8,7 @@ import { przeliczOkladki } from './okladka.js';
 import { domyslnaSpecjalna, dodajWyklejki } from './sekcje-specjalne.js';
 import { domyslneStyle } from './style-tekstu.js';
 import { wstawGotowaSekcje, usunPustyStart } from './gotowe-sekcje.js';
+import { siatkaKadrow, elementKadru, UKLADY_KADROW } from './kadry.js';
 import { t } from './jezyk.js';
 
 export const FORMATY_KSIAZKI = [
@@ -78,6 +79,13 @@ export const SZABLONY_PROJEKTOW = [
     pytania: [pytanieFormatu('210x210', [['210x210', 'Kwadrat – 210 × 210 mm'], ['297x210', 'A4 poziomo – 297 × 210 mm'], ['210x297', 'A4 – 210 × 297 mm']])],
   },
   {
+    id: 'komiks', nazwa: 'Komiks', kategoria: 'ksiazki', paleta: 'pastel',
+    opis: t('szablonyProjektow.komiksOpis'),
+    slowa: 'komiks comic kadry dymki scenariusz manga zeszyt', oprawa: 'zeszytowa', komiks: true,
+    pytania: [pytanieFormatu('170x260', [['170x260', 'Komiks – 170 × 260 mm'], ['210x297', 'A4 – 210 × 297 mm'], ['148x210', 'A5 – 148 × 210 mm']]),
+      pytanieStron('24', STRONY(8, 4, 15)), pytanieKrotnosci('4', ['4', '8', '16'])],
+  },
+  {
     id: 'kalendarz-scienny-plecy', nazwa: 'Kalendarz ścienny z plecami', kategoria: 'kalendarze', paleta: 'zielen',
     opis: t('szablonyProjektow.okladkaI12Miesiecy'),
     slowa: 'kalendarz scienny spirala plecy podkladka', blok: 'kalendarz-scienny', podkladka: true,
@@ -120,6 +128,30 @@ function pustaSekcja(projekt, typ, nazwa, wzor) {
   return sekcja;
 }
 
+// Komiks (#364): sekcja typu „Komiks” z kadrami na każdej stronie (pierwsza – duży kadr u góry, dalej siatka 2 × 2)
+// i scenariuszem z przykładem – od razu widać, jak działa „Ustaw dymki”.
+function komiksWBloku(p, blok) {
+  blok.typ = 'komiks';
+  blok.nazwa = 'Komiks';
+  const w = blok.wydruk; const m = 10;
+  w.marginesy = { gora: m, dol: m, wewnetrzny: m, zewnetrzny: m };
+  const obszar = { x: m, y: m, w: w.szerokosc_mm - 2 * m, h: w.wysokosc_mm - 2 * m };
+  const uklad = (id) => UKLADY_KADROW.find((u) => u.id === id).wiersze;
+  p.strony.filter((s) => s.sekcja === blok.id).forEach((s, i) => {
+    s.obiekty = siatkaKadrow(obszar, uklad(i ? '4-siatka' : '3-duzy-gora'), 4).map((k, j) => elementKadru(k, j + 1, { id: uid('o') }));
+  });
+  p.tabele = [...(p.tabele || []), {
+    id: uid('t'), nazwa: 'Scenariusz', kolumny: ['strona', 'kadr', 'postać', 'tekst', 'rodzaj', 'opis sceny'],
+    wiersze: [
+      ['1', '1', '', t('komiks.szablon1'), 'narracja', t('komiks.szablon1Scena')],
+      ['1', '2', t('komiks.szablonAla'), t('komiks.szablon2'), 'krzyk', t('komiks.szablon2Scena')],
+      ['1', '3', t('komiks.szablonOla'), t('komiks.szablon3'), 'mowa', t('komiks.szablon3Scena')],
+      ['2', '1', t('komiks.szablonAla'), t('komiks.szablon4'), 'szept', t('komiks.szablon4Scena')],
+      ['2', '2', t('komiks.szablonOla'), t('komiks.szablon5'), 'mysl', t('komiks.szablon5Scena')],
+    ],
+  }];
+}
+
 // Buduje cały projekt z szablonu. opcje: { nazwa, odpowiedzi, paleta (obiekt albo klucz), czcionki }.
 export async function zbudujProjekt(id, opcje = {}) {
   const sz = szablonProjektu(id);
@@ -142,6 +174,7 @@ export async function zbudujProjekt(id, opcje = {}) {
   }
   blok.typ = 'blok';
   blok.nazwa = sz.blok ? blok.nazwa : 'Blok (środek)';
+  if (sz.komiks) komiksWBloku(p, blok);
   if (sz.oprawa) {
     const { sekcja } = await wstawGotowaSekcje(p, 'okladka-ksiazki', { ...wspolne, wlasnyFormat: true, odpowiedzi: { oprawa: sz.oprawa } });
     sekcja.nazwa = OPRAWY[sz.oprawa];

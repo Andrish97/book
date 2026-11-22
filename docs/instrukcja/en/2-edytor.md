@@ -1031,7 +1031,7 @@ with the format button on the top bar or with [⋯] next to the section header �
 |---|---|
 | **Section name** | The name in the page list. |
 | **Page layout** | **Single** or **Spreads** (→ 10.5). |
-| **Section type** | What the section is in the publication – a card with an icon and description: **Regular**, **Book block (interior)**, **Cover** (→ 10.6), **Front endpaper** and **back endpaper**, **Dust jacket**, **Insert**, **Backing board / back**, **Folded flyer**, **Yearly calendar**, **Three-month calendar**, **Die line**, **Imposition sheet** (→ 10.11), **Paper model / cut-out** (→ 10.12). The type itself sets the format, zones, numbering and cover spine — the section name has no effect on this. You choose the type with [Section] and change it here. |
+| **Section type** | What the section is in the publication – a card with an icon and description: **Regular**, **Book block (interior)**, **Cover** (→ 10.6), **Front endpaper** and **back endpaper**, **Dust jacket**, **Insert**, **Backing board / back**, **Folded flyer**, **Yearly calendar**, **Three-month calendar**, **Die line**, **Imposition sheet** (→ 10.11), **Paper model / cut-out** (→ 10.12), **Comic** (→ 10.13). The type itself sets the format, zones, numbering and cover spine — the section name has no effect on this. You choose the type with [Section] and change it here. |
 | **Format** | Page size in mm. Changing it here does not touch the elements — to scale them together with the format, click [Change format and fit elements…] (→ 10.9). |
 | **Margins and bleed** | You enter them on the page diagram, in mm. |
 | **First page of section** | In spreads: **Right (as in a book)** or **Left (full spread right away)**. Quicker: in the page's **Properties** panel (nothing selected), the **Start section on a left page** switch – swaps left and right pages with one click, e.g. after adding a single page. |
@@ -1317,6 +1317,62 @@ at 90° the elements stand up, and with the card almost closed they fold inward.
 the part stands at the angle that follows from the geometry. The card panel shows the **angle to spine**
 and the distance from it for each straight line, and the panel of the attached part has a **Pop-up** section: at what angle it stands with the card open
 at 90°, how far it reaches from the card, and whether it hides inside the card when closed or sticks out (by how many millimeters).
+
+## 10.13 Comic
+
+You make a comic in a section of type **Comic**. The easiest start is the template: **New project** → **Start from:
+Template** → **Comic**. You get a saddle-stitched cover and 24 comic pages (170 × 260 mm, you can change it), ready
+panels on every page, and a **Scenariusz** (script) table in the data with a sample scene. You can also add a comic
+section to any project ([Section], type **Comic**). Everything works without AI.
+
+![A comic page with panels and bubbles from the script; “Panels” and “Place bubbles” on the bar](k-komiks.png)
+
+In a comic section the insert bar has extra tools:
+
+| Tool | What it does |
+|---|---|
+| [Speech bubble] | Inserts a speech bubble (→ 4.14). Change its kind – speech, thought, shout, whisper, caption – in the panel. |
+| [Panels] | A window with 9 ready panel layouts (1–9 panels). Click a preview, set **Gap between panels (mm)** and, if you like, **Bleed** – panels at the edge then run off the page up to the trim line. [Lay out panels] replaces the panels on this page; images and bubbles stay. |
+| [Split panel] | Click two points – the line between them splits the panel in two (it can be diagonal), with the same gap. <kbd>Esc</kbd> cancels. |
+| [Script] | Opens the script table in the **Data** window (→ 14). If there is none, it creates one. |
+| [Place bubbles] | Places speech bubbles with the script texts on the pages, in the right panels. |
+
+![The Panels window – 9 ready layouts](k-komiks-kadry.png)
+
+**Panels.** A panel is a shape with a white fill and a black outline, numbered in reading order (rows from the top,
+left to right within a row – you see it in the layers as “Kadr 1”, “Kadr 2”…). Move and change it like any shape,
+and put an image into a panel like into any shape (→ 7) – e.g. by dragging a file onto the panel. A character can
+break out of the panel: just place the image normally, above the panel.
+
+**The script** is an ordinary data table. Each row is one speech bubble:
+
+| Column | What to enter |
+|---|---|
+| **strona** (page) | Comic page number – 1 is the first page of the comic section (the cover does not count). |
+| **kadr** (panel) | Panel number on that page (as in the layers). |
+| **postać** (character) | Who speaks – e.g. Ala. Leave empty for a caption. |
+| **tekst** (text) | The bubble text. |
+| **rodzaj** (kind) | `mowa` (speech), `myśl` (thought), `krzyk` (shout), `szept` (whisper) or `narracja` (caption). Empty – speech. |
+| **opis sceny** (scene) | What the panel shows – for you or the artist; it does not go on the page. |
+
+Type the script in the **Data** window or paste it from a spreadsheet (→ 14.3). English names work too – columns
+`page`, `panel`, `character`, `text`, `kind` and kinds `speech`, `thought`, `shout`, `whisper`, `caption`.
+
+**Example, step by step**
+
+1. Create a project from the **Comic** template and open the first comic page (after the cover).
+2. Click [Script]. The table has sample rows, e.g. `1 | 2 | Ala | Ola! Come quick! | krzyk`.
+   Edit them or type your own and close the window.
+3. Click [Place bubbles]. Speech bubbles appear on the pages – each in its panel, with the tail pointing down.
+4. Move the bubbles and tail ends to fit the drawing.
+5. Changing a text in the script? Click [Place bubbles] again – only the text changes; bubbles you moved stay
+   where they are. A row deleted from the script removes its bubble.
+
+**Language versions.** Add columns `tekst_pl`, `tekst_en`, `tekst_uk` to the script (each with the text in one
+language). [Place bubbles] then asks which column to use – the same layout gets the texts in another language.
+
+> Tip: Bubbles use a comic style (Comic Neue font, capitals). Make the panel images in any program or generator –
+> the text always stays in Makietka's bubbles, not in the image, so it is easy to fix and translate.
 
 # 11. Master pages
 

@@ -49,6 +49,8 @@ export const WLASNE_POLA = [
   'na_czesci', // element na ścianie części składanki (#284) – w grupie części, jedzie z nią
   'czesc', 'skladanka', // składanka (#224): definicja części modelu z papieru i rola elementu w części (js/skladanka.js)
   'dymek', // dymek wokół ramki tekstu: { rodzaj: mowa|mysl|krzyk|narracja, ogonek: { x, y }, wypelnienie, obrys, grubosc } (dymek.js, #360)
+  'z_dialogu', // dymek ze scenariusza: { tabela, klucz, wiersz } – ponowne „Ustaw dymki” zmienia tylko tekst (dialogi.js, #361)
+  'kadr_nr', // kadr komiksu: numer w kolejności czytania na stronie (kadry.js, komiks-narzedzia.js, #362/#364)
   'kolaz', // kolaż: { uklad, odstep, zaokraglenie, szerokosc, wysokosc } – grupa pól na zdjęcia (#131A)
 ];
 

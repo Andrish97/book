@@ -1031,7 +1031,7 @@ przyciskiem formatu na górnym pasku albo [⋯] przy nagłówku sekcji → [Usta
 |---|---|
 | **Nazwa sekcji** | Nazwa na liście stron. |
 | **Układ stron** | **Pojedyncze** albo **Rozkładówki** (→ 10.5). |
-| **Typ sekcji** | Czym sekcja jest w publikacji – karta z ikoną i opisem: **Zwykła**, **Blok (środek książki)**, **Okładka** (→ 10.6), **Wyklejka przednia** i **tylna**, **Obwoluta**, **Wkładka**, **Podkładka / plecy**, **Ulotka składana**, **Kalendarz roczny**, **Kalendarz trójdzielny**, **Wykrojnik**, **Arkusz użytków** (→ 10.11), **Składanka / wycinanka** (→ 10.12). Typ sam ustala format, strefy, numerację i grzbiet okładki — nazwa sekcji nie ma na to wpływu. Typ wybierasz przy [Sekcja] i zmieniasz tutaj. |
+| **Typ sekcji** | Czym sekcja jest w publikacji – karta z ikoną i opisem: **Zwykła**, **Blok (środek książki)**, **Okładka** (→ 10.6), **Wyklejka przednia** i **tylna**, **Obwoluta**, **Wkładka**, **Podkładka / plecy**, **Ulotka składana**, **Kalendarz roczny**, **Kalendarz trójdzielny**, **Wykrojnik**, **Arkusz użytków** (→ 10.11), **Składanka / wycinanka** (→ 10.12), **Komiks** (→ 10.13). Typ sam ustala format, strefy, numerację i grzbiet okładki — nazwa sekcji nie ma na to wpływu. Typ wybierasz przy [Sekcja] i zmieniasz tutaj. |
 | **Format** | Rozmiar strony w mm. Zmiana tutaj nie rusza elementów — żeby przeskalować je razem z formatem, kliknij [Zmień format i dopasuj elementy…] (→ 10.9). |
 | **Marginesy i spad** | Wpisujesz je na schemacie strony, w mm. |
 | **Pierwsza strona sekcji** | W rozkładówkach: **Prawa (jak w książce)** albo **Lewa (od razu pełna rozkładówka)**. Szybciej: w panelu **Właściwości** strony (nic nie zaznaczone) przełącznik **Zacznij sekcję od lewej strony** – zamienia strony lewe i prawe jednym kliknięciem, np. po dodaniu pojedynczej strony. |
@@ -1317,6 +1317,62 @@ przy 90° elementy stoją, a przy prawie zamkniętej kartce składają się do �
 część stanie pod kątem wynikającym z geometrii. Panel kartki przy każdej prostej linii podaje **kąt do grzbietu**
 i odległość od niego, a panel doklejonej części ma sekcję **Pop-up**: pod jakim kątem stoi przy kartce otwartej
 na 90°, jak daleko sięga od kartki i czy po zamknięciu chowa się w kartce, czy wystaje (o ile milimetrów).
+
+## 10.13 Komiks
+
+Komiks robisz w sekcji typu **Komiks**. Najprościej zacząć od szablonu: **Nowy projekt** → **Zacznij od: Gotowego
+szablonu** → **Komiks**. Dostajesz okładkę zeszytową i 24 strony komiksu (170 × 260 mm, do zmiany), na każdej
+stronie gotowe kadry, a w danych tabelę **Scenariusz** z przykładową sceną. Sekcję komiksu możesz też dodać
+do dowolnego projektu ([Sekcja], typ **Komiks**). Wszystko działa bez AI.
+
+![Strona komiksu z kadrami i dymkami ze scenariusza; na pasku „Kadry” i „Ustaw dymki”](k-komiks.png)
+
+W sekcji komiksu pasek wstawiania ma dodatkowe narzędzia:
+
+| Narzędzie | Co robi |
+|---|---|
+| [Dymek] | Wstawia dymek (→ 4.14). Rodzaj – mowa, myśl, krzyk, szept, narracja – zmienisz w panelu. |
+| [Kadry] | Okno z 9 gotowymi układami kadrów (1–9 kadrów). Kliknij podgląd, ustaw **Odstęp między kadrami** (mm) i ewentualnie **Na spad** – kadry przy brzegu wychodzą wtedy poza stronę, aż do linii cięcia. [Ułóż kadry] zastępuje kadry na tej stronie; obrazy i dymki zostają. |
+| [Podziel kadr] | Kliknij dwa punkty – linia między nimi dzieli kadr na dwa (może być ukośna), z tym samym odstępem. <kbd>Esc</kbd> przerywa. |
+| [Scenariusz] | Otwiera tabelę scenariusza w oknie **Dane** (→ 14). Gdy jej nie ma – tworzy ją. |
+| [Ustaw dymki] | Stawia dymki z tekstami ze scenariusza na stronach, w odpowiednich kadrach. |
+
+![Okno Kadry – 9 gotowych układów](k-komiks-kadry.png)
+
+**Kadry.** Kadr to kształt z białym tłem i czarnym obrysem, z numerem w kolejności czytania (rzędami od góry,
+w rzędzie od lewej – widać go w warstwach jako „Kadr 1”, „Kadr 2”…). Przesuwasz i zmieniasz go jak każdy kształt,
+a obraz wstawisz do kadru jak do każdego kształtu (→ 7) – np. przeciągając plik na kadr. Postać może wychodzić
+poza kadr: połóż wtedy obraz zwyczajnie, nad kadrem.
+
+**Scenariusz** to zwykła tabela danych. Każdy wiersz to jeden dymek:
+
+| Kolumna | Co wpisać |
+|---|---|
+| **strona** | Numer strony komiksu – 1 to pierwsza strona sekcji komiksu (okładka się nie liczy). |
+| **kadr** | Numer kadru na tej stronie (jak w warstwach). |
+| **postać** | Kto mówi – np. Ala. Przy narracji zostaw puste. |
+| **tekst** | Tekst dymka. |
+| **rodzaj** | `mowa`, `myśl`, `krzyk`, `szept` albo `narracja`. Puste – mowa. |
+| **opis sceny** | Co widać w kadrze – dla Ciebie albo dla rysownika; nie trafia na stronę. |
+
+Scenariusz wpiszesz w oknie **Dane** albo wkleisz z arkusza (→ 14.3).
+
+**Przykład krok po kroku**
+
+1. Utwórz projekt z szablonu **Komiks** i otwórz pierwszą stronę komiksu (za okładką).
+2. Kliknij [Scenariusz]. W tabeli są przykładowe wiersze, np. `1 | 2 | Ala | Ola! Chodź szybko! | krzyk`.
+   Popraw je albo wpisz swoje i zamknij okno.
+3. Kliknij [Ustaw dymki]. Na stronach pojawiają się dymki – każdy w swoim kadrze, z ogonkiem w dół.
+4. Przesuń dymki i końce ogonków tam, gdzie pasują do rysunku.
+5. Zmieniasz tekst w scenariuszu? Kliknij znowu [Ustaw dymki] – zmieni się tylko tekst; dymki, które przesunąłeś,
+   zostają na swoim miejscu. Wiersz usunięty ze scenariusza usuwa swój dymek.
+
+**Wersje językowe.** Dodaj do scenariusza kolumny `tekst_pl`, `tekst_en`, `tekst_uk` (każda z tekstem w jednym
+języku). [Ustaw dymki] zapyta wtedy, z której kolumny wziąć teksty – ten sam układ dostaje teksty w innym języku.
+
+> Wskazówka: Dymki stawiają się w stylu komiksowym (czcionka Comic Neue, wersaliki). Obrazy do kadrów możesz
+> zrobić w dowolnym programie albo generatorze – tekst zawsze jest w dymkach Makietki, nie w obrazie, więc łatwo go
+> poprawić i przetłumaczyć.
 
 # 11. Wzorce stron
 

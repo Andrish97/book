@@ -4,7 +4,7 @@
 // więc dopisanie albo usunięcie wiersza nie przenosi tekstu do cudzego dymka. Ponowne wstawienie po poprawce
 // scenariusza zmienia tylko tekst i rodzaj – przesunięte dymki zostają na miejscu, nowe kwestie dochodzą, usunięte znikają.
 //
-// Kadr: element z polem `kadr` (numer kadru na stronie, #362) wyznacza miejsce dymków tego kadru; bez kadrów strona
+// Kadr: element z polem `kadr_nr` (numer kadru na stronie, #362) wyznacza miejsce dymków tego kadru; bez kadrów strona
 // dzieli się na pasy według numerów kadrów z tabeli (kadr 1 – górny pas itd.). Wersje językowe: kolumna tekstu do
 // wyboru (np. tekst_en) – ten sam układ, inny tekst.
 
@@ -16,9 +16,9 @@ const KOLUMNY = {
   kadr: ['kadr', 'panel', 'кадр'],
   postac: ['postac', 'character', 'kto', 'персонаж'],
   tekst: ['tekst', 'text', 'dialog', 'kwestia', 'текст'],
-  rodzaj: ['rodzaj', 'typ', 'dymek', 'type', 'balloon', 'тип'],
+  rodzaj: ['rodzaj', 'typ', 'dymek', 'type', 'kind', 'balloon', 'bubble', 'тип', 'вид'],
 };
-const RODZAJE_Z_NAZW = { mowa: 'mowa', speech: 'mowa', mysl: 'mysl', thought: 'mysl', krzyk: 'krzyk', shout: 'krzyk', szept: 'szept', whisper: 'szept', narracja: 'narracja', narration: 'narracja', opis: 'narracja' };
+const RODZAJE_Z_NAZW = { mowa: 'mowa', speech: 'mowa', mysl: 'mysl', thought: 'mysl', krzyk: 'krzyk', shout: 'krzyk', szept: 'szept', whisper: 'szept', narracja: 'narracja', narration: 'narracja', caption: 'narracja', opis: 'narracja', мова: 'mowa', думка: 'mysl', крик: 'krzyk', шепіт: 'szept', оповідь: 'narracja' };
 
 // Które kolumny tabeli to strona, kadr, postać, tekst, rodzaj (po nazwach w kilku językach); kolumna tekstu może być podana.
 export function kolumnyDialogu(tabela, kolumnaTekstu = null) {
@@ -33,9 +33,9 @@ export function kolumnyDialogu(tabela, kolumnaTekstu = null) {
 // Kolumny tekstu do wyboru (wersje językowe): „tekst”, „tekst_pl”, „tekst_en”…
 export const kolumnyTekstu = (tabela) => tabela.kolumny.filter((n) => /^(tekst|text|dialog|kwestia)(_\w+)?$/i.test(bezOgonkow(n)));
 
-// Obszar dymków kadru nr `kadr` na stronie: kadr z pola `kadr`, inaczej pas strony.
+// Obszar dymków kadru nr `kadr` na stronie: kadr z pola `kadr_nr`, inaczej pas strony.
 function obszarKadru(strona, kadr, ileKadrow, wymiary) {
-  const ramka = (strona.obiekty || []).find((o) => Number(o.kadr) === kadr);
+  const ramka = (strona.obiekty || []).find((o) => Number(o.kadr_nr) === kadr);
   if (ramka) {
     const w = (ramka.width || 0) * Math.abs(ramka.scaleX ?? 1); const h = (ramka.height || 0) * Math.abs(ramka.scaleY ?? 1);
     return { x: ramka.left || 0, y: ramka.top || 0, w, h };
