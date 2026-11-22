@@ -174,7 +174,7 @@ Each key in the list has [Edit] – editing opens in a window, just like adding:
 | [Save changes] | Saves the range and validity. |
 | [Revoke key] | Turns the key off immediately. |
 
-A provider API key in the edit window: [Show key], **Replace key** (you paste a new one and click [Save]) and [Delete key]. The **Model and connection** section (also when adding): **Default model** – the one the AI Assistant starts with (the list suggests the provider's models), for "Other – OpenAI-compatible" also the **API address**, and [Test connection] – Makietka asks the provider for the list of models and tells you whether the key works, and if not – why (wrong key, no funds, limit, model unavailable, no internet).
+A provider API key in the edit window: [Show key], **Replace key** (you paste a new one and click [Save]) and [Delete key]. The **Model and connection** section (also when adding): **Default model** – empty means the provider's recommended model (after [Test connection] you can see which; the list also suggests the cheapest and the best), for "Other – OpenAI-compatible" also the **API address**, and [Test connection] – Makietka asks the provider for the list of models and tells you whether the key works, and if not – why (wrong key, no funds, limit, model unavailable, no internet).
 
 When the keys are encrypted on this device, the Chat in Makietka section shows [Unlock] – you enter the keys password once
 per device.
@@ -247,7 +247,8 @@ Write what to do, e.g. “lay this page out in two columns” or “add a title 
    Makietka's tools; **and images** – Google Gemini also draws images.
 2. **API key** — from the chosen provider ([Where do I get a key?] leads to their page). With OpenRouter, instead of
    pasting a key, [Sign in with OpenRouter] is enough — you sign in and approve access on their side.
-3. **Model** — the list of models comes from the provider after you enter the key; you can also type a name.
+3. **Model** — leave it empty: Makietka picks the provider's recommended model by itself (fast and sensible; the field shows which). The list
+   also suggests **Cheapest** and **Best – more expensive**, and advanced users can type any name.
 4. **In this project, AI can** — **read and edit** or **read only**.
 
 Write what to do (Enter sends, Shift+Enter — new line). The AI uses the same tools as the connector

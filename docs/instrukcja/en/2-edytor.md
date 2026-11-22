@@ -1558,16 +1558,29 @@ from the script] goes back to a freshly built description (e.g. after changing t
 stay in **Project images** (→ 7.5). A small change in one panel (e.g. “Ala should have her eyes closed”) needs no
 redrawing: select the panel → [AI ▾] → **Fix the picture in the frame…** (→ 7.11).
 
-**Ready page drawings.** Have pages drawn in another program? Click [Upload finished pages…] and choose many files at
-once or one ZIP file. The file name says where the image goes:
+**Pictures made elsewhere.** You don't have to draw in Makietka. Pictures from the free Gemini, from Flow, from another
+generator, or your own drawings and scans go in like this:
+
+1. Open the comic page where the pictures should start.
+2. **Drag several files at once onto the page** (or a ZIP file) – or click [Upload ready pictures…] in step 3 and choose
+   the files.
+3. The pictures go one by one into empty panels: from this page on, in reading order, files in name order.
+   Panels that already have a picture are skipped. If there are not enough panels, Makietka tells you which files it did not insert.
+
+A single picture dropped onto a panel goes into that panel (→ 7.7). A number in the file name puts the picture in a specific place:
 
 | File name | Where it goes |
 |---|---|
-| `01.png`, `page 7.jpg` | The whole page 1 (7) with bleed. That page's panels disappear (they are already in the drawing); bubbles stay above the image. |
+| `01.png`, `page 7.jpg`, `page_3.png` | The whole page 1 (7, 3) with bleed. That page's panels disappear (they are already in the drawing); bubbles stay above the image. |
 | `s03-k2.png`, `p3_panel2.jpg` | Panel 2 on page 3 – the image fills the panel (move it by double-clicking, → 7). |
+| any other, e.g. `Gemini_Generated_Image_….png` | The next empty panel. |
 
-Pages count from the first comic page; missing pages are added at the end of the section. Files without a number
-(e.g. `cover.png`) are skipped – Makietka tells you which.
+Pages count from the first comic page; missing pages are added at the end of the section.
+
+**Panel descriptions for free AI.** In the **Draw panels** window click [Copy panel descriptions]. Makietka copies to the clipboard
+the descriptions of all panels on this page – with the drawing style and the request “no text and no speech bubbles”. Paste them into the free Gemini
+or Flow, download the pictures and drag them onto the page (above). Without a Google Gemini key the window is available for exactly
+this: [Draw] is greyed out, but copying the descriptions works.
 
 ### Step 4. Speech bubbles
 
