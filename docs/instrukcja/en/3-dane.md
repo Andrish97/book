@@ -13,7 +13,7 @@ the values of fields in text (→ 15) and repeated pages (→ 16).
 
 The window opens with [Data] on the editor's top bar. On the left is the list of the project's tables, on the right the selected table.
 [+] adds an empty table, [Import CSV or Excel] — a table from a file (→ 14.2), [Skipped row] — a
-`[pomiń]` row (→ 16.4), and [Download table as CSV] gives you the table to finish in a spreadsheet.
+`[skip]` row (→ 16.4), and [Download table as CSV] gives you the table to finish in a spreadsheet.
 Changes made during one opening of the window are undone with a single [Undo].
 
 ![The Data window](dane.png)
@@ -179,9 +179,10 @@ Example: a calendar with a block per week (Monday–Sunday), and the year starts
 Without doing anything, 1 January would land on the Monday page. So add three
 **skipped rows** at the start of the table — for Monday, Tuesday and Wednesday.
 
-A skipped row has the `[pomiń]` marker in its first cell. It takes its place in the block, but its
+A skipped row has the `[skip]` marker in its first cell. It takes its place in the block, but its
 page isn't created: it isn't in the preview, the PDF or the numbering. You insert it with the
-[Skipped row] button in the Data window — above the row where the cursor is — or type `[pomiń]` in Excel.
+[Skipped row] button in the Data window — above the row where the cursor is — or type `[skip]` in Excel.
+The marker works in every language: `[skip]`, `[pomiń]` (Polish) and `[пропустити]` (Ukrainian) mean the same.
 
 The end of the year needs nothing: the series ends at the last data row.
 

@@ -19,7 +19,7 @@ oczywiste, proste i dobrze opisane w instrukcji.
   ```
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
-  ostatni użyty: **#365**; #364 zarezerwowany dla trybu Komiks), commit i push.
+  ostatni użyty: **#366**; #364 zarezerwowany dla trybu Komiks), commit i push.
 - Testy: `node --test --test-concurrency=3 tests/*.test.cjs` (pełny przebieg ~45 min; pojedyncze pliki szybko).
   Lint: `npx eslint js` (albo `/opt/node-tools/node_modules/.bin/eslint --no-config-lookup -c eslint.config.mjs <pliki>`).
   Po zmianie listy modułów: `node scripts/moduly-buduj.cjs`; po zmianie rdzenia łącznika AI
@@ -82,4 +82,4 @@ Dalej według planu: style „Dialog” i „Efekt dźwiękowy” (A4), karty po
   według docs/PRZEKAZANIE.md i docs/PLAN-KOMIKS.md”). Stare zostało usunięte.
 
 Zamknięte 22.11 rano: migracje bazy wdrażają się same przy wypchnięciu na main; zrzuty instrukcji en/uk są (126 + 126);
-pola dokumentu po angielsku/ukraińsku (#365); ukraiński „Tytuł” = „Назва”.
+pola dokumentu po angielsku/ukraińsku (#365); znacznik [pomiń] = [skip] = [пропустити] (#366); ukraiński „Tytuł” = „Назва”.

@@ -6,7 +6,7 @@
 import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
 import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabeliWPolach } from './tabele.js';
 import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku, spozaListy } from './kontrola.js';
-import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany, wierszPomijany, ZNACZNIK_POMIJANIA } from './serie.js';
+import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany, wierszPomijany, znacznikPomijania } from './serie.js';
 import { WSZYSTKIE_POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa } from './ui.js';
 import { wstawIkony } from './ikony.js';
@@ -165,14 +165,14 @@ export class Dane {
     const ile = t ? t.wiersze.filter(wierszPomijany).length : 0;
     const el = $('#dane-pomijane');
     el.hidden = !ile;
-    el.textContent = ile ? tt('dane.wPierwszejKomorceMiejsce', { ile, ZNACZNIK_POMIJANIA }) : '';
+    el.textContent = ile ? tt('dane.wPierwszejKomorceMiejsce', { ile, ZNACZNIK_POMIJANIA: znacznikPomijania() }) : '';
   }
 
   // Wstawia wiersz pomijany nad wierszem `przed` (bez wskazania – na początku tabeli).
   _wstawPomijany(przed = 0) {
     const t = this.tabela();
     const w = Math.min(Math.max(0, przed), t.wiersze.length);
-    t.wiersze.splice(w, 0, t.kolumny.map((_, k) => (k === 0 ? ZNACZNIK_POMIJANIA : '')));
+    t.wiersze.splice(w, 0, t.kolumny.map((_, k) => (k === 0 ? znacznikPomijania() : '')));
     t.wyglad?.splice(w, 0, null);
     return w;
   }
@@ -871,7 +871,7 @@ export class Dane {
     $('#seria-podsumowanie').textContent = bloki.length
       ? bilans.map((b) => {
         const opis = b.pominietych
-          ? tt('dane.blokWWydrukuMiejsce', { dlugosc: b.dlugosc, stron: b.stron, pominietych: b.pominietych, ZNACZNIK_POMIJANIA })
+          ? tt('dane.blokWWydrukuMiejsce', { dlugosc: b.dlugosc, stron: b.stron, pominietych: b.pominietych, ZNACZNIK_POMIJANIA: znacznikPomijania() })
           : tt('dane.blokWWydruku', { dlugosc: b.dlugosc, powielen: b.powielen, stron: b.stron });
         const koniec = (b.ostatniePelne ? '' : ' Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne.')
           + (b.puste.length ? tt('dane.doTegoZebyLewe2', { pusteIle: b.puste.length, join: b.puste.join(', ') }) : '')

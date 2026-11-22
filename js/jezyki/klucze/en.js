@@ -503,7 +503,7 @@ export default {
   "danePogrubienie.pogrubienie": "Bold",
   "danePogrubienie.pogrubienieZaznaczonychKomorekShift": "Bold selected cells (Shift+click selects several)",
   "danePomijany.wierszPomijany": "Skipped row",
-  "danePomijany.wstawiaWierszZeZnacznikiem": "Inserts a row marked [pomiń] above the row where the cursor is (without a cursor – at the start of the table). Such a row takes up a place in the series block, but no page is created for it.",
+  "danePomijany.wstawiaWierszZeZnacznikiem": "Inserts a row marked [skip] above the row where the cursor is (without a cursor – at the start of the table). Such a row takes up a place in the series block, but no page is created for it.",
   "danePusto.dzienMiesiac": "{dzien}. {miesiac}",
   "danePusto.tuTrafiajaDaneDo": "Data for fields and series goes here",
   "daneTytul.dane": "Data",

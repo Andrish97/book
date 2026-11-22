@@ -7,7 +7,7 @@ import { opisWykonczenia } from './materialy.js';
 import { polaWObiektach, WSZYSTKIE_POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie, znajdzPola } from './pola.js';
 import { normalizujKod, uwagiKodu } from './kody.js';
 import { wzorceStrony } from './projekt.js';
-import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
+import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, znacznikPomijania } from './serie.js';
 import { bilansSkladki } from './okladka.js';
 import { uwagiSekcjiSpecjalnych } from './sekcje-specjalne.js';
 import { obrazZNazwy } from './nazwy-obrazow.js';
@@ -140,7 +140,7 @@ export function szablonSerii(projekt, seria) {
   kolumny.forEach((k, i) => {
     const l = listaKolumny(projekt, tabela, k, role.get(k));
     // Ścisła lista w pierwszej kolumnie musi przepuścić znacznik wiersza pomijanego.
-    if (l) listy.push({ kolumna: i, ...l, ...(i === 0 && l.scisla && seria.tryb === 'tabela' ? { wartosci: [...l.wartosci, ZNACZNIK_POMIJANIA] } : {}) });
+    if (l) listy.push({ kolumna: i, ...l, ...(i === 0 && l.scisla && seria.tryb === 'tabela' ? { wartosci: [...l.wartosci, znacznikPomijania()] } : {}) });
   });
   // Co wpisać w kolumnie – według tego, do czego strony jej używają (kolumna może mieć kilka zastosowań).
   const coWpisac = (k) => {
@@ -156,7 +156,7 @@ export function szablonSerii(projekt, seria) {
   };
   // Wiersz pomijany: jak go wpisać w arkuszu i co robi.
   const pomijanie = seria.tryb === 'tabela'
-    ? ` Wiersz pomijany: wpisz ${ZNACZNIK_POMIJANIA} w pierwszej komórce wiersza (kolumna „${kolumny[0]}”), a ${seria.uklad === 'dlugi' ? 'strona dla tego wiersza nie powstanie, choć wiersz zajmie swoje miejsce w bloku' : 'całe powielenie bloku dla tego wiersza nie powstanie'} – tak wyrównuje się dane z blokiem, np. gdy rok zaczyna się w środku tygodnia.`
+    ? ` Wiersz pomijany: wpisz ${znacznikPomijania()} w pierwszej komórce wiersza (kolumna „${kolumny[0]}”), a ${seria.uklad === 'dlugi' ? 'strona dla tego wiersza nie powstanie, choć wiersz zajmie swoje miejsce w bloku' : 'całe powielenie bloku dla tego wiersza nie powstanie'} – tak wyrównuje się dane z blokiem, np. gdy rok zaczyna się w środku tygodnia.`
     : '';
   const instrukcja = [
     ['Seria', seria.nazwa],
@@ -452,7 +452,7 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
         uwagi.push({ rodzaj: 'zamiana_stron', strony: [blok.zamianaOd], opis: tt('kontrola.seriaOdStronyStrony', { nazwa: seria.nazwa, zamianaOd: blok.zamianaOd }) });
       }
       if (!blok.stron && blok.pominietych) {
-        uwagi.push({ rodzaj: 'seria_bez_stron', strony: [], opis: tt('kontrola.seriaWszystkieWierszeTabeli', { nazwa: seria.nazwa, ZNACZNIK_POMIJANIA }) });
+        uwagi.push({ rodzaj: 'seria_bez_stron', strony: [], opis: tt('kontrola.seriaWszystkieWierszeTabeli', { nazwa: seria.nazwa, ZNACZNIK_POMIJANIA: znacznikPomijania() }) });
       }
       for (const d of blok.dodatkowe) {
         if (d.potrzeba > d.jest) {

@@ -340,7 +340,7 @@ While you're typing text, only the shortcuts from the “Text” group work.
 | **Section** | A part of the publication with its own format, margins and numbering, e.g. the cover and the inside. |
 | **Series** | Repeating a page or block for consecutive table rows. |
 | **Data table** | A sheet in the project that fields and series take their values from — not to be confused with a table on a page. |
-| **Skipped row** | A `[pomiń]` row: it takes up a place in the block, but its page isn't created. |
+| **Skipped row** | A `[skip]` row: it takes up a place in the block, but its page isn't created. |
 | **Master** | Elements shared by many pages: background, footer, page number. |
 
 ## 30.7 AI

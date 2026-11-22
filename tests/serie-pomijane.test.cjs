@@ -33,7 +33,7 @@ test('wiersze pomijane (obliczenia): rok 365 dni w bloku 8 stron zaczyna się i 
       bilans: bilansSerii(proj, seria, ciag).map((b) => [b.dlugosc, b.powielen, b.stron, b.pominietych, b.ostatniePelne]),
       pola: (() => { const pole = wartosciPol(proj, e[7], ciag); return ['dzien', 'egzemplarz', 'liczba_egzemplarzy', 'liczba_stron', 'nr', 'Okresy.okres', 'Miesiace.nazwa_m'].map((n) => pole(n, null)); })(),
       kontrola: sprawdzProjekt(proj, ciag).map((u) => u.rodzaj),
-      rozpoznane: ['[pomiń]', '[POMIŃ]', '[pomin]', '[ Pomiń ]', 'pomiń', '[pomiń] x', ''].map((v) => wierszPomijany([v, 'a'])),
+      rozpoznane: ['[pomiń]', '[POMIŃ]', '[pomin]', '[ Pomiń ]', 'pomiń', '[pomiń] x', '', '[skip]', '[SKIP]', '[пропустити]', '[ Пропуск ]', '[skipped]'].map((v) => wierszPomijany([v, 'a'])),
       zPliku: zWierszy(parsujTekst('dzien;opis\n[pomiń];\n1;a\n[pomin];x\n2;b\n')).wiersze.map((x) => [x[0], wierszPomijany(x)]),
     };
     // Wszystkie wiersze pomijane: seria nie daje stron, ale strony bloku mają wzór do edycji.
@@ -70,7 +70,7 @@ test('wiersze pomijane (obliczenia): rok 365 dni w bloku 8 stron zaczyna się i 
   assert.deepEqual(w.pola, ['7', '2', '46', '367', '8', 'okres 2', 'm1']);
   // Znacznik powtórzony w pilnowanej kolumnie nie jest powtórzeniem; brak uwag.
   assert.deepEqual(w.kontrola, []);
-  assert.deepEqual(w.rozpoznane, [true, true, true, true, false, false, false]);
+  assert.deepEqual(w.rozpoznane, [true, true, true, true, false, false, false, true, true, true, true, false]);
   assert.deepEqual(w.zPliku, [['[pomiń]', true], ['1', false], ['[pomin]', true], ['2', false]]);
   assert.deepEqual(w.pusty, { strony: ['Tytuł', 'Koniec'], wzory: Array(8).fill(true), nr: null, uwagi: ['seria_bez_stron'] });
   assert.deepEqual(w.szeroki, ['D1:a:egz1:okres 1:nr2', 'D2:a:egz1:okres 1:nr3', 'D1:c:egz3:okres 3:nr4', 'D2:c:egz3:okres 3:nr5']);

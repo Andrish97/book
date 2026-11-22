@@ -740,7 +740,7 @@ export function kontrola(p) {
         const i = t ? t.kolumny.indexOf(o.pole.kolumna) : -1;
         if (!t) uwagi.push(`Strona „${s.nazwa || s.id}”: obraz z kolumny „${o.pole.kolumna}”, której nie ma w tabelach serii.`);
         else {
-          const nazwy = [...new Set(t.wiersze.map((w) => String(w[i] ?? '').trim()).filter((n) => n && !/^\[\s*pomi[nń]\s*\]$/i.test(n)))];
+          const nazwy = [...new Set(t.wiersze.map((w) => String(w[i] ?? '').trim()).filter((n) => n && !/^\[\s*(pomi[nń]|skip|пропустити|пропуск)\s*\]$/i.test(n)))];
           const braki = nazwy.filter((n) => obraz(n) === 'brak');
           const dwuznaczne = nazwy.filter((n) => obraz(n) === 'niejednoznaczna');
           if (braki.length) uwagi.push(`Strona „${s.nazwa || s.id}”: w kolumnie „${o.pole.kolumna}” są nazwy plików, których nie wgrano do projektu: ${braki.slice(0, 8).join(', ')}${braki.length > 8 ? '…' : ''} (właściciel wgrywa je w aplikacji; rozszerzenie się liczy – „a.jpg” to nie „a.png”).`);

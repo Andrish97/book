@@ -503,7 +503,7 @@ export default {
   "danePogrubienie.pogrubienie": "Жирний",
   "danePogrubienie.pogrubienieZaznaczonychKomorekShift": "Жирний шрифт вибраних клітинок (Shift+клацання вибирає кілька)",
   "danePomijany.wierszPomijany": "Пропущений рядок",
-  "danePomijany.wstawiaWierszZeZnacznikiem": "Вставляє рядок із позначкою [pomiń] над рядком, у якому стоїть курсор (без курсора – на початку таблиці). Такий рядок займає місце в блоці серії, але сторінка для нього не створюється.",
+  "danePomijany.wstawiaWierszZeZnacznikiem": "Вставляє рядок із позначкою [пропустити] над рядком, у якому стоїть курсор (без курсора – на початку таблиці). Такий рядок займає місце в блоці серії, але сторінка для нього не створюється.",
   "danePusto.dzienMiesiac": "{dzien}. {miesiac}",
   "danePusto.tuTrafiajaDaneDo": "Сюди потрапляють дані для полів і серій",
   "daneTytul.dane": "Дані",

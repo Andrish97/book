@@ -34,12 +34,15 @@ import { sekcjaStrony } from './projekt.js';
 import { zapiszLiczbe, polePodstawowe } from './pola.js';
 import { poleKsiazki } from './ksiazka.js';
 import { pozaNumeracja as bezNumerow } from './typ-sekcji.js';
-import { t as tt } from './jezyk.js';
+import { t as tt, wybranyJezyk } from './jezyk.js';
 
 // Znacznik wiersza pomijanego – wpisywany w pierwszej komórce wiersza (w Excelu, CSV albo w oknie Dane).
-export const ZNACZNIK_POMIJANIA = '[pomiń]';
-// Rozpoznawany bez względu na wielkość liter i polski znak: [pomiń], [POMIŃ], [pomin], [ pomiń ].
-export const wierszPomijany = (wiersz) => /^\[\s*pomi[nń]\s*\]$/i.test(String(wiersz?.[0] ?? '').trim());
+// W każdym języku działa każdy zapis (#366): [pomiń], [skip], [пропустити]; aplikacja podaje i wstawia ten w języku ekranu.
+const ZNACZNIKI_POMIJANIA = { pl: '[pomiń]', en: '[skip]', uk: '[пропустити]' };
+export const znacznikPomijania = () => ZNACZNIKI_POMIJANIA[wybranyJezyk()] || ZNACZNIKI_POMIJANIA.pl;
+export const ZNACZNIK_POMIJANIA = ZNACZNIKI_POMIJANIA.pl;
+// Rozpoznawany bez względu na wielkość liter, polski znak i język: [pomiń], [POMIŃ], [pomin], [ pomiń ], [skip], [пропустити], [пропуск].
+export const wierszPomijany = (wiersz) => /^\[\s*(pomi[nń]|skip|пропустити|пропуск)\s*\]$/i.test(String(wiersz?.[0] ?? '').trim());
 // Ile wierszy tabeli niesie dane (bez pomijanych).
 export const wierszyZDanymi = (tabela) => (tabela ? tabela.wiersze.filter((w) => !wierszPomijany(w)).length : 0);
 

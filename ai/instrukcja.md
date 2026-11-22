@@ -1622,7 +1622,7 @@ Okno serii otwiera się po wybraniu **+ Nowa seria…**, a dla istniejącej seri
 
 Przykład: kalendarz z blokiem na tydzień (poniedziałek–niedziela), a rok zaczyna się w czwartek. Bez niczego 1 stycznia trafiłby na stronę poniedziałku. Dopisz więc na początku tabeli trzy **wiersze pomijane** — za poniedziałek, wtorek i środę.
 
-Wiersz pomijany ma w pierwszej komórce znacznik `**pomiń**`. Zajmuje swoje miejsce w bloku, ale jego strona nie powstaje: nie ma jej w podglądzie, w PDF ani w numeracji. Wstawisz go przyciskiem **Wiersz pomijany** w oknie Dane — nad wierszem, w którym stoi kursor — albo wpiszesz `**pomiń**` w Excelu.
+Wiersz pomijany ma w pierwszej komórce znacznik `**pomiń**`. Zajmuje swoje miejsce w bloku, ale jego strona nie powstaje: nie ma jej w podglądzie, w PDF ani w numeracji. Wstawisz go przyciskiem **Wiersz pomijany** w oknie Dane — nad wierszem, w którym stoi kursor — albo wpiszesz `**pomiń**` w Excelu. Znacznik działa w każdym języku: `**pomiń**`, `**skip**` i `**пропустити**` znaczą to samo.
 
 Koniec roku nie wymaga niczego: seria kończy się na ostatnim wierszu danych.
 
