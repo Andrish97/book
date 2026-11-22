@@ -178,9 +178,11 @@ export class Instrukcja {
   }
 
   // Z adresu #/instrukcja – zapamiętuje adres sprzed, żeby po zamknięciu do niego wrócić.
-  otworzZAdresu(adresPrzed) {
+  // cel – „25” albo „25.10” z adresu #/instrukcja/<cel> (link do dokumentacji łącznika AI dla katalogu Claude).
+  otworzZAdresu(adresPrzed, cel = null) {
     this.adresPrzed = adresPrzed;
-    this.otworz(-1);
+    if (cel && /^\d+(\.\d+)?$/.test(cel) && rozdzialNr(cel.split('.')[0]) >= 0) this.przejdz(cel);
+    else this.otworz(-1);
   }
 
   otworzRozdzial(tytul) {

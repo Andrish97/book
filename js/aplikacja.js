@@ -257,7 +257,7 @@ async function start() {
       // Link z zaproszeniem do projektu: po zalogowaniu albo założeniu konta adres zostaje i pytanie wraca.
       if (trasa.odczytaj().ekran === 'zaproszenie') konto.komunikat(t('aplikacja.maszZaproszenieDoProjektu'), true);
       // #/instrukcja bez konta: podręcznik nad ekranem logowania (#114).
-      if (trasa.odczytaj().ekran === 'instrukcja') instrukcja.otworzZAdresu('#/');
+      if (trasa.odczytaj().ekran === 'instrukcja') instrukcja.otworzZAdresu('#/', trasa.odczytaj().cel);
     }
   } catch (e) {
     pokazEkran('logowanie');

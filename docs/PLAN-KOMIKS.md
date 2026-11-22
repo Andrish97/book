@@ -183,10 +183,12 @@ przetestowane jako konektor niestandardowy w Claude. Możemy to zrobić?”
 | I1 | Serwer zdalny HTTPS | jest – api.makietka.app/mcp (Funkcja Edge mcp przez przekaźnik Cloudflare) |
 | I2 | OAuth 2.0 | jest – OAuth 2.1 z PKCE i rejestracją klientów (#244), działa w Claude jako konektor niestandardowy |
 | I3 | title + adnotacje | zrobione (#395) – wszystkie 48 narzędzi: readOnlyHint, destructiveHint (usuwanie i zastępowanie danych), idempotentHint, openWorldHint (internet, Gemini, link publiczny); test katalog-lacznikow |
-| I4 | Dokumentacja | jest instrukcja 25 i ai/api.md – brakuje strony po angielsku dla recenzentów |
-| I5 | Polityka prywatności | brak – potrzebne dane administratora od właściciela |
-| I6 | Kontakt do wsparcia | kontakt@makietka.app (do potwierdzenia) |
+| I4 | Dokumentacja | jest – instrukcja jest też po angielsku i ukraińsku (uwaga właściciela: „masz przecież też tłumaczenie”); link wprost do rozdziału: makietka.app/#/instrukcja/25 (#396) |
+| I5 | Polityka prywatności | zrobione (#396) – prywatnosc.html i privacy.html, link pod logowaniem; do uzupełnienia dane administratora |
+| I6 | Kontakt do wsparcia | kontakt@makietka.app – potwierdzone przez właściciela |
 | I7 | Ikona | jest – img/ikony/ikona-512.png, ikona.svg |
-| I8 | Konto testowe | do założenia (konto z przykładowymi projektami, bez danych prywatnych) |
+| I8 | Konto testowe | przykładowe projekty gotowe (#396): ai/przyklady/recenzja/*.makietka (kalendarz, komiks, broszura – po angielsku; scripts/przyklady-recenzji.cjs); konto zakłada właściciel |
 | I9 | Test każdego narzędzia w Claude | do zrobienia przez właściciela albo przez sesję z podłączonym konektorem |
 | I10 | Zgłoszenie w portalu | tylko właściciel (płatny plan, jego konto claude.ai) |
+
+Ściąga do formularza: docs/ZGLOSZENIE-KATALOG-CLAUDE.md.

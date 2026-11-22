@@ -63,6 +63,14 @@ test('nowa wersja: od razu na liście i w otwartym projekcie, numer w ustawienia
   await strona.waitForFunction(() => !window.__przed && window.seriodruk?.stan?.projekt, null, { timeout: 30000 });
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.id), idProjektu, 'po przeładowaniu ten sam projekt');
   assert.ok((await strona.evaluate(() => caches.keys())).includes('seriodruk-kod-v3'));
+  // Dokumenty obok aplikacji (polityka prywatności – katalog łączników Claude): service worker ich nie podmienia
+  // na aplikację; adres bez rozszerzenia (krótki link) dalej otwiera aplikację.
+  const dok = await kontekst.newPage();
+  await dok.goto(`${adres}privacy.html`);
+  assert.equal(await dok.textContent('h1'), 'Privacy Policy');
+  await dok.goto(`${adres}prywatnosc.html`);
+  assert.equal(await dok.textContent('h1'), 'Polityka prywatności');
+  await dok.close();
   assert.deepEqual(bledy, []);
 });
 

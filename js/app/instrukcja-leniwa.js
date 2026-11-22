@@ -16,6 +16,6 @@ export const instrukcja = {
   otworz: async (indeks = -1) => (await wczytaj()).otworz(indeks),
   otworzRozdzial: async (tytul) => (await wczytaj()).otworzRozdzial(tytul),
   // #/instrukcja – działa także bez konta; po zamknięciu adres wraca na adresPrzed.
-  otworzZAdresu: async (adresPrzed) => (await wczytaj()).otworzZAdresu(adresPrzed),
+  otworzZAdresu: async (adresPrzed, cel = null) => (await wczytaj()).otworzZAdresu(adresPrzed, cel),
   zamknij: async () => { if (obietnica) (await obietnica).zamknij(); },
 };

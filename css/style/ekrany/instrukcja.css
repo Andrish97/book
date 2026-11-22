@@ -177,3 +177,4 @@ li.otwarty > .podrozdzialy-spisu, .szukanie li.trafiony > .podrozdzialy-spisu { 
 /* Ekran logowania: instrukcja bez konta (#114). */
 .zobacz-jak { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 18px auto 0; padding: 8px 12px; border: 0; border-radius: var(--r-s); background: none; color: var(--akcent); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 @media (hover: hover) { .zobacz-jak:hover { background: var(--akcent-tlo); } }
+.link-prywatnosci { display: block; margin: 10px auto 0; text-align: center; color: var(--cichy); font-size: 12px; }

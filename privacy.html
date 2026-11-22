@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy</title>
+<meta name="description" content="What data Makietka and its connector for AI assistants process.">
+<link rel="icon" href="img/ikony/ikona.svg" type="image/svg+xml">
+<style>
+:root{--tlo:#faf8f4;--tekst:#1f1d1a;--ciche:#6b665e;--akcent:#1f5f8b;--linia:#e3dfd7}
+@media (prefers-color-scheme:dark){:root{--tlo:#1b1a18;--tekst:#ece8e1;--ciche:#a9a39a;--akcent:#7fb6dd;--linia:#34312d}}
+*{box-sizing:border-box}body{margin:0;background:var(--tlo);color:var(--tekst);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 16px 64px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:8px}header img{width:40px;height:40px}
+h1{font-size:1.8rem;line-height:1.2;margin:0}h2{font-size:1.15rem;margin:2rem 0 .5rem}
+p,li{margin:.4rem 0}ul{padding-left:1.3rem}a{color:var(--akcent)}
+.ciche{color:var(--ciche);font-size:.9rem}.jezyk{float:right;font-size:.9rem}
+table{border-collapse:collapse;width:100%;font-size:.95rem}td,th{border-top:1px solid var(--linia);padding:6px 8px;text-align:left;vertical-align:top}
+</style>
+</head>
+<body>
+<main>
+<p class="jezyk"><a href="prywatnosc.html" hreflang="pl">Polski</a></p>
+<header><img src="img/ikony/ikona.svg" alt=""><h1>Privacy Policy</h1></header>
+<p class="ciche">Effective from 23 November 2026.</p>
+<p>This policy explains what data Makietka (makietka.app) – an app for designing print publications – and its connector for AI assistants (api.makietka.app/mcp) process.</p>
+
+<h2>1. Controller and contact</h2>
+<p>The data controller is the operator of the Makietka service. For anything related to personal data, write to <a href="mailto:kontakt@makietka.app">kontakt@makietka.app</a>.</p>
+
+<h2>2. What data we process</h2>
+<ul>
+<li><b>Account:</b> email address, display name, sign-in data (passwords are stored only as a cryptographic hash).</li>
+<li><b>Your projects:</b> pages, texts, data tables, images and fonts you add, comments, and the people you share a project with. Backup copies of previous project versions are kept for 14 days so unwanted changes can be undone.</li>
+<li><b>AI access keys:</b> we store only a hash of the key, its description, scope (projects, permissions) and expiry.</li>
+<li><b>Keys for AI services</b> (e.g. Google Gemini) you enter in settings: they are encrypted in your browser with a password only you know. Only the ciphertext reaches our servers – we cannot read it.</li>
+<li><b>Preview links:</b> page images you share via a link and the link settings (password as a hash, expiry date).</li>
+<li><b>Files requested by AI</b> (PDF, PNG) – kept for 7 days.</li>
+<li><b>Messages</b> you send through the contact form or by email.</li>
+<li><b>Technical data:</b> IP address and browser information in server logs (security, abuse prevention).</li>
+</ul>
+<p>We use no analytics, advertising or profiling. We do not sell data.</p>
+
+<h2>3. Purposes and legal bases</h2>
+<ul>
+<li>Running your account and the app, including the AI connector and collaboration – performance of a contract (Art. 6(1)(b) GDPR).</li>
+<li>Security, abuse prevention, backups – legitimate interest (Art. 6(1)(f) GDPR).</li>
+<li>Replying to messages – legitimate interest or steps taken at your request.</li>
+</ul>
+
+<h2>4. The connector for AI assistants</h2>
+<p>The connector lets an AI app (e.g. Claude, ChatGPT) read and change your projects. It works only with your consent: you sign in to Makietka and choose which projects the AI can see, whether it can change them and for how long. The AI app never receives your password, and you can revoke access at any time in Account settings → Artificial intelligence.</p>
+<p>Project data the AI reads is sent to the provider of that AI app and processed under its privacy policy. Makietka does not see your conversations with the AI – only the connector's tool calls (e.g. “change an element on page 3”), which are saved as changes to the project.</p>
+<p>When the AI asks for a picture from a description, your own browser draws it with your own AI service key – the description goes directly to the provider you chose (e.g. Google). The AI creates a preview link only with your consent.</p>
+
+<h2>5. Who we share data with</h2>
+<table>
+<tr><th>Provider</th><th>Purpose</th></tr>
+<tr><td>Supabase</td><td>database, accounts and sign-in</td></tr>
+<tr><td>Cloudflare</td><td>app hosting, file storage, bot protection, server-side file rendering</td></tr>
+<tr><td>Brevo, ZeptoMail</td><td>sending emails (confirmations, invitations, notifications)</td></tr>
+<tr><td>AI providers you choose (e.g. Google Gemini, OpenAI, Anthropic, OpenRouter)</td><td>only when you use AI features with your own key – the connection goes directly from your browser</td></tr>
+</table>
+<p>Some of these providers may process data outside the European Economic Area – in that case under the European Commission's standard contractual clauses or other safeguards provided by the GDPR.</p>
+
+<h2>6. How long</h2>
+<p>Account and project data – until you delete your account (Account settings → Delete account and data) or the project. Backups – 14 days. Files requested by AI – 7 days. Server logs – according to the providers' settings, usually up to a few weeks.</p>
+
+<h2>7. Browser storage</h2>
+<p>The app stores projects for offline work, settings and sign-in data in your browser (localStorage, IndexedDB, cache). We do not use cookies for tracking or advertising.</p>
+
+<h2>8. Your rights</h2>
+<p>You have the right to access, rectify and erase your data, restrict processing, data portability (save a project as a .makietka file) and to object. Write to <a href="mailto:kontakt@makietka.app">kontakt@makietka.app</a>. You can also lodge a complaint with a data protection authority (in Poland: the President of the Personal Data Protection Office).</p>
+
+<h2>9. Changes</h2>
+<p>We will announce material changes to this policy in the app or by email.</p>
+
+</main>
+</body>
+</html>

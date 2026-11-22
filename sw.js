@@ -110,6 +110,9 @@ self.addEventListener('fetch', (e) => {
 
   if (url.origin === self.location.origin) {
     const nawigacja = req.mode === 'navigate';
+    // Dokumenty obok aplikacji (polityka prywatności, ai/api.md…) – adres z rozszerzeniem innym niż index.html idzie
+    // prosto do sieci; aplikację dostaje tylko „/”, „/index.html” i adresy bez rozszerzenia (krótkie linki, #/…).
+    if (nawigacja && /\.[a-z0-9]+$/i.test(url.pathname) && !/\/index\.html$/i.test(url.pathname)) return;
     if (ROZWOJ) {
       // Bez wdrożenia: najpierw sieć, przy braku sieci kopia.
       e.respondWith(zSieci(req, KOD).catch(async () => (await caches.match(req, { ignoreSearch: true }))

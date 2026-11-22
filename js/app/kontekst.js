@@ -64,7 +64,7 @@ export const trasa = {
       };
     }
     if (rodzaj === 'konto') return { ekran: 'konto', sekcja: id || null };
-    if (rodzaj === 'instrukcja') return { ekran: 'instrukcja' }; // podręcznik – także bez konta (#114)
+    if (rodzaj === 'instrukcja') return { ekran: 'instrukcja', cel: id || null }; // podręcznik – także bez konta (#114); #/instrukcja/25.10 – od razu ten rozdział
     if (rodzaj === 'admin') return { ekran: 'admin', zakladka: id || 'skrzynka' };
     if (rodzaj === 'zaproszenie' && id) return { ekran: 'zaproszenie', kod: id };
     if (rodzaj === 'polacz-ai' && id) return { ekran: 'polacz-ai', id }; // zgoda na łącznik z logowaniem (#244)

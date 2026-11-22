@@ -53,7 +53,7 @@ export function przejdzDoTrasy() {
     // #/instrukcja – podręcznik nad bieżącym ekranem, także bez konta (#114).
     if (t.ekran === 'instrukcja') {
       if (stan.uzytkownik && !stan.projekt && document.body.dataset.ekran !== 'projekty') await pokazProjekty();
-      await instrukcja.otworzZAdresu(stan.projekt ? `#/p/${stan.projekt.id}` : (stan.uzytkownik ? '#/projekty' : '#/'));
+      await instrukcja.otworzZAdresu(stan.projekt ? `#/p/${stan.projekt.id}` : (stan.uzytkownik ? '#/projekty' : '#/'), t.cel);
       return;
     }
     if (!stan.uzytkownik) return;

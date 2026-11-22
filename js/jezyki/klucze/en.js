@@ -5314,6 +5314,7 @@ export default {
   "warstwy.zwinGrupe": "Collapse group",
   "warstwy.zwinTabele": "Collapse table",
   "wartoscZoom.dopasujDoOkna": "Fit to window",
+  "widokFormularz.politykaPrywatnosci": "Privacy policy",
   "widokFormularz.zobaczJakToDziala": "See how it works",
   "widokKrok.krokSiatkiWMilimetrach": "Grid step in millimeters",
   "widokNapisy.auto": "Auto",

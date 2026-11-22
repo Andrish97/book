@@ -177,6 +177,14 @@ test('instrukcja bez konta: „Zobacz, jak to działa” na ekranie logowania i 
   // Adres wraca po zdarzeniu „close” – pod obciążeniem trwa to dłużej niż chwilę (#184): czekamy na warunek, bez stałego limitu.
   await strona.waitForFunction(() => !/instrukcja/.test(location.hash));
   assert.doesNotMatch(await strona.evaluate(() => location.hash), /instrukcja/);
+  // Link do rozdziału (dokumentacja łącznika AI w katalogu Claude): #/instrukcja/25.10 – od razu ten podrozdział;
+  // po angielsku dla przeglądarki po angielsku.
+  await strona.evaluate(() => { localStorage.setItem('makietka-jezyk', 'en'); location.hash = '#/instrukcja/25.10'; });
+  await strona.reload();
+  await strona.waitForSelector('#dlg-instrukcja[open]');
+
+  await strona.waitForFunction(() => /Tasks for the open Makietka/.test(document.querySelector('#instrukcja-tresc').textContent));
+  assert.match(await strona.textContent('#instrukcja-tresc .instrukcja-h1'), /25\.|Working with AI|AI/);
   assert.deepEqual(bledy, []);
 });
 

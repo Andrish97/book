@@ -5314,6 +5314,7 @@ export default {
   "warstwy.zwinGrupe": "Zwiń grupę",
   "warstwy.zwinTabele": "Zwiń tabelę",
   "wartoscZoom.dopasujDoOkna": "Dopasuj do okna",
+  "widokFormularz.politykaPrywatnosci": "Polityka prywatności",
   "widokFormularz.zobaczJakToDziala": "Zobacz, jak to działa",
   "widokKrok.krokSiatkiWMilimetrach": "Krok siatki w milimetrach",
   "widokNapisy.auto": "Auto",

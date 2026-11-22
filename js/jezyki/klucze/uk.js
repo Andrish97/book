@@ -5314,6 +5314,7 @@ export default {
   "warstwy.zwinGrupe": "Згорнути групу",
   "warstwy.zwinTabele": "Згорнути таблицю",
   "wartoscZoom.dopasujDoOkna": "Припасувати до вікна",
+  "widokFormularz.politykaPrywatnosci": "Політика конфіденційності",
   "widokFormularz.zobaczJakToDziala": "Подивитися, як це працює",
   "widokKrok.krokSiatkiWMilimetrach": "Крок сітки в міліметрах",
   "widokNapisy.auto": "Авто",

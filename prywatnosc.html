@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polityka prywatności</title>
+<meta name="description" content="Jakie dane przetwarza Makietka i jej łącznik dla asystentów AI.">
+<link rel="icon" href="img/ikony/ikona.svg" type="image/svg+xml">
+<style>
+:root{--tlo:#faf8f4;--tekst:#1f1d1a;--ciche:#6b665e;--akcent:#1f5f8b;--linia:#e3dfd7}
+@media (prefers-color-scheme:dark){:root{--tlo:#1b1a18;--tekst:#ece8e1;--ciche:#a9a39a;--akcent:#7fb6dd;--linia:#34312d}}
+*{box-sizing:border-box}body{margin:0;background:var(--tlo);color:var(--tekst);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:32px 16px 64px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:8px}header img{width:40px;height:40px}
+h1{font-size:1.8rem;line-height:1.2;margin:0}h2{font-size:1.15rem;margin:2rem 0 .5rem}
+p,li{margin:.4rem 0}ul{padding-left:1.3rem}a{color:var(--akcent)}
+.ciche{color:var(--ciche);font-size:.9rem}.jezyk{float:right;font-size:.9rem}
+table{border-collapse:collapse;width:100%;font-size:.95rem}td,th{border-top:1px solid var(--linia);padding:6px 8px;text-align:left;vertical-align:top}
+</style>
+</head>
+<body>
+<main>
+<p class="jezyk"><a href="privacy.html" hreflang="en">English</a></p>
+<header><img src="img/ikony/ikona.svg" alt=""><h1>Polityka prywatności</h1></header>
+<p class="ciche">Obowiązuje od 23 listopada 2026 r.</p>
+<p>Ta polityka opisuje, jakie dane przetwarza Makietka (makietka.app) – aplikacja do projektowania publikacji do druku – oraz jej łącznik dla asystentów AI (api.makietka.app/mcp).</p>
+
+<h2>1. Administrator i kontakt</h2>
+<p>Administratorem danych jest operator serwisu Makietka. We wszystkich sprawach dotyczących danych osobowych pisz na <a href="mailto:kontakt@makietka.app">kontakt@makietka.app</a>.</p>
+
+<h2>2. Jakie dane przetwarzamy</h2>
+<ul>
+<li><b>Konto:</b> adres e-mail, nazwa wyświetlana, dane logowania (hasło przechowujemy tylko w postaci skrótu kryptograficznego).</li>
+<li><b>Twoje projekty:</b> strony, teksty, tabele danych, obrazy i czcionki, które dodajesz, komentarze oraz lista osób, którym udostępniasz projekt. Przez 14 dni przechowujemy kopie awaryjne poprzednich wersji projektu, żeby dało się cofnąć niechciane zmiany.</li>
+<li><b>Klucze dostępu dla AI:</b> przechowujemy tylko skrót klucza, jego opis, zakres (projekty, uprawnienia) i termin ważności.</li>
+<li><b>Klucze do usług AI</b> (np. Google Gemini), które wpisujesz w ustawieniach: są szyfrowane w Twojej przeglądarce hasłem, które znasz tylko Ty. Na serwer trafia wyłącznie szyfrogram – nie możemy go odczytać.</li>
+<li><b>Linki do podglądu:</b> obrazy stron, które udostępniasz linkiem, oraz ustawienia linku (hasło w postaci skrótu, data ważności).</li>
+<li><b>Pliki zlecone przez AI</b> (PDF, PNG) – przechowywane 7 dni.</li>
+<li><b>Wiadomości</b>, które wysyłasz formularzem kontaktowym albo e-mailem.</li>
+<li><b>Dane techniczne:</b> adres IP i informacje o przeglądarce w dziennikach serwerów (bezpieczeństwo, ochrona przed nadużyciami).</li>
+</ul>
+<p>Nie używamy narzędzi analitycznych, reklam ani profilowania. Nie sprzedajemy danych.</p>
+
+<h2>3. Po co i na jakiej podstawie</h2>
+<ul>
+<li>Prowadzenie konta i działanie aplikacji, w tym łącznika AI i współpracy przy projektach – wykonanie umowy (art. 6 ust. 1 lit. b RODO).</li>
+<li>Bezpieczeństwo, zapobieganie nadużyciom, kopie awaryjne – prawnie uzasadniony interes (art. 6 ust. 1 lit. f RODO).</li>
+<li>Odpowiedzi na wiadomości – prawnie uzasadniony interes albo działania na Twoje żądanie.</li>
+</ul>
+
+<h2>4. Łącznik dla asystentów AI</h2>
+<p>Łącznik pozwala aplikacji AI (np. Claude, ChatGPT) czytać i zmieniać Twoje projekty. Działa tylko po Twojej zgodzie: logujesz się w Makietce i wybierasz, które projekty AI zobaczy, czy może je zmieniać i na jak długo. Aplikacja AI nie dostaje Twojego hasła, a dostęp odbierasz w każdej chwili w ustawieniach konta → Sztuczna inteligencja.</p>
+<p>Dane projektów, które AI odczyta, trafiają do dostawcy tej aplikacji AI i są przetwarzane według jego polityki prywatności. Makietka nie widzi Twoich rozmów z AI – widzi tylko wywołania narzędzi łącznika (np. „zmień element na stronie 3”), które zapisuje jako zmiany w projekcie.</p>
+<p>Gdy AI zleca obraz z opisu, rysuje go Twoja przeglądarka Twoim kluczem do usługi AI – opis obrazu trafia wtedy bezpośrednio do wybranego dostawcy (np. Google). Link do podglądu AI tworzy tylko po Twojej zgodzie.</p>
+
+<h2>5. Komu przekazujemy dane</h2>
+<table>
+<tr><th>Podmiot</th><th>W jakim celu</th></tr>
+<tr><td>Supabase</td><td>baza danych, konta i logowanie</td></tr>
+<tr><td>Cloudflare</td><td>hosting aplikacji, przechowywanie plików, ochrona przed botami, rysowanie plików na serwerze</td></tr>
+<tr><td>Brevo, ZeptoMail</td><td>wysyłka e-maili (potwierdzenia, zaproszenia, powiadomienia)</td></tr>
+<tr><td>Dostawcy AI wybrani przez Ciebie (np. Google Gemini, OpenAI, Anthropic, OpenRouter)</td><td>tylko gdy sam korzystasz z funkcji AI swoim kluczem – połączenie idzie bezpośrednio z Twojej przeglądarki</td></tr>
+</table>
+<p>Część tych podmiotów może przetwarzać dane poza Europejskim Obszarem Gospodarczym – wtedy na podstawie standardowych klauzul umownych Komisji Europejskiej albo innych zabezpieczeń przewidzianych w RODO.</p>
+
+<h2>6. Jak długo</h2>
+<p>Dane konta i projektów – do usunięcia konta (Ustawienia konta → Usuń konto i dane) albo projektu. Kopie awaryjne – 14 dni. Pliki zlecone przez AI – 7 dni. Dzienniki serwerów – zgodnie z ustawieniami dostawców, zwykle do kilku tygodni.</p>
+
+<h2>7. Pamięć przeglądarki</h2>
+<p>Aplikacja zapisuje w Twojej przeglądarce (localStorage, IndexedDB, pamięć podręczna) projekty do pracy bez sieci, ustawienia i dane logowania. Nie używamy plików cookie do śledzenia ani reklam.</p>
+
+<h2>8. Twoje prawa</h2>
+<p>Masz prawo dostępu do danych, ich sprostowania, usunięcia, ograniczenia przetwarzania, przenoszenia (projekt zapiszesz jako plik .makietka) oraz sprzeciwu. Napisz na <a href="mailto:kontakt@makietka.app">kontakt@makietka.app</a>. Masz też prawo wnieść skargę do Prezesa Urzędu Ochrony Danych Osobowych.</p>
+
+<h2>9. Zmiany</h2>
+<p>O istotnych zmianach tej polityki poinformujemy w aplikacji albo e-mailem.</p>
+
+</main>
+</body>
+</html>
