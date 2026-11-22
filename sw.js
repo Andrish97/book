@@ -22,7 +22,14 @@ const ROZWOJ = WERSJA === 'rozwoj';
 const KOD = `seriodruk-kod-${WERSJA}`;
 const RESZTA = 'seriodruk-pliki';
 const BIBLIOTEKI = 'seriodruk-biblioteki';
-const PODSTAWA = ['./', './index.html', './manifest.webmanifest'];
+// Strona aplikacji zawsze spod „./” – na makietka.app adres /index.html przekierowuje na /, a odpowiedzi po
+// przekierowaniu przeglądarka nie przyjmie przy otwieraniu strony (ERR_FAILED przy każdym kolejnym wejściu).
+const PODSTAWA = ['./', './manifest.webmanifest'];
+// Odpowiedź po przekierowaniu → zwykła kopia (na wszelki wypadek, np. stara pamięć).
+async function bezPrzekierowania(odp) {
+  if (!odp || !odp.redirected) return odp;
+  return new Response(await odp.blob(), { status: odp.status, statusText: odp.statusText, headers: odp.headers });
+}
 const CDN = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net'];
 // Duże biblioteki używane rzadko (PDF, Excel, ZIP) – w repozytorium, z wersją w nazwie pliku. Nie są pobierane
 // przy każdym wdrożeniu: trafiają do pamięci przy pierwszym użyciu i zostają w niej między wersjami aplikacji.
@@ -35,7 +42,10 @@ self.addEventListener('install', (e) => {
     const pamiec = await caches.open(KOD);
     // Pobranie z pominięciem pamięci podręcznej HTTP – inaczej nowa wersja mogłaby dostać stary plik.
     await pamiec.addAll([...PODSTAWA, ...PLIKI].map((p) => new Request(p, { cache: 'reload' })));
-    if (ROZWOJ) await self.skipWaiting();
+    // Bez otwartych okien nowa wersja może wejść od razu – nikt nie pracuje na starej (także gdy stara nie
+    // otwierała strony, jak przy błędzie ERR_FAILED z 22.11).
+    const okna = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (ROZWOJ || !okna.length) await self.skipWaiting();
   })());
 });
 
@@ -103,7 +113,7 @@ self.addEventListener('fetch', (e) => {
     if (ROZWOJ) {
       // Bez wdrożenia: najpierw sieć, przy braku sieci kopia.
       e.respondWith(zSieci(req, KOD).catch(async () => (await caches.match(req, { ignoreSearch: true }))
-        || (nawigacja ? caches.match('./index.html') : Response.error())));
+        || (nawigacja ? bezPrzekierowania(await caches.match('./')) : Response.error())));
       return;
     }
     if (toRzadkaBiblioteka(url.pathname)) {
@@ -114,8 +124,9 @@ self.addEventListener('fetch', (e) => {
       // Kod tej wersji: z jej pamięci; czego tam nie ma – z sieci (i zapamiętane).
       e.respondWith((async () => {
         const pamiec = await caches.open(KOD);
-        const trafienie = await pamiec.match(nawigacja ? './index.html' : req, { ignoreSearch: true });
-        return trafienie || zSieci(req, KOD).catch(() => Response.error());
+        const trafienie = await pamiec.match(nawigacja ? './' : req, { ignoreSearch: true });
+        if (trafienie) return nawigacja ? bezPrzekierowania(trafienie) : trafienie;
+        return zSieci(req, KOD).catch(() => Response.error());
       })());
       return;
     }
