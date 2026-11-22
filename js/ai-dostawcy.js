@@ -124,7 +124,7 @@ export async function modeleDostawcy(id, ust) {
 }
 
 // Schemat narzędzia dla Gemini: tylko pola, które Gemini przyjmuje.
-function schematGemini(s) {
+export function schematGemini(s) {
   if (!s || typeof s !== 'object') return s;
   if (Array.isArray(s)) return s.map(schematGemini);
   const wynik = {};
@@ -136,6 +136,14 @@ function schematGemini(s) {
   if (Array.isArray(wynik.type)) wynik.type = wynik.type.find((t) => t !== 'null') || 'string';
   if (wynik.format && !['enum', 'date-time'].includes(wynik.format)) delete wynik.format;
   if (wynik.type === 'object' && !wynik.properties) wynik.properties = {};
+  // Gemini przyjmuje „enum” tylko przy tekście: lista liczb (np. dpi 150/300/600) idzie do opisu – bez niej Gemini
+  // odrzucał wszystkie narzędzia naraz („Invalid value at …enum[0] (TYPE_STRING)”; test czatu na żywo, #380).
+  // …i bez pustego tekstu na liście („enum[0]: cannot be empty” – np. pdfx: '' = bez PDF/X)
+  if (wynik.enum?.includes('')) { wynik.enum = wynik.enum.filter((x) => x !== ''); wynik.description = `${wynik.description ? `${wynik.description} ` : ''}(puste = brak)`; if (!wynik.enum.length) delete wynik.enum; }
+  if (wynik.enum && (wynik.type !== 'string' || wynik.enum.some((x) => typeof x !== 'string'))) {
+    wynik.description = `${wynik.description ? `${wynik.description} ` : ''}(${wynik.enum.join(' | ')})`;
+    delete wynik.enum;
+  }
   return wynik;
 }
 

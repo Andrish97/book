@@ -121,3 +121,10 @@ test('streaming: zgodne z OpenAI i Gemini – tekst na bieżąco, narzędzia z k
     assert.equal(gw.tekst, 'Już.');
   } finally { globalThis.fetch = stary; }
 });
+
+test('Gemini: lista liczb w „enum” trafia do opisu – inaczej Gemini odrzuca wszystkie narzędzia (#380)', async () => {
+  const m = await modul();
+  const s = m.schematGemini({ type: 'object', properties: { dpi: { type: 'integer', enum: [150, 300, 600], description: 'Rozdzielczość' }, jakosc: { type: 'string', enum: ['szkic', 'pro'] } }, additionalProperties: false });
+  assert.deepEqual(s, { type: 'object', properties: { dpi: { type: 'integer', description: 'Rozdzielczość (150 | 300 | 600)' }, jakosc: { type: 'string', enum: ['szkic', 'pro'] } } });
+  assert.deepEqual(m.schematGemini({ type: 'string', enum: ['', 'x1a'] }), { type: 'string', enum: ['x1a'], description: '(puste = brak)' });
+});

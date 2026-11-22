@@ -777,7 +777,8 @@ export function sprawdzKonto({ wersja = null } = {}) {
 let ostatniKlawisz = 0;
 window.addEventListener('keydown', () => { ostatniKlawisz = Date.now(); }, true);
 function zajety() {
-  if ($('dialog[open]')) return true;
+  // Okno modalne zasłania stronę; czat AI (obok strony, bez modalności) nie – jego zmiany mają przychodzić na żywo (#380).
+  if ($('dialog[open]:not(#dlg-czat-ai)')) return true;
   if (edytor.canvas?._currentTransform) return true; // przeciąganie, skalowanie, obracanie
   if (edytor.kadruje || edytor.rysuje || edytor._pioro || edytor._punkty) return true;
   // Pisanie: dopóki od ostatniego klawisza nie minęła chwila. Potem kursor wraca na swoje miejsce.

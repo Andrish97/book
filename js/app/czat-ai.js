@@ -401,9 +401,13 @@ async function wyslij(tekst) {
           if (!await zapytajOZgode(opisZgody)) return { tekst: ODMOWA, blad: true };
         }
         if (nazwyLokalne.has(nazwa)) {
+          // Narzędzie w aplikacji (#376) działa na projekcie w edytorze: najpierw zmiany AI z konta (np. ramka dodana
+          // przed chwilą przez dodaj_elementy), potem wysyłka tego, co zrobiło – kolejne narzędzia AI je widzą (#380).
+          if (zmiany && nazwa !== 'generuj_obraz') { await sprawdzKonto(); await synchronizuj().catch(() => {}); zmiany = false; }
           try {
-            const tekst = await wykonajLokalne(nazwa, argumenty || {}, { zgoda: (opis) => { czeka.textContent = tt('czatAi.czekamNaTwojaZgode'); return zapytajOZgode(opis, { kosztuje: true }); } });
+            const tekst = await wykonajLokalne(nazwa, argumenty || {}, { wolaj: n.wolaj, zgoda: (opis) => { czeka.textContent = tt('czatAi.czekamNaTwojaZgode'); return zapytajOZgode(opis, { kosztuje: true }); } });
             if (tekst === null) return { tekst: ODMOWA, blad: true };
+            if (nazwa === 'generuj_obraz') zmiany = true; else { await zapiszTeraz(); await synchronizuj().catch(() => {}); }
             return { tekst, blad: false };
           } catch (er) { return { tekst: er.message, blad: true }; }
         }

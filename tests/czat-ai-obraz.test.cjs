@@ -22,7 +22,7 @@ test('czat AI: generuj_obraz z zgodą na koszt, obraz w ramce; odmowa bez kosztu
   const { strona, kontekst, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Czat z obrazem');
   await strona.click('[data-akcja="dodaj-prostokat"]');
-  const idRamki = await strona.evaluate(() => window.seriodruk.edytor.aktywny.id);
+  const [idRamki, idStrony] = await strona.evaluate(() => [window.seriodruk.edytor.aktywny.id, window.seriodruk.stan.projekt.strony[0].id]);
   await zapisano(strona);
   const claude = [];
   const gemini = [];
@@ -33,7 +33,7 @@ test('czat AI: generuj_obraz z zgodą na koszt, obraz w ramce; odmowa bez kosztu
     claude.push(body);
     const krok = claude.length;
     const odp = krok === 1 || krok === 3
-      ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: `tu${krok}`, name: 'generuj_obraz', input: { opis: 'Kot w kapeluszu', element: idRamki } }] }
+      ? { stop_reason: 'tool_use', content: [{ type: 'tool_use', id: `tu${krok}`, name: 'generuj_obraz', input: { opis: 'Kot w kapeluszu', element: idRamki, gdzie: `strona:${idStrony}` } }] }
       : { stop_reason: 'end_turn', content: [{ type: 'text', text: krok === 2 ? 'Gotowe, obraz w ramce.' : 'Dobrze, nie generuję.' }] };
     await r.fulfill({ contentType: 'text/event-stream', headers: { 'access-control-allow-origin': '*' }, body: sse({ id: `m${krok}`, ...odp }) });
   });
@@ -58,8 +58,8 @@ test('czat AI: generuj_obraz z zgodą na koszt, obraz w ramce; odmowa bez kosztu
   await zgoda.locator('button').first().click();
   await strona.waitForFunction(() => /Gotowe, obraz w ramce/.test(document.querySelector('#czat-ai-wiadomosci').textContent), null, { timeout: 20000 });
   assert.equal(gemini.length, 1);
-  assert.equal(await strona.evaluate((id) => Boolean(window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === id)?.zasob), idRamki), true, 'obraz w ramce');
-  assert.match(JSON.stringify(claude[1].messages.at(-1)), /gotowy w elemencie/);
+  await strona.waitForFunction((id) => Boolean(window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === id)?.zasob), idRamki, { timeout: 15000 });
+  assert.match(JSON.stringify(claude[1].messages.at(-1)), /Obraz gotowy \(id [^)]+\) w elemencie/);
   // Druga prośba – odmowa: bez wywołania Gemini.
   await strona.fill('#czat-ai-tekst', 'Jeszcze raz');
   await strona.press('#czat-ai-tekst', 'Enter');

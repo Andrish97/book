@@ -3,20 +3,22 @@
 // Kosztują – dlatego czat pyta o zgodę z kwotą przy KAŻDYM wywołaniu (także po „Zawsze pozwalaj”). Klucz Gemini –
 // z sejfu (#241), jak w oknie Obraz AI.
 
-import { generujIWstaw } from './generuj-obraz.js';
-import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu } from '../ai-koszty.js';
-import { proporcjaRamki } from '../ai-obrazy.js';
+import { pelnyOpis } from './generuj-obraz.js';
+import { generujObraz, PROPORCJE } from '../ai-obrazy.js';
+import { zadanie } from '../ai-dostawcy.js';
+import { otwartySejf } from './sejf-ai.js';
+import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu, kosztZUzycia, zapiszWydatek } from '../ai-koszty.js';
 import { planKadrowStrony, rysujPozycje, szacujPozycje, ustawDymki, stronyKomiksu } from './komiks-narzedzia.js';
-import { stan, edytor } from './kontekst.js';
+import { stan } from './kontekst.js';
 import { biezacyJezyk } from '../jezyk.js';
 
-const JAKOSC = { type: 'string', enum: ['szkic', 'dokladny', 'pro'], description: 'szkic – najtaniej (domyślnie), dokladny – do druku, pro – najlepszy' };
+const JAKOSC = { type: 'string', enum: ['szkic', 'dokladny', 'pro'], description: 'szkic – najtaniej (używaj domyślnie), dokladny – do druku, pro – najlepszy; lepszą jakość tylko, gdy użytkownik o nią prosi' };
 
 export const NARZEDZIA_LOKALNE = [
   {
     name: 'generuj_obraz',
-    description: 'Generuje obraz z opisu (Google Gemini, klucz użytkownika) i wstawia go do ramki (element: id kształtu, kadru albo obrazu na otwartej stronie – proporcje z ramki) albo na środek otwartej strony. Kosztuje (szkic ok. 0,14 zł) – użytkownik potwierdza koszt. Nie umieszczaj tekstu w obrazie; napisy dodaje się w Makietce.',
-    inputSchema: { type: 'object', properties: { opis: { type: 'string', description: 'Co ma być na obrazie (dowolny język).' }, element: { type: 'string', description: 'Id ramki na otwartej stronie (opcjonalnie).' }, jakosc: JAKOSC, proporcja: { type: 'string', description: 'Np. 3:4, gdy nie ma ramki.' } }, required: ['opis'] },
+    description: 'Generuje obraz z opisu (Google Gemini, klucz użytkownika), wgrywa go do obrazów projektu i wstawia: do ramki (element – id kształtu, kadru albo prostokąta na stronie gdzie; obraz ją wypełnia) albo na środek strony. Kosztuje (szkic ok. 0,14 zł) – użytkownik potwierdza koszt. Nie umieszczaj tekstu w obrazie; napisy dodaje się w Makietce.',
+    inputSchema: { type: 'object', properties: { opis: { type: 'string', description: 'Co ma być na obrazie – w języku, w którym pisze użytkownik (zobaczy ten opis przy pytaniu o zgodę).' }, gdzie: { type: 'string', description: '„strona:<id strony>” – strona z ramką albo strona, na którą wstawić obraz.' }, element: { type: 'string', description: 'Id ramki na tej stronie (opcjonalnie).' }, jakosc: JAKOSC, proporcja: { type: 'string', description: 'Kształt obrazu, np. 3:4 (pion), 4:3 (poziom), 1:1 – zgodny z ramką.' } }, required: ['opis', 'gdzie'] },
   },
   {
     name: 'rysuj_kadry',
@@ -48,7 +50,7 @@ function wybraneKadry({ kadry }) {
 }
 
 // zgoda(opis) → Promise<boolean> – pytanie w rozmowie (bez „zawsze pozwalaj” – koszt za każdym razem).
-export async function wykonajLokalne(nazwa, a, { zgoda }) {
+export async function wykonajLokalne(nazwa, a, { zgoda, wolaj }) {
   const j = biezacyJezyk();
   if (nazwa === 'szacuj_koszt') {
     if (a.strona) { await naStronieKomiksu(a.strona); const p = wybraneKadry(a); return `Strona ${a.strona}: ${p.length} kadrów do narysowania, ok. ${opisKosztu(szacujPozycje(p, a.jakosc || 'szkic'), j)}.`; }
@@ -61,14 +63,28 @@ export async function wykonajLokalne(nazwa, a, { zgoda }) {
     return `Dymki: nowe ${w.dodane}, zmienione ${w.zmienione}, usunięte ${w.usuniete}.${w.pominiete.length ? ` Pominięto: ${w.pominiete.join('; ')}` : ''}`;
   }
   if (nazwa === 'generuj_obraz') {
-    const cel = a.element ? edytor.canvas.getObjects().find((o) => o.id === a.element) : null;
-    if (a.element && !cel) throw new Error(`Na otwartej stronie nie ma elementu ${a.element}.`);
+    // Cały wynik idzie przez narzędzia łącznika (wolaj) – jak reszta rozmowy, bez wysyłania projektu z edytora,
+    // więc nic nie nadpisuje zmian, które AI zrobiło przed chwilą (#380).
     const q = JAKOSCI_OBRAZU[a.jakosc || 'szkic'];
     const zl = szacujObraz({ ...q, znakiOpisu: String(a.opis).length + 200 });
     if (!await zgoda(`wygenerować obraz „${String(a.opis).slice(0, 80)}” (koszt ok. ${opisKosztu(zl, j)})`)) return null;
-    const proporcja = cel ? proporcjaRamki(cel.width * cel.scaleX, cel.height * cel.scaleY) : (a.proporcja || '3:4');
-    const w = await generujIWstaw({ opis: String(a.opis), jakosc: a.jakosc || 'szkic', proporcja, cel, potwierdzono: true });
-    return `Obraz „${w.nazwa}” gotowy${cel ? ` w elemencie ${cel.id}` : ' na stronie'} (koszt ok. ${opisKosztu(w.zl, j)}).`;
+    const klucz = (await otwartySejf())?.klucz('gemini');
+    if (!klucz) throw new Error('Użytkownik nie ma klucza Google Gemini – obrazy rysuje tylko Gemini. Poproś o dodanie klucza w Ustawieniach konta → Sztuczna inteligencja.');
+    const proporcja = PROPORCJE.includes(a.proporcja) ? a.proporcja : '1:1';
+    const w = await generujObraz({ klucz, model: q.model, fetchJson: zadanie, opis: pelnyOpis(String(a.opis)), proporcja, rozdzielczosc: q.rozdzielczosc });
+    const koszt = kosztZUzycia(q.model, w.uzycie) ?? zl;
+    zapiszWydatek(koszt, { model: q.model, rodzaj: 'obraz' });
+    const tekst = (r) => (r?.content || []).map((c) => c.text || '').join('\n');
+    const slowa = String(a.opis).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 32) || 'obraz';
+    const roz = w.typ.includes('jpeg') ? 'jpg' : 'png';
+    const wgrany = tekst(await wolaj('tools/call', { name: 'wgraj_obraz', arguments: { nazwa: `ai-${slowa}.${roz}`, dane_base64: `data:${w.typ};base64,${w.dane}` } }));
+    const id = /\(id ([^,)\s]+)/.exec(wgrany)?.[1];
+    if (!id) throw new Error(`Nie udało się wgrać obrazu: ${wgrany}`);
+    const r = a.element
+      ? await wolaj('tools/call', { name: 'zmien_elementy', arguments: { gdzie: a.gdzie, zmiany: [{ id: a.element, pola: { zasob: id, obraz_kadr: { x: 0, y: 0, skala: 1 } } }] } })
+      : await wolaj('tools/call', { name: 'wstaw_obraz', arguments: { obraz: id, gdzie: a.gdzie } });
+    if (r?.isError) throw new Error(tekst(r));
+    return `Obraz gotowy (id ${id})${a.element ? ` w elemencie ${a.element}` : ' na stronie'} – koszt ok. ${opisKosztu(koszt, j)}. ${tekst(r)}`;
   }
   if (nazwa === 'rysuj_kadry') {
     await naStronieKomiksu(a.strona);
