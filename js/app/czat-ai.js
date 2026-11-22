@@ -29,9 +29,8 @@ let trwa = false;
 let zawszePozwalaj = false; // „Zawsze pozwalaj w tej rozmowie” (#255) – do nowej rozmowy
 
 // Zgoda na groźną zmianę (#255): pytanie w rozmowie z przyciskami. Zwraca true – wolno, false – nie.
-// kosztuje=true (#376): wydatek – pytanie za każdym razem, bez przycisku „Zawsze pozwalaj”.
-function zapytajOZgode(opis, { kosztuje = false } = {}) {
-  if (zawszePozwalaj && !kosztuje) return Promise.resolve(true);
+function zapytajOZgode(opis) {
+  if (zawszePozwalaj) return Promise.resolve(true);
   return new Promise((gotowe) => {
     const li = dopisz('zgoda', `AI chce ${opis}. Pozwolić?`);
     const rzad = Object.assign(document.createElement('div'), { className: 'rzad-przyciskow' });
@@ -42,7 +41,7 @@ function zapytajOZgode(opis, { kosztuje = false } = {}) {
       gotowe(wolno);
     };
     const przycisk = (tekst, klasa, fn) => { const b = Object.assign(document.createElement('button'), { type: 'button', className: `przycisk maly ${klasa}`, textContent: tekst }); b.addEventListener('click', fn); return b; };
-    rzad.append(przycisk(tt('czatAi.pozwol'), 'glowny', () => koniec(true)), ...(kosztuje ? [] : [przycisk(tt('czatAi.zawszePozwalajWTej'), '', () => koniec(true, true))]), przycisk(tt('czatAi.niePozwalaj'), 'niebezpieczny', () => koniec(false)));
+    rzad.append(przycisk(tt('czatAi.pozwol'), 'glowny', () => koniec(true)), przycisk(tt('czatAi.zawszePozwalajWTej'), '', () => koniec(true, true)), przycisk(tt('czatAi.niePozwalaj'), 'niebezpieczny', () => koniec(false)));
     li.append(rzad);
     lista.scrollTop = lista.scrollHeight;
     rzad.querySelector('button').focus();
@@ -405,7 +404,7 @@ async function wyslij(tekst) {
           // przed chwilą przez dodaj_elementy), potem wysyłka tego, co zrobiło – kolejne narzędzia AI je widzą (#380).
           if (zmiany && nazwa !== 'generuj_obraz') { await sprawdzKonto(); await synchronizuj().catch(() => {}); zmiany = false; }
           try {
-            const tekst = await wykonajLokalne(nazwa, argumenty || {}, { wolaj: n.wolaj, zgoda: (opis) => { czeka.textContent = tt('czatAi.czekamNaTwojaZgode'); return zapytajOZgode(opis, { kosztuje: true }); } });
+            const tekst = await wykonajLokalne(nazwa, argumenty || {}, { wolaj: n.wolaj, informuj: (tekst) => dopisz('narzedzie', tekst) });
             if (tekst === null) return { tekst: ODMOWA, blad: true };
             if (nazwa === 'generuj_obraz') zmiany = true; else { await zapiszTeraz(); await synchronizuj().catch(() => {}); }
             return { tekst, blad: false };

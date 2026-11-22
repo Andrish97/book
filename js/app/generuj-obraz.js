@@ -75,7 +75,7 @@ const nazwaProporcji = (p) => {
   return `${t(`aiObraz.ksztalt_${rodzaj}`)} (${p})`;
 };
 
-export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
+export function oknoGenerowania({ opis = '', jakosc = 'szkic', tryb: trybStartowy = 'nowy' } = {}) {
   if (!stan.projekt || !edytor.canvas) return;
   const cel = ramka();
   // Ramka z obrazem z AI: opis i jakość poprzedniego obrazu – „jeszcze raz” albo poprawka opisu.
@@ -108,7 +108,8 @@ export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
   // „Popraw obecny obraz”: opis to sama zmiana; „Narysuj od nowa”: cały opis (wraca szkic z pola).
   const szkice = { nowy: opis, popraw: '' };
   let tryb = 'nowy';
-  for (const r of f.querySelectorAll('[name="tryb"]')) {
+  const radia = [...f.querySelectorAll('[name="tryb"]')];
+  for (const r of radia) {
     r.addEventListener('change', () => {
       szkice[tryb] = f.elements.opis.value; tryb = r.value;
       f.elements.opis.value = szkice[tryb];
@@ -124,6 +125,8 @@ export function oknoGenerowania({ opis = '', jakosc = 'szkic' } = {}) {
       + (w.limit ? ` ${t('aiObraz.limit', { limit: opisKosztu(w.limit, biezacyJezyk()) })}` : '');
     return zl;
   };
+  const popraw = radia.find((r) => r.value === 'popraw');
+  if (trybStartowy === 'popraw' && popraw) { popraw.checked = true; popraw.dispatchEvent(new Event('change')); }
   f.elements.jakosc.addEventListener('change', policz);
   f.elements.opis.addEventListener('input', policz);
   policz();
@@ -152,11 +155,19 @@ export async function menuAi() {
   const { oknoTekstuAi } = await import('./tekst-ai.js');
   const komiks = document.body.classList.contains('w-komiksie');
   const k = komiks ? await import('./komiks-narzedzia.js') : null;
+  const zObrazem = Boolean(ramka()?.zasob);
+  const klik = (akcja) => document.querySelector(`[data-akcja="${akcja}"]`)?.click();
   menuPrzy(b, [
     { ikona: 'obraz', tekst: t('aiMenu.obraz'), opis: t('aiMenu.obrazOpis'), wartosc: 'obraz', wykonaj: () => oknoGenerowania() },
+    ...(zObrazem ? [{ ikona: 'pioro', tekst: t('aiMenu.poprawObraz'), opis: t('aiMenu.poprawObrazOpis'), wartosc: 'popraw-obraz', wykonaj: () => oknoGenerowania({ tryb: 'popraw' }) }] : []),
     { ikona: 'tekst', tekst: t('aiMenu.tekst'), opis: t('aiMenu.tekstOpis'), wartosc: 'tekst', wykonaj: () => oknoTekstuAi() },
+    { ikona: 'dane', tekst: t('aiMenu.kolumna'), opis: t('aiMenu.kolumnaOpis'), wartosc: 'kolumna', wykonaj: () => { klik('dane'); powiadom(t('aiMenu.kolumnaPodpowiedz')); } },
     ...(komiks ? ['-',
-      { ikona: 'kadry', tekst: t('pasekNarzedzi.komiksRysuj'), opis: t('aiMenu.rysujOpis'), wartosc: 'rysuj', wykonaj: () => k.oknoRysujKadry() },
-      { ikona: 'komiks', tekst: t('pasekNarzedzi.komiksScenariuszAi'), opis: t('aiMenu.scenariuszOpis'), wartosc: 'scenariusz', wykonaj: () => k.oknoScenariuszaAi() }] : []),
+      { ikona: 'komiks', tekst: t('pasekNarzedzi.komiksScenariuszAi'), opis: t('aiMenu.scenariuszOpis'), wartosc: 'scenariusz', wykonaj: () => k.oknoScenariuszaAi() },
+      { ikona: 'uzytkownik', tekst: t('aiMenu.wzorce'), opis: t('aiMenu.wzorceOpis'), wartosc: 'wzorce', wykonaj: () => k.obsluzAkcjeKomiksu('komiks-postacie') },
+      { ikona: 'kadry', tekst: t('pasekNarzedzi.komiksRysuj'), opis: t('aiMenu.rysujOpis'), wartosc: 'rysuj', wykonaj: () => k.oknoRysujKadry() }] : []),
+    '-',
+    { ikona: 'komentarz', tekst: t('aiMenu.asystent'), opis: t('aiMenu.asystentOpis'), wartosc: 'asystent', wykonaj: () => klik('czat-ai') },
+    { ikona: 'klucz', tekst: t('aiMenu.ustawienia'), opis: t('aiMenu.ustawieniaOpis'), wartosc: 'ustawienia', wykonaj: async () => (await import('./dostep-ai.js')).otworzDostepAi() },
   ]);
 }

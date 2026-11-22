@@ -1446,3 +1446,4 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .dialog-makieta:fullscreen { background: var(--powierzchnia); }
 .dialog-makieta.makieta-pelna .makieta-model, .dialog-makieta.makieta-pelna [data-akcja="makieta-pobierz"] { display: none; }
 #dlg-ai-obraz .tryb-ai { border: 0; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 12px; } #dlg-ai-obraz .tryb-ai legend { padding: 0; margin-bottom: 4px; }
+.koszty-ai h3 { margin: 0 0 4px; font-size: 1rem; } .tabela-kosztow-ai { border-collapse: collapse; margin: 6px 0; width: 100%; max-width: 520px; font-size: .9rem; } .tabela-kosztow-ai td { padding: 4px 8px 4px 0; border-bottom: 1px solid var(--linia, #ddd); } .tabela-kosztow-ai td:last-child { text-align: right; white-space: nowrap; }

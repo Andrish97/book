@@ -1,13 +1,13 @@
 // Narzędzia czatu AI wykonywane w otwartej aplikacji (#376, plan AI B5 i komiksu C5): generowanie obrazu (do ramki
 // albo na stronę), rysowanie kadrów strony komiksu ze scenariusza i kart, ustawienie dymków, szacunek kosztu.
-// Kosztują – dlatego czat pyta o zgodę z kwotą przy KAŻDYM wywołaniu (także po „Zawsze pozwalaj”). Klucz Gemini –
-// z sejfu (#241), jak w oknie Obraz AI.
+// Kosztują – czat nie pyta o zgodę (uwaga E4), tylko pokazuje w rozmowie, co rysuje i ile to mniej więcej kosztuje;
+// bezpiecznikiem jest miesięczny limit wydatków. Klucz Gemini – z sejfu (#241), jak w oknie Obraz AI.
 
 import { pelnyOpis } from './generuj-obraz.js';
 import { generujObraz, PROPORCJE } from '../ai-obrazy.js';
 import { zadanie } from '../ai-dostawcy.js';
 import { otwartySejf } from './sejf-ai.js';
-import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu, kosztZUzycia, zapiszWydatek } from '../ai-koszty.js';
+import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu, kosztZUzycia, zapiszWydatek, wLimicie, wydatki } from '../ai-koszty.js';
 import { planKadrowStrony, rysujPozycje, szacujPozycje, ustawDymki, stronyKomiksu } from './komiks-narzedzia.js';
 import { stan } from './kontekst.js';
 import { biezacyJezyk } from '../jezyk.js';
@@ -17,12 +17,12 @@ const JAKOSC = { type: 'string', enum: ['szkic', 'dokladny', 'pro'], description
 export const NARZEDZIA_LOKALNE = [
   {
     name: 'generuj_obraz',
-    description: 'Generuje obraz z opisu (Google Gemini, klucz użytkownika), wgrywa go do obrazów projektu i wstawia: do ramki (element – id kształtu, kadru albo prostokąta na stronie gdzie; obraz ją wypełnia) albo na środek strony. Kosztuje (szkic ok. 0,14 zł) – użytkownik potwierdza koszt. Nie umieszczaj tekstu w obrazie; napisy dodaje się w Makietce.',
+    description: 'Generuje obraz z opisu (Google Gemini, klucz użytkownika), wgrywa go do obrazów projektu i wstawia: do ramki (element – id kształtu, kadru albo prostokąta na stronie gdzie; obraz ją wypełnia) albo na środek strony. Kosztuje (szkic ok. 0,14 zł) – użytkownik widzi koszt w rozmowie. Nie umieszczaj tekstu w obrazie; napisy dodaje się w Makietce.',
     inputSchema: { type: 'object', properties: { opis: { type: 'string', description: 'Co ma być na obrazie – w języku, w którym pisze użytkownik (zobaczy ten opis przy pytaniu o zgodę).' }, gdzie: { type: 'string', description: '„strona:<id strony>” – strona z ramką albo strona, na którą wstawić obraz.' }, element: { type: 'string', description: 'Id ramki na tej stronie (opcjonalnie).' }, jakosc: JAKOSC, proporcja: { type: 'string', description: 'Kształt obrazu, np. 3:4 (pion), 4:3 (poziom), 1:1 – zgodny z ramką.' } }, required: ['opis', 'gdzie'] },
   },
   {
     name: 'rysuj_kadry',
-    description: 'Komiks: rysuje obrazy do kadrów strony komiksu ze scenariusza (opis sceny, kto mówi) i kart postaci/miejsc (wygląd, obrazy wzorcowe), w stylu projektu. strona – numer strony komiksu (1 = pierwsza strona sekcji Komiks). Domyślnie tylko kadry bez obrazu. Kosztuje – użytkownik potwierdza.',
+    description: 'Komiks: rysuje obrazy do kadrów strony komiksu ze scenariusza (opis sceny, kto mówi) i kart postaci/miejsc (wygląd, obrazy wzorcowe), w stylu projektu. strona – numer strony komiksu (1 = pierwsza strona sekcji Komiks). Domyślnie tylko kadry bez obrazu. Kosztuje – użytkownik widzi koszt w rozmowie.',
     inputSchema: { type: 'object', properties: { strona: { type: 'integer', minimum: 1 }, kadry: { type: 'array', items: { type: 'integer' }, description: 'Numery kadrów (opcjonalnie; domyślnie puste kadry).' }, jakosc: JAKOSC }, required: ['strona'] },
   },
   {
@@ -49,8 +49,9 @@ function wybraneKadry({ kadry }) {
   return pozycje.filter((x) => (kadry?.length ? kadry.includes(x.kadr) : !x.obiekt.zasob));
 }
 
-// zgoda(opis) → Promise<boolean> – pytanie w rozmowie (bez „zawsze pozwalaj” – koszt za każdym razem).
-export async function wykonajLokalne(nazwa, a, { zgoda, wolaj }) {
+// informuj(tekst) – linijka w rozmowie: co AI rysuje i za ile (bez pytania o zgodę, E4). Ponad limit miesięczny – błąd.
+const limit = (zl, j) => { if (!wLimicie(zl)) throw new Error(`To przekroczyłoby miesięczny limit wydatków na AI (${opisKosztu(wydatki().limit, j)}) – użytkownik może go zmienić w Ustawieniach konta → Sztuczna inteligencja.`); };
+export async function wykonajLokalne(nazwa, a, { informuj = () => {}, wolaj }) {
   const j = biezacyJezyk();
   if (nazwa === 'szacuj_koszt') {
     if (a.strona) { await naStronieKomiksu(a.strona); const p = wybraneKadry(a); return `Strona ${a.strona}: ${p.length} kadrów do narysowania, ok. ${opisKosztu(szacujPozycje(p, a.jakosc || 'szkic'), j)}.`; }
@@ -67,7 +68,8 @@ export async function wykonajLokalne(nazwa, a, { zgoda, wolaj }) {
     // więc nic nie nadpisuje zmian, które AI zrobiło przed chwilą (#380).
     const q = JAKOSCI_OBRAZU[a.jakosc || 'szkic'];
     const zl = szacujObraz({ ...q, znakiOpisu: String(a.opis).length + 200 });
-    if (!await zgoda(`wygenerować obraz „${String(a.opis).slice(0, 80)}” (koszt ok. ${opisKosztu(zl, j)})`)) return null;
+    limit(zl, j);
+    informuj(`🎨 Rysuję obraz „${String(a.opis).slice(0, 80)}” – ok. ${opisKosztu(zl, j)}`);
     const klucz = (await otwartySejf())?.klucz('gemini');
     if (!klucz) throw new Error('Użytkownik nie ma klucza Google Gemini – obrazy rysuje tylko Gemini. Poproś o dodanie klucza w Ustawieniach konta → Sztuczna inteligencja.');
     const proporcja = PROPORCJE.includes(a.proporcja) ? a.proporcja : '1:1';
@@ -91,7 +93,8 @@ export async function wykonajLokalne(nazwa, a, { zgoda, wolaj }) {
     const p = wybraneKadry(a);
     if (!p.length) return `Na stronie ${a.strona} nie ma kadrów do narysowania.`;
     const zl = szacujPozycje(p, a.jakosc || 'szkic');
-    if (!await zgoda(`narysować ${p.length} kadr(y) strony ${a.strona} (koszt ok. ${opisKosztu(zl, j)})`)) return null;
+    limit(zl, j);
+    informuj(`🎨 Rysuję kadry strony ${a.strona}: ${p.length} – ok. ${opisKosztu(zl, j)}`);
     const w = await rysujPozycje(p, { jakosc: a.jakosc || 'szkic' });
     return `Narysowano ${w.gotowe} kadr(y) strony ${a.strona} (koszt ok. ${opisKosztu(w.zl, j)}).`;
   }

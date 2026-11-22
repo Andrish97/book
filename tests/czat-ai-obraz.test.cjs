@@ -1,5 +1,5 @@
-// Czat AI z narzędziami aplikacji (#376): Claude (atrapa) woła generuj_obraz – czat pyta o zgodę z kosztem (bez
-// „Zawsze pozwalaj”), obraz z Gemini (atrapa) trafia do zaznaczonej ramki; odmowa – nic nie kosztuje.
+// Czat AI z narzędziami aplikacji (#376): Claude (atrapa) woła generuj_obraz – bez pytania o zgodę (E4), w rozmowie
+// linijka z kosztem; obraz z Gemini (atrapa) trafia do ramki. Ponad miesięczny limit – nic nie kosztuje.
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -18,7 +18,7 @@ function sse(w) {
   return z.map((x) => `event: ${x.type}\ndata: ${JSON.stringify(x)}\n\n`).join('');
 }
 
-test('czat AI: generuj_obraz z zgodą na koszt, obraz w ramce; odmowa bez kosztu', async (t) => {
+test('czat AI: generuj_obraz bez pytania, koszt w rozmowie, obraz w ramce; limit miesięczny chroni', async (t) => {
   const { strona, kontekst, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Czat z obrazem');
   await strona.click('[data-akcja="dodaj-prostokat"]');
@@ -49,24 +49,20 @@ test('czat AI: generuj_obraz z zgodą na koszt, obraz w ramce; odmowa bez kosztu
   await strona.waitForSelector('#dlg-czat-ai[open]');
   await strona.fill('#czat-ai-tekst', 'Narysuj kota w kapeluszu w zaznaczonej ramce');
   await strona.press('#czat-ai-tekst', 'Enter');
-  // Zgoda z kosztem, bez „Zawsze pozwalaj”.
-  const zgoda = strona.locator('#czat-ai-wiadomosci .rzad-przyciskow').last();
-  await zgoda.waitFor({ timeout: 20000 });
-  assert.match(await strona.locator('#czat-ai-wiadomosci').textContent(), /AI chce wygenerować obraz „Kot w kapeluszu” \(koszt ok\. 0,14 zł\)/);
-  assert.equal(await zgoda.locator('button').count(), 2, 'tylko Pozwól i Nie pozwalaj');
-  assert.deepEqual(claude[0].tools.filter((x) => ['generuj_obraz', 'rysuj_kadry', 'ustaw_dymki', 'szacuj_koszt'].includes(x.name)).map((x) => x.name), ['generuj_obraz', 'rysuj_kadry', 'ustaw_dymki', 'szacuj_koszt']);
-  await zgoda.locator('button').first().click();
   await strona.waitForFunction(() => /Gotowe, obraz w ramce/.test(document.querySelector('#czat-ai-wiadomosci').textContent), null, { timeout: 20000 });
+  const tekst = await strona.locator('#czat-ai-wiadomosci').textContent();
+  assert.match(tekst, /Rysuję obraz „Kot w kapeluszu” – ok\. 0,14 zł/);
+  assert.equal(await strona.locator('#czat-ai-wiadomosci .rzad-przyciskow').count(), 0, 'bez pytania o zgodę');
+  assert.deepEqual(claude[0].tools.filter((x) => ['generuj_obraz', 'rysuj_kadry', 'ustaw_dymki', 'szacuj_koszt'].includes(x.name)).map((x) => x.name), ['generuj_obraz', 'rysuj_kadry', 'ustaw_dymki', 'szacuj_koszt']);
   assert.equal(gemini.length, 1);
   await strona.waitForFunction((id) => Boolean(window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === id)?.zasob), idRamki, { timeout: 15000 });
   assert.match(JSON.stringify(claude[1].messages.at(-1)), /Obraz gotowy \(id [^)]+\) w elemencie/);
-  // Druga prośba – odmowa: bez wywołania Gemini.
+  // Limit miesięczny 0,10 zł: druga prośba – błąd dla AI, bez wywołania Gemini.
+  await strona.evaluate(async () => (await import('./js/ai-koszty.js')).ustawLimit(0.1));
   await strona.fill('#czat-ai-tekst', 'Jeszcze raz');
   await strona.press('#czat-ai-tekst', 'Enter');
-  const zgoda2 = strona.locator('#czat-ai-wiadomosci .rzad-przyciskow').last();
-  await zgoda2.waitFor({ timeout: 20000 });
-  await zgoda2.locator('button').last().click();
   await strona.waitForFunction(() => /nie generuję/.test(document.querySelector('#czat-ai-wiadomosci').textContent), null, { timeout: 20000 });
-  assert.equal(gemini.length, 1, 'odmowa – nic nie wygenerowano');
+  assert.match(JSON.stringify(claude[3].messages.at(-1)), /miesięczny limit/);
+  assert.equal(gemini.length, 1, 'ponad limit – nic nie wygenerowano');
   assert.deepEqual(bledy, []);
 });

@@ -93,6 +93,21 @@ teksty, tłumaczenie i obrazy w zwykłych trybach”.
 | D11 | **Ponowne generowanie z zapisanego opisu**: przy obrazie kadru widać, z czego powstał (po polsku), „Narysuj jeszcze raz” bez składania od nowa; edycja opisu | ✅ #378 (opis przy obrazie kadru, „Opis ze scenariusza”, miniatura) |
 | D12 | **Instrukcja na koniec**: wszystkie kroki komiksu dokładnie; osobno teksty AI, tłumaczenie i obrazy AI w zwykłych projektach | ✅ #381 (10.13, 5.17, 7.11, 25.6 w pl/en/uk, nowe zrzuty) |
 
+## Część E – uwagi właściciela z 22.11 (rano), po części D
+
+Słowa właściciela (skrót): „[AI ▾] – rozwiń, żeby AI miało tam też przyciski” · „jak mieć dostęp do innych rzeczy
+(komiksu)? Może biblioteka niech będzie?” · „czy warto dla sceny dodać osobno emocje i działania postaci?” · „nie powinien
+pytać o zgodę [na koszt] – raczej informujemy użytkownika w sekcji dodawania kluczy, ile mniej więcej to kosztuje” ·
+„możesz zrobić rzeczy dodatkowe, które pominąłeś”.
+
+| # | Co | Stan |
+|---|---|---|
+| E1 | Menu [AI ▾] pełniejsze: wszystkie działania AI w jednym miejscu (obraz, popraw obraz, tekst, kolumna w danych, asystent AI; w komiksie scenariusz, rysowanie kadrów, obraz wzorcowy postaci) | do zrobienia |
+| E2 | Komiks w Bibliotece: kategoria „Komiks” – dymki, efekty, układy kadrów, raster i linie ruchu, skróty do okien komiksu | do zrobienia |
+| E3 | Emocje i działania postaci w kadrze: przy każdej postaci w kadrze – emocja (lista) i co robi; idą do opisu obrazu i do scenariusza z AI | do zrobienia |
+| E4 | Bez pytania o zgodę na koszt (czat i narzędzia): koszt orientacyjny w ustawieniach AI przy kluczach; limit miesięczny zostaje jako bezpiecznik | do zrobienia |
+| E5 | Dodatkowe: „popraw obraz” w czacie, miniatury stylów rysunków, cała strona komiksu jednym obrazem, obrazy w łączniku MCP (B6) | do zrobienia |
+
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 
 | Pozycja | Szacunek |
