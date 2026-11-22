@@ -1338,6 +1338,7 @@ In a comic section the insert bar has extra tools:
 | [Script] | Opens the script table in the **Data** window (→ 14). If there is none, it creates one. |
 | [Place bubbles] | Places speech bubbles with the script texts on the pages, in the right panels. |
 | [Characters] | Character and place cards – who appears in the comic and where it happens. |
+| [Upload pages] | Page or panel images from files or a ZIP archive – the number in the file name says where they go. |
 
 ![The Panels window – 9 ready layouts](k-komiks-kadry.png)
 
@@ -1371,6 +1372,15 @@ Type the script in the **Data** window or paste it from a spreadsheet (→ 14.3)
    where they are. A row deleted from the script removes its bubble.
 
 **Comic styles.** Bubbles from [Speech bubble] and [Place bubbles] use the **Dialogue** style (Comic Neue, capitals, centred), and [Effect] uses **Sound effect** (Bangers, yellow with a black outline). The styles are added to the project the first time you use them; changing a style (→ 5.4) changes all bubbles or effects at once. In a Ukrainian project both styles use Pangolin – Comic Neue and Bangers have no Cyrillic.
+
+**Ready page drawings.** Have pages drawn or generated in another program? Click [Upload pages] and choose many files at once or one ZIP file. The file name says where the image goes:
+
+| File name | Where it goes |
+|---|---|
+| `01.png`, `page 7.jpg` | The whole page 1 (7) with bleed. That page's panels disappear (they are already in the drawing); bubbles stay above the image. |
+| `s03-k2.png`, `p3_panel2.jpg` | Panel 2 on page 3 – the image fills the panel (move it by double-clicking, → 7). |
+
+Pages count from the first comic page; missing pages are added at the end of the section. Files without a number (e.g. `cover.png`) are skipped – the app tells you which.
 
 **Characters and places.** [Characters] opens the cards: for a character **Name**, **Appearance**, **Distinctive feature**, **Personality**, **Reference image** (a drawing or photo from your device – it goes to the project images) and **Bubble colour**; for a place **Place**, **Description**, **Time of day**, **Light** and an image. Describe a character once – the description and image are the model for every scene (for you, an artist or an image generator). The **Comic** template has sample cards for Ala, Ola and the town.
 

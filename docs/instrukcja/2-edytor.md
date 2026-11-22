@@ -1338,6 +1338,7 @@ W sekcji komiksu pasek wstawiania ma dodatkowe narzędzia:
 | [Scenariusz] | Otwiera tabelę scenariusza w oknie **Dane** (→ 14). Gdy jej nie ma – tworzy ją. |
 | [Ustaw dymki] | Stawia dymki z tekstami ze scenariusza na stronach, w odpowiednich kadrach. |
 | [Postacie] | Karty postaci i miejsc – kto występuje w komiksie i gdzie dzieje się akcja. |
+| [Wgraj strony] | Obrazy stron albo kadrów z plików albo z archiwum ZIP – numer w nazwie pliku mówi, gdzie trafią. |
 
 ![Okno Kadry – 9 gotowych układów](k-komiks-kadry.png)
 
@@ -1370,6 +1371,15 @@ Scenariusz wpiszesz w oknie **Dane** albo wkleisz z arkusza (→ 14.3).
    zostają na swoim miejscu. Wiersz usunięty ze scenariusza usuwa swój dymek.
 
 **Style komiksu.** Dymki z [Dymek] i [Ustaw dymki] mają styl **Dialog** (Comic Neue, wersaliki, wyśrodkowany), a [Efekt] – styl **Efekt dźwiękowy** (Bangers, żółty z czarnym obrysem). Style dochodzą do projektu przy pierwszym użyciu; zmiana stylu (→ 5.4) zmienia naraz wszystkie dymki albo efekty. W projekcie po ukraińsku oba style mają czcionkę Pangolin – Comic Neue i Bangers nie mają cyrylicy.
+
+**Gotowe rysunki stron.** Masz strony narysowane albo wygenerowane w innym programie? [Wgraj strony] i wybierz wiele plików naraz albo jeden plik ZIP. Nazwa pliku mówi, gdzie trafi obraz:
+
+| Nazwa pliku | Gdzie trafia |
+|---|---|
+| `01.png`, `strona 7.jpg` | Cała strona 1 (7) na spad. Kadry tej strony znikają (są już na rysunku), dymki zostają nad obrazem. |
+| `s03-k2.png`, `str3_kadr2.jpg` | Kadr 2 na stronie 3 – obraz wypełnia kadr (przesuniesz go podwójnym kliknięciem, → 7). |
+
+Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na końcu sekcji. Pliki bez numeru (np. `okladka.png`) są pomijane – aplikacja o nich powie.
 
 **Postacie i miejsca.** [Postacie] otwiera karty: dla postaci **Imię**, **Wygląd**, **Znak rozpoznawczy**, **Charakter**, **Obraz wzorcowy** (rysunek albo zdjęcie z urządzenia – trafia do obrazów projektu) i **Kolor dymka**; dla miejsca **Miejsce**, **Opis**, **Porę dnia**, **Światło** i obraz. Opisz postać raz – opis i obraz to wzór do każdej sceny (dla Ciebie, rysownika albo generatora obrazów). Szablon **Komiks** ma przykładowe karty Ali, Oli i miasteczka.
 

@@ -44,6 +44,7 @@ export const MODULY_EDYTORA = [
   'js/dymek.js',
   'js/elementy-danych.js',
   'js/ikony-biblioteki.js',
+  'js/import-stron.js',
   'js/kadry.js',
   'js/kalendarz-miesiaca.js',
   'js/kod-obiekt.js',

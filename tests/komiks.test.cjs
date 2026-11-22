@@ -36,6 +36,7 @@ test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenarius
   await dlg.locator('.uklad-kadrow').nth(5).click();
   await dlg.locator('button[value="tak"]').click();
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.kadr_nr).length === 4);
+  assert.equal(await strona.textContent('#powiadomienie'), 'Ułożono 4 kadry.', 'komunikat z liczbą');
   const wydruk = await strona.evaluate(() => { const w = window.seriodruk.edytor.wydruk; return [w.szerokosc_mm, w.wysokosc_mm]; });
   let kadry = await kadryStrony(strona);
   assert.equal(kadry.length, 4, 'cztery kadry');
@@ -266,5 +267,55 @@ test('komiks: karty postaci i miejsc – dodanie z obrazem i kolorem dymka, tabe
   await strona.click('#potwierdz-tak');
   await dlg.locator('.karty-komiksu[data-rodzaj="miejsca"]').waitFor();
   assert.equal(await dlg.locator('.karty-komiksu[data-rodzaj="miejsca"] .karta-komiksu:not(.dodaj)').count(), 0);
+  assert.deepEqual(bledy, []);
+});
+
+test('komiks: wgraj strony – 01.png na spad (kadry strony znikają, dymki zostają), s02-k1.png do kadru, ZIP, brakujące strony dochodzą (#369)', async (t) => {
+  const { PNG_2X2 } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Wgrane strony');
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.sekcje[0].typ = 'komiks';
+    const { siatkaKadrow, elementKadru } = await import('./js/kadry.js');
+    const { nowaStrona } = await import('./js/projekt.js');
+    p.strony.push(nowaStrona('Strona 2', p.sekcje[0].id));
+    for (const s of p.strony) s.obiekty = siatkaKadrow({ x: 10, y: 10, w: 128, h: 190 }, [[1], [1, 1]], 4).map((k, i) => elementKadru(k, i + 1, { id: `k${s.id}${i}` }));
+    p.strony[0].obiekty.push({ type: 'textbox', id: 'dym', text: 'Hej', left: 20, top: 20, width: 30, dymek: { rodzaj: 'mowa', ogonek: null } });
+    await window.seriodruk.przeladuj();
+  });
+  // ZIP z jedną stroną (03.png) zrobiony w przeglądarce.
+  const zip = await strona.evaluate(async (b64) => {
+    const { biblioteka } = await import('./js/biblioteki.js');
+    const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'ZIP');
+    const z = new JSZip();
+    z.file('komiks/03.png', b64, { base64: true });
+    z.file('__MACOSX/._03.png', 'x');
+    return z.generateAsync({ type: 'base64' });
+  }, PNG_2X2.toString('base64'));
+  await strona.click('[data-akcja="komiks-wgraj"]');
+  await strona.setInputFiles('#plik-strony-komiksu', [
+    { name: '01.png', mimeType: 'image/png', buffer: PNG_2X2 },
+    { name: 's02-k1.png', mimeType: 'image/png', buffer: PNG_2X2 },
+    { name: 's02-k7.png', mimeType: 'image/png', buffer: PNG_2X2 },
+    { name: 'okladka.png', mimeType: 'image/png', buffer: PNG_2X2 },
+    { name: 'strony.zip', mimeType: 'application/zip', buffer: Buffer.from(zip, 'base64') },
+  ]);
+  await strona.waitForFunction(() => /Wgrano/.test(document.querySelector('#powiadomienie').textContent));
+  assert.match(await strona.textContent('#powiadomienie'), /Wgrano: 2 strony, obrazy w kadrach: 1\. Pominięto: okladka\.png; s02-k7\.png – na stronie 2 nie ma kadru 7/);
+  const p = await strona.evaluate(() => {
+    const x = window.seriodruk.stan.projekt;
+    const w = x.sekcje[0].wydruk;
+    return {
+      stron: x.strony.length, spad: w.spad_mm, w: w.szerokosc_mm,
+      s1: x.strony[0].obiekty.map((o) => [o.type, o.kadr_nr ?? null, o.type === 'image' ? [o.left, Math.round(o.width * o.scaleX * 10) / 10] : o.text ?? null]),
+      s2: x.strony[1].obiekty.filter((o) => o.kadr_nr).map((o) => [o.kadr_nr, Boolean(o.zasob)]),
+      s3: x.strony[2].obiekty.map((o) => o.type),
+    };
+  });
+  assert.equal(p.stron, 3, 'strona 3 z ZIP-a doszła');
+  assert.deepEqual(p.s1, [['image', null, [-p.spad, p.w + 2 * p.spad]], ['textbox', null, 'Hej']], 'strona 1: obraz na spad pod spodem, kadry znikają, dymek zostaje');
+  assert.deepEqual(p.s2, [[1, true], [2, false], [3, false]], 'obraz w kadrze 1 strony 2');
+  assert.deepEqual(p.s3, ['image']);
   assert.deepEqual(bledy, []);
 });

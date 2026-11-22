@@ -13,6 +13,10 @@ import { t } from '../jezyk.js';
 import { stylKomiksu, wartosciStylu, zastosujStyl } from '../style-tekstu.js';
 import { kolorPostaci } from '../postacie.js';
 import { oknoPostaci } from './komiks-postacie.js';
+import { planImportu, wstawStrone, wstawDoKadru } from '../import-stron.js';
+import { przyjmijPlik, wymiaryPliku } from '../obrazy-projektu.js';
+import { nowaStrona, uid, uporzadkujStrony } from '../projekt.js';
+import { biblioteka } from '../biblioteki.js';
 
 export const wKomiksie = () => stan.tryb === 'strona' && typSekcji(biezacaSekcja()) === 'komiks';
 
@@ -230,6 +234,71 @@ export const efektDzwiekowy = () => {
   return wStyluKomiksu(o, 'efekt');
 };
 
+// ---------- Wgraj strony (#369): wiele plików albo ZIP; numer w nazwie mówi, gdzie trafia obraz ----------
+const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', avif: 'image/avif', svg: 'image/svg+xml' };
+async function plikiZWyboru(pliki) {
+  const wynik = [];
+  for (const f of pliki) {
+    if (/\.zip$/i.test(f.name)) {
+      const JSZip = await biblioteka('js/zewnetrzne/jszip-3.10.1.min.js', 'JSZip', 'modułu ZIP');
+      const zip = await JSZip.loadAsync(await f.arrayBuffer());
+      for (const w of Object.values(zip.files)) {
+        if (w.dir || /(^|\/)(__MACOSX|\.)/.test(w.name)) continue;
+        const nazwa = w.name.split('/').pop();
+        const typ = MIME[(nazwa.split('.').pop() || '').toLowerCase()];
+        if (typ) wynik.push({ nazwa, blob: new Blob([await w.async('arraybuffer')], { type: typ }) });
+      }
+    } else wynik.push({ nazwa: f.name, blob: f });
+  }
+  return wynik;
+}
+
+export async function importujStrony(pliki) {
+  const p = stan.projekt;
+  if (!p) return null;
+  const lista = await plikiZWyboru([...pliki]);
+  const plan = planImportu(lista.map((x) => x.nazwa));
+  if (!plan.strony.length && !plan.kadry.length) { powiadom(t('komiks.nicDoWgrania'), true); return null; }
+  zapiszBiezacyCel();
+  const sekcja = typSekcji(biezacaSekcja()) === 'komiks' ? biezacaSekcja() : (p.sekcje.find((x) => typSekcji(x) === 'komiks') || biezacaSekcja());
+  // brakujące strony komiksu dochodzą na końcu sekcji
+  const potrzeba = Math.max(0, ...plan.strony.map((x) => x.strona), ...plan.kadry.map((x) => x.strona));
+  let strony = stronyKomiksu(p);
+  for (let n = strony.length + 1; n <= potrzeba; n += 1) p.strony.push(nowaStrona(`Strona ${n}`, sekcja.id));
+  uporzadkujStrony(p);
+  strony = stronyKomiksu(p);
+  const plik = (nazwa) => lista.find((x) => x.nazwa === nazwa).blob;
+  const obraz = async (nazwa) => {
+    const blob = plik(nazwa);
+    const { id, nazwa: n } = await przyjmijPlik(p, blob, nazwa);
+    return { id, nazwa: n, idElementu: uid('o'), ...(await wymiaryPliku(blob)) };
+  };
+  const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: spad = 0 } = sekcja.wydruk;
+  const pominiete = [...plan.pominiete];
+  for (const x of plan.strony) wstawStrone(strony[x.strona - 1], await obraz(x.nazwa), { w, h, spad });
+  let kadry = 0;
+  for (const x of plan.kadry) {
+    if (wstawDoKadru(strony[x.strona - 1], x.kadr, await obraz(x.nazwa))) kadry += 1;
+    else pominiete.push(t('komiks.brakKadru', { plik: x.nazwa, strona: x.strona, kadr: x.kadr }));
+  }
+  await zaladujCel();
+  zaplanujZapis();
+  powiadom(t('komiks.wgrano', { strony: plan.strony.length, kadry }) + (pominiete.length ? ` ${t('komiks.pominieto', { lista: pominiete.slice(0, 3).join('; ') })}` : ''), pominiete.length > 0);
+  return { strony: plan.strony.length, kadry, pominiete };
+}
+function wybierzStrony() {
+  let wej = $('#plik-strony-komiksu');
+  if (!wej) {
+    wej = Object.assign(document.createElement('input'), { type: 'file', id: 'plik-strony-komiksu', multiple: true, accept: 'image/*,.zip', hidden: true });
+    wej.addEventListener('change', async () => {
+      try { await importujStrony(wej.files); } catch (e) { console.error(e); powiadom(e.message, true); }
+      wej.value = '';
+    });
+    document.body.append(wej);
+  }
+  wej.click();
+}
+
 // Pasek narzędzi: przyciski z data-akcja="komiks-…".
 export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-dymek') return dymekWStylu();
@@ -239,5 +308,6 @@ export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-scenariusz') return otworzScenariusz();
   if (akcja === 'komiks-dymki') return ustawDymkiZWyborem();
   if (akcja === 'komiks-postacie') return oknoPostaci();
+  if (akcja === 'komiks-wgraj') return wybierzStrony();
   return null;
 }

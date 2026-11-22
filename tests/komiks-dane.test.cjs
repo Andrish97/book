@@ -85,3 +85,19 @@ test('dialogi z tabeli: dymki na stronach według kadrów, ponowne wstawienie zm
   assert.equal(projekt.strony[0].obiekty.find((o) => o.nazwa === 'Dymek – Ala').text, 'Where is the treasure?');
   assert.throws(() => dymkiZTabeli(projekt, { id: 'x', kolumny: ['a'], wiersze: [] }, opcje), /strona|tekst/);
 });
+
+test('import stron: numer strony i kadru z nazwy pliku (#369)', async () => {
+  const { miejscePliku, planImportu } = await modul('import-stron.js');
+  const m = (n) => miejscePliku(n);
+  assert.deepEqual(m('01.png'), { strona: 1, kadr: null });
+  assert.deepEqual(m('komiks/strona 7.jpg'), { strona: 7, kadr: null });
+  assert.deepEqual(m('s03-k2.png'), { strona: 3, kadr: 2 });
+  assert.deepEqual(m('str3_kadr2.webp'), { strona: 3, kadr: 2 });
+  assert.deepEqual(m('p03 k02.png'), { strona: 3, kadr: 2 });
+  assert.equal(m('okladka.png'), null);
+  assert.equal(m('03.txt'), null);
+  const plan = planImportu(['10.png', 's2-k1.png', '2.png', 'x.png']);
+  assert.deepEqual(plan.strony.map((x) => x.strona), [2, 10]);
+  assert.deepEqual(plan.kadry, [{ nazwa: 's2-k1.png', strona: 2, kadr: 1 }]);
+  assert.deepEqual(plan.pominiete, ['x.png']);
+});
