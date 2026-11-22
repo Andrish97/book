@@ -766,7 +766,7 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Uwagi osób do stron czytasz narzędziem komentarze; odpowiadasz przez odpowiedz (rozwiaz=true, gdy poprawka jest już w projekcie), nowe uwagi dodaje skomentuj. Gotowy plik: eksport_pdf (cały projekt, sekcja albo strony, do drukarni albo na ekran) i eksport_png (jedna strona) zwracają link do pobrania – plik robi otwarta aplikacja Makietki; gdy nie jest otwarta, daj użytkownikowi link do aplikacji z odpowiedzi i sprawdź stan_eksportu. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
+const INSTRUKCJE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Uwagi osób do stron czytasz narzędziem komentarze; odpowiadasz przez odpowiedz (rozwiaz=true, gdy poprawka jest już w projekcie), nowe uwagi dodaje skomentuj. Obraz z opisu rysuje generuj_obraz, kadry komiksu rysuj_kadry, dymki ustaw_dymki (robi to otwarta aplikacja kluczem Gemini użytkownika; kosztuje – mów użytkownikowi, co rysujesz). Link do podglądu: udostepnij_link – tylko po wyraźnej zgodzie użytkownika. Zmiany AI cofa cofnij_zmiany_ai (najpierw sprawdz=true i pytanie). Gotowy plik: eksport_pdf (cały projekt, sekcja albo strony, do drukarni albo na ekran) i eksport_png (jedna strona) zwracają link do pobrania – plik robi otwarta aplikacja Makietki; gdy nie jest otwarta, daj użytkownikowi link do aplikacji z odpowiedzi i sprawdź stan_eksportu. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
 
 // czekanieEksportu, krokEksportu (ms): jak długo i jak często łącznik czeka na plik zlecony aplikacji (#175).
 export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Sztuczna inteligencja).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, projekt: wybranyProjekt = null, czekanieEksportu = 45000, krokEksportu = 1500, adresPobierania = ADRES_POBIERANIA }) {
@@ -831,6 +831,37 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   // aplikacja konta klucza robi plik i wgrywa go na konto, a łącznik czeka chwilę i podaje link do pobrania.
   // Bez otwartej aplikacji – link, po którego otwarciu aplikacja zrobi plik sama.
   const MB = (b) => `${(Number(b || 0) / 1048576).toFixed(Number(b || 0) < 10485760 ? 1 : 0).replace('.', ',')} MB`;
+  // Zadania dla otwartej aplikacji (plan H1, H2, H4): link do podglądu, obraz z opisu, kadry komiksu, dymki.
+  const NAZWY_ZADAN = { link: 'link do podglądu', obraz: 'obraz', kadry: 'kadry komiksu', dymki: 'dymki' };
+  function opisZadania(z) {
+    const co = NAZWY_ZADAN[z.rodzaj] || z.rodzaj;
+    const w = z.wynik || {};
+    if (z.stan === 'gotowe') {
+      if (z.rodzaj === 'link') return `Link do podglądu gotowy: ${w.adres}${w.haslo ? ' (z hasłem, które podał użytkownik)' : ''}${w.wazny_do ? `, ważny do ${String(w.wazny_do).slice(0, 10)}` : ''}. Strony podglądu mogą dorysowywać się jeszcze chwilę. Link unieważnia użytkownik w aplikacji: Podgląd → Udostępnij → Unieważnij link.`;
+      return w.opis || `Zadanie „${co}” gotowe.`;
+    }
+    if (z.stan === 'blad') return `Aplikacja nie wykonała zadania „${co}”: ${z.blad || 'nieznany błąd'}. Zlecenie: ${z.id}.`;
+    if (z.stan === 'w_toku') return `Aplikacja właśnie wykonuje zadanie „${co}” (zlecenie ${z.id}). Może to potrwać kilka minut – sprawdź narzędziem stan_eksportu (zlecenie: ${z.id}).`;
+    return `Zadanie „${co}” czeka (${z.id}): wykonuje je aplikacja Makietki w przeglądarce, a teraz żadna nie jest otwarta na tym koncie. Daj użytkownikowi ten link – po jego otwarciu (zalogowany na koncie klucza) aplikacja wykona zadanie sama: ${ADRES_APLIKACJI}#/p/${z.projekt_id}/eksport/${z.id}\nPotem sprawdź stan_eksportu (zlecenie: ${z.id}).`;
+  }
+  async function zlecZadanie(rodzaj, ustawienia, czekaj = true, ileCzekac = czekanieEksportu) {
+    if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
+    const z = await rpc('ai_zlec_zadanie', { p_klucz: KLUCZ, p_rodzaj: rodzaj, p_ustawienia: ustawienia });
+    if (z?.blad) throw new BladBazy(z.blad);
+    if (!czekaj) return `Zlecono zadanie „${NAZWY_ZADAN[rodzaj]}” (zlecenie ${z.id}) – wykona je otwarta aplikacja Makietki; sprawdź stan_eksportu.`;
+    let s = z;
+    const koniec = Date.now() + ileCzekac;
+    while (Date.now() < koniec) {
+      await new Promise((r) => setTimeout(r, krokEksportu));
+      s = await rpc('ai_stan_eksportu', { p_klucz: KLUCZ_KONTA, p_id: z.id });
+      if (s?.blad && !s.id) throw new BladBazy(s.blad); // błąd klucza; zlecenie z błędem ma id
+      if (s.stan === 'gotowe' || s.stan === 'blad') break;
+    }
+    if (s.stan === 'blad') throw new BladBazy(opisZadania(s));
+    return opisZadania(s);
+  }
+  const JAKOSC_OBRAZU = { type: 'string', enum: ['szkic', 'dokladny', 'pro'], description: 'szkic – najtaniej (domyślnie), dokladny – do druku, pro – najlepszy; lepszą jakość tylko, gdy użytkownik o nią prosi' };
+
   function opisEksportu(z) {
     const linkAplikacji = `${ADRES_APLIKACJI}#/p/${z.projekt_id}/eksport/${z.id}`;
     const rodzaj = z.rodzaj === 'png' ? 'PNG' : 'PDF';
@@ -853,7 +884,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     while (Date.now() < koniec) {
       await new Promise((r) => setTimeout(r, krokEksportu));
       s = await rpc('ai_stan_eksportu', { p_klucz: KLUCZ_KONTA, p_id: z.id });
-      if (s?.blad) throw new BladBazy(s.blad);
+      if (s?.blad && !s.id) throw new BladBazy(s.blad); // błąd klucza; zlecenie z błędem ma id
       if (s.stan === 'gotowe' || s.stan === 'blad') break;
     }
     return opisEksportu(s);
@@ -1841,9 +1872,59 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
       dzialaj: async ({ zlecenie }) => {
         if (!KLUCZ_KONTA) throw new BladBazy(BRAK_KLUCZA);
         const s = await rpc('ai_stan_eksportu', { p_klucz: KLUCZ_KONTA, p_id: zlecenie });
-        if (s?.blad) throw new BladBazy(s.blad);
-        return opisEksportu(s);
+        if (s?.blad && !s.id) throw new BladBazy(s.blad); // błąd klucza; zlecenie z błędem ma id
+        return ['pdf', 'png'].includes(s.rodzaj) ? opisEksportu(s) : opisZadania(s);
       },
+    },
+    {
+      name: 'udostepnij_link',
+      title: 'Udostępnij link do podglądu',
+      description: 'Tworzy link do podglądu projektu (jak Podgląd → Udostępnij w aplikacji): każdy, kto ma link, obejrzy strony bez logowania i bez możliwości zmian. To publikacja treści – ZAWSZE najpierw zapytaj użytkownika, czy chce link, i zaproponuj hasło albo datę ważności; wywołaj dopiero po jego wyraźnej zgodzie (zgoda_uzytkownika: true). Gdy projekt ma już link – zwraca ten sam adres (i ustawia podaną ochronę). Link robi otwarta aplikacja Makietki; gdy nie jest otwarta, dostaniesz link do aplikacji dla użytkownika.',
+      inputSchema: S('', {
+        zgoda_uzytkownika: { type: 'boolean', description: 'true – użytkownik wyraźnie zgodził się na link w tej rozmowie' },
+        haslo: tekst('hasło do linku (co najmniej 4 znaki; opcjonalnie)'),
+        wazny_do: tekst('ostatni dzień ważności RRRR-MM-DD (opcjonalnie)'),
+      }, ['zgoda_uzytkownika']),
+      dzialaj: async ({ zgoda_uzytkownika: zgoda, haslo, wazny_do: waznyDo }) => {
+        if (zgoda !== true) throw new BladBazy('Najpierw zapytaj użytkownika, czy chce udostępnić projekt linkiem (każdy z linkiem zobaczy strony), i wywołaj narzędzie z zgoda_uzytkownika: true dopiero po jego zgodzie.');
+        if (haslo != null && String(haslo).length < 4) throw new BladBazy('Hasło do linku musi mieć co najmniej 4 znaki.');
+        if (waznyDo != null && (!/^\d{4}-\d{2}-\d{2}$/.test(String(waznyDo)) || String(waznyDo) < new Date().toISOString().slice(0, 10))) throw new BladBazy('wazny_do: dzisiejsza albo późniejsza data w postaci RRRR-MM-DD.');
+        return zlecZadanie('link', Object.fromEntries(Object.entries({ haslo, wazny_do: waznyDo }).filter(([, v]) => v != null && v !== '')));
+      },
+    },
+    {
+      name: 'generuj_obraz',
+      title: 'Narysuj obraz (Gemini)',
+      description: 'Rysuje obraz z opisu kluczem Google Gemini użytkownika i wstawia go do ramki (element – id kształtu, kadru albo prostokąta na stronie gdzie; obraz ją wypełnia) albo na środek strony. Rysuje otwarta aplikacja Makietki (klucz Gemini jest tylko w przeglądarce użytkownika); narzędzie czeka do ok. 1,5 minuty. Kosztuje (szkic ok. 0,14 zł; pilnuje tego miesięczny limit z ustawień konta) – powiedz użytkownikowi, co rysujesz. Nie umieszczaj tekstu w obrazie; napisy dodaje się w Makietce.',
+      inputSchema: S('', {
+        opis: tekst('Co ma być na obrazie – w języku użytkownika'),
+        gdzie: tekst('„strona:<id strony>” – strona z ramką albo strona, na którą wstawić obraz'),
+        element: tekst('id ramki na tej stronie (opcjonalnie)'),
+        jakosc: JAKOSC_OBRAZU,
+        proporcja: tekst('kształt obrazu, np. 3:4 (pion), 4:3 (poziom), 1:1 – zgodny z ramką'),
+        popraw: { type: 'boolean', description: 'true – popraw obraz, który już jest w elemencie (element wymagany): opis to TYLKO zmiana, np. „dodaj kapelusz”' },
+        czekaj: { type: 'boolean', description: 'false – tylko zleć i od razu wróć (stan: stan_eksportu)' },
+      }, ['opis', 'gdzie']),
+      dzialaj: async ({ czekaj = true, ...a }) => zlecZadanie('obraz', Object.fromEntries(Object.entries(a).filter(([, v]) => v != null)), czekaj !== false, 2 * czekanieEksportu),
+    },
+    {
+      name: 'rysuj_kadry',
+      title: 'Narysuj kadry komiksu',
+      description: 'Komiks: rysuje obrazy do kadrów strony komiksu ze scenariusza (opis sceny, kto mówi) i kart postaci/miejsc, w stylu projektu – kluczem Gemini użytkownika, w otwartej aplikacji Makietki (otworzy w niej projekt). strona – numer strony komiksu (1 = pierwsza strona sekcji Komiks). Domyślnie tylko kadry bez obrazu. Kosztuje (ok. 0,14 zł za kadr w szkicu) – powiedz użytkownikowi, ile kadrów rysujesz. Cała strona trwa kilka minut – sprawdzaj stan_eksportu.',
+      inputSchema: S('', {
+        strona: { type: 'integer', minimum: 1, description: 'numer strony komiksu' },
+        kadry: { type: 'array', items: { type: 'integer' }, description: 'numery kadrów (opcjonalnie; domyślnie puste kadry)' },
+        jakosc: JAKOSC_OBRAZU,
+        czekaj: { type: 'boolean', description: 'false – tylko zleć i od razu wróć' },
+      }, ['strona']),
+      dzialaj: async ({ czekaj = true, ...a }) => zlecZadanie('kadry', Object.fromEntries(Object.entries(a).filter(([, v]) => v != null)), czekaj !== false, 2 * czekanieEksportu),
+    },
+    {
+      name: 'ustaw_dymki',
+      title: 'Ustaw dymki komiksu',
+      description: 'Komiks: stawia dymki z tabeli scenariusza na stronach komiksu (ponownie – zmienia tylko tekst, przesunięte dymki zostają), w otwartej aplikacji Makietki. kolumna – kolumna tekstu dla innej wersji językowej (np. tekst_en). Nic nie kosztuje.',
+      inputSchema: S('', { kolumna: tekst('kolumna tekstu (opcjonalnie)'), czekaj: { type: 'boolean', description: 'false – tylko zleć' } }),
+      dzialaj: async ({ czekaj = true, kolumna }) => zlecZadanie('dymki', kolumna ? { kolumna } : {}, czekaj !== false),
     },
     {
       name: 'cofnij_zmiany_ai',

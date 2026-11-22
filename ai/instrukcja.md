@@ -2479,10 +2479,10 @@ Asystent AI (Claude, ChatGPT i inne) łączy się z Makietką przez **łącznik*
 | wgrywać, wstawiać i wymieniać zdjęcia |  |
 | czytać komentarze, odpowiadać na nie i dodawać własne (rozdział „24.7 Komentarze”) |  |
 | cofnąć swoją ostatnią serię zmian – najpierw mówi, co cofnie, i pyta (rozdział „25.9 Cofnięcie zmian AI”) |  |
-| zlecić plik PDF albo PNG strony i podać Ci link do pobrania (rozdział „25.5 Plik PDF przez AI”) | rysować obrazów – rysuje je tylko **Asystent AI** w Makietce (rozdział „25.6 Asystent AI w Makietce (własny klucz)”); aplikacja AI może wgrać obraz narysowany u siebie |
-|  | udostępniać projektu ani zapraszać osób (rozdział „24 Współpraca”) |
+| zlecić plik PDF albo PNG strony i podać Ci link do pobrania (rozdział „25.5 Plik PDF przez AI”) | zapraszać osób do projektu (rozdział „24 Współpraca”) |
+| rysować obrazy Twoim kluczem Gemini, rysować kadry komiksu i stawiać dymki – w otwartej Makietce (rozdział „25.10 Zadania dla otwartej Makietki”) |  |
+| utworzyć link do podglądu – tylko po Twojej zgodzie, także z hasłem albo datą ważności (rozdział „25.10 Zadania dla otwartej Makietki”) |  |
 |  | wgrywać czcionek ani używać Biblioteki (listę czcionek zna i wybiera tylko z niej) |
-|  | rysować kadrów komiksu ani ustawiać dymków jednym poleceniem – to robi **Asystent AI** w Makietce |
 
 Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój. Jeśli masz projekt otwarty, zmiany pojawiają się w edytorze po chwili. Zmiany AI łączą się z Twoimi jak zmiany współpracownika (rozdział „24.4 Praca na żywo”).
 
@@ -2661,6 +2661,21 @@ Gdy zmiany AI Ci się nie podobają, cofniesz je jednym ruchem – także po zam
 Cofa się ostatnia **seria** zmian AI – zapisy zrobione jeden po drugim, z przerwami najwyżej kwadransa. Kolejne **Cofnij zmiany AI…** sięga do wcześniejszej serii. O cofnięcie możesz też poprosić samo AI: najpierw powie, co zostanie cofnięte, i zapyta Cię o zgodę.
 
 > **Uwaga:** Zmiany zrobione po AI (także Twoje) też się cofną – okienko ostrzega, jeśli takie są. Pojedyncze kroki cofasz zwykłym **Cofnij** (`Ctrl`+`Z`). Cofnąć da się zmiany z ostatnich 14 dni.
+
+### 25.10 Zadania dla otwartej Makietki
+
+Niektóre rzeczy AI połączone łącznikiem zleca Makietce otwartej w Twojej przeglądarce – tak jak plik PDF (rozdział „25.5 Plik PDF przez AI”):
+
+| Zadanie | Co się dzieje |
+|---|---|
+| **Obraz z opisu** | Makietka rysuje obraz Twoim kluczem Google Gemini (rozdział „25.6 Asystent AI w Makietce (własny klucz)”) i wstawia go do ramki albo na stronę. |
+| **Kadry komiksu** | Makietka rysuje obrazy do kadrów strony ze scenariusza i kart postaci (rozdział „10.13 Komiks”). |
+| **Dymki** | Makietka stawia dymki z tabeli scenariusza na stronach komiksu. |
+| **Link do podglądu** | Makietka tworzy link jak **Udostępnij** w podglądzie (rozdział „23 Udostępnianie linkiem”), z hasłem albo datą ważności, jeśli je podasz. |
+
+Na dole ekranu widać pasek z tym, co AI zleciło, a po chwili zmiana jest w projekcie. Obrazy, kadry i dymki robi karta z otwartym tym projektem; karta z listą projektów sama go otworzy. Gdy Makietka nie jest otwarta, AI poda Ci link – po jego otwarciu zadanie wykona się samo. Klucz z wyłączonymi obrazami nie zleci obrazów ani kadrów, a klucz bez plików PDF i PNG – linku (rozdział „25.2 Klucz dla AI”).
+
+> **Uwaga:** Obrazy kosztują jak w Makietce (szkic ok. 0,14 zł) i liczą się do miesięcznego limitu (rozdział „25.2 Klucz dla AI”). Link do podglądu to publikacja – AI musi Cię najpierw zapytać. Link unieważnisz w podglądzie: **Udostępnij** → **Unieważnij link**.
 
 ## 26. Przykład: komiks z AI
 

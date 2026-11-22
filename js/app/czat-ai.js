@@ -219,6 +219,21 @@ async function kluczDostepu(projektId, rola) {
   return w.klucz;
 }
 
+// Narzędzia łącznika dla projektu (zadania od AI z kolejki – js/app/zadania-ai.js): klucz czatu z prawem zmian.
+export async function wolajDlaProjektu(projektId) {
+  const { utworzSerwer } = await import('../ai-narzedzia-rdzen.js');
+  const serwer = utworzSerwer({ adres: SUPABASE_URL, kluczPubliczny: SUPABASE_ANON_KEY, klucz: await kluczDostepu(projektId, 'edycja'), projekt: projektId });
+  const stanSesji = {};
+  let nr = 0;
+  const wolaj = async (method, params = {}) => {
+    const w = await serwer.obsluz({ jsonrpc: '2.0', id: (nr += 1), method, params }, stanSesji);
+    if (w?.error) throw new Error(w.error.message);
+    return w?.result;
+  };
+  await wolaj('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'makietka-zadania', version: '1' } });
+  return wolaj;
+}
+
 async function przygotujNarzedzia() {
   const projekt = stan.projekt.id;
   const rola = ustawienia().rola || 'edycja';
@@ -234,7 +249,8 @@ async function przygotujNarzedzia() {
   };
   const init = await wolaj('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'makietka-czat', version: '1' } });
   // Czat działa na otwartym projekcie – bez narzędzi do innych projektów.
-  const POZA = new Set(['projekty', 'nowy_projekt', 'kopiuj_projekt', 'usun_projekt']);
+  // generuj_obraz, rysuj_kadry, ustaw_dymki – wersje aplikacji (NARZEDZIA_LOKALNE) zamiast kolejki łącznika.
+  const POZA = new Set(['projekty', 'nowy_projekt', 'kopiuj_projekt', 'usun_projekt', ...NARZEDZIA_LOKALNE.map((x) => x.name)]);
   const { tools } = await wolaj('tools/list');
   const lista = tools.filter((t) => !POZA.has(t.name)).map((t) => {
     const { projekt: _p, ...reszta } = t.inputSchema.properties || {};

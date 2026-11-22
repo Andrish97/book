@@ -546,6 +546,33 @@ export async function uzupelnijKrotkiLink() {
   if (await zapewnijKrotki(p, { sprawdz: true }) && stan.projekt === p) zapiszTeraz().catch(() => {});
 }
 
+// Link zlecony przez AI (plan H4, js/app/zadania-ai.js): ten sam link co z okna Udostępnij – nowy albo istniejący,
+// z hasłem i datą ważności podanymi przez AI (za zgodą użytkownika). Projekt otwarty albo wczytany w tle.
+export async function linkDlaAi(p, { haslo = '', wazny_do: dzien = '' } = {}) {
+  const otwarty = p === stan.projekt;
+  const zapiszP = async () => { if (otwarty) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); } };
+  if (otwarty) await zapiszTeraz(); else await przygotujDoRysowania(p);
+  const waznyDo = isoZDnia(dzien || null);
+  const w = { chroniony: Boolean(haslo || waznyDo || p.udostepnienie?.ochrona), zmienHaslo: Boolean(haslo) || Boolean(p.udostepnienie?.ochrona?.haslo), haslo: haslo || '', waznyDo: waznyDo || p.udostepnienie?.ochrona?.wazny_do || null };
+  trwaPublikacja = true;
+  try {
+    if (!p.udostepnienie) {
+      if (w.chroniony) {
+        const kod = nowyKod();
+        const ochrona = await chmura.ustawOchroneLinku(p.id, kod, w);
+        p.udostepnienie = { kod, ochrona: { haslo: Boolean(ochrona?.haslo), wazny_do: ochrona?.wazny_do || null } };
+      }
+      await linkWTle((pasek) => opublikuj(p, pasek));
+    } else if (haslo || waznyDo) {
+      await linkWTle((pasek) => zastosujOchrone(p, w, pasek));
+    }
+    await zapiszP();
+  } finally { trwaPublikacja = false; }
+  if (!otwarty && document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
+  const o = p.udostepnienie.ochrona;
+  return { adres: linkUdostepnienia(p), haslo: Boolean(o?.haslo), wazny_do: o?.wazny_do || null };
+}
+
 // Przycisk „Utwórz link” albo „Aktualizuj teraz”.
 // Z listy projektów (#196) – projekt nie jest otwarty: strony rysują się w tle (przygotujDoRysowania),
 // zapis idzie do tej kopii projektu.

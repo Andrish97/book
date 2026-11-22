@@ -18,6 +18,7 @@ export function wymagaZgody(nazwa, argumenty = {}) {
   const ile = (x) => (Array.isArray(x) ? x.length : 0);
   if (nazwa === 'usun_projekt') return t('zgodaAi.usunacCalyProjektNieodwracalnie', { x: a.potwierdz || a.projekt || '' });
   if (nazwa === 'cofnij_zmiany_ai' && !a.sprawdz) return t('zgodaAi.cofnacZmianyAi'); // plan H3 – cofa też późniejsze zmiany
+  if (nazwa === 'udostepnij_link') return t('zgodaAi.udostepnicLink'); // plan H4 – publikacja treści
   if (nazwa === 'usun_strony') return `usunąć ${liczba(ile(a.id), 'stronę', 'strony', 'stron')}`;
   if (nazwa === 'usun_elementy' && ile(a.id) >= PROG_ELEMENTOW) return `usunąć ${liczba(ile(a.id), 'element', 'elementy', 'elementów')}`;
   if (nazwa === 'usun_obrazy') return a.nieuzywane ? 'usunąć wszystkie nieużywane obrazy projektu' : t('zgodaAi.usunacZProjektu', { liczba: liczba(ile(a.obrazy), 'obraz', 'obrazy', 'obrazów') });

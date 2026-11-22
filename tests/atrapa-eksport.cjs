@@ -12,18 +12,21 @@ function atrapaEksportu(stan) {
   const teraz = () => new Date().toISOString();
   const zyje = (z) => new Date(z.wygasa).getTime() > Date.now();
   const json = (z) => {
-    const { id, projekt_id, rodzaj, ustawienia, stan: s, podpis, przyjeto, nazwa, typ, rozmiar, strony, uwagi, blad, utworzono, zmieniono, wygasa } = z;
-    return JSON.parse(JSON.stringify({ id, projekt_id, rodzaj, ustawienia, stan: s, podpis, przyjeto, nazwa, typ, rozmiar, strony, uwagi, blad, utworzono, zmieniono, wygasa }));
+    const { id, projekt_id, rodzaj, ustawienia, stan: s, podpis, przyjeto, nazwa, typ, rozmiar, strony, uwagi, blad, utworzono, zmieniono, wygasa, wynik = {} } = z;
+    return JSON.parse(JSON.stringify({ id, projekt_id, rodzaj, ustawienia, stan: s, podpis, przyjeto, nazwa, typ, rozmiar, strony, uwagi, blad, utworzono, zmieniono, wygasa, wynik }));
   };
   const oglos = (z, typ) => stan.oglosWiersz?.('zlecenia_eksportu', typ, { id: z.id, wlasciciel: z.wlasciciel, projekt_id: z.projekt_id, stan: z.stan }, [z.wlasciciel]);
   const porzucone = (z) => z.stan === 'w_toku' && Date.now() - new Date(z.przyjeto).getTime() > 5 * 60000;
 
   // Łącznik AI (klucz konta).
   function ai(funkcja, tresc, { sprawdzKlucz, kluczKonta }) {
-    if (funkcja === 'ai_zlec_eksport') {
-      const d = sprawdzKlucz(tresc.p_klucz, false);
+    if (funkcja === 'ai_zlec_eksport' || funkcja === 'ai_zlec_zadanie') {
+      // Zadania dla aplikacji (migracja 20261122180000_zadania_aplikacji_ai.sql) – klucz musi zmieniać projekt.
+      const zadanie = funkcja === 'ai_zlec_zadanie';
+      const d = sprawdzKlucz(tresc.p_klucz, zadanie);
       if (d.blad) return d;
-      if (!['pdf', 'png'].includes(tresc.p_rodzaj)) return { blad: 'Rodzaj pliku: pdf albo png.' };
+      if (zadanie && !['link', 'obraz', 'kadry', 'dymki'].includes(tresc.p_rodzaj)) return { blad: 'Rodzaj zadania: link, obraz, kadry albo dymki.' };
+      if (!zadanie && !['pdf', 'png'].includes(tresc.p_rodzaj)) return { blad: 'Rodzaj pliku: pdf albo png.' };
       const ust = tresc.p_ustawienia ?? {};
       if (!ust || typeof ust !== 'object' || Array.isArray(ust)) return { blad: 'Ustawienia eksportu to obiekt JSON.' };
       const moje = stan.eksporty.filter((z) => z.wlasciciel === d.owner_id);
@@ -80,6 +83,14 @@ function atrapaEksportu(stan) {
       oglos(z, 'UPDATE');
       return json(z);
     }
+    if (funkcja === 'zakoncz_zadanie') {
+      const z = moje.find((x) => x.id === tresc.p_id && x.stan === 'w_toku' && x.karta === String(tresc.p_karta || '').slice(0, 80) && ['link', 'obraz', 'kadry', 'dymki'].includes(x.rodzaj));
+      if (!z) throw Object.assign(new Error('To zadanie przyjęła inna karta albo już je zakończono'), { status: 400, message: 'To zadanie przyjęła inna karta albo już je zakończono' });
+      const blad = tresc.p_blad ?? null;
+      Object.assign(z, { stan: blad === null ? 'gotowe' : 'blad', wynik: tresc.p_wynik && typeof tresc.p_wynik === 'object' ? tresc.p_wynik : {}, blad, zmieniono: teraz() });
+      oglos(z, 'UPDATE');
+      return json(z);
+    }
     if (funkcja === 'wygasle_eksporty') return moje.filter((z) => !zyje(z)).map((z) => ({ id: z.id, plik: z.plik }));
     if (funkcja === 'usun_eksporty') {
       const ids = new Set(tresc.p_ids || []);
@@ -90,6 +101,6 @@ function atrapaEksportu(stan) {
   }
   return { ai, app };
 }
-atrapaEksportu.ma = (funkcja) => ['eksport_do_pobrania', 'eksporty_czekajace', 'zlecenie_eksportu', 'przyjmij_eksport', 'zakoncz_eksport', 'wygasle_eksporty', 'usun_eksporty'].includes(funkcja);
+atrapaEksportu.ma = (funkcja) => ['eksport_do_pobrania', 'eksporty_czekajace', 'zlecenie_eksportu', 'przyjmij_eksport', 'zakoncz_eksport', 'zakoncz_zadanie', 'wygasle_eksporty', 'usun_eksporty'].includes(funkcja);
 
 module.exports = { atrapaEksportu };

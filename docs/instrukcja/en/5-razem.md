@@ -122,10 +122,10 @@ which you add in the AI app.
 | upload, insert and replace photos | |
 | read comments, reply to them and add its own (→ 24.7) | |
 | undo its latest series of changes – it first tells you what will be undone and asks (→ 25.9) | |
-| request a PDF file or a PNG of a page and give you a download link (→ 25.5) | draw pictures – only the [AI assistant] in Makietka draws them (→ 25.6); an AI app can upload a picture it drew itself |
-| | share the project or invite people (→ 24) |
+| request a PDF file or a PNG of a page and give you a download link (→ 25.5) | invite people to the project (→ 24) |
+| draw pictures with your Gemini key, draw comic panels and place bubbles – in the open Makietka (→ 25.10) | |
+| create a preview link – only with your consent, also with a password or an expiry date (→ 25.10) | |
 | | upload fonts or use the Library (it knows the font list and picks only from it) |
-| | draw comic panels or place bubbles with one command – the [AI assistant] in Makietka does that |
 
 Write to the AI normally, as you would to a graphic designer: what you want to make, in what format, how many pages, what mood.
 If you have the project open, the changes appear in the editor after a moment. The AI's changes merge with yours
@@ -355,6 +355,25 @@ tells you what will be undone and asks for your OK.
 
 > Note: Changes made after the AI (yours too) are undone as well – the window warns you if there are any. Single
 > steps are undone with the usual [Undo] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>). Changes from the last 14 days can be undone.
+
+## 25.10 Tasks for the open Makietka
+
+Some things the AI connected through the connector asks Makietka, open in your browser, to do – just like a PDF file (→ 25.5):
+
+| Task | What happens |
+|---|---|
+| **Picture from a description** | Makietka draws the picture with your Google Gemini key (→ 25.6) and puts it in a frame or on the page. |
+| **Comic panels** | Makietka draws pictures for the page's panels from the script and character cards (→ 10.13). |
+| **Bubbles** | Makietka places speech bubbles from the script table on the comic pages. |
+| **Preview link** | Makietka creates a link like [Share] in the preview (→ 23), with a password or expiry date if you give them. |
+
+A bar at the bottom of the screen shows what the AI asked for, and a moment later the change is in the project. Pictures,
+panels and bubbles are done by the tab with this project open; a tab showing the project list opens it by itself. When
+Makietka isn't open, the AI gives you a link – once you open it, the task runs by itself. A key with pictures switched off can't request pictures or panels,
+and a key without PDF and PNG files can't request a link (→ 25.2).
+
+> Note: Pictures cost the same as in Makietka (a draft about 0.14 zł) and count towards the monthly limit (→ 25.2). A preview
+> link is a publication – the AI must ask you first. You revoke the link in the preview: [Share] → [Revoke link].
 
 # 26. Example: a comic with AI
 

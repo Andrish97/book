@@ -16,6 +16,7 @@ import { stan, trasa } from './kontekst.js';
 import { czekajNaEdytor } from './doczytaj.js';
 import { wpisyProjektow, wczytajProjektZWpisu } from './projekty.js';
 import { t } from '../jezyk.js';
+import { RODZAJE_ZADAN, W_EDYTORZE } from './zadania-ai.js';
 
 // Ta karta – do blokady „jedna karta robi zlecenie”.
 const KARTA = `k-${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36)}`;
@@ -79,6 +80,8 @@ async function sprawdzZalegle() {
 function rozwaz(z) {
   if (!z?.id || wToku.has(z.id) || (z.stan && z.stan !== 'czeka' && z.stan !== 'w_toku')) return;
   const moj = stan.projekt?.id === z.projekt_id;
+  // Obraz, kadry, dymki (plan H1, H2) robi edytor – karta z innym otwartym projektem ich nie bierze.
+  if (W_EDYTORZE.includes(z.rodzaj) && stan.projekt && !moj) return;
   setTimeout(() => przyjmijIWykonaj(z.id), moj ? 0 : PIERWSZENSTWO_MS);
 }
 
@@ -105,6 +108,7 @@ export async function wykonajZTrasy(id) {
   let z = null;
   try { z = await rpc('zlecenie_eksportu', { p_id: id }); } catch { z = null; }
   if (!z) { powiadom(t('eksportAi.nieMaTakiegoZlecenia'), true); return; }
+  if (z.stan === 'gotowe' && RODZAJE_ZADAN.includes(z.rodzaj)) { powiadom(t('zadaniaAi.juzGotowe')); return; }
   if (z.stan === 'gotowe') {
     powiadom(t('eksportAi.plikJestJuzGotowy', { nazwa: z.nazwa }), false, { etykieta: t('eksportAi.pobierz'), fn: () => pobierzGotowy(z) });
     return;
@@ -152,6 +156,7 @@ async function projektZlecenia(id, pasek) {
 export { opcjePdf };
 
 async function wykonaj(z) {
+  if (RODZAJE_ZADAN.includes(z.rodzaj)) { await (await import('./zadania-ai.js')).wykonajZadanie(z, { rpc, karta: KARTA }); return; }
   const rodzaj = z.rodzaj === 'png' ? 'PNG' : 'PDF';
   const pasek = postep(t('eksportAi.aiZleciloEksport', { rodzaj }), { opoznienie: 0 });
   const uid = konto || stan.uzytkownik?.id;

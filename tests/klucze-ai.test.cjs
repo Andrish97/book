@@ -58,7 +58,7 @@ async function srodowisko(t) {
     };
     return { s, wywolaj };
   };
-  return { stan, baza, klucz, mcp, rdzen };
+  return { stan, baza, klucz, mcp, rdzen, port: serwerHttp.address().port };
 }
 
 test('klucz z wybranymi projektami: jeden – bez wskazywania, kilka – projekt w każdym narzędziu (id albo nazwa), poza zakresem – odmowa', async (t) => {
@@ -270,4 +270,62 @@ test('cofnij zmiany AI (H3): najpierw sprawdzenie, potem cofnięcie serii – st
   const czyta = e.mcp(e.klucz({ p_projekty: ['p-1'], p_rola: 'odczyt' }));
   w = await czyta.wywolaj('cofnij_zmiany_ai', { sprawdz: true });
   assert.equal(w.blad, true);
+});
+
+test('zadania dla aplikacji (H1, H2, H4): link tylko po zgodzie, wynik od aplikacji, bez aplikacji – link do Makietki', async (t) => {
+  const e = await srodowisko(t);
+  const k = e.klucz({ p_projekty: ['p-1'] });
+  const s = e.rdzen.utworzSerwer({ adres: `http://127.0.0.1:${e.port}`, kluczPubliczny: 'sb_publishable_test', klucz: k, czekanieEksportu: 600, krokEksportu: 50 });
+  const wywolaj = async (name, args = {}) => {
+    const w = await s.obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: args } });
+    return { tekst: w.result.content[0].text, blad: w.result.isError };
+  };
+  let w = await wywolaj('udostepnij_link', { zgoda_uzytkownika: false });
+  assert.equal(w.blad, true);
+  assert.match(w.tekst, /Najpierw zapytaj użytkownika/);
+  w = await wywolaj('udostepnij_link', { zgoda_uzytkownika: true, haslo: 'abc' });
+  assert.match(w.tekst, /co najmniej 4 znaki/);
+  w = await wywolaj('udostepnij_link', { zgoda_uzytkownika: true, wazny_do: '2020-01-01' });
+  assert.match(w.tekst, /RRRR-MM-DD/);
+  assert.equal((e.stan.eksporty || []).length, 0, 'odrzucone przed zleceniem');
+
+  // Aplikacja (atrapa) przyjmuje zadanie i oddaje link.
+  const app = setInterval(() => {
+    for (const z of e.stan.eksporty || []) {
+      if (z.stan !== 'czeka' || z.rodzaj !== 'link') continue;
+      e.stan.eksport.app('przyjmij_eksport', { p_id: z.id, p_karta: 'k1' }, { id: JA.id });
+      e.stan.eksport.app('zakoncz_zadanie', { p_id: z.id, p_karta: 'k1', p_wynik: { adres: 'https://makietka.app/abc123', haslo: true, wazny_do: '2030-01-31T22:59:59.999Z' }, p_blad: null }, { id: JA.id });
+    }
+  }, 20);
+  t.after(() => clearInterval(app));
+  w = await wywolaj('udostepnij_link', { zgoda_uzytkownika: true, haslo: 'tajne', wazny_do: '2030-01-31' });
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /^Link do podglądu gotowy: https:\/\/makietka\.app\/abc123 \(z hasłem, które podał użytkownik\), ważny do 2030-01-31/);
+  assert.deepEqual(e.stan.eksporty[0].ustawienia, { haslo: 'tajne', wazny_do: '2030-01-31' });
+
+  // Bez otwartej aplikacji: obraz czeka – link do Makietki; stan_eksportu opisuje zadanie.
+  w = await wywolaj('generuj_obraz', { opis: 'Kot', gdzie: 'strona:s1' });
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /Zadanie „obraz” czeka .+#\/p\/p-1\/eksport\//);
+  const id = /eksport\/([0-9a-f-]{36})/.exec(w.tekst)[1];
+  w = await wywolaj('rysuj_kadry', { strona: 1, czekaj: false });
+  assert.match(w.tekst, /Zlecono zadanie „kadry komiksu”/);
+  e.stan.eksport.app('przyjmij_eksport', { p_id: id, p_karta: 'k1' }, { id: JA.id });
+  e.stan.eksport.app('zakoncz_zadanie', { p_id: id, p_karta: 'k1', p_wynik: {}, p_blad: 'Użytkownik nie ma klucza Google Gemini' }, { id: JA.id });
+  w = await wywolaj('stan_eksportu', { zlecenie: id });
+  assert.match(w.tekst, /nie wykonała zadania „obraz”: Użytkownik nie ma klucza Google Gemini/);
+
+  // Przełączniki klucza: bez obrazów – obraz odrzucony; bez plików – link odrzucony.
+  const ograniczony = e.klucz({ p_projekty: ['p-1'] });
+  e.baza('ustaw_uprawnienia_ai', { p_id: e.stan.dostepy.at(-1).id, p_uprawnienia: ['strony', 'wzorce', 'tabele'] }, JA);
+  const og = e.rdzen.utworzSerwer({ adres: `http://127.0.0.1:${e.port}`, kluczPubliczny: 'sb_publishable_test', klucz: ograniczony, czekanieEksportu: 0 });
+  const zOg = async (name, args) => (await og.obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: args } })).result.content[0].text;
+  assert.match(await zOg('generuj_obraz', { opis: 'Kot', gdzie: 'strona:s1' }), /nie pozwala wgrywać/);
+  assert.match(await zOg('udostepnij_link', { zgoda_uzytkownika: true }), /nie pozwala robić plików/);
+  assert.match(await zOg('ustaw_dymki', { czekaj: false }), /Zlecono zadanie „dymki”/);
+
+  // Klucz tylko do czytania – zadania odrzucone.
+  const czyta = e.rdzen.utworzSerwer({ adres: `http://127.0.0.1:${e.port}`, kluczPubliczny: 'sb_publishable_test', klucz: e.klucz({ p_projekty: ['p-1'], p_rola: 'odczyt' }) });
+  const r = await czyta.obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'ustaw_dymki', arguments: {} } });
+  assert.equal(r.result.isError, true);
 });
