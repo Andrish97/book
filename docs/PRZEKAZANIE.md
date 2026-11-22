@@ -19,7 +19,7 @@ oczywiste, proste i dobrze opisane w instrukcji.
   ```
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
-  ostatni użyty: **#382**), commit i push.
+  ostatni użyty: **#389**), commit i push.
 - Testy: `node --test --test-concurrency=3 tests/*.test.cjs` (pełny przebieg ~45 min; pojedyncze pliki szybko).
   Lint: `npx eslint js` (albo `/opt/node-tools/node_modules/.bin/eslint --no-config-lookup -c eslint.config.mjs <pliki>`).
   Po zmianie listy modułów: `node scripts/moduly-buduj.cjs`; po zmianie rdzenia łącznika AI
@@ -34,7 +34,7 @@ oczywiste, proste i dobrze opisane w instrukcji.
 
 - Zmienna środowiska **`GEMINI_API_KEY`** w środowisku „Book” (nowa sesja ją widzi). Nie wypisuj klucza.
 - Sprawdzenie bez kosztów: `curl -s -o /tmp/m.json -w "%{http_code}\n" -H "x-goog-api-key: $GEMINI_API_KEY" "https://generativelanguage.googleapis.com/v1beta/models?pageSize=200"`.
-- **Budżet testów: do ok. 20 zł** (zgoda właściciela 22.11, „gdy to naprawdę pomaga przetestować”); wydane ok. 2,55 zł.
+- **Budżet testów: do ok. 20 zł** (zgoda właściciela 22.11, „gdy to naprawdę pomaga przetestować”); wydane ok. 4,25 zł.
   Głównie teksty; obrazy oszczędnie (szkic). Zapisuj każde płatne wywołanie z szacowanym kosztem (np. w scratchpadzie) i zatrzymaj testy przed limitem.
 - Do zrobienia przy kluczu: pomiar zużycia na prostym komiksie (np. 3 strony, 2 postacie) – koszt w zł do instrukcji.
 - W aplikacji testy przechodzą „jak użytkownik”: konto testowe w przeglądarce testowej (tests/pomoc.cjs `otworz`),
@@ -68,9 +68,15 @@ Dalej tej samej nocy (wszystko z testami, instrukcją pl/en/uk, na main):
   „Popraw obecny obraz” (B3); oznaczenia dostawców AI „rozmowa i zmiany w projekcie” / „i obrazy”; czat z Gemini
   sprawdzony na żywo (3 błędy poprawione, #380); instrukcja 10.13, 5.17, 7.11, 25.6 (pl/en/uk) ze zrzutami.
 
+- **Uwagi E1–E5 i F1–F6 (#383–#389)**: #383 – strona nie otwierała się przy powrocie (ERR_FAILED; service worker
+  i przekierowanie /index.html – poprawione, wdrożone); pasek: [Kształty ▾], [AI ▾], [Dymek ▾], [Asystent AI] na górnym
+  pasku; bez klucza Gemini pozycje generowania wyszarzone (js/sejf-kluczy.js ma()); koszty orientacyjne na górze
+  ustawień AI, czat bez pytania o zgodę na koszt (limit miesięczny); kategoria „Komiks” w Bibliotece
+  (js/biblioteka-komiks.js); emocje i działania postaci oraz rekwizyty w scenariuszu i opisach AI; 10 stylów
+  z miniaturami (img/style/); cała strona komiksu jednym obrazem; poprawka obrazu w oknie i w czacie.
+
 Zostało (nieobowiązkowe): **B6** – generowanie w łączniku MCP (przez kolejkę otwartej aplikacji jak eksport PDF albo
-klucz na serwerze); „Popraw obraz” także w czacie; miniatury stylów (C1); cała strona jednym obrazem (C3 robi kadry
-osobno). Płatne testy: docs/KOSZTY-TESTOW.md.
+klucz na serwerze). Płatne testy: docs/KOSZTY-TESTOW.md.
 
 ## Inne otwarte wątki
 
