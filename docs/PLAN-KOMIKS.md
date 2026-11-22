@@ -208,3 +208,9 @@ i dać to zawsze nad top barem. Ale żeby inne elementy, takie jak okienka i tak
 I11 (słowa właściciela: „Na końcu napisz mi tekst i opisz, jak dodać zgłoszenie”): po testach łącznika „makietka test”
 i poprawkach – gotowy tekst zgłoszenia (pola formularza po angielsku) i opis krok po kroku, jak je wysłać
 w claude.ai/directory/manage; w docs/ZGLOSZENIE-KATALOG-CLAUDE.md i w podsumowaniu dla właściciela.
+
+I12 (słowa właściciela: „Możesz też porobić materiały testowe na tym koncie, które dodam, żeby od razu mogli to
+sprawdzać”): przez łącznik „makietka test” przygotować na koncie test+recenzja@makietka.app gotowe projekty dla
+recenzentów (po angielsku): kalendarz, komiks ze scenariuszem i kartami, broszura (jak ai/przyklady/recenzja) –
+z obrazami, tabelą danych i komentarzem do odpowiedzi, tak żeby każde narzędzie dało się od razu sprawdzić;
+nazwy projektów opisać w instrukcji dla recenzentów w docs/ZGLOSZENIE-KATALOG-CLAUDE.md.
