@@ -167,6 +167,13 @@ test('pełny dostęp: wszystkie projekty (także udostępnione – z moją rolą
   w = await ai.wywolaj('kopiuj_projekt', { projekt: 'p-1', nazwa: 'Kalendarz – wersja B' });
   assert.match(w.tekst, /Utworzono kopię „Kalendarz – wersja B”/);
 
+  // Czcionki (H6): wbudowane pogrupowane, bez własnych – podpowiedź, jak je dodać.
+  w = await ai.wywolaj('czcionki', { projekt: 'p-1' });
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /^Czcionki wbudowane \(\d+\):\n- bezszeryfowa: Inter, Open Sans/);
+  assert.match(w.tekst, /Bebas Neue \(bez pogrubienia\) \(bez kursywy\)/);
+  assert.match(w.tekst, /Projekt nie ma własnych czcionek/);
+
   // Wysyłka wprost i adres do wysyłki niosą projekt.
   w = await ai.wywolaj('adres_do_wysylki', { projekt: 'p-1' });
   assert.match(w.tekst, /\/obraz\?projekt=p-1&nazwa=/);

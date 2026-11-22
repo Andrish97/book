@@ -113,6 +113,7 @@ Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekt
 |---|---|
 | `projekty` | lista projektów w zasięgu klucza: id, nazwa, Twój czy udostępniony (przez kogo), czy AI może go zmieniać, ostatnia zmiana; zakres klucza |
 | `nowy_projekt` | nowy, pusty projekt jak „Nowy projekt” w aplikacji: nazwa, format (A4, A5, A6, B5, Kwadrat albo własny w mm), orientacja, pojedyncze strony albo rozkładówki, spad, marginesy – tylko klucz z pełnym dostępem |
+| `kopiuj_projekt` | kopia całego projektu (strony, dane, obrazy) jak „Duplikuj” w aplikacji; nazwa opcjonalna – tylko klucz z pełnym dostępem i własny projekt |
 | `usun_projekt` | usuwa własny projekt konta; `potwierdz` – dokładna nazwa projektu – tylko klucz z pełnym dostępem |
 | `przeglad_projektu` | krótki opis: sekcje, strony z elementami (id, rodzaj, początek tekstu), wzorce, style, tabele, serie, obrazy |
 | `czytaj` | pełny JSON strony, wzorca, sekcji, stylu, tabeli, serii, widoku albo całego projektu |
@@ -121,6 +122,7 @@ Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekt
 | `wyrownaj_elementy`, `rozmiesc_elementy` | wyrównanie elementów (lewo, środek, prawo, góra, środek w pionie, dół – do skrajnego z elementów albo do strony) i równe odstępy poziomo albo pionowo (albo stały odstęp w mm) |
 | `dodaj_strone`, `zmien_strone`, `usun_strony`, `kolejnosc_stron` | strony: sekcja, wzorce, seria, tło, kolejność |
 | `kopiuj_strone` | kopia strony z elementami (nowe id), do 50 kopii, za oryginałem albo za wskazaną stroną |
+| `czcionki` | czcionki do użycia w projekcie (pole fontFamily): wbudowane, pogrupowane, z informacją o pogrubieniu i kursywie, oraz wgrane do projektu |
 | `zmien_tabele` | tabela danych: komórki, kolumny, wiersze (także `[pomiń]`), listy dozwolonych wartości; nowa tabela |
 | `zmien_czesc` | ogólna zmiana jednej sekcji, wzorca, stylu, tabeli albo serii (nowa, zmiana, usunięcie). Zmiana stylu przepisuje go do tekstów, które go używają – jak w aplikacji; usunięty styl odpina się od tekstów |
 | `zmien_projekt` | ogólny zapis kilku części naraz (dla zmian, których inne narzędzia nie obejmują) |
@@ -213,7 +215,7 @@ Adres: `https://api.makietka.app/rest/v1/rpc/<funkcja>`, `POST`, nagłówek `api
 
 ### `ai_projekty`, `ai_nowy_projekt`, `ai_usun_projekt` – projekty konta
 
-`ai_projekty(p_klucz)` → `{"dostep": {"rola", "zakres", "opis", "wazny_do", "tworzenie"}, "projekty": [{"id", "nazwa", "zmieniono", "wersja", "wlasciciel", "moja_rola", "rola"}]}` (`wazny_do` null – bez terminu; `rola` – co może AI w tym projekcie). `ai_nowy_projekt(p_klucz, p_id, p_nazwa, p_dane, p_strony)` – nowy projekt (uuid `p_id`, `p_dane` bez stron, `p_strony` – pełne strony) → `{"id", "nazwa", "wersja"}`. `ai_usun_projekt(p_klucz, p_projekt, p_potwierdz)` – `p_potwierdz` to dokładna nazwa projektu → `{"usunieto", "nazwa"}`. Obie tylko dla klucza z pełnym dostępem, który czyta i zmienia.
+`ai_projekty(p_klucz)` → `{"dostep": {"rola", "zakres", "opis", "wazny_do", "tworzenie"}, "projekty": [{"id", "nazwa", "zmieniono", "wersja", "wlasciciel", "moja_rola", "rola"}]}` (`wazny_do` null – bez terminu; `rola` – co może AI w tym projekcie). `ai_nowy_projekt(p_klucz, p_id, p_nazwa, p_dane, p_strony)` – nowy projekt (uuid `p_id`, `p_dane` bez stron, `p_strony` – pełne strony) → `{"id", "nazwa", "wersja"}`. `ai_usun_projekt(p_klucz, p_projekt, p_potwierdz)` – `p_potwierdz` to dokładna nazwa projektu → `{"usunieto", "nazwa"}`. `ai_kopiuj_projekt(p_klucz, p_projekt, p_nowy, p_nazwa)` – kopia własnego projektu pod uuid `p_nowy` → `{"id", "nazwa", "stron", "obrazy", "obrazy_ai"}`. Wszystkie trzy tylko dla klucza z pełnym dostępem, który czyta i zmienia.
 
 ### `ai_projekt` – odczyt
 

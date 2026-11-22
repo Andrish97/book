@@ -15,6 +15,9 @@ export const WERSJE_NOWE = ['2026-07-28'];
 export const WERSJE_STARE = ['2025-11-25', '2025-06-18', '2025-03-26'];
 export const BLEDY = { PARSE: -32700, ZADANIE: -32600, METODA: -32601, PARAMETRY: -32602, WEWNETRZNY: -32603, WERSJA: -32022, NAGLOWKI: -32020 };
 const ADRES_OPISU = 'https://makietka.app/ai/format-makietka.md';
+// Czcionki dostępne w każdym projekcie (kopia js/zestaw-czcionek.js – test tests/czcionki-ai.test.cjs pilnuje zgodności):
+// [nazwa, rodzaj, pogrubiona 0/1, kursywa 0/1]. Narzędzie czcionki (plan H6).
+export const CZCIONKI_MAKIETKI = [["Inter", "bezszeryfowa", 1, 1], ["Open Sans", "bezszeryfowa", 1, 1], ["Montserrat", "bezszeryfowa", 1, 1], ["Lato", "bezszeryfowa", 1, 1], ["Roboto", "bezszeryfowa", 1, 1], ["Source Sans 3", "bezszeryfowa", 1, 1], ["Nunito", "bezszeryfowa", 1, 1], ["Poppins", "bezszeryfowa", 1, 1], ["Raleway", "bezszeryfowa", 1, 1], ["Work Sans", "bezszeryfowa", 1, 1], ["IBM Plex Sans", "bezszeryfowa", 1, 1], ["Fira Sans", "bezszeryfowa", 1, 1], ["Rubik", "bezszeryfowa", 1, 1], ["DM Sans", "bezszeryfowa", 1, 1], ["Barlow", "bezszeryfowa", 1, 1], ["Josefin Sans", "bezszeryfowa", 1, 1], ["Quicksand", "bezszeryfowa", 1, 0], ["Oswald", "wąska", 1, 0], ["Barlow Condensed", "wąska", 1, 1], ["Roboto Condensed", "wąska", 1, 1], ["Bebas Neue", "wąska", 0, 0], ["Anton", "wąska", 0, 0], ["Lora", "szeryfowa", 1, 1], ["Merriweather", "szeryfowa", 1, 1], ["Playfair Display", "szeryfowa", 1, 1], ["Source Serif 4", "szeryfowa", 1, 1], ["EB Garamond", "szeryfowa", 1, 1], ["Cormorant Garamond", "szeryfowa", 1, 1], ["Libre Baskerville", "szeryfowa", 1, 1], ["Crimson Pro", "szeryfowa", 1, 1], ["PT Serif", "szeryfowa", 1, 1], ["Spectral", "szeryfowa", 1, 1], ["Literata", "szeryfowa", 1, 1], ["Alegreya", "szeryfowa", 1, 1], ["Bitter", "szeryfowa", 1, 1], ["Roboto Slab", "szeryfowa", 1, 0], ["Zilla Slab", "szeryfowa", 1, 1], ["DM Serif Display", "szeryfowa", 0, 1], ["Abril Fatface", "szeryfowa", 0, 0], ["Caveat", "odręczna", 1, 0], ["Dancing Script", "odręczna", 1, 0], ["Pacifico", "odręczna", 0, 0], ["Kalam", "odręczna", 1, 0], ["Patrick Hand", "odręczna", 0, 0], ["Amatic SC", "odręczna", 1, 0], ["Comic Neue", "odręczna", 1, 1], ["Pangolin", "odręczna", 0, 0], ["Bangers", "ozdobna", 0, 0], ["Great Vibes", "odręczna", 0, 0], ["Sacramento", "odręczna", 0, 0], ["Courgette", "odręczna", 0, 0], ["Lobster", "odręczna", 0, 0], ["JetBrains Mono", "maszynowa", 1, 1], ["Courier Prime", "maszynowa", 1, 1], ["IBM Plex Mono", "maszynowa", 1, 1]];
 export const ADRES_APLIKACJI = 'https://makietka.app/';
 // Publiczny adres łącznika (przekaźnik Cloudflare api.makietka.app → Funkcja Edge mcp, cloudflare/api-worker.js).
 const ADRES_LACZNIKA = 'https://api.makietka.app/mcp';
@@ -1842,6 +1845,24 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         const s = await rpc('ai_stan_eksportu', { p_klucz: KLUCZ_KONTA, p_id: zlecenie });
         if (s?.blad) throw new BladBazy(s.blad);
         return opisEksportu(s);
+      },
+    },
+    {
+      name: 'czcionki',
+      title: 'Czcionki',
+      description: 'Lista czcionek, których można użyć w projekcie (pole fontFamily): wbudowane w Makietkę, pogrupowane według rodzaju, z informacją o pogrubieniu i kursywie, oraz czcionki wgrane do tego projektu. Używaj tylko tych nazw – inna czcionka nie wyświetli się i nie trafi do PDF. Własną czcionkę (plik TTF/OTF) użytkownik wgrywa sam w aplikacji: Czcionki projektu → Wgraj.',
+      inputSchema: S('', {}),
+      readOnly: true,
+      dzialaj: async () => {
+        const grupy = new Map();
+        for (const [nazwa, rodzaj, pogr, kurs] of CZCIONKI_MAKIETKI) {
+          if (!grupy.has(rodzaj)) grupy.set(rodzaj, []);
+          grupy.get(rodzaj).push(`${nazwa}${pogr ? '' : ' (bez pogrubienia)'}${kurs ? '' : ' (bez kursywy)'}`);
+        }
+        let wlasne = [];
+        try { const { projekt: p } = await pobierz(); wlasne = (p.czcionki || []).map((c) => c.rodzina || c.nazwa).filter(Boolean); } catch { /* bez projektu – tylko wbudowane */ }
+        return [`Czcionki wbudowane (${CZCIONKI_MAKIETKI.length}):`, ...[...grupy].map(([r, l]) => `- ${r}: ${l.join(', ')}`),
+          wlasne.length ? `Czcionki wgrane do tego projektu: ${[...new Set(wlasne)].join(', ')}.` : 'Projekt nie ma własnych czcionek (użytkownik może je wgrać w aplikacji: Czcionki projektu → Wgraj).'].join('\n');
       },
     },
     {
