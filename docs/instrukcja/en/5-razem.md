@@ -237,8 +237,9 @@ or one for reading on screen, a booklet for folding, or a PNG of a single page.
 
 ## 25.6 AI Assistant in Makietka (own key)
 
-No separate AI app needed: in the editor, the **⋯** menu → [AI assistant (own key)…] opens a chat next to the page
-(on a phone — a window).
+No separate AI app needed: in the editor, [AI assistant] on the top bar (next to [Preview]; on a phone [AI ▾] →
+**AI assistant…**, and also the **⋯** menu → [AI assistant (own key)…]) opens a chat next to the page (on a phone — a window).
+Write what to do, e.g. “lay this page out in two columns” or “add a title and a frame for a photo”.
 
 1. **Provider** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok),
    OpenRouter (hundreds of models from one account) or **Other – OpenAI-compatible API** (with its own address). Next
@@ -291,7 +292,7 @@ changes, and the AI is told you didn't allow it and asks what to do instead. The
 and paste" mode: the question appears when the pasted chat answer contains such a change.
 
 **Images and comics in the chat.** The assistant can also draw: an image from a description into a frame or onto the
-page (like [AI image], → 7.11), comic page panels from the script and cards (→ 10.13), bubbles from the script and
+page (like [AI ▾] → **Image from a description…**, → 7.11), comic page panels from the script and cards (→ 10.13), bubbles from the script and
 a cost estimate. Google Gemini draws the images with the Gemini key from your vault, even when you chat with another
 provider. The assistant doesn't ask for consent for every image – in the chat it writes what it is drawing and roughly
 how much it costs, e.g. “🎨 Drawing the image “Tulips in the garden” – about 0.14 PLN”. The safety net is the

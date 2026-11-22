@@ -227,7 +227,7 @@ Prawa kolumna ma u góry dwie zakładki: **Właściwości** i **Warstwy** (rozdz
 | Nagłówek | Kiedy | Co ustawiasz |
 |---|---|---|
 | **Zaznaczony element** · rodzaj (np. „Tekst”) | Jest zaznaczony element. | Wygląd i położenie tego elementu. |
-| **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. **Rysuj**. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
+| **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. rysowanie odręczne. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
 | **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (rozdział „10.3 Właściwości strony”). |
 
 Przy zaznaczonym elemencie w nagłówku są **Kopiuj do schowka**, **Duplikuj**, **Kopiuj wygląd** (rozdział „4.13 Kopiuj wygląd (malarz formatów)”), **Zapisz w bibliotece** (rozdział „4.8 Biblioteka”) i **Usuń**. **Ostrzeżenia** otwiera przycisk z trójkątem obok powiększenia (rozdział „12.2 Ostrzeżenia”).
@@ -1315,7 +1315,7 @@ W szablonie wybierasz **Formę** komiksu:
 
 Narzędzia AI komiksu – **Scenariusz z AI**, **Obrazy wzorcowe postaci i miejsc**, **Rysuj kadry** – są w menu **AI ▾** (rozdział „7.11 Obraz AI”), a rozmowa z AI – pod **Asystent AI** na górnym pasku (rozdział „25.6 Asystent AI w Makietce (własny klucz)”). Gdy nie masz klucza Google Gemini, pozycje rysowania i pisania są wyszarzone, a na górze menu jest **Nie masz klucza do generowania obrazów i tekstów – dodaj klucz…** (rozdział „7.11 Obraz AI”).
 
-**Komiks w Bibliotece.** **Biblioteka** (rozdział „4.8 Biblioteka”) ma kategorię **Komiks**: dymki każdego rodzaju i efekt dźwiękowy, gotowe układy kadrów (kliknięcie zastępuje kadry na tej stronie; obrazy i dymki zostają), raster i linie ruchu, a na stronie komiksu także **Okna komiksu**: **Komiks krok po kroku**, **Scenariusz**, **Postacie i miejsca**, **Wgraj gotowe strony** i **Webtoon**. To dobra droga na telefonie, gdzie pasek jest krótszy.
+**Komiks w Bibliotece.** **Biblioteka** (rozdział „4.8 Biblioteka”) ma kategorię **Komiks**: dymki każdego rodzaju i efekt dźwiękowy, gotowe układy kadrów (kliknięcie zastępuje kadry na tej stronie; obrazy i dymki zostają), raster i linie ruchu, a na stronie komiksu także **Okna komiksu**: **Komiks krok po kroku**, **Scenariusz**, **Postacie, miejsca i rekwizyty**, **Wgraj gotowe strony** i **Webtoon**. To dobra droga na telefonie, gdzie pasek jest krótszy.
 
 #### Komiks krok po kroku
 
@@ -2609,7 +2609,7 @@ Odpowiedź pojawia się w rozmowie na bieżąco, w miarę jak AI ją pisze (Anth
 
 **Zgoda na groźne zmiany.** Zanim asystent usunie strony, 3 i więcej elementów naraz, obrazy albo projekt, zmieni 3 i więcej stron jednym zapisem albo zastąpi w całości wzorce, style, tabele czy serie, w rozmowie pojawia się pytanie „AI chce … Pozwolić?” z przyciskami **Pozwól**, **Zawsze pozwalaj w tej rozmowie** i **Nie pozwalaj**. Po odmowie nic się nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.
 
-**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak **Obraz AI**, rozdział „7.11 Obraz AI”), kadry strony komiksu ze scenariusza i kart (rozdział „10.13 Komiks”), dymki ze scenariusza i szacunek kosztu. Obrazy rysuje Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym dostawcą. Asystent nie pyta o zgodę na każdy obraz – w rozmowie pisze, co rysuje i ile to mniej więcej kosztuje, np. „🎨 Rysuję obraz „Tulipany w ogrodzie” – ok. 0,14 zł”. Bezpiecznikiem jest **miesięczny limit wydatków** w ustawieniach AI: po jego przekroczeniu asystent nic nie narysuje. Asystent rysuje w jakości **Szkic**, chyba że poprosisz o lepszą.
+**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak **AI ▾** → **Obraz z opisu…**, rozdział „7.11 Obraz AI”), kadry strony komiksu ze scenariusza i kart (rozdział „10.13 Komiks”), dymki ze scenariusza i szacunek kosztu. Obrazy rysuje Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym dostawcą. Asystent nie pyta o zgodę na każdy obraz – w rozmowie pisze, co rysuje i ile to mniej więcej kosztuje, np. „🎨 Rysuję obraz „Tulipany w ogrodzie” – ok. 0,14 zł”. Bezpiecznikiem jest **miesięczny limit wydatków** w ustawieniach AI: po jego przekroczeniu asystent nic nie narysuje. Asystent rysuje w jakości **Szkic**, chyba że poprosisz o lepszą.
 
 Przykłady poleceń:
 

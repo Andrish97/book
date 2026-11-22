@@ -291,7 +291,7 @@ sama ponawia zapytanie dwa razy, zanim zgłosi błąd.
 nie zmienia, a AI dostaje informację, że nie pozwoliłeś, i pyta, co zrobić zamiast tego. Tak samo w trybie „kopiuj
 i wklej”: pytanie pojawia się, gdy wklejona odpowiedź czatu zawiera taką zmianę.
 
-**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak [Obraz AI],
+**Obrazy i komiks w czacie.** Asystent umie też rysować: obraz z opisu do ramki albo na stronę (jak [AI ▾] → **Obraz z opisu…**,
 → 7.11), kadry strony komiksu ze scenariusza i kart (→ 10.13), dymki ze scenariusza i szacunek kosztu. Obrazy rysuje
 Google Gemini kluczem Gemini z sejfu, nawet gdy rozmawiasz z innym dostawcą. Asystent nie pyta o zgodę na każdy obraz
 – w rozmowie pisze, co rysuje i ile to mniej więcej kosztuje, np. „🎨 Rysuję obraz „Tulipany w ogrodzie” – ok.

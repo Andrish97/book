@@ -80,7 +80,7 @@ Nagłówek właściwości mówi, czego dotyczą ustawienia:
 | Nagłówek | Kiedy | Co ustawiasz |
 |---|---|---|
 | **Zaznaczony element** · rodzaj (np. „Tekst”) | Jest zaznaczony element. | Wygląd i położenie tego elementu. |
-| **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. [Rysuj]. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
+| **Ustawienia narzędzia** · nazwa (np. „Rysowanie”) | Włączone jest narzędzie, np. rysowanie odręczne. Nagłówek ma wtedy tło w kolorze akcentu. | Jak będą wyglądać następne elementy — „Tak będą wyglądać następne linie.” |
 | **Nic nie jest zaznaczone** · „Strona” | Nic nie jest zaznaczone. | Ustawienia otwartej strony (→ 10.3). |
 
 Przy zaznaczonym elemencie w nagłówku są [Kopiuj do schowka], [Duplikuj], [Kopiuj wygląd] (→ 4.13),
@@ -1423,7 +1423,7 @@ klucz…** (→ 7.11).
 
 **Komiks w Bibliotece.** [Biblioteka] (→ 4.8) ma kategorię **Komiks**: dymki każdego rodzaju i efekt dźwiękowy, gotowe
 układy kadrów (kliknięcie zastępuje kadry na tej stronie; obrazy i dymki zostają), raster i linie ruchu, a na stronie
-komiksu także **Okna komiksu**: **Komiks krok po kroku**, **Scenariusz**, **Postacie i miejsca**, **Wgraj gotowe
+komiksu także **Okna komiksu**: **Komiks krok po kroku**, **Scenariusz**, **Postacie, miejsca i rekwizyty**, **Wgraj gotowe
 strony** i **Webtoon**. To dobra droga na telefonie, gdzie pasek jest krótszy.
 
 ### Komiks krok po kroku

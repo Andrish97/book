@@ -55,22 +55,20 @@ The bar above the page inserts new elements (→ 4.1).
 | Button | Key | What it inserts |
 |---|---|---|
 | [Text] | <kbd>T</kbd> | A text frame (→ 5). |
-| [Rectangle] | <kbd>R</kbd> | A rectangle (→ 6.1). |
-| [Ellipse] | <kbd>E</kbd> | An ellipse or a circle (→ 6.1). |
-| [Polygon] | <kbd>P</kbd> | A polygon or a star — you pick the shape first (→ 6.1). |
-| [Line] | <kbd>L</kbd> | A line segment (→ 6.2). |
+| [Shapes ▾] | <kbd>R</kbd> <kbd>E</kbd> <kbd>P</kbd> <kbd>L</kbd> <kbd>B</kbd> <kbd>N</kbd> | A menu: **Rectangle**, **Ellipse** (or a circle), **Polygon or star** (you pick the shape first), **Line** (→ 6.1, 6.2), **Freehand drawing** (→ 6.3) and **Pen** – a shape made of points and curves (→ 6.4). While drawing or the pen is active, the button shows its icon – clicking it ends the tool. |
 | [Image] | — | A photo or a graphic (→ 7.1). |
-| [Draw] | <kbd>B</kbd> | A freehand line (→ 6.3). |
-| [Pen] | <kbd>N</kbd> | A shape made of points and curves (→ 6.4). |
+| [AI ▾] | — | The AI menu: an image from a description, fixing the picture in a frame, improving and translating text, a data column (→ 5.17, 7.11, 14.6); in a comic also the script and the panels (→ 10.13). |
 | [Table] | — | A table with rows and columns (→ 8). |
 | [Library] | — | Ready-made elements: shapes, frames, ornaments, planners, calendars, charts and more (→ 4.8). |
 | [Comment] | — | A comment pinned to a spot on the page or to the selected element (→ 24.7). |
 
 You can turn on labels under the icons in the view menu: **Tool labels** (→ 3.6).
 
-**On a phone** the remaining tools — [Polygon or star], [Freehand drawing], [Pen], [Comment]
-and [Copy style] (→ 4.13) — are under [⋯] at the end of the bar. While one of them is active, [⋯] shows its icon;
-tap it to end the tool.
+The shape keyboard shortcuts work without opening the menu. A chat with the AI opens with a separate [AI assistant]
+button on the top bar, next to [Preview] (→ 25.6).
+
+**On a phone** [Comment] and [Copy style] (→ 4.13) are under [⋯] at the end of the bar, and [AI assistant] – in the [AI ▾] menu.
+While one of the tools under [⋯] is active, [⋯] shows its icon; tap it to end the tool.
 
 ![The insert bar ⋯ menu on a phone](k-wstaw-telefon.png@telefon)
 
@@ -82,7 +80,7 @@ The properties header tells you what the settings apply to:
 | Header | When | What you set |
 |---|---|---|
 | **Selected element** · type (e.g. “Text”) | An element is selected. | The look and position of that element. |
-| **Tool settings** · name (e.g. “Drawing”) | A tool is on, e.g. [Draw]. The header then has an accent-colored background. | How the next elements will look — “This is how the next lines will look.” |
+| **Tool settings** · name (e.g. “Drawing”) | A tool is on, e.g. freehand drawing. The header then has an accent-colored background. | How the next elements will look — “This is how the next lines will look.” |
 | **Nothing is selected** · “Page” | Nothing is selected. | Settings of the open page (→ 10.3). |
 
 With an element selected, the header has [Copy to clipboard], [Duplicate], [Copy style] (→ 4.13),
@@ -661,7 +659,7 @@ AI can fix, shorten or translate a text – in every project. Google Gemini writ
 
 1. Select a text frame – you change the whole text. Or double-click into the text and select a part – you change only
    that part.
-2. Click [AI text] on the insert bar (on a phone: [AI ▾] → **Improve or translate text…**).
+2. Click [AI ▾] on the insert bar → **Improve or translate text…**.
 3. Click what to do: [Shorten], [Expand], [Simpler], [More formal], [Fix mistakes], [To Polish], [To English] or
    [To Ukrainian].
 4. After a moment the result is in the **Result (you can edit it)** field. Edit it if you like, or click another
@@ -680,8 +678,8 @@ Shapes, lines, drawing and colors: fills, gradients and strokes.
 
 ## 6.1 Rectangle, ellipse and polygon
 
-[Rectangle], [Ellipse] and [Polygon] insert shapes with a fill and a stroke (→ 6.5, 6.6).
-[Polygon] first shows a choice: triangle, diamond, pentagon, hexagon and octagon, or a star with 4, 5, 6, 8
+[Shapes ▾] → **Rectangle**, **Ellipse** and **Polygon or star** insert shapes with a fill and a stroke (→ 6.5, 6.6).
+**Polygon or star** first shows a choice: triangle, diamond, pentagon, hexagon and octagon, or a star with 4, 5, 6, 8
 or 12 points. The <kbd>P</kbd> key inserts a triangle right away.
 The **Shape** section:
 
@@ -691,7 +689,7 @@ The **Shape** section:
 
 ## 6.2 Line
 
-[Line] inserts a line segment. The **Line** section: **Color**, **Weight** in mm and **Type** — solid, dashed,
+[Shapes ▾] → **Line** inserts a line segment. The **Line** section: **Color**, **Weight** in mm and **Type** — solid, dashed,
 dotted or dash – dot (the dashes grow with the weight). With <kbd>Shift</kbd> the line is
 horizontal, vertical or at 45°. A freehand line and a pen shape have the same section,
 and a closed pen shape also has **Fill**. Ready-made lines (thin, thick, dashed, double,
@@ -699,7 +697,7 @@ vertical, decorative) are in the Library, in the **Lines and separators** catego
 
 ## 6.3 Freehand drawing
 
-[Draw] (<kbd>B</kbd>): drag across the page like a pencil — hand tremor is smoothed out. Each
+[Shapes ▾] → **Freehand drawing** (<kbd>B</kbd>): drag across the page like a pencil — hand tremor is smoothed out. Each
 stroke is a separate element. The mode stays on, so you can draw several strokes.
 
 You set the color and weight of the next lines in the properties, in the **Brush** section (→ 3.5).
@@ -709,7 +707,7 @@ You set the color and weight of the next lines in the properties, in the **Brush
 
 ## 6.4 Pen and point editing
 
-[Pen] (<kbd>N</kbd>) creates a shape from points:
+[Shapes ▾] → **Pen** (<kbd>N</kbd>) creates a shape from points:
 
 - a click places a corner point, a click and drag — a point with a curve,
 - clicking the first point closes the shape,
@@ -916,7 +914,7 @@ pay Google, and Makietka shows the cost before every generation.
 
 1. Select the frame, shape or comic panel the image should fill. With nothing selected, the image goes to the middle
    of the page.
-2. Click [AI image] on the insert bar (on a phone: [AI ▾] → **Image from a description…**).
+2. Click [AI ▾] on the insert bar → **Image from a description…**.
 3. In the **What should be in the picture** field describe it in your own words: who, doing what, where, what mood and
    style, e.g. “A red-haired girl with a yellow backpack waving in a cobbled lane, morning, colourful children's
    illustration”.
@@ -935,13 +933,16 @@ pay Google, and Makietka shows the cost before every generation.
 
 - **No lettering in the image** – Makietka asks the AI not to draw any, and to fill the whole frame, with no white
   edges. You add text in Makietka (text frames, speech bubbles), so it is easy to fix and translate.
-- **Again:** select the frame with the AI image and click [AI image] again. The window has
+- **Again:** select the frame with the AI image and again [AI ▾] → **Image from a description…**. The window has
   the description the current image was made from – change what you like in it, or generate unchanged. Earlier
   versions stay in **Project images** – go back to them with one choice (→ 7.5).
-- **Fix the current picture:** select the frame with a picture (from AI or your own) and click [Fix picture] on the
-  bar – or in the [AI image] window answer the question **What to do with the picture in the frame**. Choose **Fix the current picture – describe only the change** and write just the
+- **Fix the current picture:** select the frame with a picture (from AI or your own) and choose [AI ▾] → **Fix the
+  picture in the frame…** – or in the **Image from a description…** window answer the question **What to do with the picture in the frame**. Choose **Fix the current picture – describe only the change** and write just the
   change, e.g. “give the girl a red hat” or “make it evening”. The AI gets the current picture and changes only what
   you ask for – the rest stays. **Draw it again from scratch** draws the whole picture from the description.
+- **Without a Google Gemini key** the drawing and writing items in [AI ▾] are greyed out, and at the top of the menu
+  there is **You have no key for generating pictures and texts – add a key…** – it opens the AI settings, where you add
+  the key (below).
 - **How much you spent:** [Account settings] → **Artificial intelligence** shows this month's spending on this device.
   There you can also set the **Monthly limit for AI images and texts** – once it is exceeded, Makietka will not
   generate an image or text until you change the limit.
@@ -1409,26 +1410,24 @@ In the template you choose the comic's **Form**:
 | **Loose sheets – no cover** | Just the comic pages, e.g. for printing at home. |
 | **On screen – PDF or presentation (landscape)** | Landscape pages like slides, without bleed – for viewing in the preview or as an on-screen PDF. |
 
-![A comic page with panels and bubbles; Panels, bubbles, Bridge and Comic on the bar](k-komiks.png)
+![A comic page with panels and bubbles; Panels, Speech bubble and Comic on the bar](k-komiks.png)
 
 **The comic bar.** On a comic page the insert bar has extra buttons:
 
 | Button | What it does |
 |---|---|
 | [Panels] | A ready panel layout for this page, the gap between panels, bleed; in the same window [Split panel]. |
-| [Speech], [Thought], [Shout], [Whisper], [Caption] | Insert a bubble of that kind (→ 4.14). |
-| [Effect] | A sound effect – a big outlined “BOOM!” lettering. |
-| [Bridge] | Joins two selected bubbles of one character. |
+| [Speech bubble ▾] | A menu: a **Speech**, **Thought**, **Shout**, **Whisper** or **Caption** bubble (→ 4.14), **Sound effect** (a big outlined “BOOM!” lettering) and **Bridge** (joins two selected bubbles of one character). |
 | [Comic] | The **Comic step by step** window – the whole comic in five steps (described below). |
-| [Script with AI], [Draw panels] | The AI writes the script and draws this page's panels (described below). |
 
-Next to them are the AI buttons from every project: [AI image], [Fix picture], [AI text] and [AI assistant] (→ 5.17,
-7.11, 25.6). When the bar does not fit in the window, scroll it sideways (with the mouse wheel or a finger). On a phone
-the bubbles are in the [Speech bubble ▾] menu, and the AI tools in the [AI ▾] menu.
+The comic AI tools – **Script with AI**, **Reference pictures of characters and places**, **Draw panels** – are in the
+[AI ▾] menu (→ 7.11), and the chat with the AI – under [AI assistant] on the top bar (→ 25.6). When you have no Google
+Gemini key, the drawing and writing items are greyed out, and at the top of the menu there is **You have no key for
+generating pictures and texts – add a key…** (→ 7.11).
 
 **Comic in the Library.** [Library] (→ 4.8) has a **Comic** category: bubbles of every kind and the sound effect, ready
 panel layouts (a click replaces the panels on this page; pictures and bubbles stay), halftone and motion lines, and on a
-comic page also **Comic windows**: **Comic step by step**, **Script**, **Characters and places**, **Upload ready
+comic page also **Comic windows**: **Comic step by step**, **Script**, **Characters, places and props**, **Upload ready
 pages** and **Webtoon – for reading on a phone**. It is a good way on a phone, where the bar is shorter.
 
 ### Comic step by step
@@ -1439,7 +1438,7 @@ Do them in order or go back to any of them – each button opens its own window.
 ![The Comic step by step window](k-komiks-okno.png)
 
 1. **Story** – [Open the script] (the **Script** window, below) or [Write with AI…] (Script with AI, below).
-2. **Characters and places** – [Characters and places…]: character and place cards and the **Drawing style**.
+2. **Characters, places and props** – [Characters, places and props…]: character, place and prop cards and the **Drawing style**.
    The thumbnails show the reference images.
 3. **Panels and images** – [Panel layout…], [Draw this page's panels…] (AI) or [Upload finished pages…].
 4. **Speech bubbles** – [Place bubbles]: texts from the script go into bubbles in the panels.
@@ -1459,6 +1458,7 @@ In each panel:
 | **Shot** | How the scene is seen: **wide shot** (the whole place), **full shot** (characters from head to toe), **medium shot** (from the waist up), **close-up** (the face), **detail** (an important object), **from above**, **from below**, **over the shoulder**. **Shot: any** – no requirements. |
 | **Place** | A place from the cards (step 2) – its description and image become the panel's background. |
 | **Characters in the panel** | Tick the characters visible in the panel, including those who say nothing (those who speak are ticked automatically). For each character in the panel choose an **emotion** (joy, sadness, anger, fear, surprise, curiosity, calm, tiredness) and type **what they are doing**, e.g. “running, waving”. The AI then draws the character with that expression and in that motion. |
+| **Props in the panel** | Objects from the prop cards visible in the panel (e.g. **Parcel**). Their description and reference image go to the AI. |
 | **What the panel shows** | Briefly, e.g. “Ala runs down the lane, houses behind her”. It does not go on the page – it is a description for the artist or the AI. |
 | **Lines** | [+ Line]: **Who speaks** (a character from the cards or **Caption**), **Bubble kind** (speech, thought, shout, whisper) and **Bubble text**. The bin icon deletes the line. |
 
@@ -1471,7 +1471,7 @@ In each panel:
 **Data** window (→ 14) – there you can paste a script from a spreadsheet (→ 14.3) or add columns with other languages.
 Page 1 is the first page of the comic (the cover does not count).
 
-**Script with AI.** [Write with AI…] in step 1 (or [Script with AI] on the bar) writes the comic out for you – including the characters' emotions and actions:
+**Script with AI.** [Write with AI…] in step 1 (or [AI ▾] → **Script with AI**) writes the comic out for you – including the characters' emotions and actions:
 
 1. Choose **From an idea** and describe the story in 3–5 sentences, e.g. “Two friends, Ala and Ola, find a parcel at
    their door. Inside there is a kitten…”, and set **How many pages**.
@@ -1485,9 +1485,9 @@ Page 1 is the first page of the comic (the cover does not count).
 
 Cost – about 0.01 PLN; you see it before writing it out.
 
-### Step 2. Characters and places
+### Step 2. Characters, places and props
 
-[Characters and places…] opens the cards. Describe a character once – the description and reference image make sure
+[Characters, places and props…] opens the cards. Describe a character once – the description and reference image make sure
 it looks the same in every panel (for you, an artist or the AI).
 
 ![Character and place cards](k-komiks-postacie.png)
@@ -1501,8 +1501,14 @@ it looks the same in every panel (for you, an artist or the AI).
 - **Reference image:** [Choose image…] – a drawing or photo from your device; or [Draw from description (AI)] – AI draws
   it from the card fields in the comic's style (you see the cost before drawing, about 0.14 PLN). A character – the
   whole figure on a white background; a place – a wide view without people.
-- **Drawing style** (at the top of the window; each tile shows the same sample scene in that style): **Colourful storybook**, **Watercolour**, **Simple cartoon**,
-  **Manga (black and white)** or **Retro comic** – it applies to all AI images in this comic.
+- **Prop:** an object that comes back in many panels (a backpack, a kite, a map) – **Prop** (name), **Description**,
+  **Whose (character)** and **Reference image** (the object alone on a white background). In the script you tick it in
+  the panel (**Props in the panel**); a prop mentioned in the scene description is used by the AI even without ticking.
+  The **Comic** template has a sample **Parcel**.
+- **Drawing style** (at the top of the window; each tile shows the same sample scene in that style): **Colourful storybook**,
+  **Watercolour**, **Simple cartoon**, **Manga (black and white)**, **Retro comic**, **Pencil sketch**, **European comic
+  (clear line)**, **Superhero comic**, **Anime (colour)** or **Paper cut-out** – it applies to all AI images in this
+  comic.
 
 ![Character card](k-komiks-postac.png)
 
@@ -1525,8 +1531,8 @@ within a row – in the layers “Panel 1”, “Panel 2”…). Move and change
 like into any shape (→ 7.7), e.g. by dragging a file onto the panel. A character can break out of the panel – then
 place the image above the panel.
 
-**Draw panels (AI).** Open a comic page and click [Draw this page's panels…] in step 3 (or [Draw panels] on the
-bar). You don't write instructions for the AI – Makietka builds them from the script and the cards:
+**Draw panels (AI).** Open a comic page and click [Draw this page's panels…] in step 3 (or [AI ▾] →
+**Draw panels**). You don't write instructions for the AI – Makietka builds them from the script and the cards:
 
 1. The window shows each panel of the page: a thumbnail, a field with the description and a tick box. The description
    is in plain words, e.g. “Panel 2. Shot: full shot. Scene: Ala runs down the street. In the panel: Ala – 8 years
@@ -1550,7 +1556,7 @@ disappear (they are already in the picture). If you want to fix panels separatel
 shows the description **the current image was made from** – change one word or draw again unchanged. [Description
 from the script] goes back to a freshly built description (e.g. after changing the script or a card). Earlier images
 stay in **Project images** (→ 7.5). A small change in one panel (e.g. “Ala should have her eyes closed”) needs no
-redrawing: select the panel → [Fix picture] on the bar (→ 7.11).
+redrawing: select the panel → [AI ▾] → **Fix the picture in the frame…** (→ 7.11).
 
 **Ready page drawings.** Have pages drawn in another program? Click [Upload finished pages…] and choose many files at
 once or one ZIP file. The file name says where the image goes:
@@ -1572,9 +1578,9 @@ Pages count from the first comic page; missing pages are added at the end of the
    A line deleted from the script removes its bubble.
 
 - When a character speaks twice in a row in the same panel, the second bubble goes below the first and is joined to
-  it with a **bridge**. By hand: select two bubbles (with <kbd>Shift</kbd>) → [Bridge]; select a joined bubble and
-  click [Bridge] again – you unjoin them.
-- You can also insert a bubble by hand: [Speech], [Thought], [Shout], [Whisper] or [Caption] on the bar (→ 4.14). **Sound effect** is a big outlined
+  it with a **bridge**. By hand: select two bubbles (with <kbd>Shift</kbd>) → [Speech bubble ▾] → **Bridge**; select a joined bubble and
+  choose **Bridge** again – you unjoin them.
+- You can also insert a bubble by hand: [Speech bubble ▾] → the bubble kind (→ 4.14). **Sound effect** is a big outlined
   “BOOM!” – change the text, enlarge, rotate.
 - **Comic styles.** Bubbles use the **Dialogue** style (Comic Neue, capitals), effects the **Sound effect** style
   (Bangers, yellow with a black outline). Changing a style (→ 5.4) changes all bubbles or effects at once. In
@@ -1607,7 +1613,7 @@ put the same pattern on a selected shape, e.g. a panel (→ 6.5).
    look for its owner”, **How many pages**: 3 → [Write it out] → [Save script].
 3. Step 1 [Open the script] – look through the panels; e.g. in panel 1 of page 1 set the shot **wide shot** and the
    place **Small town**. [Save].
-4. Step 2 [Characters and places…] – choose the **Drawing style**, in each card [Draw from description (AI)] → [Save].
+4. Step 2 [Characters, places and props…] – choose the **Drawing style**, in each card [Draw from description (AI)] → [Save].
 5. Go to the first comic page. Step 3 [Draw this page's panels…] → [Draw]. Repeat on the following pages.
 6. Step 4 [Place bubbles] and move the bubbles to where they fit.
 7. Step 5 [PDF…].
