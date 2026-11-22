@@ -9,7 +9,10 @@ import { adresZasobu } from '../zasoby.js';
 import { zapiszBiezacyCel, zaplanujZapis } from './zapis.js';
 import { $, powiadom, potwierdz } from '../ui.js';
 import { stan } from './kontekst.js';
-import { t } from '../jezyk.js';
+import { t, biezacyJezyk } from '../jezyk.js';
+import { STYLE_RYSUNKOW, STYL_DOMYSLNY, stylProjektu, opisWzorcaPostaci, opisWzorcaMiejsca } from '../komiks-ai.js';
+import { generujIWstaw } from './generuj-obraz.js';
+import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu } from '../ai-koszty.js';
 
 const el = (tag, wl = {}, ...dzieci) => {
   const e = document.createElement(tag);
@@ -49,6 +52,12 @@ function lista(dlg) {
   dlg.replaceChildren();
   const f = el('form', { method: 'dialog', class: 'formularz' });
   f.append(el('h2', { tekst: t('komiks.postacieIMiejsca') }), el('p', { class: 'ciche', tekst: t('komiks.postacieOpis') }));
+  // Styl rysunków projektu (C1, #374) – dopisywany do każdego obrazu z AI w komiksie.
+  const styl = el('select', { name: 'styl' });
+  for (const id of Object.keys(STYLE_RYSUNKOW)) styl.append(el('option', { value: id, tekst: t(`komiks.styl_${id}`) }));
+  styl.value = stan.projekt.komiks_ai?.styl || STYL_DOMYSLNY;
+  styl.addEventListener('change', () => { stan.projekt.komiks_ai = { ...(stan.projekt.komiks_ai || {}), styl: styl.value }; zaplanujZapis(); });
+  f.append(el('label', { class: 'pole' }, el('span', { tekst: t('komiks.stylRysunkow') }), styl, el('span', { class: 'ciche', tekst: t('komiks.stylRysunkowOpis') })));
   for (const rodzaj of ['postacie', 'miejsca']) {
     const lst = karty(stan.projekt, rodzaj);
     const siatka = el('div', { class: 'karty-komiksu', 'data-rodzaj': rodzaj });
@@ -98,7 +107,22 @@ function formularz(dlg, rodzaj, karta) {
     podglad.replaceChildren(miniatura(nazwa));
     wybierz.textContent = t('komiks.zmienObraz');
   });
-  f.append(el('div', { class: 'pole' }, el('span', { tekst: t('komiks.obrazWzorcowy') }), el('div', { class: 'rzad' }, podglad, wybierz, plik),
+  // Obraz wzorcowy z opisu (C2, #374): Gemini rysuje postać (miejsce) z pól karty w stylu projektu.
+  const zAi = el('button', { type: 'button', class: 'przycisk', 'data-akcja-karty': 'obraz-ai', tekst: t('komiks.narysujZOpisu') });
+  zAi.title = t('komiks.narysujZOpisuKoszt', { zl: opisKosztu(szacujObraz({ ...JAKOSCI_OBRAZU.szkic, znakiOpisu: 500 }), biezacyJezyk()) });
+  zAi.addEventListener('click', async () => {
+    for (const [pole] of POLA[rodzaj]) k[pole] = f.elements[pole].value;
+    if (!k[RODZAJE_KART[rodzaj].pola[0]]) { f.elements[RODZAJE_KART[rodzaj].pola[0]].reportValidity(); return; }
+    zAi.disabled = true; zAi.textContent = t('aiObraz.trwa');
+    try {
+      const w = await generujIWstaw({ opis: rodzaj === 'postacie' ? opisWzorcaPostaci(k) : opisWzorcaMiejsca(k), jakosc: 'szkic', proporcja: rodzaj === 'postacie' ? '3:4' : '4:3', styl: stylProjektu(stan.projekt), naStrone: false, potwierdzono: true });
+      k.obraz = w.nazwa;
+      podglad.replaceChildren(miniatura(w.nazwa));
+      wybierz.textContent = t('komiks.zmienObraz');
+      powiadom(t('aiObraz.gotowe', { zl: opisKosztu(w.zl, biezacyJezyk()) }));
+    } catch (er) { powiadom(er.message, true); } finally { zAi.disabled = false; zAi.textContent = t('komiks.narysujZOpisu'); }
+  });
+  f.append(el('div', { class: 'pole' }, el('span', { tekst: t('komiks.obrazWzorcowy') }), el('div', { class: 'rzad' }, podglad, wybierz, zAi, plik),
     el('span', { class: 'ciche', tekst: t(rodzaj === 'postacie' ? 'komiks.obrazPostaciOpis' : 'komiks.obrazMiejscaOpis') })));
   if (rodzaj === 'postacie') {
     const kolor = el('input', { type: 'color', name: 'kolor' });

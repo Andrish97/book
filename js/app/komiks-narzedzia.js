@@ -9,14 +9,19 @@ import { zapiszBiezacyCel, zaladujCel, zaplanujZapis } from './zapis.js';
 import { typSekcji } from '../typ-sekcji.js';
 import { $, powiadom, pobierz } from '../ui.js';
 import { stan, edytor, biezacaSekcja } from './kontekst.js';
-import { t } from '../jezyk.js';
+import { t, biezacyJezyk } from '../jezyk.js';
 import { stylKomiksu, wartosciStylu, zastosujStyl } from '../style-tekstu.js';
 import { kolorPostaci } from '../postacie.js';
 import { oknoPostaci } from './komiks-postacie.js';
 import { planImportu, wstawStrone, wstawDoKadru } from '../import-stron.js';
-import { przyjmijPlik, wymiaryPliku } from '../obrazy-projektu.js';
+import { przyjmijPlik, wymiaryPliku, poNazwie } from '../obrazy-projektu.js';
 import { nowaStrona, uid, uporzadkujStrony } from '../projekt.js';
 import { biblioteka } from '../biblioteki.js';
+import { kadryStrony, stylProjektu } from '../komiks-ai.js';
+import { generujIWstaw } from './generuj-obraz.js';
+import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu } from '../ai-koszty.js';
+import { proporcjaRamki } from '../ai-obrazy.js';
+import { dataUrlZasobu } from '../zasoby.js';
 
 export const wKomiksie = () => stan.tryb === 'strona' && typSekcji(biezacaSekcja()) === 'komiks';
 
@@ -361,6 +366,72 @@ export function mostekDymkow() {
   return true;
 }
 
+// ---------- Rysuj kadry z AI (C3, #374): opisy ze scenariusza i kart, obrazy wzorcowe, styl projektu ----------
+async function wzorzecKarty(nazwa) {
+  const id = nazwa ? poNazwie(stan.projekt, nazwa) : null;
+  if (!id) return null;
+  const url = await dataUrlZasobu(stan.projekt, id).catch(() => null);
+  const m = /^data:([^;]+);base64,(.*)$/.exec(url || '');
+  return m ? { typ: m[1], dane: m[2] } : null;
+}
+export function planKadrowStrony() {
+  const p = stan.projekt;
+  const strony = stronyKomiksu(p);
+  const nr = strony.indexOf(p.strony[stan.indeks]) + 1;
+  const kadry = kadryNaStronie().sort((a, b) => a.kadr_nr - b.kadr_nr);
+  const plan = kadryStrony(p, scenariuszProjektu(), nr, kadry.length);
+  return { nr, pozycje: plan.map((x, i) => ({ ...x, obiekt: kadry[i] })) };
+}
+export function oknoRysujKadry() {
+  if (!wKomiksie()) return;
+  zapiszBiezacyCel();
+  const { nr, pozycje } = planKadrowStrony();
+  if (!pozycje.length) { powiadom(t('komiks.rysujBrakKadrow'), true); return; }
+  let dlg = $('#dlg-rysuj-kadry');
+  if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'dlg-rysuj-kadry'; document.body.append(dlg); }
+  dlg.innerHTML = `<form method="dialog" class="formularz"><h2>${t('komiks.rysujTytul', { nr })}</h2><p class="ciche">${t('komiks.rysujOpis')}</p>
+    <div class="kadry-ai">${pozycje.map((x, i) => `<div class="kadr-ai"><label class="przelacznik"><input type="checkbox" name="k${i}"${x.obiekt.zasob ? '' : ' checked'}><span>${t('komiks.kadrNr', { nr: x.kadr })}${x.postacie.length ? ` – ${x.postacie.map((q) => q.imie).join(', ')}` : ''}${x.obiekt.zasob ? ` ${t('komiks.rysujMaObraz')}` : ''}</span></label><textarea name="o${i}" rows="3"></textarea></div>`).join('')}</div>
+    <label class="pole"><span>${t('aiObraz.jakosc')}</span><select name="jakosc"><option value="szkic">${t('aiObraz.jakoscSzkic')}</option><option value="dokladny">${t('aiObraz.jakoscDokladny')}</option><option value="pro">${t('aiObraz.jakoscPro')}</option></select></label>
+    <p class="koszt-ai" aria-live="polite"></p><p class="blad-ai" role="alert" hidden></p>
+    <div class="przyciski-dialogu"><button class="przycisk" type="button" data-rola="anuluj">${t('komiks.anuluj')}</button><button class="przycisk glowny" type="submit" value="tak">${t('komiks.rysuj')}</button></div></form>`;
+  const f = dlg.querySelector('form');
+  pozycje.forEach((x, i) => { f.elements[`o${i}`].value = x.opis; });
+  const wybrane = () => pozycje.map((x, i) => i).filter((i) => f.elements[`k${i}`].checked);
+  const policz = () => {
+    const j = JAKOSCI_OBRAZU[f.elements.jakosc.value];
+    const zl = wybrane().reduce((a, i) => a + szacujObraz({ ...j, znakiOpisu: f.elements[`o${i}`].value.length + 300, wzorce: pozycje[i].postacie.filter((q) => q.obraz).length + (pozycje[i].miejsce?.obraz ? 1 : 0) }), 0);
+    dlg.querySelector('.koszt-ai').textContent = t('komiks.rysujKoszt', { ile: wybrane().length, zl: opisKosztu(zl, biezacyJezyk()) });
+  };
+  f.addEventListener('change', policz);
+  policz();
+  const blad = dlg.querySelector('.blad-ai');
+  dlg.querySelector('[data-rola="anuluj"]').onclick = () => dlg.close('nie');
+  f.onsubmit = async (e) => {
+    e.preventDefault();
+    const lista = wybrane();
+    if (!lista.length) return;
+    const przycisk = f.querySelector('button[value="tak"]');
+    przycisk.disabled = true; blad.hidden = true;
+    let zl = 0; let gotowe = 0;
+    try {
+      for (const i of lista) {
+        przycisk.textContent = t('komiks.rysujTrwa', { z: gotowe + 1, ile: lista.length });
+        const x = pozycje[i];
+        const wzorce = (await Promise.all([...x.postacie.map((q) => q.obraz), x.miejsce?.obraz].filter(Boolean).map(wzorzecKarty))).filter(Boolean);
+        const o = x.obiekt;
+        const w = await generujIWstaw({ opis: f.elements[`o${i}`].value, jakosc: f.elements.jakosc.value, proporcja: proporcjaRamki(o.width * o.scaleX, o.height * o.scaleY), cel: o, wzorce, styl: stylProjektu(stan.projekt), potwierdzono: true });
+        zl += w.zl; gotowe += 1;
+      }
+      dlg.close('tak');
+      powiadom(t('komiks.rysujGotowe', { ile: gotowe, zl: opisKosztu(zl, biezacyJezyk()) }));
+    } catch (er) {
+      blad.textContent = `${gotowe ? `${t('komiks.rysujCzesciowo', { ile: gotowe })} ` : ''}${er.message}`; blad.hidden = false;
+    } finally { przycisk.disabled = false; przycisk.textContent = t('komiks.rysuj'); }
+  };
+  dlg.returnValue = '';
+  dlg.showModal();
+}
+
 // Pasek narzędzi: przyciski z data-akcja="komiks-…".
 export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-dymek') return dymekWStylu();
@@ -370,6 +441,7 @@ export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-scenariusz') return otworzScenariusz();
   if (akcja === 'komiks-dymki') return ustawDymkiZWyborem();
   if (akcja === 'komiks-postacie') return oknoPostaci();
+  if (akcja === 'komiks-rysuj') return oknoRysujKadry();
   if (akcja === 'komiks-wgraj') return wybierzStrony();
   if (akcja === 'komiks-mostek') return mostekDymkow();
   if (akcja === 'komiks-webtoon') return eksportWebtoon().catch((e) => { console.error(e); powiadom(e.message, true); });

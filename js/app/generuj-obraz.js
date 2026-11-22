@@ -32,8 +32,9 @@ async function wstaw(id, nazwa, cel) {
   return edytor.dodajObraz(null, nazwa, stan.projekt.zasoby, { id });
 }
 
-// Generowanie z gotowych ustawień (okno, „Jeszcze raz”, czat). Zwraca { id, nazwa, zl }.
-export async function generujIWstaw({ opis, jakosc = 'szkic', proporcja, cel = null, wzorce = [], styl = '', dopisek = '', potwierdzono = false }) {
+// Generowanie z gotowych ustawień (okno, „Jeszcze raz”, czat, komiks). naStrone=false – tylko do obrazów projektu
+// (np. obraz wzorcowy karty postaci). Zwraca { id, nazwa, zl }.
+export async function generujIWstaw({ opis, jakosc = 'szkic', proporcja, cel = null, wzorce = [], styl = '', dopisek = '', potwierdzono = false, naStrone = true }) {
   const { model, rozdzielczosc } = JAKOSCI_OBRAZU[jakosc] || JAKOSCI_OBRAZU.szkic;
   const szac = szacujObraz({ model, rozdzielczosc, znakiOpisu: opis.length + 200, wzorce: wzorce.length });
   if (!wLimicie(szac)) throw new Error(t('aiObraz.ponadLimit', { limit: opisKosztu(wydatki().limit) }));
@@ -47,7 +48,7 @@ export async function generujIWstaw({ opis, jakosc = 'szkic', proporcja, cel = n
   const slowa = opis.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 32) || 'obraz';
   const { id, nazwa } = await przyjmijPlik(stan.projekt, blobZBase64(w.dane, w.typ), `ai-${slowa}.${roz}`);
   stan.projekt.zasoby[id].ai = { opis, jakosc, model, proporcja, rozdzielczosc, styl, zl: Math.round(zl * 10000) / 10000, data: new Date().toISOString(), potwierdzono };
-  await wstaw(id, nazwa, cel);
+  if (naStrone) await wstaw(id, nazwa, cel);
   zaplanujZapis();
   return { id, nazwa, zl };
 }

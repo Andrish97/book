@@ -1382,6 +1382,7 @@ In a comic section the insert bar has extra tools:
 | [Script] | Opens the script table in the **Data** window (→ 14). If there is none, it creates one. |
 | [Place bubbles] | Places speech bubbles with the script texts on the pages, in the right panels. |
 | [Webtoon] | Comic pages one below another as 800 px wide PNG images, cut into pieces up to 1280 px – a ZIP ready to upload to a platform for reading comics on a phone. |
+| [Draw panels] | AI images for this page's panels – Makietka builds the descriptions from the script and character cards (described below). |
 | [Characters] | Character and place cards – who appears in the comic and where it happens. |
 | [Upload pages] | Page or panel images from files or a ZIP archive – the number in the file name says where they go. |
 
@@ -1446,6 +1447,22 @@ The cards are ordinary **Postacie** (characters) and **Miejsca** (places) tables
 **Bridge.** When a character speaks twice in a row in the same panel, [Place bubbles] puts the second bubble right below the first and joins them with a bridge – the last bubble has the tail. The bridge comes out in the PDF just like on the page.
 
 **Halftone and speed lines.** In [Library] (→ 4.8), **Backgrounds and patterns** has comic patterns: **Comic halftone** (fine dots like in old comics), **Speed lines (radial)** – for a blast, surprise or close-up – and **Speed lines (horizontal)** – for speed. You can also put the same pattern on a selected shape, e.g. a panel (→ 6.5).
+
+**Comic with AI.** Google Gemini can draw the panel images (key → 7.11). You do not write prompts – Makietka builds
+them from what you already have:
+
+1. [Characters] → **Drawing style**: colourful storybook, watercolour, simple cartoon, manga or retro comic – it
+   applies to all images of this comic.
+2. In a character (and place) card, [Draw from description (AI)] draws a **reference image** from the card fields
+   (about 0.14 PLN). Save the card. The reference image then goes to every panel with this character – they look the
+   same on every page.
+3. Fill in the **opis sceny** (scene) column of the script – what the panel shows, e.g. “Ala runs down the street”.
+4. On a comic page click [Draw panels]. The window shows each panel with a ready description (scene, characters with
+   appearance and feature, place, style, “leave room for bubbles”) – edit it or untick a panel. Panels with an image
+   are unticked.
+5. Check the cost and click [Draw]. The panels fill one by one; then [Place bubbles].
+
+Fix an image in a panel like any AI image: select the panel → [AI image] (→ 7.11).
 
 **Language versions.** Add columns `tekst_pl`, `tekst_en`, `tekst_uk` to the script (each with the text in one
 language). [Place bubbles] then asks which column to use – the same layout gets the texts in another language.

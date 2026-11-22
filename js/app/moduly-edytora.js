@@ -57,6 +57,7 @@ export const MODULY_EDYTORA = [
   'js/kod-obiekt.js',
   'js/kody.js',
   'js/komentarze-chmura.js',
+  'js/komiks-ai.js',
   'js/kontrola-skladu.js',
   'js/kontrola.js',
   'js/ksztalty-biblioteka.js',
