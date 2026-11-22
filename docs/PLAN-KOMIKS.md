@@ -123,8 +123,8 @@ da się. Możesz dodać rekwizyty postaci, żeby one były też dodawane.”
 | F2 | Generowanie (obraz, poprawka, tekst, kolumna; w komiksie scenariusz i kadry) z powrotem w [AI ▾]; „Asystent AI” (rozmowa) jako osobny, widoczny przycisk na górnym pasku | ✅ #388 |
 | F3 | Bez klucza Google Gemini pozycje generowania wyszarzone, z informacją „nie masz klucza do generowania obrazów/tekstów” i drogą do ustawień | ✅ #388 |
 | F4 | Typy dymków w jednym przycisku [Dymek ▾] (rodzaje, efekt, mostek) – także na komputerze | ✅ #388 |
-| F5 | Więcej stylów rysunków (z miniaturami) | do zrobienia |
-| F6 | Rekwizyty: karty rekwizytów (nazwa, opis, obraz wzorcowy, czyj), wybierane w kadrze w scenariuszu, w opisie i wzorcach dla AI | do zrobienia |
+| F5 | Więcej stylów rysunków (z miniaturami) | ✅ #389 |
+| F6 | Rekwizyty: karty rekwizytów (nazwa, opis, obraz wzorcowy, czyj), wybierane w kadrze w scenariuszu, w opisie i wzorcach dla AI | ✅ #389 |
 
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 

@@ -237,8 +237,9 @@ albo do czytania na ekranie, broszurę do złożenia albo PNG jednej strony.
 
 ## 25.6 Asystent AI w Makietce (własny klucz)
 
-Bez osobnej aplikacji AI: w edytorze menu **⋯** → [Asystent AI (własny klucz)…] otwiera czat obok strony
-(na telefonie — okno).
+Bez osobnej aplikacji AI: w edytorze [Asystent AI] na górnym pasku (obok [Podgląd]; na telefonie [AI ▾] →
+**Asystent AI…**, a także menu **⋯** → [Asystent AI (własny klucz)…]) otwiera czat obok strony (na telefonie — okno).
+Napisz, co zrobić, np. „ułóż tę stronę na dwie kolumny” albo „dodaj tytuł i ramkę na zdjęcie”.
 
 1. **Dostawca** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok),
    OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem). Przy nazwie

@@ -89,7 +89,7 @@ test('komiks: pasek tylko w komiksie, kadry z układu, podział kadru, scenarius
   await krokKomiksu(strona, 'scenariusz');
   await strona.waitForSelector('#dlg-scenariusz[open]');
   const tabela = await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('postać')));
-  assert.deepEqual(tabela.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
+  assert.deepEqual(tabela.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'rekwizyty', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
   assert.equal(tabela.wiersze.length, 1, 'przykładowy wiersz');
   await strona.keyboard.press('Escape');
   // Użytkownik wpisuje dialogi (tu – wprost w tabelę).
@@ -492,9 +492,9 @@ test('komiks: okno Scenariusz – kadry z ujęciem i miejscem z listy, kto w kad
   await strona.waitForFunction(() => !document.querySelector('#dlg-scenariusz').open);
   const wiersze = await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('ujęcie')).wiersze);
   assert.deepEqual(wiersze, [
-    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala (radość): wskazuje palcem; Ola (zaskoczenie)', 'Ala i Ola na rynku', 'Ala', 'Patrz!', 'mowa'],
-    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala (radość): wskazuje palcem; Ola (zaskoczenie)', 'Ala i Ola na rynku', 'Ola', 'Gdzie?', 'mowa'],
-    ['1', '2', 'zbliżenie', '', '', '', '', '', '', ''],
+    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala (radość): wskazuje palcem; Ola (zaskoczenie)', '', 'Ala i Ola na rynku', 'Ala', 'Patrz!', 'mowa'],
+    ['1', '1', 'widok ogólny', 'Rynek', 'Ola', 'Ala (radość): wskazuje palcem; Ola (zaskoczenie)', '', 'Ala i Ola na rynku', 'Ola', 'Gdzie?', 'mowa'],
+    ['1', '2', 'zbliżenie', '', '', '', '', '', '', '', ''],
   ]);
   assert.deepEqual(bledy, []);
 });
@@ -556,5 +556,39 @@ test('komiks: Biblioteka – kategoria Komiks: dymki, efekt, układ kadrów, ras
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.kadr_nr).length === 4);
   await strona.click('#elementy-biblioteki .kafel-biblioteki[data-element="okno-okno"]');
   await strona.waitForSelector('#dlg-komiks[open]');
+  assert.deepEqual(bledy, []);
+});
+
+test('komiks: rekwizyty – karta w oknie Postacie i miejsca, wybór w kadrze scenariusza, zapis (F6)', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.locator('[data-akcja="nowy-projekt"]:visible').first().click();
+  await strona.fill('#form-nowy [name="nazwa"]', 'Rekwizyty');
+  await strona.check('#form-nowy input[name="start"][value="szablon"]', { force: true });
+  await strona.click('#nowy-szablony .karta-szablonu[data-id="komiks"]');
+  await strona.click('#gotowe-wstaw');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Rekwizyty');
+  await strona.evaluate(async () => { const x = window.seriodruk.stan.projekt; const k = x.sekcje.find((s) => s.typ === 'komiks'); await window.seriodruk.przejdzDoStrony(x.strony.findIndex((s) => s.sekcja === k.id)); });
+  await krokKomiksu(strona, 'postacie');
+  const dlg = strona.locator('#dlg-postacie');
+  await dlg.locator('.karty-komiksu[data-rodzaj="rekwizyty"]').waitFor();
+  assert.deepEqual(await dlg.locator('.karty-komiksu[data-rodzaj="rekwizyty"] .karta-komiksu:not(.dodaj) b').allTextContents(), ['Paczka']);
+  // nowy rekwizyt
+  await dlg.locator('[data-akcja-karty="dodaj-rekwizyty"]').click();
+  await dlg.locator('input[name="nazwa"]').fill('Latawiec');
+  await dlg.locator('textarea[name="opis"]').fill('czerwony latawiec-smok');
+  await dlg.locator('input[name="czyj"]').fill('Ola');
+  await dlg.locator('button[value="zapisz"]').click();
+  await dlg.locator('.karty-komiksu[data-rodzaj="rekwizyty"] .karta-komiksu:not(.dodaj)').nth(1).waitFor();
+  await dlg.locator('button[value="zamknij"]').click();
+  // scenariusz: Paczka zaznaczona w kadrze 1 strony 2; Latawiec dochodzi w kadrze 1 strony 1
+  await krokKomiksu(strona, 'scenariusz');
+  const sc = strona.locator('#dlg-scenariusz');
+  await sc.waitFor();
+  assert.equal(await sc.locator('[data-strona="2"] [data-kadr="1"] .rekwizyty-w-kadrze input[value="Paczka"]').isChecked(), true);
+  await sc.locator('[data-strona="1"] [data-kadr="1"] .rekwizyty-w-kadrze input[value="Latawiec"]').check({ force: true });
+  await sc.locator('button[value="tak"]').click();
+  await strona.waitForFunction(() => !document.querySelector('#dlg-scenariusz').open);
+  const w = await strona.evaluate(() => { const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('rekwizyty')); const i = tb.kolumny.indexOf('rekwizyty'); return tb.wiersze.filter((r) => r[0] === '1' && r[1] === '1').map((r) => r[i]); });
+  assert.deepEqual(w, ['Latawiec']);
   assert.deepEqual(bledy, []);
 });

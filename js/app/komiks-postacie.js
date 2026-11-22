@@ -1,5 +1,5 @@
 // Okno „Postacie i miejsca” trybu Komiks (#368, plan komiksu A9): karty postaci (imię, wygląd, znak rozpoznawczy,
-// charakter, obraz wzorcowy, kolor dymka) i miejsc (opis, pora dnia, światło, obraz). Jedno okno: lista kart albo
+// charakter, obraz wzorcowy, kolor dymka), miejsc (opis, pora dnia, światło, obraz) i rekwizytów (opis, czyj, obraz – F6). Jedno okno: lista kart albo
 // formularz jednej karty. Dane w zwykłych tabelach projektu (js/postacie.js) – widać je też w oknie Dane, a AI
 // składa z nich opisy do obrazów. Kolor dymka postaci dostają dymki z [Ustaw dymki].
 
@@ -10,7 +10,7 @@ import { zapiszBiezacyCel, zaplanujZapis } from './zapis.js';
 import { $, powiadom, potwierdz } from '../ui.js';
 import { stan } from './kontekst.js';
 import { t, biezacyJezyk } from '../jezyk.js';
-import { STYLE_RYSUNKOW, STYL_DOMYSLNY, stylProjektu, opisWzorcaPostaci, opisWzorcaMiejsca } from '../komiks-ai.js';
+import { STYLE_RYSUNKOW, STYL_DOMYSLNY, stylProjektu, opisWzorcaPostaci, opisWzorcaMiejsca, opisWzorcaRekwizytu } from '../komiks-ai.js';
 import { generujIWstaw } from './generuj-obraz.js';
 import { JAKOSCI_OBRAZU, szacujObraz, opisKosztu } from '../ai-koszty.js';
 
@@ -31,7 +31,17 @@ const POLA = {
     ['znak', 'komiks.znak', 'komiks.znakPrzyklad'], ['charakter', 'komiks.charakter', 'komiks.charakterPrzyklad']],
   miejsca: [['nazwa', 'komiks.miejsce', 'komiks.miejscePrzyklad'], ['opis', 'komiks.opisMiejsca', 'komiks.opisMiejscaPrzyklad', true],
     ['pora', 'komiks.pora', 'komiks.poraPrzyklad'], ['swiatlo', 'komiks.swiatlo', 'komiks.swiatloPrzyklad']],
+  rekwizyty: [['nazwa', 'komiks.rekwizyt', 'komiks.rekwizytPrzyklad'], ['opis', 'komiks.opisRekwizytu', 'komiks.opisRekwizytuPrzyklad', true],
+    ['czyj', 'komiks.czyj', 'komiks.czyjPrzyklad']],
 };
+// Napisy zależne od rodzaju karty.
+const NAPISY = {
+  postacie: { dodaj: 'komiks.dodajPostac', naglowek: 'komiks.postacie', nowa: 'komiks.nowaPostac', obraz: 'komiks.obrazPostaciOpis' },
+  miejsca: { dodaj: 'komiks.dodajMiejsce', naglowek: 'komiks.miejsca', nowa: 'komiks.noweMiejsce', obraz: 'komiks.obrazMiejscaOpis' },
+  rekwizyty: { dodaj: 'komiks.dodajRekwizyt', naglowek: 'komiks.rekwizyty', nowa: 'komiks.nowyRekwizyt', obraz: 'komiks.obrazRekwizytuOpis' },
+};
+const OPIS_WZORCA = { postacie: opisWzorcaPostaci, miejsca: opisWzorcaMiejsca, rekwizyty: opisWzorcaRekwizytu };
+const PROPORCJA_WZORCA = { postacie: '3:4', miejsca: '4:3', rekwizyty: '1:1' };
 
 function okno() {
   let dlg = $('#dlg-postacie');
@@ -63,12 +73,12 @@ function lista(dlg) {
     style.append(el('label', { class: 'styl-rysunkow' }, r, el('img', { src: `img/style/${id}.webp`, alt: '', width: '80', height: '80', loading: 'lazy' }), el('span', { tekst: t(`komiks.styl_${id}`) })));
   }
   f.append(el('fieldset', { class: 'pole wybor-stylu' }, el('legend', { tekst: t('komiks.stylRysunkow') }), style, el('span', { class: 'ciche', tekst: t('komiks.stylRysunkowOpis') })));
-  for (const rodzaj of ['postacie', 'miejsca']) {
+  for (const rodzaj of ['postacie', 'miejsca', 'rekwizyty']) {
     const lst = karty(stan.projekt, rodzaj);
     const siatka = el('div', { class: 'karty-komiksu', 'data-rodzaj': rodzaj });
     for (const k of lst) {
       const nazwa = rodzaj === 'postacie' ? k.imie : k.nazwa;
-      const opis = rodzaj === 'postacie' ? (k.znak || k.wyglad) : (k.opis || k.pora);
+      const opis = rodzaj === 'postacie' ? (k.znak || k.wyglad) : rodzaj === 'rekwizyty' ? (k.czyj || k.opis) : (k.opis || k.pora);
       const b = el('button', { type: 'button', class: 'karta-komiksu', 'data-wiersz': String(k.wiersz) },
         miniatura(k.obraz), el('b', { tekst: nazwa }), opis ? el('span', { class: 'ciche', tekst: opis }) : null);
       if (rodzaj === 'postacie' && k.kolor) b.style.setProperty('--kolor-karty', k.kolor);
@@ -76,10 +86,10 @@ function lista(dlg) {
       siatka.append(b);
     }
     const dodaj = el('button', { type: 'button', class: 'karta-komiksu dodaj', 'data-akcja-karty': `dodaj-${rodzaj}` },
-      el('span', { class: 'plus', 'aria-hidden': 'true', tekst: '+' }), el('b', { tekst: t(rodzaj === 'postacie' ? 'komiks.dodajPostac' : 'komiks.dodajMiejsce') }));
+      el('span', { class: 'plus', 'aria-hidden': 'true', tekst: '+' }), el('b', { tekst: t(NAPISY[rodzaj].dodaj) }));
     dodaj.addEventListener('click', () => formularz(dlg, rodzaj, null));
     siatka.append(dodaj);
-    f.append(el('h3', { tekst: t(rodzaj === 'postacie' ? 'komiks.postacie' : 'komiks.miejsca') }), siatka);
+    f.append(el('h3', { tekst: t(NAPISY[rodzaj].naglowek) }), siatka);
   }
   f.append(el('div', { class: 'przyciski-dialogu' }, el('button', { class: 'przycisk glowny', value: 'zamknij', tekst: t('komiks.gotowe') })));
   dlg.append(f);
@@ -89,7 +99,7 @@ function formularz(dlg, rodzaj, karta) {
   dlg.replaceChildren();
   const k = { ...(karta || {}) };
   const f = el('form', { method: 'dialog', class: 'formularz', 'data-rodzaj': rodzaj });
-  const tytul = karta ? (rodzaj === 'postacie' ? k.imie : k.nazwa) : t(rodzaj === 'postacie' ? 'komiks.nowaPostac' : 'komiks.noweMiejsce');
+  const tytul = karta ? (rodzaj === 'postacie' ? k.imie : k.nazwa) : t(NAPISY[rodzaj].nowa);
   f.append(el('h2', { tekst: tytul }));
   for (const [pole, etyk, przyklad, dlugie] of POLA[rodzaj]) {
     const wej = dlugie ? el('textarea', { name: pole, rows: '3' }) : el('input', { name: pole, type: 'text' });
@@ -121,7 +131,7 @@ function formularz(dlg, rodzaj, karta) {
     if (!k[RODZAJE_KART[rodzaj].pola[0]]) { f.elements[RODZAJE_KART[rodzaj].pola[0]].reportValidity(); return; }
     zAi.disabled = true; zAi.textContent = t('aiObraz.trwa');
     try {
-      const w = await generujIWstaw({ opis: rodzaj === 'postacie' ? opisWzorcaPostaci(k, biezacyJezyk()) : opisWzorcaMiejsca(k, biezacyJezyk()), jakosc: 'szkic', proporcja: rodzaj === 'postacie' ? '3:4' : '4:3', styl: stylProjektu(stan.projekt), naStrone: false, potwierdzono: true });
+      const w = await generujIWstaw({ opis: OPIS_WZORCA[rodzaj](k, biezacyJezyk()), jakosc: 'szkic', proporcja: PROPORCJA_WZORCA[rodzaj], styl: stylProjektu(stan.projekt), naStrone: false, potwierdzono: true });
       k.obraz = w.nazwa;
       podglad.replaceChildren(miniatura(w.nazwa));
       wybierz.textContent = t('komiks.zmienObraz');
@@ -129,7 +139,7 @@ function formularz(dlg, rodzaj, karta) {
     } catch (er) { powiadom(er.message, true); } finally { zAi.disabled = false; zAi.textContent = t('komiks.narysujZOpisu'); }
   });
   f.append(el('div', { class: 'pole' }, el('span', { tekst: t('komiks.obrazWzorcowy') }), el('div', { class: 'rzad' }, podglad, wybierz, zAi, plik),
-    el('span', { class: 'ciche', tekst: t(rodzaj === 'postacie' ? 'komiks.obrazPostaciOpis' : 'komiks.obrazMiejscaOpis') })));
+    el('span', { class: 'ciche', tekst: t(NAPISY[rodzaj].obraz) })));
   if (rodzaj === 'postacie') {
     const kolor = el('input', { type: 'color', name: 'kolor' });
     kolor.value = /^#[0-9a-f]{6}$/i.test(k.kolor) ? k.kolor : '#ffffff';
@@ -156,7 +166,7 @@ function formularz(dlg, rodzaj, karta) {
     for (const [pole] of POLA[rodzaj]) k[pole] = f.elements[pole].value;
     if (rodzaj === 'postacie') k.kolor = f.elements.kolor.value.toLowerCase() === '#ffffff' ? '' : f.elements.kolor.value.toLowerCase();
     zapiszBiezacyCel();
-    zapiszKarte(stan.projekt, rodzaj, { ...k, wiersz: karta ? karta.wiersz : null }, { nazwa: t(rodzaj === 'postacie' ? 'komiks.postacie' : 'komiks.miejsca') });
+    zapiszKarte(stan.projekt, rodzaj, { ...k, wiersz: karta ? karta.wiersz : null }, { nazwa: t(NAPISY[rodzaj].naglowek) });
     zaplanujZapis();
     lista(dlg);
   });

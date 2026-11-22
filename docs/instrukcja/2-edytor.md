@@ -55,22 +55,20 @@ Pasek nad stroną wstawia nowe elementy (→ 4.1).
 | Przycisk | Klawisz | Co wstawia |
 |---|---|---|
 | [Tekst] | <kbd>T</kbd> | Ramkę tekstu (→ 5). |
-| [Prostokąt] | <kbd>R</kbd> | Prostokąt (→ 6.1). |
-| [Elipsa] | <kbd>E</kbd> | Elipsę albo koło (→ 6.1). |
-| [Wielokąt] | <kbd>P</kbd> | Wielokąt albo gwiazdę — najpierw wybór kształtu (→ 6.1). |
-| [Linia] | <kbd>L</kbd> | Odcinek (→ 6.2). |
+| [Kształty ▾] | <kbd>R</kbd> <kbd>E</kbd> <kbd>P</kbd> <kbd>L</kbd> <kbd>B</kbd> <kbd>N</kbd> | Menu: **Prostokąt**, **Elipsa** (albo koło), **Wielokąt albo gwiazda** (najpierw wybór kształtu), **Linia** (→ 6.1, 6.2), **Rysowanie odręczne** (→ 6.3) i **Pióro** – kształt z punktów i łuków (→ 6.4). Gdy rysowanie albo pióro działa, przycisk ma jego ikonę – kliknięcie kończy narzędzie. |
 | [Obraz] | — | Zdjęcie albo grafikę (→ 7.1). |
-| [Rysuj] | <kbd>B</kbd> | Linię rysowaną odręcznie (→ 6.3). |
-| [Pióro] | <kbd>N</kbd> | Kształt z punktów i łuków (→ 6.4). |
+| [AI ▾] | — | Menu AI: obraz z opisu, poprawa obrazu w ramce, poprawa i tłumaczenie tekstu, kolumna danych (→ 5.17, 7.11, 14.6); w komiksie też scenariusz i kadry (→ 10.13). |
 | [Tabela] | — | Tabelę z wierszami i kolumnami (→ 8). |
 | [Biblioteka] | — | Gotowe elementy: kształty, ramki, ozdobniki, planery, kalendarze, wykresy i inne (→ 4.8). |
 | [Komentarz] | — | Komentarz przypięty do miejsca na stronie albo do zaznaczonego elementu (→ 24.7). |
 
 Podpisy pod ikonami włączysz w menu widoku: **Podpisy narzędzi** (→ 3.6).
 
-**Na telefonie** pozostałe narzędzia — [Wielokąt albo gwiazda], [Rysowanie odręczne], [Pióro], [Komentarz]
-i [Kopiuj wygląd] (→ 4.13) — są pod [⋯] na końcu paska. Gdy jedno z nich działa, [⋯] pokazuje jego ikonę;
-stuknięcie kończy narzędzie.
+Skróty klawiszowe kształtów działają bez otwierania menu. Rozmowę z AI otwiera osobny przycisk [Asystent AI] na
+górnym pasku, obok [Podgląd] (→ 25.6).
+
+**Na telefonie** [Komentarz] i [Kopiuj wygląd] (→ 4.13) są pod [⋯] na końcu paska, a [Asystent AI] – w menu [AI ▾].
+Gdy jedno z narzędzi spod [⋯] działa, [⋯] pokazuje jego ikonę; stuknięcie kończy narzędzie.
 
 ![Menu ⋯ paska wstawiania na telefonie](k-wstaw-telefon.png@telefon)
 
@@ -660,7 +658,7 @@ AI poprawi, skróci albo przetłumaczy tekst – w każdym projekcie. Pisze Goog
 → 7.11); jedna zmiana kosztuje ułamek grosza.
 
 1. Zaznacz ramkę tekstu – zmienisz cały tekst. Albo kliknij w tekst dwa razy i zaznacz fragment – zmienisz tylko jego.
-2. Kliknij [Tekst AI] na pasku wstawiania (na telefonie: [AI ▾] → **Popraw albo przetłumacz tekst…**).
+2. Kliknij [AI ▾] na pasku wstawiania → **Popraw albo przetłumacz tekst…**.
 3. Kliknij, co zrobić: [Skróć], [Wydłuż], [Prościej], [Uroczyściej], [Popraw błędy], [Na polski], [Na angielski] albo
    [Na ukraiński].
 4. Po chwili wynik jest w polu **Wynik (możesz go poprawić)**. Popraw go, jeśli chcesz, albo kliknij inny przycisk,
@@ -679,8 +677,8 @@ Kształty, linie, rysowanie i kolory: wypełnienia, przejścia i obrysy.
 
 ## 6.1 Prostokąt, elipsa i wielokąt
 
-[Prostokąt], [Elipsa] i [Wielokąt] wstawiają kształty z wypełnieniem i obrysem (→ 6.5, 6.6).
-[Wielokąt] najpierw pokazuje wybór: trójkąt, romb, pięcio-, sześcio- i ośmiokąt albo gwiazda o 4, 5, 6, 8
+[Kształty ▾] → **Prostokąt**, **Elipsa** i **Wielokąt albo gwiazda** wstawiają kształty z wypełnieniem i obrysem (→ 6.5, 6.6).
+**Wielokąt albo gwiazda** najpierw pokazuje wybór: trójkąt, romb, pięcio-, sześcio- i ośmiokąt albo gwiazda o 4, 5, 6, 8
 lub 12 ramionach. Klawisz <kbd>P</kbd> wstawia od razu trójkąt.
 Część **Kształt**:
 
@@ -690,7 +688,7 @@ Część **Kształt**:
 
 ## 6.2 Linia
 
-[Linia] wstawia odcinek. Część **Linia**: **Kolor**, **Grubość** w mm i **Rodzaj** — ciągła, przerywana,
+[Kształty ▾] → **Linia** wstawia odcinek. Część **Linia**: **Kolor**, **Grubość** w mm i **Rodzaj** — ciągła, przerywana,
 kropkowana albo kreska – kropka (kreski rosną razem z grubością). Z <kbd>Shift</kbd> linia jest
 pozioma, pionowa albo pod kątem 45°. Linia rysowana odręcznie i kształt z pióra mają tę samą część,
 a zamknięty kształt z pióra — także **Wypełnienie**. Gotowe linie (cienka, gruba, przerywana, podwójna,
@@ -698,7 +696,7 @@ pionowa, ozdobne) są w Bibliotece, w kategorii **Linie i separatory** (→ 4.8)
 
 ## 6.3 Rysowanie odręczne
 
-[Rysuj] (<kbd>B</kbd>): przeciągaj po stronie jak ołówkiem — drżenie ręki jest wygładzane. Każde
+[Kształty ▾] → **Rysowanie odręczne** (<kbd>B</kbd>): przeciągaj po stronie jak ołówkiem — drżenie ręki jest wygładzane. Każde
 pociągnięcie to osobny element. Tryb zostaje włączony, więc narysujesz kilka kresek.
 
 Kolor i grubość następnych linii ustawisz we właściwościach, w części **Pędzel** (→ 3.5).
@@ -708,7 +706,7 @@ Kolor i grubość następnych linii ustawisz we właściwościach, w części **
 
 ## 6.4 Pióro i edycja punktów
 
-[Pióro] (<kbd>N</kbd>) tworzy kształt z punktów:
+[Kształty ▾] → **Pióro** (<kbd>N</kbd>) tworzy kształt z punktów:
 
 - kliknięcie stawia punkt narożny, kliknięcie z przeciągnięciem — punkt z łukiem,
 - kliknięcie w pierwszy punkt zamyka kształt,
@@ -914,7 +912,7 @@ rozliczasz u Google, a Makietka pokazuje go przed każdym generowaniem.
 ![Okno Obraz AI](k-obraz-ai.png)
 
 1. Zaznacz ramkę, kształt albo kadr komiksu, który ma wypełnić obraz. Bez zaznaczenia obraz trafi na środek strony.
-2. Kliknij [Obraz AI] na pasku wstawiania (na telefonie: [AI ▾] → **Obraz z opisu…**).
+2. Kliknij [AI ▾] na pasku wstawiania → **Obraz z opisu…**.
 3. W polu **Co ma być na obrazie** opisz po swojemu: kto, co robi, gdzie, jaki nastrój i styl, np. „Rudowłosa
    dziewczynka z żółtym plecakiem macha na brukowanej uliczce, ranek, kolorowa ilustracja dla dzieci”.
 4. Wybierz **Jakość**: **Szkic – szybko i najtaniej** (do prób), **Dokładny – do druku** albo **Najlepszy – postacie
@@ -932,14 +930,16 @@ rozliczasz u Google, a Makietka pokazuje go przed każdym generowaniem.
 
 - **Napisów w obrazie nie ma** – Makietka prosi AI, żeby ich nie rysowało, i żeby obraz wypełniał całą ramkę, bez
   białych brzegów. Tekst dodajesz w Makietce (ramki tekstu, dymki), więc łatwo go poprawić i przetłumaczyć.
-- **Jeszcze raz:** zaznacz ramkę z obrazem z AI i znów [Obraz AI]. Okno ma opis, z którego powstał
+- **Jeszcze raz:** zaznacz ramkę z obrazem z AI i znów [AI ▾] → **Obraz z opisu…**. Okno ma opis, z którego powstał
   obecny obraz – popraw w nim, co chcesz, albo generuj bez zmian. Poprzednie wersje zostają w **Obrazach projektu**
   – wrócisz do nich jednym wyborem (→ 7.5).
-- **Popraw obecny obraz:** zaznacz ramkę z obrazem (z AI albo Twoim) i kliknij [Popraw obraz] na pasku – albo w oknie
-  [Obraz AI] odpowiedz na pytanie **Co zrobić z obrazem w ramce**.
+- **Popraw obecny obraz:** zaznacz ramkę z obrazem (z AI albo Twoim) i wybierz [AI ▾] → **Popraw obraz w ramce…** – albo
+  w oknie **Obraz z opisu…** odpowiedz na pytanie **Co zrobić z obrazem w ramce**.
   Wybierz **Popraw obecny obraz – opisz tylko zmianę** i napisz samą zmianę, np. „dodaj dziewczynce czerwony
   kapelusz” albo „zmień porę na wieczór”. AI dostaje obecny obraz i zmienia tylko to, o co prosisz – reszta zostaje.
   **Narysuj od nowa** rysuje cały obraz z opisu.
+- **Bez klucza Google Gemini** pozycje rysowania i pisania w [AI ▾] są wyszarzone, a na górze menu jest **Nie masz
+  klucza do generowania obrazów i tekstów – dodaj klucz…** – otwiera ustawienia AI, gdzie dodasz klucz (niżej).
 - **Ile wydałeś:** [Ustawienia konta] → **Sztuczna inteligencja** pokazuje wydatki z tego miesiąca na tym urządzeniu.
   Tam ustawisz też **Miesięczny limit wydatków na obrazy i teksty AI** – po jego przekroczeniu Makietka nie wygeneruje
   obrazu ani tekstu, dopóki limitu nie zmienisz.
@@ -1406,22 +1406,20 @@ W szablonie wybierasz **Formę** komiksu:
 | **Luźne kartki – bez okładki** | Same strony komiksu, np. do wydruku w domu. |
 | **Na ekran – PDF albo prezentacja (poziomo)** | Strony poziome jak slajdy, bez spadu – do oglądania w podglądzie albo jako PDF na ekran. |
 
-![Strona komiksu z kadrami i dymkami; na pasku Kadry, dymki, Mostek i Komiks](k-komiks.png)
+![Strona komiksu z kadrami i dymkami; na pasku Kadry, Dymek i Komiks](k-komiks.png)
 
 **Pasek komiksu.** Na stronie komiksu pasek wstawiania ma dodatkowe przyciski:
 
 | Przycisk | Co robi |
 |---|---|
 | [Kadry] | Gotowy układ kadrów na tej stronie, odstęp między kadrami, spad; w tym samym oknie [Podziel kadr]. |
-| [Mowa], [Myśl], [Krzyk], [Szept], [Narracja] | Wstawiają dymek tego rodzaju (→ 4.14). |
-| [Efekt] | Efekt dźwiękowy – napis „BUM!” dużymi literami z obrysem. |
-| [Mostek] | Łączy dwa zaznaczone dymki jednej postaci. |
+| [Dymek ▾] | Menu: dymek **Mowa**, **Myśl**, **Krzyk**, **Szept**, **Narracja** (→ 4.14), **Efekt dźwiękowy** („BUM!” dużymi literami z obrysem) i **Mostek** (łączy dwa zaznaczone dymki jednej postaci). |
 | [Komiks] | Okno **Komiks krok po kroku** – cały komiks w pięciu krokach (opis niżej). |
-| [Scenariusz z AI], [Rysuj kadry] | AI pisze scenariusz i rysuje kadry tej strony (opis niżej). |
 
-Obok są przyciski AI z każdego projektu: [Obraz AI], [Popraw obraz], [Tekst AI] i [Asystent AI] (→ 5.17, 7.11, 25.6).
-Gdy pasek nie mieści się w oknie, przewiń go w bok (kółkiem myszy albo palcem). Na telefonie dymki są w menu
-[Dymek ▾], a narzędzia AI – w menu [AI ▾].
+Narzędzia AI komiksu – **Scenariusz z AI**, **Obrazy wzorcowe postaci i miejsc**, **Rysuj kadry** – są w menu [AI ▾]
+(→ 7.11), a rozmowa z AI – pod [Asystent AI] na górnym pasku (→ 25.6). Gdy nie masz klucza Google Gemini, pozycje
+rysowania i pisania są wyszarzone, a na górze menu jest **Nie masz klucza do generowania obrazów i tekstów – dodaj
+klucz…** (→ 7.11).
 
 **Komiks w Bibliotece.** [Biblioteka] (→ 4.8) ma kategorię **Komiks**: dymki każdego rodzaju i efekt dźwiękowy, gotowe
 układy kadrów (kliknięcie zastępuje kadry na tej stronie; obrazy i dymki zostają), raster i linie ruchu, a na stronie
@@ -1436,7 +1434,7 @@ Rób je po kolei albo wróć do dowolnego – każdy przycisk otwiera swoje okno
 ![Okno Komiks krok po kroku](k-komiks-okno.png)
 
 1. **Historia** – [Otwórz scenariusz] (okno **Scenariusz**, niżej) albo [Napisz z AI…] (Scenariusz z AI, niżej).
-2. **Postacie i miejsca** – [Postacie i miejsca…]: karty postaci i miejsc oraz **Styl rysunków**. Miniatury pokazują
+2. **Postacie, miejsca i rekwizyty** – [Postacie, miejsca i rekwizyty…]: karty postaci, miejsc i rekwizytów oraz **Styl rysunków**. Miniatury pokazują
    obrazy wzorcowe.
 3. **Kadry i obrazy** – [Układ kadrów…], [Rysuj kadry tej strony…] (AI) albo [Wgraj gotowe strony…].
 4. **Dymki** – [Ustaw dymki]: teksty ze scenariusza trafiają do dymków w kadrach.
@@ -1456,6 +1454,7 @@ W każdym kadrze:
 | **Ujęcie** | Jak widać scenę: **widok ogólny** (całe miejsce), **plan pełny** (postacie od stóp do głów), **plan średni** (od pasa w górę), **zbliżenie** (twarz), **detal** (ważny przedmiot), **z góry**, **z dołu**, **zza pleców**. **Ujęcie: dowolne** – bez wymagań. |
 | **Miejsce** | Miejsce z kart (krok 2) – jego opis i obraz będą tłem kadru. |
 | **Postacie w kadrze** | Zaznacz postacie widoczne w kadrze, także te, które nic nie mówią (ci, którzy mówią, są zaznaczeni sami). Przy każdej postaci w kadrze wybierz **emocję** (radość, smutek, złość, strach, zaskoczenie, ciekawość, spokój, zmęczenie) i wpisz, **co robi**, np. „biegnie, macha ręką”. AI rysuje wtedy postać z tą miną i w tym ruchu. |
+| **Rekwizyty w kadrze** | Przedmioty z kart rekwizytów widoczne w kadrze (np. **Paczka**). Ich opis i obraz wzorcowy idą do AI. |
 | **Co widać w kadrze** | Krótko, np. „Ala biegnie uliczką, w tle kamienice”. Nie trafia na stronę – to opis dla rysownika albo AI. |
 | **Kwestie** | [+ Kwestia]: **Kto mówi** (postać z kart albo **Narracja**), **Rodzaj dymka** (mowa, myśl, krzyk, szept) i **Tekst dymka**. Ikona kosza usuwa kwestię. |
 
@@ -1467,7 +1466,7 @@ W każdym kadrze:
 Scenariusz otwiera ją w oknie **Dane** (→ 14) – tam wkleisz scenariusz z arkusza (→ 14.3) albo dodasz kolumny
 z innymi językami. Strona 1 to pierwsza strona komiksu (okładka się nie liczy).
 
-**Scenariusz z AI.** [Napisz z AI…] w kroku 1 (albo [Scenariusz z AI] na pasku) rozpisuje komiks za Ciebie – razem z emocjami i działaniami postaci:
+**Scenariusz z AI.** [Napisz z AI…] w kroku 1 (albo [AI ▾] → **Scenariusz z AI**) rozpisuje komiks za Ciebie – razem z emocjami i działaniami postaci:
 
 1. Wybierz **Z pomysłu** i opisz historię w 3–5 zdaniach, np. „Dwie przyjaciółki, Ala i Ola, znajdują pod drzwiami
    paczkę. W środku jest kotek…”, i ustaw **Ile stron**.
@@ -1480,9 +1479,9 @@ z innymi językami. Strona 1 to pierwsza strona komiksu (okładka się nie liczy
 
 Koszt – ok. jeden grosz; widać go przed rozpisaniem.
 
-### Krok 2. Postacie i miejsca
+### Krok 2. Postacie, miejsca i rekwizyty
 
-[Postacie i miejsca…] otwiera karty. Opisz postać raz – opis i obraz wzorcowy pilnują, żeby wyglądała tak samo
+[Postacie, miejsca i rekwizyty…] otwiera karty. Opisz postać raz – opis i obraz wzorcowy pilnują, żeby wyglądała tak samo
 w każdym kadrze (dla Ciebie, rysownika albo AI).
 
 ![Karty postaci i miejsc](k-komiks-postacie.png)
@@ -1495,8 +1494,13 @@ w każdym kadrze (dla Ciebie, rysownika albo AI).
 - **Obraz wzorcowy:** [Wybierz obraz…] – rysunek albo zdjęcie z urządzenia; albo [Narysuj z opisu (AI)] – AI rysuje go
   z pól karty w stylu komiksu (koszt widać przed rysowaniem, ok. 0,14 zł). Postać – cała sylwetka na białym tle;
   miejsce – szeroki widok bez ludzi.
-- **Styl rysunków** (u góry okna; każdy kafelek pokazuje tę samą przykładową scenę w danym stylu): **Kolorowa bajka**, **Akwarela**, **Prosty cartoon**, **Manga (czarno-biała)** albo
-  **Komiks retro** – obowiązuje we wszystkich obrazach z AI w tym komiksie.
+- **Rekwizyt:** przedmiot, który wraca w wielu kadrach (plecak, latawiec, mapa) – **Rekwizyt** (nazwa), **Opis**,
+  **Czyj (postać)** i **Obraz wzorcowy** (sam przedmiot na białym tle). W scenariuszu zaznaczasz go w kadrze (**Rekwizyty
+  w kadrze**); rekwizyt wymieniony w opisie sceny AI weźmie i bez zaznaczania. Szablon **Komiks** ma przykładową **Paczkę**.
+- **Styl rysunków** (u góry okna; każdy kafelek pokazuje tę samą przykładową scenę w danym stylu): **Kolorowa bajka**,
+  **Akwarela**, **Prosty cartoon**, **Manga (czarno-biała)**, **Komiks retro**, **Szkic ołówkiem**, **Komiks europejski
+  (czysta kreska)**, **Komiks o superbohaterach**, **Anime (kolorowe)** albo **Wycinanka z papieru** – obowiązuje we
+  wszystkich obrazach z AI w tym komiksie.
 
 ![Karta postaci](k-komiks-postac.png)
 
@@ -1517,8 +1521,8 @@ Kadr to kształt z białym tłem i czarnym obrysem, z numerem w kolejności czyt
 w warstwach „Kadr 1”, „Kadr 2”…). Przesuwasz go i zmieniasz jak każdy kształt; obraz wstawisz do kadru jak do każdego
 kształtu (→ 7.7), np. przeciągając plik na kadr. Postać może wychodzić poza kadr – połóż wtedy obraz nad kadrem.
 
-**Rysuj kadry (AI).** Otwórz stronę komiksu i kliknij [Rysuj kadry tej strony…] w kroku 3 (albo [Rysuj kadry] na
-pasku). Nie piszesz poleceń dla AI – Makietka składa je ze scenariusza i kart:
+**Rysuj kadry (AI).** Otwórz stronę komiksu i kliknij [Rysuj kadry tej strony…] w kroku 3 (albo [AI ▾] →
+**Rysuj kadry**). Nie piszesz poleceń dla AI – Makietka składa je ze scenariusza i kart:
 
 1. Okno pokazuje każdy kadr strony: miniaturę, pole z opisem i znacznik. Opis jest po polsku, np. „Kadr 2. Ujęcie:
    plan pełny. Scena: Ala biegnie ulicą. W kadrze: Ala – 8 lat, rude warkocze…, zawsze: żółty plecak, emocja: radość, robi: biegnie. Miejsce (tło):
@@ -1540,7 +1544,7 @@ spadem, a kadry strony znikają (są już na obrazie). Gdy chcesz poprawiać kad
 pokazuje opis, **z którego powstał obecny obraz** – popraw jedno słowo albo narysuj jeszcze raz bez zmian. [Opis ze
 scenariusza] wraca do opisu złożonego od nowa (np. po zmianie scenariusza albo karty). Poprzednie obrazy zostają
 w **Obrazach projektu** (→ 7.5). Drobną zmianę w jednym kadrze (np. „Ala ma mieć zamknięte oczy”) zrobisz bez rysowania od nowa: zaznacz kadr →
-[Popraw obraz] na pasku (→ 7.11).
+[AI ▾] → **Popraw obraz w ramce…** (→ 7.11).
 
 **Gotowe rysunki stron.** Masz strony narysowane w innym programie? [Wgraj gotowe strony…] i wybierz wiele plików
 naraz albo jeden plik ZIP. Nazwa pliku mówi, gdzie trafi obraz:
@@ -1562,9 +1566,9 @@ Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na k
    Kwestia usunięta ze scenariusza usuwa swój dymek.
 
 - Gdy postać mówi dwa razy z rzędu w tym samym kadrze, drugi dymek staje pod pierwszym i łączy się z nim **mostkiem**.
-  Ręcznie: zaznacz dwa dymki (z <kbd>Shift</kbd>) → [Mostek]; zaznacz połączony dymek i kliknij [Mostek] jeszcze
+  Ręcznie: zaznacz dwa dymki (z <kbd>Shift</kbd>) → [Dymek ▾] → **Mostek**; zaznacz połączony dymek i wybierz **Mostek** jeszcze
   raz – rozłączysz.
-- Dymek wstawisz też ręcznie: [Mowa], [Myśl], [Krzyk], [Szept] albo [Narracja] na pasku (→ 4.14). **Efekt dźwiękowy** to napis „BUM!” dużymi literami
+- Dymek wstawisz też ręcznie: [Dymek ▾] → rodzaj dymka (→ 4.14). **Efekt dźwiękowy** to napis „BUM!” dużymi literami
   z obrysem – zmień tekst, powiększ, obróć.
 - **Style komiksu.** Dymki mają styl **Dialog** (Comic Neue, wersaliki), efekty – styl **Efekt dźwiękowy** (Bangers,
   żółty z czarnym obrysem). Zmiana stylu (→ 5.4) zmienia naraz wszystkie dymki albo efekty. W projekcie po ukraińsku
@@ -1596,7 +1600,7 @@ nałożysz na zaznaczony kształt, np. kadr (→ 6.5).
    jego właściciela”, **Ile stron**: 3 → [Rozpisz] → [Zapisz scenariusz].
 3. Krok 1 [Otwórz scenariusz] – przejrzyj kadry; np. w kadrze 1 strony 1 ustaw ujęcie **widok ogólny** i miejsce
    **Miasteczko**. [Zapisz].
-4. Krok 2 [Postacie i miejsca…] – wybierz **Styl rysunków**, w każdej karcie [Narysuj z opisu (AI)] → [Zapisz].
+4. Krok 2 [Postacie, miejsca i rekwizyty…] – wybierz **Styl rysunków**, w każdej karcie [Narysuj z opisu (AI)] → [Zapisz].
 5. Przejdź na pierwszą stronę komiksu. Krok 3 [Rysuj kadry tej strony…] → [Rysuj]. Powtórz na kolejnych stronach.
 6. Krok 4 [Ustaw dymki] i przesuń dymki tam, gdzie pasują.
 7. Krok 5 [PDF…].

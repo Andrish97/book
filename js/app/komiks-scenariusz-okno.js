@@ -39,9 +39,10 @@ export async function oknoScenariusza() {
   zapiszBiezacyCel();
   const tb = K.scenariuszProjektu() || await K.otworzScenariusz({ bezOkna: true });
   let strony = scenariuszZTabeli(tb);
-  if (!strony.length) strony = [{ nr: 1, kadry: [{ nr: 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], opis: '', kwestie: [] }] }];
+  if (!strony.length) strony = [{ nr: 1, kadry: [{ nr: 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], rekwizyty: [], opis: '', kwestie: [] }] }];
   const postacie = karty(stan.projekt, 'postacie').map((k) => k.imie);
   const miejsca = karty(stan.projekt, 'miejsca').map((k) => k.nazwa);
+  const rekwizyty = karty(stan.projekt, 'rekwizyty').map((k) => k.nazwa);
   const ujecia = nazwyUjec(biezacyJezyk());
   const emocje = nazwyEmocji(biezacyJezyk());
   let dlg = $('#dlg-scenariusz');
@@ -93,6 +94,17 @@ export async function oknoScenariusza() {
           }
           wKadrze.append(wiersz);
         }
+        // Rekwizyty w kadrze (F6) – z kart rekwizytów.
+        k.rekwizyty ||= [];
+        const rzeczy = el('div', { class: 'w-kadrze rekwizyty-w-kadrze', role: 'group', 'aria-label': t('scenariusz.rekwizyty') }, el('span', { class: 'ciche', tekst: `${t('scenariusz.rekwizyty')}:` }));
+        const chipy = el('div', { class: 'chipy-rekwizytow' });
+        for (const nazwa of rekwizyty) {
+          const c = el('input', { type: 'checkbox', value: nazwa });
+          c.checked = k.rekwizyty.some((x) => x.toLowerCase() === nazwa.toLowerCase());
+          c.addEventListener('change', () => { k.rekwizyty = c.checked ? [...k.rekwizyty, nazwa] : k.rekwizyty.filter((x) => x.toLowerCase() !== nazwa.toLowerCase()); });
+          chipy.append(el('label', { class: 'znacznik' }, c, el('span', { tekst: nazwa })));
+        }
+        rzeczy.append(chipy);
         const kwestie = el('div', { class: 'kwestie' });
         for (const q of k.kwestie) {
           const kto = wybor('postac', [['', t('komiks.rodzaj_narracja')], ...postacie.map((x) => [x, x])], q.postac, t('scenariusz.kto'));
@@ -113,17 +125,18 @@ export async function oknoScenariusza() {
           el('div', { class: 'naglowek-kadru' }, el('b', { tekst: t('komiks.kadrNr', { nr: k.nr }) }), u, m, usunKadr),
           el('label', { class: 'pole opis-kadru' }, el('span', { tekst: t('scenariusz.coWidac') }), opis),
           postacie.length ? wKadrze : null,
+          rekwizyty.length ? rzeczy : null,
           kwestie,
           przycisk(t('scenariusz.dodajKwestie'), 'plus', () => { k.kwestie.push({ postac: postacie[0] || '', tekst: '', rodzaj: postacie.length ? 'mowa' : 'narracja' }); rysuj(); lista.querySelector(`[data-strona="${s.nr}"] [data-kadr="${k.nr}"] .kwestia:last-child input`)?.focus(); }),
         );
         sekcja.append(kadr);
       }
-      sekcja.append(przycisk(t('scenariusz.dodajKadr'), 'kadry', () => { s.kadry.push({ nr: s.kadry.length + 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], opis: '', kwestie: [] }); rysuj(); }));
+      sekcja.append(przycisk(t('scenariusz.dodajKadr'), 'kadry', () => { s.kadry.push({ nr: s.kadry.length + 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], rekwizyty: [], opis: '', kwestie: [] }); rysuj(); }));
       lista.append(sekcja);
     }
     lista.append(przycisk(t('scenariusz.dodajStrone'), 'strony', () => {
       const nr = (strony.at(-1)?.nr || 0) + 1;
-      strony.push({ nr, kadry: [{ nr: 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], opis: '', kwestie: [] }] });
+      strony.push({ nr, kadry: [{ nr: 1, ujecie: '', miejsce: '', wKadrze: [], gra: [], rekwizyty: [], opis: '', kwestie: [] }] });
       rysuj();
     }, 'przycisk'));
   };

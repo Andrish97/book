@@ -1469,3 +1469,4 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .styl-rysunkow:has(input:focus-visible) { outline: 2px solid var(--akcent); outline-offset: 2px; }
 .menu-przycisku button:disabled { opacity: .45; cursor: not-allowed; } .menu-przycisku .uwaga-menu { background: var(--akcent-tlo); color: var(--akcent); }
 .uwaga-ai { margin: 0 0 8px; padding: 8px 10px; border-radius: var(--r-s); background: var(--akcent-tlo); color: var(--akcent); font-size: 13px; }
+.chipy-rekwizytow { display: flex; flex-wrap: wrap; gap: 6px; }

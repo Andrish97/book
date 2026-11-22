@@ -180,7 +180,7 @@ export async function otworzScenariusz({ bezOkna = false } = {}) {
   let tb = scenariuszProjektu();
   if (!tb) {
     zapiszBiezacyCel();
-    tb = { id: `t_scenariusz_${Date.now().toString(36)}`, nazwa: t('komiks.scenariusz'), kolumny: [...KOLUMNY_SCENARIUSZA], wiersze: [['1', '1', '', '', '', '', '', t('komiks.przykladPostac'), t('komiks.przykladTekst'), 'mowa']] };
+    tb = { id: `t_scenariusz_${Date.now().toString(36)}`, nazwa: t('komiks.scenariusz'), kolumny: [...KOLUMNY_SCENARIUSZA], wiersze: [['1', '1', '', '', '', '', '', '', t('komiks.przykladPostac'), t('komiks.przykladTekst'), 'mowa']] };
     p.tabele = [...(p.tabele || []), tb];
     zaplanujZapis();
   }
@@ -397,14 +397,14 @@ export function planKadrowStrony() {
 export async function rysujPozycje(pozycje, { jakosc = 'szkic', postep = () => {}, wynik = { zl: 0, gotowe: 0 } } = {}) {
   for (const x of pozycje) {
     postep(wynik.gotowe + 1);
-    const wzorce = (await Promise.all([...x.postacie.map((q) => q.obraz), x.miejsce?.obraz].filter(Boolean).map(wzorzecKarty))).filter(Boolean);
+    const wzorce = (await Promise.all([...x.postacie.map((q) => q.obraz), x.miejsce?.obraz, ...(x.rekwizyty || []).map((r) => r.obraz)].filter(Boolean).map(wzorzecKarty))).filter(Boolean);
     const o = x.obiekt;
     const w = await generujIWstaw({ opis: x.opis, jakosc, proporcja: proporcjaRamki(o.width * o.scaleX, o.height * o.scaleY), cel: o, wzorce, styl: stylProjektu(stan.projekt), potwierdzono: true });
     wynik.zl += w.zl; wynik.gotowe += 1;
   }
   return wynik;
 }
-export const szacujPozycje = (pozycje, jakosc = 'szkic') => pozycje.reduce((a, x) => a + szacujObraz({ ...JAKOSCI_OBRAZU[jakosc], znakiOpisu: x.opis.length + 300, wzorce: x.postacie.filter((q) => q.obraz).length + (x.miejsce?.obraz ? 1 : 0) }), 0);
+export const szacujPozycje = (pozycje, jakosc = 'szkic') => pozycje.reduce((a, x) => a + szacujObraz({ ...JAKOSCI_OBRAZU[jakosc], znakiOpisu: x.opis.length + 300, wzorce: x.postacie.filter((q) => q.obraz).length + (x.miejsce?.obraz ? 1 : 0) + (x.rekwizyty || []).filter((r) => r.obraz).length }), 0);
 
 // Cała strona komiksu jednym obrazem (C3, E5): jeden obraz z ramkami kadrów narysowanymi przez AI – taniej niż kadr po
 // kadrze i spójniej (jedno światło, jedna kreska). Opisy kadrów w kolejności czytania, układ rzędów z kadrów strony,
@@ -423,7 +423,7 @@ export async function rysujCalaStrone(pozycje, opisy, { jakosc = 'szkic' } = {})
   zapiszBiezacyCel();
   const strona = stan.projekt.strony[stan.indeks];
   const { szerokosc_mm: w, wysokosc_mm: h, spad_mm: spad = 0 } = biezacaSekcja().wydruk;
-  const imiona = [...new Set(pozycje.flatMap((x) => [...x.postacie.map((q) => q.obraz), x.miejsce?.obraz]).filter(Boolean))].slice(0, 6);
+  const imiona = [...new Set(pozycje.flatMap((x) => [...x.postacie.map((q) => q.obraz), x.miejsce?.obraz, ...(x.rekwizyty || []).map((r) => r.obraz)]).filter(Boolean))].slice(0, 6);
   const wzorce = (await Promise.all(imiona.map(wzorzecKarty))).filter(Boolean);
   const wynik = await generujIWstaw({ opis: opisCalejStrony(pozycje, opisy), jakosc, proporcja: proporcjaRamki(w + 2 * spad, h + 2 * spad), wzorce, styl: stylProjektu(stan.projekt), naStrone: false, potwierdzono: true });
   const blob = await (await fetch(await dataUrlZasobu(stan.projekt, wynik.id))).blob();
@@ -454,11 +454,11 @@ export function oknoRysujKadry() {
     const j = JAKOSCI_OBRAZU[f.elements.jakosc.value];
     if (f.elements.cala.checked) {
       // jeden obraz: wszystkie opisy, wzorce wszystkich postaci i miejsc
-      const zl = szacujObraz({ ...j, znakiOpisu: pozycje.reduce((a, x, i) => a + f.elements[`o${i}`].value.length, 400), wzorce: Math.min(6, new Set(pozycje.flatMap((x) => [...x.postacie.map((q) => q.obraz), x.miejsce?.obraz]).filter(Boolean)).size) });
+      const zl = szacujObraz({ ...j, znakiOpisu: pozycje.reduce((a, x, i) => a + f.elements[`o${i}`].value.length, 400), wzorce: Math.min(6, new Set(pozycje.flatMap((x) => [...x.postacie.map((q) => q.obraz), x.miejsce?.obraz, ...(x.rekwizyty || []).map((r) => r.obraz)]).filter(Boolean)).size) });
       dlg.querySelector('.koszt-ai').textContent = t('komiks.rysujKosztStrony', { zl: opisKosztu(zl, biezacyJezyk()) });
       return;
     }
-    const zl = wybrane().reduce((a, i) => a + szacujObraz({ ...j, znakiOpisu: f.elements[`o${i}`].value.length + 300, wzorce: pozycje[i].postacie.filter((q) => q.obraz).length + (pozycje[i].miejsce?.obraz ? 1 : 0) }), 0);
+    const zl = wybrane().reduce((a, i) => a + szacujObraz({ ...j, znakiOpisu: f.elements[`o${i}`].value.length + 300, wzorce: pozycje[i].postacie.filter((q) => q.obraz).length + (pozycje[i].miejsce?.obraz ? 1 : 0) + (pozycje[i].rekwizyty || []).filter((r) => r.obraz).length }), 0);
     dlg.querySelector('.koszt-ai').textContent = t('komiks.rysujKoszt', { ile: wybrane().length, zl: opisKosztu(zl, biezacyJezyk()) });
   };
   f.addEventListener('change', policz);
@@ -579,7 +579,7 @@ export function oknoScenariuszaAi() {
     zapiszBiezacyCel();
     const p = stan.projekt;
     const tb = scenariuszProjektu() || await otworzScenariusz({ bezOkna: true });
-    const w = zapiszScenariusz(p, tb, wynik, { postacie: { nazwa: t('komiks.postacie') }, miejsca: { nazwa: t('komiks.miejsca') } });
+    const w = zapiszScenariusz(p, tb, wynik, { postacie: { nazwa: t('komiks.postacie') }, miejsca: { nazwa: t('komiks.miejsca') }, rekwizyty: { nazwa: t('komiks.rekwizyty') } });
     dopasujKadry(p, wynik);
     await zaladujCel();
     zaplanujZapis();

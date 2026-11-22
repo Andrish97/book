@@ -158,8 +158,8 @@ test('komiks AI: scenariusz z pomysłu i z dokumentu – podgląd, zapis do tabe
     const tb = x.tabele.find((q) => q.kolumny.includes('opis sceny'));
     return { kolumny: tb.kolumny, wiersze: tb.wiersze, postacie: karty(x, 'postacie').map((k) => [k.imie, k.znak, k.wyglad]), miejsca: karty(x, 'miejsca').map((k) => k.nazwa), stron: x.strony.length, kadry: x.strony.map((s) => (s.obiekty || []).filter((o) => o.kadr_nr).length) };
   });
-  assert.deepEqual(p.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
-  assert.deepEqual(p.wiersze[2], ['2', '1', '', '', '', '', 'Kotek w paczce', 'Ala', 'Kotek!', 'mowa'], 'zły rodzaj dymka → mowa');
+  assert.deepEqual(p.kolumny, ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'rekwizyty', 'opis sceny', 'postać', 'tekst', 'rodzaj']);
+  assert.deepEqual(p.wiersze[2], ['2', '1', '', '', '', '', '', 'Kotek w paczce', 'Ala', 'Kotek!', 'mowa'], 'zły rodzaj dymka → mowa');
   assert.deepEqual(p.postacie, [['Ala', 'żółty plecak', 'rude warkocze'], ['Kot Filemon', 'biała łatka', 'rudy kotek']], 'istniejąca karta: puste pola uzupełnione, wypełnione zostają');
   assert.deepEqual(p.miejsca, ['Podwórko']);
   assert.equal(p.stron, 2, 'strona 2 doszła');

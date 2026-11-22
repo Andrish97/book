@@ -3,10 +3,10 @@
 // cechy kadru powtórzone w każdym wierszu kadru, kadr bez kwestii – wiersz bez tekstu), więc dymki (js/dialogi.js),
 // rysowanie kadrów (js/komiks-ai.js), okno Dane i AI działają na tych samych danych. Moduł bez zależności od edytora.
 
-export const KOLUMNY_SCENARIUSZA = ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'opis sceny', 'postać', 'tekst', 'rodzaj'];
+export const KOLUMNY_SCENARIUSZA = ['strona', 'kadr', 'ujęcie', 'miejsce', 'w kadrze', 'emocje i działania', 'rekwizyty', 'opis sceny', 'postać', 'tekst', 'rodzaj'];
 const WARIANTY = {
   strona: ['strona', 'page', 'str', 'сторінка'], kadr: ['kadr', 'panel', 'кадр'], ujecie: ['ujecie', 'shot', 'plan', 'план', 'кадрування'],
-  miejsce: ['miejsce', 'place', 'location', 'місце'], wKadrze: ['w kadrze', 'in panel', 'present', 'у кадрі'], gra: ['emocje i dzialania', 'emocje', 'emotions and actions', 'emotions', 'емоції та дії', 'емоції'], opis: ['opis sceny', 'scena', 'scene', 'opis', 'сцена'],
+  miejsce: ['miejsce', 'place', 'location', 'місце'], wKadrze: ['w kadrze', 'in panel', 'present', 'у кадрі'], gra: ['emocje i dzialania', 'emocje', 'emotions and actions', 'emotions', 'емоції та дії', 'емоції'], rekwizyty: ['rekwizyty', 'props', 'реквізит'], opis: ['opis sceny', 'scena', 'scene', 'opis', 'сцена'],
   postac: ['postac', 'character', 'kto', 'персонаж'], tekst: ['tekst', 'text', 'dialog', 'kwestia', 'текст'], rodzaj: ['rodzaj', 'typ', 'dymek', 'type', 'kind', 'balloon', 'bubble', 'тип', 'вид'],
 };
 const bez = (t) => String(t ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').toLowerCase().trim();
@@ -67,11 +67,12 @@ export function scenariuszZTabeli(tabela) {
     const nrK = Math.max(1, parseInt(v(w, 'kadr'), 10) || 1);
     if (!strony.has(nrS)) strony.set(nrS, new Map());
     const kadry = strony.get(nrS);
-    if (!kadry.has(nrK)) kadry.set(nrK, { nr: nrK, ujecie: '', miejsce: '', wKadrze: [], gra: [], opis: '', kwestie: [] });
+    if (!kadry.has(nrK)) kadry.set(nrK, { nr: nrK, ujecie: '', miejsce: '', wKadrze: [], gra: [], rekwizyty: [], opis: '', kwestie: [] });
     const kd = kadry.get(nrK);
     // cechy kadru – pierwsza niepusta wartość
     kd.ujecie ||= v(w, 'ujecie'); kd.miejsce ||= v(w, 'miejsce'); kd.opis ||= v(w, 'opis');
     for (const imie of v(w, 'wKadrze').split(/[,;]/).map((x) => x.trim()).filter(Boolean)) if (!kd.wKadrze.some((x) => bez(x) === bez(imie))) kd.wKadrze.push(imie);
+    for (const r of v(w, 'rekwizyty').split(/[,;]/).map((x) => x.trim()).filter(Boolean)) if (!kd.rekwizyty.some((x) => bez(x) === bez(r))) kd.rekwizyty.push(r);
     for (const g of graZTekstu(v(w, 'gra'))) if (!kd.gra.some((x) => bez(x.imie) === bez(g.imie))) kd.gra.push(g);
     if (v(w, 'tekst') || v(w, 'postac')) kd.kwestie.push({ postac: v(w, 'postac'), tekst: v(w, 'tekst'), rodzaj: v(w, 'rodzaj') || (v(w, 'postac') ? 'mowa' : 'narracja') });
   }
@@ -103,7 +104,7 @@ export function scenariuszDoTabeli(tabela, strony) {
         const r = [...(stare.get(`${s.nr}|${kd.nr}|${i}`) || tabela.kolumny.map(() => ''))];
         while (r.length < tabela.kolumny.length) r.push('');
         r[k.strona] = String(s.nr); r[k.kadr] = String(kd.nr); r[k.ujecie] = kd.ujecie || ''; r[k.miejsce] = kd.miejsce || '';
-        r[k.wKadrze] = (kd.wKadrze || []).join(', '); r[k.gra] = graDoTekstu(kd.gra); r[k.opis] = kd.opis || '';
+        r[k.wKadrze] = (kd.wKadrze || []).join(', '); r[k.gra] = graDoTekstu(kd.gra); r[k.rekwizyty] = (kd.rekwizyty || []).join(', '); r[k.opis] = kd.opis || '';
         r[k.postac] = q.postac || ''; r[k.tekst] = q.tekst || ''; r[k.rodzaj] = q.tekst || q.postac ? (q.rodzaj || 'mowa') : '';
         wiersze.push(r);
       });

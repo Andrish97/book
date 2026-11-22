@@ -1,4 +1,4 @@
-// Postacie i miejsca komiksu (#368, plan komiksu A9): karty zapisane jako zwykłe tabele projektu – „Postacie”
+// Postacie, miejsca i rekwizyty komiksu (#368, plan komiksu A9, uwaga F6): karty zapisane jako zwykłe tabele projektu – „Postacie”
 // (imię, wygląd, znak rozpoznawczy, charakter, obraz, kolor dymka) i „Miejsca” (miejsce, opis, pora dnia, światło,
 // obraz). Ręcznie wypełnia je okno „Postacie” (karty) albo okno Dane; AI czyta i wypełnia te same tabele (prompty
 // do obrazów składa z opisu i obrazu wzorcowego). Tabele rozpoznawane po kolumnach, nie po nazwie.
@@ -22,6 +22,14 @@ export const RODZAJE_KART = {
     pola: ['nazwa', 'opis', 'pora', 'swiatlo', 'obraz'],
     warianty: [['miejsce', 'place', 'location', 'місце'], ['opis', 'description', 'опис'], ['pora dnia', 'pora', 'time of day', 'time', 'час'],
       ['swiatlo', 'light', 'lighting', 'світло'], ['obraz', 'image', 'зображення']],
+  },
+  // Rekwizyty (uwaga F6): przedmioty, które wracają w wielu kadrach (plecak, latawiec, mapa) – opis i obraz wzorcowy,
+  // „czyj” – postać, do której należy. W scenariuszu wybierane w kadrze; idą do opisu obrazu i jako wzorzec.
+  rekwizyty: {
+    nazwa: 'Rekwizyty',
+    kolumny: ['rekwizyt', 'opis', 'czyj', 'obraz'],
+    pola: ['nazwa', 'opis', 'czyj', 'obraz'],
+    warianty: [['rekwizyt', 'przedmiot', 'prop', 'item', 'реквізит', 'предмет'], ['opis', 'description', 'опис'], ['czyj', 'wlasciciel', 'owner', 'чий', 'власник'], ['obraz', 'image', 'зображення']],
   },
 };
 

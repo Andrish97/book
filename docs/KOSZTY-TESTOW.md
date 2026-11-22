@@ -18,4 +18,6 @@ cennika w js/ai-koszty.js (kurs 4,00 zł/$ – zaokrąglony w górę).
 
 | 22.11.2026 | Cała strona – druga próba po poprawce polecenia (bez pustych ramek na dymki) | gemini-3.1-flash-lite-image 1K | 366 / 1497 | ok. 0,14 zł |
 
-**Suma: ok. 3,55 zł** (budżet po uwagach właściciela: do ok. 20 zł)
+| 22.11.2026 | Miniatury 5 nowych stylów (F5) | gemini-3.1-flash-lite-image 1K | ok. 7500 wyj. | ok. 0,70 zł |
+
+**Suma: ok. 4,25 zł** (budżet po uwagach właściciela: do ok. 20 zł)
