@@ -15,7 +15,7 @@ const { ZESTAW, adresRodziny } = require('./zestaw.cjs');
 
 // Lista rodzin: js/zestaw-czcionek.js. Inter ma też grubości 500 i 600 – używa go interfejs aplikacji.
 const RODZINY = ZESTAW.map((c) => (c.nazwa === 'Inter' ? 'Inter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700' : adresRodziny(c)));
-const ZESTAWY = ['latin', 'latin-ext'];
+const ZESTAWY = ['latin', 'latin-ext', 'cyrillic']; // cyrylica – projekty po ukraińsku (#363)
 const PRZEGLADARKA = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 const katalog = path.join(__dirname, '..', 'css', 'czcionki');
@@ -57,6 +57,21 @@ for (const r of reguly.values()) {
     `  unicode-range: ${r.zakres};`,
     '}',
   );
+}
+// Rodzina bez zestawu latin-ext u Google (np. Comic Neue): polskie litery są tylko w pełnym pliku – na ekranie bierzemy
+// je z pliku TTF do PDF (scripts/pobierz-czcionki-pdf.cjs, te same znaki), żeby edytor wyglądał jak wydruk (#363).
+const ZAKRES_EXT = [...reguly.values()].find((r) => r.zestaw === 'latin-ext')?.zakres;
+for (const r of [...reguly.values()].filter((x) => x.zestaw === 'latin')) {
+  if ([...reguly.values()].some((x) => x.zestaw === 'latin-ext' && x.rodzina === r.rodzina && x.styl === r.styl)) continue;
+  for (const waga of [...new Set(r.wagi)]) {
+    wynik.push(
+      '@font-face {',
+      `  font-family: "${r.rodzina}"; font-style: ${r.styl}; font-weight: ${waga}; font-display: swap;`,
+      `  src: url("czcionki/pdf/${r.rodzina.toLowerCase().replace(/\s+/g, '-')}-${waga}-${r.styl === 'italic' ? 'kursywa' : 'prosta'}.ttf") format("truetype");`,
+      `  unicode-range: ${ZAKRES_EXT};`,
+      '}',
+    );
+  }
 }
 fs.writeFileSync(path.join(__dirname, '..', 'css', 'czcionki.css'), `${wynik.join('\n')}\n`);
 console.log(`${reguly.size} plików, ${(razem / 1024).toFixed(0)} kB`);

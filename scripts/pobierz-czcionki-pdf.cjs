@@ -19,6 +19,7 @@ const STARA_PRZEGLADARKA = 'Mozilla/4.0'; // takiej Google podaje pliki TTF, oso
 let ZNAKI = '';
 for (let c = 0x20; c <= 0x7e; c += 1) ZNAKI += String.fromCodePoint(c);
 for (let c = 0xa0; c <= 0x17f; c += 1) ZNAKI += String.fromCodePoint(c);
+for (let c = 0x400; c <= 0x4ff; c += 1) ZNAKI += String.fromCodePoint(c); // cyrylica – projekty po ukraińsku (#363)
 ZNAKI += '‐‑‒–—‘’‚“”„†‡•…‰′″‹›€№™←↑→↓−●○■□✓★';
 
 const katalog = path.join(__dirname, '..', 'css', 'czcionki', 'pdf');

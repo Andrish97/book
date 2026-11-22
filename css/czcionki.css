@@ -3,6 +3,11 @@
 
 @font-face {
   font-family: "Inter"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/inter-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Inter"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/inter-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -10,6 +15,11 @@
   font-family: "Inter"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/inter-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/inter-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Inter"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -63,6 +73,11 @@
 }
 @font-face {
   font-family: "Montserrat"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/montserrat-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Montserrat"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/montserrat-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -70,6 +85,11 @@
   font-family: "Montserrat"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/montserrat-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Montserrat"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/montserrat-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Montserrat"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -83,6 +103,11 @@
 }
 @font-face {
   font-family: "Nunito"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/nunito-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Nunito"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/nunito-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -90,6 +115,11 @@
   font-family: "Nunito"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/nunito-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Nunito"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/nunito-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Nunito"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -103,6 +133,11 @@
 }
 @font-face {
   font-family: "Open Sans"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/open-sans-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Open Sans"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/open-sans-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -110,6 +145,11 @@
   font-family: "Open Sans"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/open-sans-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Open Sans"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/open-sans-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Open Sans"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -163,6 +203,11 @@
 }
 @font-face {
   font-family: "Raleway"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/raleway-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Raleway"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/raleway-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -170,6 +215,11 @@
   font-family: "Raleway"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/raleway-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Raleway"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/raleway-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Raleway"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -183,6 +233,11 @@
 }
 @font-face {
   font-family: "Roboto"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/roboto-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/roboto-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -190,6 +245,11 @@
   font-family: "Roboto"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/roboto-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Roboto"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/roboto-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Roboto"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -203,6 +263,11 @@
 }
 @font-face {
   font-family: "Source Sans 3"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/source-sans-3-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Source Sans 3"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/source-sans-3-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -210,6 +275,11 @@
   font-family: "Source Sans 3"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/source-sans-3-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Source Sans 3"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/source-sans-3-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Source Sans 3"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -343,6 +413,11 @@
 }
 @font-face {
   font-family: "Fira Sans"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("czcionki/fira-sans-kursywa-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Fira Sans"; font-style: italic; font-weight: 400; font-display: swap;
   src: url("czcionki/fira-sans-kursywa-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -350,6 +425,11 @@
   font-family: "Fira Sans"; font-style: italic; font-weight: 400; font-display: swap;
   src: url("czcionki/fira-sans-kursywa-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Fira Sans"; font-style: italic; font-weight: 700; font-display: swap;
+  src: url("czcionki/fira-sans-kursywa-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Fira Sans"; font-style: italic; font-weight: 700; font-display: swap;
@@ -363,6 +443,11 @@
 }
 @font-face {
   font-family: "Fira Sans"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/fira-sans-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Fira Sans"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/fira-sans-prosta-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -370,6 +455,11 @@
   font-family: "Fira Sans"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/fira-sans-prosta-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Fira Sans"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("czcionki/fira-sans-prosta-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Fira Sans"; font-style: normal; font-weight: 700; font-display: swap;
@@ -383,6 +473,11 @@
 }
 @font-face {
   font-family: "IBM Plex Sans"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/ibm-plex-sans-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "IBM Plex Sans"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/ibm-plex-sans-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -390,6 +485,11 @@
   font-family: "IBM Plex Sans"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/ibm-plex-sans-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/ibm-plex-sans-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -423,6 +523,11 @@
 }
 @font-face {
   font-family: "Oswald"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/oswald-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Oswald"; font-style: normal; font-weight: 400 700; font-display: swap;
   src: url("czcionki/oswald-prosta-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -443,6 +548,11 @@
 }
 @font-face {
   font-family: "Roboto Condensed"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/roboto-condensed-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto Condensed"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/roboto-condensed-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -450,6 +560,11 @@
   font-family: "Roboto Condensed"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/roboto-condensed-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Roboto Condensed"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/roboto-condensed-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Roboto Condensed"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -463,6 +578,11 @@
 }
 @font-face {
   font-family: "Rubik"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/rubik-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Rubik"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/rubik-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -470,6 +590,11 @@
   font-family: "Rubik"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/rubik-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Rubik"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/rubik-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Rubik"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -503,6 +628,11 @@
 }
 @font-face {
   font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/cormorant-garamond-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/cormorant-garamond-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -510,6 +640,11 @@
   font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/cormorant-garamond-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Cormorant Garamond"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/cormorant-garamond-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Cormorant Garamond"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -543,6 +678,11 @@
 }
 @font-face {
   font-family: "EB Garamond"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/eb-garamond-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "EB Garamond"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/eb-garamond-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -550,6 +690,11 @@
   font-family: "EB Garamond"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/eb-garamond-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "EB Garamond"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/eb-garamond-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "EB Garamond"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -583,6 +728,11 @@
 }
 @font-face {
   font-family: "Lora"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/lora-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Lora"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/lora-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -590,6 +740,11 @@
   font-family: "Lora"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/lora-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Lora"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/lora-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Lora"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -603,6 +758,11 @@
 }
 @font-face {
   font-family: "Merriweather"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/merriweather-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Merriweather"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/merriweather-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -610,6 +770,11 @@
   font-family: "Merriweather"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/merriweather-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Merriweather"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/merriweather-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Merriweather"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -623,6 +788,11 @@
 }
 @font-face {
   font-family: "Playfair Display"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/playfair-display-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Playfair Display"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/playfair-display-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -630,6 +800,11 @@
   font-family: "Playfair Display"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/playfair-display-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Playfair Display"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/playfair-display-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Playfair Display"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -643,6 +818,11 @@
 }
 @font-face {
   font-family: "Source Serif 4"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/source-serif-4-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Source Serif 4"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/source-serif-4-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -650,6 +830,11 @@
   font-family: "Source Serif 4"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/source-serif-4-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Source Serif 4"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/source-serif-4-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Source Serif 4"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -673,6 +858,11 @@
 }
 @font-face {
   font-family: "Alegreya"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/alegreya-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Alegreya"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/alegreya-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -680,6 +870,11 @@
   font-family: "Alegreya"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/alegreya-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Alegreya"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/alegreya-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Alegreya"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -693,6 +888,11 @@
 }
 @font-face {
   font-family: "Bitter"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/bitter-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Bitter"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/bitter-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -703,6 +903,11 @@
 }
 @font-face {
   font-family: "Bitter"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/bitter-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Bitter"; font-style: normal; font-weight: 400 700; font-display: swap;
   src: url("czcionki/bitter-prosta-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -710,6 +915,11 @@
   font-family: "Bitter"; font-style: normal; font-weight: 400 700; font-display: swap;
   src: url("czcionki/bitter-prosta-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Caveat"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/caveat-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Caveat"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -743,6 +953,11 @@
 }
 @font-face {
   font-family: "Literata"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/literata-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Literata"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/literata-kursywa-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -750,6 +965,11 @@
   font-family: "Literata"; font-style: italic; font-weight: 400 700; font-display: swap;
   src: url("czcionki/literata-kursywa-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Literata"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/literata-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Literata"; font-style: normal; font-weight: 400 700; font-display: swap;
@@ -763,6 +983,11 @@
 }
 @font-face {
   font-family: "PT Serif"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("czcionki/pt-serif-kursywa-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "PT Serif"; font-style: italic; font-weight: 400; font-display: swap;
   src: url("czcionki/pt-serif-kursywa-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -770,6 +995,11 @@
   font-family: "PT Serif"; font-style: italic; font-weight: 400; font-display: swap;
   src: url("czcionki/pt-serif-kursywa-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "PT Serif"; font-style: italic; font-weight: 700; font-display: swap;
+  src: url("czcionki/pt-serif-kursywa-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "PT Serif"; font-style: italic; font-weight: 700; font-display: swap;
@@ -783,6 +1013,11 @@
 }
 @font-face {
   font-family: "PT Serif"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/pt-serif-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "PT Serif"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/pt-serif-prosta-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -790,6 +1025,11 @@
   font-family: "PT Serif"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/pt-serif-prosta-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "PT Serif"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("czcionki/pt-serif-prosta-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "PT Serif"; font-style: normal; font-weight: 700; font-display: swap;
@@ -803,6 +1043,11 @@
 }
 @font-face {
   font-family: "Roboto Slab"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/roboto-slab-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Roboto Slab"; font-style: normal; font-weight: 400 700; font-display: swap;
   src: url("czcionki/roboto-slab-prosta-400-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -810,6 +1055,11 @@
   font-family: "Roboto Slab"; font-style: normal; font-weight: 400 700; font-display: swap;
   src: url("czcionki/roboto-slab-prosta-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Spectral"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("czcionki/spectral-kursywa-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Spectral"; font-style: italic; font-weight: 400; font-display: swap;
@@ -823,6 +1073,11 @@
 }
 @font-face {
   font-family: "Spectral"; font-style: italic; font-weight: 700; font-display: swap;
+  src: url("czcionki/spectral-kursywa-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Spectral"; font-style: italic; font-weight: 700; font-display: swap;
   src: url("czcionki/spectral-kursywa-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -833,6 +1088,11 @@
 }
 @font-face {
   font-family: "Spectral"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/spectral-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Spectral"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/spectral-prosta-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -840,6 +1100,11 @@
   font-family: "Spectral"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/spectral-prosta-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Spectral"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("czcionki/spectral-prosta-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Spectral"; font-style: normal; font-weight: 700; font-display: swap;
@@ -893,6 +1158,11 @@
 }
 @font-face {
   font-family: "Amatic SC"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/amatic-sc-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Amatic SC"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/amatic-sc-prosta-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -900,6 +1170,11 @@
   font-family: "Amatic SC"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/amatic-sc-prosta-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Amatic SC"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("czcionki/amatic-sc-prosta-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Amatic SC"; font-style: normal; font-weight: 700; font-display: swap;
@@ -912,13 +1187,33 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "Courgette"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("czcionki/courgette-prosta-400-latin-ext.woff2") format("woff2");
+  font-family: "Bangers"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/bangers-prosta-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: "Courgette"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("czcionki/courgette-prosta-400-latin.woff2") format("woff2");
+  font-family: "Bangers"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/bangers-prosta-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Comic Neue"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("czcionki/comic-neue-kursywa-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Comic Neue"; font-style: italic; font-weight: 700; font-display: swap;
+  src: url("czcionki/comic-neue-kursywa-700-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Comic Neue"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/comic-neue-prosta-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Comic Neue"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("czcionki/comic-neue-prosta-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
@@ -933,32 +1228,17 @@
 }
 @font-face {
   font-family: "Great Vibes"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/great-vibes-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Great Vibes"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/great-vibes-prosta-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
   font-family: "Great Vibes"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/great-vibes-prosta-400-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: "JetBrains Mono"; font-style: italic; font-weight: 400 700; font-display: swap;
-  src: url("czcionki/jetbrains-mono-kursywa-400-700-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: "JetBrains Mono"; font-style: italic; font-weight: 400 700; font-display: swap;
-  src: url("czcionki/jetbrains-mono-kursywa-400-700-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400 700; font-display: swap;
-  src: url("czcionki/jetbrains-mono-prosta-400-700-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400 700; font-display: swap;
-  src: url("czcionki/jetbrains-mono-prosta-400-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
@@ -982,14 +1262,9 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "Lobster"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("czcionki/lobster-prosta-400-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: "Lobster"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("czcionki/lobster-prosta-400-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  font-family: "Pacifico"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/pacifico-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "Pacifico"; font-style: normal; font-weight: 400; font-display: swap;
@@ -999,6 +1274,21 @@
 @font-face {
   font-family: "Pacifico"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/pacifico-prosta-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Pangolin"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/pangolin-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Pangolin"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/pangolin-prosta-400-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Pangolin"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/pangolin-prosta-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
@@ -1019,6 +1309,16 @@
 @font-face {
   font-family: "Sacramento"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/sacramento-prosta-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Courgette"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/courgette-prosta-400-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Courgette"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/courgette-prosta-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
@@ -1063,6 +1363,11 @@
 }
 @font-face {
   font-family: "IBM Plex Mono"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("czcionki/ibm-plex-mono-kursywa-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: italic; font-weight: 400; font-display: swap;
   src: url("czcionki/ibm-plex-mono-kursywa-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -1070,6 +1375,11 @@
   font-family: "IBM Plex Mono"; font-style: italic; font-weight: 400; font-display: swap;
   src: url("czcionki/ibm-plex-mono-kursywa-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: italic; font-weight: 700; font-display: swap;
+  src: url("czcionki/ibm-plex-mono-kursywa-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
   font-family: "IBM Plex Mono"; font-style: italic; font-weight: 700; font-display: swap;
@@ -1083,6 +1393,11 @@
 }
 @font-face {
   font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/ibm-plex-mono-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
   src: url("czcionki/ibm-plex-mono-prosta-400-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -1093,6 +1408,11 @@
 }
 @font-face {
   font-family: "IBM Plex Mono"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("czcionki/ibm-plex-mono-prosta-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 700; font-display: swap;
   src: url("czcionki/ibm-plex-mono-prosta-700-latin-ext.woff2") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
@@ -1100,4 +1420,69 @@
   font-family: "IBM Plex Mono"; font-style: normal; font-weight: 700; font-display: swap;
   src: url("czcionki/ibm-plex-mono-prosta-700-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/jetbrains-mono-kursywa-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/jetbrains-mono-kursywa-400-700-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: italic; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/jetbrains-mono-kursywa-400-700-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/jetbrains-mono-prosta-400-700-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/jetbrains-mono-prosta-400-700-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url("czcionki/jetbrains-mono-prosta-400-700-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Lobster"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/lobster-prosta-400-cyrillic.woff2") format("woff2");
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: "Lobster"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/lobster-prosta-400-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Lobster"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/lobster-prosta-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Comic Neue"; font-style: italic; font-weight: 400; font-display: swap;
+  src: url("czcionki/pdf/comic-neue-400-kursywa.ttf") format("truetype");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Comic Neue"; font-style: italic; font-weight: 700; font-display: swap;
+  src: url("czcionki/pdf/comic-neue-700-kursywa.ttf") format("truetype");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Comic Neue"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("czcionki/pdf/comic-neue-400-prosta.ttf") format("truetype");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Comic Neue"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("czcionki/pdf/comic-neue-700-prosta.ttf") format("truetype");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
