@@ -1846,6 +1846,21 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
       },
     },
     {
+      name: 'cofnij_zmiany_ai',
+      title: 'Cofnij zmiany AI',
+      description: 'Przywraca projekt do stanu sprzed ostatniej serii zmian zrobionych przez AI (zapisy AI w odstępach do 15 minut; strony usunięte przez AI wracają, dodane – znikają). Zmiany zrobione później, także przez ludzi, też się cofną. NAJPIERW wywołaj z sprawdz=true i powiedz użytkownikowi, co zostanie cofnięte (od–do, ile zapisów, ile późniejszych zmian); cofaj (sprawdz=false) tylko na jego wyraźną prośbę. Kolejne wywołanie sięga do wcześniejszej serii.',
+      inputSchema: S('', { sprawdz: { type: 'boolean', description: 'true – tylko informacja, co zostałoby cofnięte (nic nie zmienia)' } }),
+      dzialaj: async ({ sprawdz }) => {
+        const w = await rpc('ai_cofnij_zmiany', { p_klucz: KLUCZ, p_tylko_sprawdz: Boolean(sprawdz) });
+        if (w?.blad) throw new BladBazy(w.blad);
+        if (sprawdz) {
+          if (w?.brak) return 'W ostatnich 14 dniach AI nie zmieniało tego projektu – nie ma czego cofnąć.';
+          return `Do cofnięcia: zmiany AI od ${w.od} do ${w.do} (zapisów: ${w.zapisow}).${w.pozniej ? ` Po nich projekt zmieniano jeszcze ${w.pozniej} raz(y) – te zmiany też zostałyby cofnięte.` : ''} Zapytaj użytkownika, zanim cofniesz.`;
+        }
+        return `Cofnięto zmiany AI od ${w.od} do ${w.do} (zapisów: ${w.zapisow}, przywróconych stron: ${w.strony}). Projekt ma wersję ${w.wersja}; otwarta Makietka wczyta ją sama.`;
+      },
+    },
+    {
       name: 'czcionki',
       title: 'Czcionki',
       description: 'Lista czcionek, których można użyć w projekcie (pole fontFamily): wbudowane w Makietkę, pogrupowane według rodzaju, z informacją o pogrubieniu i kursywie, oraz czcionki wgrane do tego projektu. Używaj tylko tych nazw – inna czcionka nie wyświetli się i nie trafi do PDF. Własną czcionkę (plik TTF/OTF) użytkownik wgrywa sam w aplikacji: Czcionki projektu → Wgraj.',

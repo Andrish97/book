@@ -7,6 +7,7 @@
 
 const crypto = require('node:crypto');
 const { atrapaEksportu } = require('./atrapa-eksport.cjs');
+const { atrapaKopii } = require('./atrapa-kopie.cjs');
 
 const CZESCI = ['nazwa', 'sekcje', 'wzorce', 'style', 'tabele', 'serie', 'widok', 'strony', 'usun_strony', 'kolejnosc_stron'];
 const TYPY = ['textbox', 'i-text', 'text', 'rect', 'ellipse', 'circle', 'line', 'polygon', 'polyline', 'path', 'image', 'group', 'triangle'];
@@ -37,6 +38,7 @@ function zasobyWDrzewie(x, wynik = []) {
 }
 
 function atrapaAi(stan) {
+  stan.kopieAwaryjne = stan.kopieAwaryjne || atrapaKopii(stan);
   stan.dostepy = stan.dostepy || [];
   const blad = (status, message) => { throw Object.assign(new Error(message), { status, message }); };
 
@@ -323,6 +325,7 @@ function atrapaAi(stan) {
     }
     if (bledy.length) return { blad: 'Zmiany odrzucone – projekt byłby niespójny.', szczegoly: bledy.slice(0, 20) };
 
+    stan.kopieAwaryjne.zapamietaj(p, 'AI');
     const teraz = new Date().toISOString();
     Object.assign(dane, { strony: kolejnosc, strony_osobno: true, zmieniono: teraz });
     if ('nazwa' in z) dane.nazwa = z.nazwa;
@@ -552,6 +555,12 @@ function atrapaAi(stan) {
     if (funkcja === 'ai_usun_projekt') return aiUsunProjekt(tresc);
     if (funkcja === 'ai_kopiuj_projekt') return aiKopiujProjekt(tresc);
     if (funkcja === 'ai_zapisz') return aiZapisz(tresc);
+    if (funkcja === 'ai_cofnij_zmiany') {
+      const d = sprawdzKlucz(tresc.p_klucz, true);
+      if (d.blad) return d;
+      if (tresc.p_tylko_sprawdz) return stan.kopieAwaryjne.bezKopii(stan.kopieAwaryjne.seria(d.projekt_id)) || { brak: true };
+      return stan.kopieAwaryjne.cofnij(d.projekt_id);
+    }
     // Eksport zlecony przez AI (#175) – wspólny stan z aplikacją (tests/atrapa-eksport.cjs).
     if (funkcja === 'ai_zlec_eksport' || funkcja === 'ai_stan_eksportu') {
       if (funkcja === 'ai_zlec_eksport') { const bz = zakresBrak(tresc.p_klucz, 'eksport'); if (bz) return bz; }

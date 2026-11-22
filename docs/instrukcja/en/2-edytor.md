@@ -57,7 +57,7 @@ The bar above the page inserts new elements (→ 4.1).
 | [Text] | <kbd>T</kbd> | A text frame (→ 5). |
 | [Shapes ▾] | <kbd>R</kbd> <kbd>E</kbd> <kbd>P</kbd> <kbd>L</kbd> <kbd>B</kbd> <kbd>N</kbd> | A menu: **Rectangle**, **Ellipse** (or a circle), **Polygon or star** (you pick the shape first), **Line** (→ 6.1, 6.2), **Freehand drawing** (→ 6.3) and **Pen** – a shape made of points and curves (→ 6.4). While drawing or the pen is active, the button shows its icon – clicking it ends the tool. |
 | [Image] | — | A photo or a graphic (→ 7.1). |
-| [AI ▾] | — | The AI menu: an image from a description, fixing the picture in a frame, improving and translating text, a data column (→ 5.17, 7.11, 14.6); in a comic also the script and the panels (→ 10.13). |
+| [AI ▾] | — | The AI menu: an image from a description, fixing the picture in a frame, improving and translating text, a data column (→ 5.17, 7.11, 14.6); in a comic also the script and the panels (→ 10.13); undoing AI changes (→ 25.9). |
 | [Table] | — | A table with rows and columns (→ 8). |
 | [Library] | — | Ready-made elements: shapes, frames, ornaments, planners, calendars, charts and more (→ 4.8). |
 | [Comment] | — | A comment pinned to a spot on the page or to the selected element (→ 24.7). |

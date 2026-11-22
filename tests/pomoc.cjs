@@ -502,6 +502,15 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       stan.projekty = stan.projekty.filter((p) => p.owner_id !== k?.id);
       return json(r, 200, null);
     }
+    // Cofnięcie zmian AI (migracja 20261122160000_cofnij_zmiany_ai.sql) – kopie awaryjne z tests/atrapa-kopie.cjs.
+    if (sc === '/rest/v1/rpc/zmiany_ai_projektu' || sc === '/rest/v1/rpc/cofnij_zmiany_ai') {
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'JWT', 'PGRST301');
+      if (!['wlasciciel', 'edycja'].includes(rolaW(stan, k, tresc.p_projekt))) return blad(r, 400, 'Brak dostępu do projektu.', 'P0001');
+      const kopie = stan.kopieAwaryjne;
+      if (sc.endsWith('zmiany_ai_projektu')) return json(r, 200, kopie.bezKopii(kopie.seria(tresc.p_projekt)));
+      return json(r, 200, kopie.cofnij(tresc.p_projekt));
+    }
     // Zapis projektu jedną funkcją – ta sama logika co w migracji strony_osobno.
     if (sc === '/rest/v1/rpc/zapisz_projekt') {
       const k = zTokenu(req);
@@ -521,6 +530,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         stan.konflikty += 1;
         return json(r, 200, { konflikt: true, wersja: p.wersja, zmieniono: p.zmieniono });
       }
+      if (p.dane) stan.kopieAwaryjne.zapamietaj(p, 'urządzenie');
       Object.assign(p, { nazwa: tresc.p_nazwa, dane: tresc.p_dane, zmieniono: tresc.p_zmieniono, wersja: p.wersja + 1 });
       for (const x of tresc.p_strony || []) stan.strony.set(`${p.id}/${x.id}`, x.dane);
       const zostaja = new Set(tresc.p_dane.strony.map((id) => `${p.id}/${id}`));

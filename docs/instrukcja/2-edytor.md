@@ -57,7 +57,7 @@ Pasek nad stroną wstawia nowe elementy (→ 4.1).
 | [Tekst] | <kbd>T</kbd> | Ramkę tekstu (→ 5). |
 | [Kształty ▾] | <kbd>R</kbd> <kbd>E</kbd> <kbd>P</kbd> <kbd>L</kbd> <kbd>B</kbd> <kbd>N</kbd> | Menu: **Prostokąt**, **Elipsa** (albo koło), **Wielokąt albo gwiazda** (najpierw wybór kształtu), **Linia** (→ 6.1, 6.2), **Rysowanie odręczne** (→ 6.3) i **Pióro** – kształt z punktów i łuków (→ 6.4). Gdy rysowanie albo pióro działa, przycisk ma jego ikonę – kliknięcie kończy narzędzie. |
 | [Obraz] | — | Zdjęcie albo grafikę (→ 7.1). |
-| [AI ▾] | — | Menu AI: obraz z opisu, poprawa obrazu w ramce, poprawa i tłumaczenie tekstu, kolumna danych (→ 5.17, 7.11, 14.6); w komiksie też scenariusz i kadry (→ 10.13). |
+| [AI ▾] | — | Menu AI: obraz z opisu, poprawa obrazu w ramce, poprawa i tłumaczenie tekstu, kolumna danych (→ 5.17, 7.11, 14.6); w komiksie też scenariusz i kadry (→ 10.13); cofnięcie zmian AI (→ 25.9). |
 | [Tabela] | — | Tabelę z wierszami i kolumnami (→ 8). |
 | [Biblioteka] | — | Gotowe elementy: kształty, ramki, ozdobniki, planery, kalendarze, wykresy i inne (→ 4.8). |
 | [Komentarz] | — | Komentarz przypięty do miejsca na stronie albo do zaznaczonego elementu (→ 24.7). |

@@ -18,7 +18,7 @@ test('telefon: menu ⋯ paska wstawiania – narzędzia, stan na przycisku, kopi
   await strona.tap('[data-akcja="ai-menu"]');
   await strona.waitForSelector('.menu-przycisku [data-wartosc="ustawienia"]');
   assert.deepEqual(await strona.$$eval('.menu-przycisku [data-wartosc]', (l) => l.map((b) => [b.dataset.wartosc, b.disabled])),
-    [['brak-klucza', false], ['obraz', true], ['tekst', true], ['kolumna', true], ['asystent', false], ['ustawienia', false]]);
+    [['brak-klucza', false], ['obraz', true], ['tekst', true], ['kolumna', true], ['asystent', false], ['cofnij', false], ['ustawienia', false]]);
   assert.match(await strona.textContent('.menu-przycisku [data-wartosc="brak-klucza"]'), /Nie masz klucza do generowania obrazów/);
   await strona.keyboard.press('Escape');
 

@@ -186,6 +186,7 @@ export async function menuAi() {
       { ikona: 'kadry', tekst: t('pasekNarzedzi.komiksRysuj'), opis: t('aiMenu.rysujOpis'), wartosc: 'rysuj', wykonaj: () => k.oknoRysujKadry() }] : []), // bez klucza też – okno ma „Kopiuj opisy kadrów” (G3)
     '-',
     { ikona: 'asystent', tekst: t('aiMenu.asystent'), opis: t('aiMenu.asystentOpis'), wartosc: 'asystent', wykonaj: () => akcjaAi('ai-asystent') },
+    { ikona: 'cofnij', tekst: t('aiMenu.cofnij'), opis: t('aiMenu.cofnijOpis'), wartosc: 'cofnij', wykonaj: async () => (await import('./cofnij-ai.js')).oknoCofnijZmianyAi() },
     { ikona: 'klucz', tekst: t('aiMenu.ustawienia'), opis: t('aiMenu.ustawieniaOpis'), wartosc: 'ustawienia', wykonaj: ustawienia },
   ]);
 }

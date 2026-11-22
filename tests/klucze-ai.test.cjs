@@ -228,3 +228,46 @@ test('klucz tylko do odczytu, zmiana zakresu bez zmiany klucza, utrata dostępu 
   assert.deepEqual(zLacznika.sekcje[0].wydruk, zAplikacji.sekcje[0].wydruk);
   assert.deepEqual(Object.keys(zLacznika.strony[0]).sort(), Object.keys(zAplikacji.strony[0]).sort());
 });
+
+test('cofnij zmiany AI (H3): najpierw sprawdzenie, potem cofnięcie serii – strona usunięta wraca, dodana znika, nazwa wraca', async (t) => {
+  const e = await srodowisko(t);
+  const ai = e.mcp(e.klucz({ p_projekty: ['p-1'] }));
+  let w = await ai.wywolaj('cofnij_zmiany_ai', { sprawdz: true });
+  assert.match(w.tekst, /AI nie zmieniało tego projektu/);
+  // Stara seria (sprzed godziny) i nowa: trzy zapisy AI.
+  w = await ai.wywolaj('nazwa_projektu', { nazwa: 'Kalendarz stary' });
+  assert.equal(w.blad, false, w.tekst);
+  e.stan.kopie.at(-1).utworzono -= 60 * 60 * 1000;
+  w = await ai.wywolaj('dodaj_strone', { strona: { id: 's2', nazwa: 'Nowa', sekcja: 'sek1', obiekty: [] } });
+  assert.equal(w.blad, false, w.tekst);
+  w = await ai.wywolaj('usun_strony', { id: ['s1'] });
+  assert.equal(w.blad, false, w.tekst);
+  w = await ai.wywolaj('nazwa_projektu', { nazwa: 'Kalendarz AI' });
+  assert.equal(w.blad, false, w.tekst);
+  // Zapis człowieka po serii – liczony jako „później”.
+  e.stan.kopieAwaryjne.zapamietaj(e.stan.projekty.find((p) => p.id === 'p-1'), 'urządzenie');
+
+  w = await ai.wywolaj('cofnij_zmiany_ai', { sprawdz: true });
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /Do cofnięcia: zmiany AI od .+ \(zapisów: 3\)\. Po nich projekt zmieniano jeszcze 1 raz\(y\)/);
+  assert.equal(e.stan.projekty.find((p) => p.id === 'p-1').nazwa, 'Kalendarz AI', 'sprawdzenie niczego nie zmienia');
+
+  w = await ai.wywolaj('cofnij_zmiany_ai');
+  assert.equal(w.blad, false, w.tekst);
+  assert.match(w.tekst, /Cofnięto zmiany AI od .+ \(zapisów: 3, przywróconych stron: 1\)/);
+  const p = e.stan.projekty.find((x) => x.id === 'p-1');
+  assert.equal(p.nazwa, 'Kalendarz stary');
+  assert.deepEqual([...e.stan.strony.keys()].filter((k) => k.startsWith('p-1/')), ['p-1/s1']);
+  w = await ai.wywolaj('przeglad_projektu');
+  assert.doesNotMatch(w.tekst, /Nowa/);
+  // Kolejne cofnięcie sięga do wcześniejszej serii (zmiana nazwy sprzed godziny).
+  w = await ai.wywolaj('cofnij_zmiany_ai', { sprawdz: true });
+  assert.match(w.tekst, /zapisów: 1/);
+  w = await ai.wywolaj('cofnij_zmiany_ai');
+  assert.equal(e.stan.projekty.find((x) => x.id === 'p-1').nazwa, 'Kalendarz');
+
+  // Klucz tylko do odczytu nie cofa.
+  const czyta = e.mcp(e.klucz({ p_projekty: ['p-1'], p_rola: 'odczyt' }));
+  w = await czyta.wywolaj('cofnij_zmiany_ai', { sprawdz: true });
+  assert.equal(w.blad, true);
+});

@@ -448,6 +448,7 @@ export const akcje = {
     powiadom(t('edytorStart.zapisanoDlaScribusaStron', { stron: w.stron, teksty: w.ile.teksty, ksztalty: w.ile.ksztalty, obrazy: w.ile.obrazy, x: w.czcionki.join(', ') || '–' }));
   },
   'czat-ai': async () => { zamknijMenu(); (await import('./czat-ai.js')).otworzCzatAi(); },
+  'cofnij-ai': async () => { zamknijMenu(); (await import('./cofnij-ai.js')).oknoCofnijZmianyAi(); }, // plan H3
   'wstaw-tekst-z-pliku': async () => { zamknijMenu(); await import('./import-tekstu-okno.js'); $('#plik-tekst').click(); },
   // Specyfikacja dla drukarni (#214): ustawienia oprawy, papieru, materiału i uszlachetnień – tekst i JSON.
   specyfikacja: async () => {

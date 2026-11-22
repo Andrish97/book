@@ -1048,6 +1048,11 @@ async function zapytajOCalyProjekt(p, e) {
       powiadom(t('zapis.nieUdaloSieZapisac', { komunikatBledu: chmura.komunikatBledu(blad) }), true);
     }
   }
+  await zastapWersjaZKonta(p, t('zapis.wczytanoWersjeZKonta'));
+}
+
+// Wersja z konta zastępuje tę na urządzeniu (konflikt – „Wczytaj”, cofnięcie zmian AI – plan H3).
+export async function zastapWersjaZKonta(p, komunikat) {
   try {
     const zKonta = normalizuj(await chmura.wczytajZChmury(p.id));
     zKonta.podstawa_chmury = podstawaProjektu(zKonta);
@@ -1058,9 +1063,11 @@ async function zapytajOCalyProjekt(p, e) {
     stan.projekt = null; // żeby otwarcie nie zapisało porzucanej wersji
     await usunHistorie(zKonta.id); // historia porzucanej wersji nie pasuje do wersji z konta
     await otworzProjekt(zKonta);
-    powiadom(t('zapis.wczytanoWersjeZKonta'));
+    if (komunikat) powiadom(komunikat);
+    return true;
   } catch (blad) {
     stan.konflikt = null;
     stanZapisu('blad', `Nie udało się wczytać wersji z konta: ${chmura.komunikatBledu(blad)}`);
+    return false;
   }
 }

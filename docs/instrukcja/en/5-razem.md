@@ -121,9 +121,10 @@ which you add in the AI app.
 | fill in data tables and set up series | |
 | upload, insert and replace photos | |
 | read comments, reply to them and add its own (→ 24.7) | |
+| undo its latest series of changes – it first tells you what will be undone and asks (→ 25.9) | |
 | request a PDF file or a PNG of a page and give you a download link (→ 25.5) | draw pictures – only the [AI assistant] in Makietka draws them (→ 25.6); an AI app can upload a picture it drew itself |
 | | share the project or invite people (→ 24) |
-| | upload fonts, use the Library or undo changes – undo them in the editor (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) |
+| | upload fonts or use the Library (it knows the font list and picks only from it) |
 | | draw comic panels or place bubbles with one command – the [AI assistant] in Makietka does that |
 
 Write to the AI normally, as you would to a graphic designer: what you want to make, in what format, how many pages, what mood.
@@ -338,6 +339,22 @@ and when the owner revokes your access, the key loses it immediately.
 
 > Note: The connector address contains the key — whoever has it has access to the selected projects. Don't publish
 > it, give the shortest validity that's enough, and revoke the key once the work is done.
+
+## 25.9 Undoing AI changes
+
+If you don't like what the AI changed, undo it in one go – even after the project was closed:
+
+1. In the editor tap [⋯] → [Undo AI changes…] (the same item is in the [AI ▾] menu).
+2. The window tells you when the AI changed the project and how many times it saved.
+3. Tap [Undo AI changes]. The project returns to how it was before: pages the AI deleted come back,
+   pages it added disappear, and the editor shows the restored version right away.
+
+The latest **series** of AI changes is undone – saves made one after another, at most a quarter of an hour apart.
+The next [Undo AI changes…] reaches the earlier series. You can also ask the AI itself to undo: it first
+tells you what will be undone and asks for your OK.
+
+> Note: Changes made after the AI (yours too) are undone as well – the window warns you if there are any. Single
+> steps are undone with the usual [Undo] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>). Changes from the last 14 days can be undone.
 
 # 26. Example: a comic with AI
 

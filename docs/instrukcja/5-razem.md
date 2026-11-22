@@ -121,9 +121,10 @@ który dodajesz w aplikacji AI.
 | wypełniać tabele danych i ustawiać serie | |
 | wgrywać, wstawiać i wymieniać zdjęcia | |
 | czytać komentarze, odpowiadać na nie i dodawać własne (→ 24.7) | |
+| cofnąć swoją ostatnią serię zmian – najpierw mówi, co cofnie, i pyta (→ 25.9) | |
 | zlecić plik PDF albo PNG strony i podać Ci link do pobrania (→ 25.5) | rysować obrazów – rysuje je tylko [Asystent AI] w Makietce (→ 25.6); aplikacja AI może wgrać obraz narysowany u siebie |
 | | udostępniać projektu ani zapraszać osób (→ 24) |
-| | wgrywać czcionek, używać Biblioteki ani cofać zmian – cofniesz je w edytorze (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) |
+| | wgrywać czcionek ani używać Biblioteki (listę czcionek zna i wybiera tylko z niej) |
 | | rysować kadrów komiksu ani ustawiać dymków jednym poleceniem – to robi [Asystent AI] w Makietce |
 
 Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój.
@@ -336,6 +337,22 @@ a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
 
 > Uwaga: Adres łącznika zawiera klucz — kto go ma, ma dostęp do wybranych projektów. Nie publikuj
 > go, dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy.
+
+## 25.9 Cofnięcie zmian AI
+
+Gdy zmiany AI Ci się nie podobają, cofniesz je jednym ruchem – także po zamknięciu projektu:
+
+1. W edytorze stuknij [⋯] → [Cofnij zmiany AI…] (to samo jest w menu [AI ▾]).
+2. Okienko mówi, kiedy AI zmieniało projekt i ile razy zapisało zmiany.
+3. Stuknij [Cofnij zmiany AI]. Projekt wraca do stanu sprzed tych zmian: strony usunięte przez AI wracają,
+   dodane przez AI znikają, a edytor od razu pokazuje przywróconą wersję.
+
+Cofa się ostatnia **seria** zmian AI – zapisy zrobione jeden po drugim, z przerwami najwyżej kwadransa.
+Kolejne [Cofnij zmiany AI…] sięga do wcześniejszej serii. O cofnięcie możesz też poprosić samo AI: najpierw
+powie, co zostanie cofnięte, i zapyta Cię o zgodę.
+
+> Uwaga: Zmiany zrobione po AI (także Twoje) też się cofną – okienko ostrzega, jeśli takie są. Pojedyncze
+> kroki cofasz zwykłym [Cofnij] (<kbd>Ctrl</kbd>+<kbd>Z</kbd>). Cofnąć da się zmiany z ostatnich 14 dni.
 
 # 26. Przykład: komiks z AI
 

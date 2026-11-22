@@ -207,7 +207,7 @@ Pasek nad stroną wstawia nowe elementy (rozdział „4.1 Wstawianie”).
 | **Tekst** | `T` | Ramkę tekstu (rozdział „5 Tekst”). |
 | **Kształty ▾** | `R` `E` `P` `L` `B` `N` | Menu: **Prostokąt**, **Elipsa** (albo koło), **Wielokąt albo gwiazda** (najpierw wybór kształtu), **Linia** (rozdział „6.1 Prostokąt, elipsa i wielokąt”, „6.2 Linia”), **Rysowanie odręczne** (rozdział „6.3 Rysowanie odręczne”) i **Pióro** – kształt z punktów i łuków (rozdział „6.4 Pióro i edycja punktów”). Gdy rysowanie albo pióro działa, przycisk ma jego ikonę – kliknięcie kończy narzędzie. |
 | **Obraz** | — | Zdjęcie albo grafikę (rozdział „7.1 Wstawianie obrazu”). |
-| **AI ▾** | — | Menu AI: obraz z opisu, poprawa obrazu w ramce, poprawa i tłumaczenie tekstu, kolumna danych (rozdział „5.17 Tekst AI: poprawianie i tłumaczenie”, „7.11 Obraz AI”, „14.6 Wypełnij kolumnę z AI”); w komiksie też scenariusz i kadry (rozdział „10.13 Komiks”). |
+| **AI ▾** | — | Menu AI: obraz z opisu, poprawa obrazu w ramce, poprawa i tłumaczenie tekstu, kolumna danych (rozdział „5.17 Tekst AI: poprawianie i tłumaczenie”, „7.11 Obraz AI”, „14.6 Wypełnij kolumnę z AI”); w komiksie też scenariusz i kadry (rozdział „10.13 Komiks”); cofnięcie zmian AI (rozdział „25.9 Cofnięcie zmian AI”). |
 | **Tabela** | — | Tabelę z wierszami i kolumnami (rozdział „8 Tabela”). |
 | **Biblioteka** | — | Gotowe elementy: kształty, ramki, ozdobniki, planery, kalendarze, wykresy i inne (rozdział „4.8 Biblioteka”). |
 | **Komentarz** | — | Komentarz przypięty do miejsca na stronie albo do zaznaczonego elementu (rozdział „24.7 Komentarze”). |
@@ -2478,9 +2478,10 @@ Asystent AI (Claude, ChatGPT i inne) łączy się z Makietką przez **łącznik*
 | wypełniać tabele danych i ustawiać serie |  |
 | wgrywać, wstawiać i wymieniać zdjęcia |  |
 | czytać komentarze, odpowiadać na nie i dodawać własne (rozdział „24.7 Komentarze”) |  |
+| cofnąć swoją ostatnią serię zmian – najpierw mówi, co cofnie, i pyta (rozdział „25.9 Cofnięcie zmian AI”) |  |
 | zlecić plik PDF albo PNG strony i podać Ci link do pobrania (rozdział „25.5 Plik PDF przez AI”) | rysować obrazów – rysuje je tylko **Asystent AI** w Makietce (rozdział „25.6 Asystent AI w Makietce (własny klucz)”); aplikacja AI może wgrać obraz narysowany u siebie |
 |  | udostępniać projektu ani zapraszać osób (rozdział „24 Współpraca”) |
-|  | wgrywać czcionek, używać Biblioteki ani cofać zmian – cofniesz je w edytorze (`Ctrl`+`Z`) |
+|  | wgrywać czcionek ani używać Biblioteki (listę czcionek zna i wybiera tylko z niej) |
 |  | rysować kadrów komiksu ani ustawiać dymków jednym poleceniem – to robi **Asystent AI** w Makietce |
 
 Pisz do AI zwyczajnie, jak do grafika: co chcesz zrobić, w jakim formacie, ile stron, jaki nastrój. Jeśli masz projekt otwarty, zmiany pojawiają się w edytorze po chwili. Zmiany AI łączą się z Twoimi jak zmiany współpracownika (rozdział „24.4 Praca na żywo”).
@@ -2648,6 +2649,18 @@ Adres łącznika (rozdział „25.2 Klucz dla AI”) **otwarty jak zwykła stron
 AI dostaje co najwyżej Twoje uprawnienia: w projekcie, który możesz tylko oglądać, klucz tylko czyta, a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
 
 > **Uwaga:** Adres łącznika zawiera klucz — kto go ma, ma dostęp do wybranych projektów. Nie publikuj go, dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy.
+
+### 25.9 Cofnięcie zmian AI
+
+Gdy zmiany AI Ci się nie podobają, cofniesz je jednym ruchem – także po zamknięciu projektu:
+
+1. W edytorze stuknij **⋯** → **Cofnij zmiany AI…** (to samo jest w menu **AI ▾**).
+2. Okienko mówi, kiedy AI zmieniało projekt i ile razy zapisało zmiany.
+3. Stuknij **Cofnij zmiany AI**. Projekt wraca do stanu sprzed tych zmian: strony usunięte przez AI wracają, dodane przez AI znikają, a edytor od razu pokazuje przywróconą wersję.
+
+Cofa się ostatnia **seria** zmian AI – zapisy zrobione jeden po drugim, z przerwami najwyżej kwadransa. Kolejne **Cofnij zmiany AI…** sięga do wcześniejszej serii. O cofnięcie możesz też poprosić samo AI: najpierw powie, co zostanie cofnięte, i zapyta Cię o zgodę.
+
+> **Uwaga:** Zmiany zrobione po AI (także Twoje) też się cofną – okienko ostrzega, jeśli takie są. Pojedyncze kroki cofasz zwykłym **Cofnij** (`Ctrl`+`Z`). Cofnąć da się zmiany z ostatnich 14 dni.
 
 ## 26. Przykład: komiks z AI
 
