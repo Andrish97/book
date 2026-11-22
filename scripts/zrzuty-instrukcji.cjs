@@ -798,7 +798,7 @@ if (require.main === module) (async () => {
   await kadr(d, 'k-tabela-komorka.png', { obszar: '#panel-inspektor fieldset.kolumna-i-wiersz', margines: 8 });
   // Ustawienia narzędzia: rysowanie odręczne (#115).
   await d.evaluate(() => window.seriodruk.edytor.odznacz());
-  await d.click('[data-akcja="rysuj"]');
+  await d.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="rysuj"]').click()); // przycisk w menu Kształty ▾ (F1)
   await d.waitForTimeout(400);
   await kadr(d, 'k-rysowanie.png', { obszar: ['#panel-inspektor .naglowek-panelu', '#panel-inspektor fieldset:has(> legend:has-text("Pędzel"))'], margines: 8 });
   await d.keyboard.press('Escape');

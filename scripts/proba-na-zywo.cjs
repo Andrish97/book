@@ -134,7 +134,7 @@ const krok = async (nazwa, fn) => {
         const [tam, tu] = [await otwarta(p2), await otwarta(p)];
         if (tam === tu) throw new Error('oba urządzenia mają otwartą tę samą stronę – próba niczego by nie sprawdziła');
         const przed = await p2.evaluate(() => window.seriodruk.stan.projekt.wersja_chmury);
-        await p2.click('[data-akcja="dodaj-prostokat"]');
+        await p2.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
         await p2.waitForFunction((w) => window.seriodruk.stan.projekt.wersja_chmury > w && document.querySelector('#stan-zapisu .tekst')?.textContent === 'Zapisano', przed, { timeout: 40000 });
         const poDrugim = await p2.evaluate(() => window.seriodruk.stan.projekt.wersja_chmury);
         // Urządzenie 1 ma projekt otwarty i nic nie robi: prostokąt z urządzenia 2 ma się u niego pojawić sam,
@@ -147,7 +147,7 @@ const krok = async (nazwa, fn) => {
         const czas = (Date.now() - start) / 1000;
         const jak = czas < 10 ? `na żywo po ${czas.toFixed(1)} s` : `dopiero po ${czas.toFixed(0)} s – KANAŁ NA ŻYWO NIE DZIAŁA, zadziałało sprawdzanie zapasowe`;
         // Potem urządzenie 1 dodaje elipsę na swojej stronie: obie zmiany mają zostać, bez pytania.
-        await p.click('[data-akcja="dodaj-elipse"]');
+        await p.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-elipse"]').click());
         await Promise.race([
           p.waitForFunction((w) => window.seriodruk.stan.projekt.wersja_chmury === w + 1 && document.querySelector('#stan-zapisu .tekst')?.textContent === 'Zapisano', poDrugim, { timeout: 60000 }),
           p.waitForSelector('dialog[open]', { timeout: 60000 }).then(async () => { throw new Error(`aplikacja zapytała zamiast połączyć: ${(await p.textContent('dialog[open]')).replace(/\s+/g, ' ').trim().slice(0, 140)}`); }),
