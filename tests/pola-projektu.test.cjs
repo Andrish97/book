@@ -37,3 +37,36 @@ test('pola z ustawień projektu: format, oprawa, grzbiet, stron bloku, papier, r
   assert.equal(w.rokKal, '2028');
   assert.deepEqual(bledy, []);
 });
+
+// #365: nazwy pól dokumentu po angielsku i ukraińsku działają jak polskie ({page} = {nr}, {номер} = {nr}).
+test('pola dokumentu w innych językach: {page}, {номер}, {page_count} działają jak polskie', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona);
+  const w = await strona.evaluate(async () => {
+    const { zbudujProjekt } = await import('./js/szablony-projektow.js');
+    const { rozwin, wartosciPol } = await import('./js/serie.js');
+    const { POLA_DOKUMENTU, NAZWY_POL, nazwaPola, polePodstawowe, WSZYSTKIE_POLA_DOKUMENTU, podstawWTekscie } = await import('./js/pola.js');
+    const p = await zbudujProjekt('ksiazka-twarda', { nazwa: 'K', odpowiedzi: { stron: '96' } });
+    const ciag = rozwin(p);
+    const egz = ciag.egzemplarze[5];
+    const f = wartosciPol(p, egz, ciag);
+    const nazwy = POLA_DOKUMENTU.map(([n]) => n);
+    // Każde tłumaczenie wskazuje istniejące pole i jest jednoznaczne.
+    const obce = Object.values(NAZWY_POL).flatMap((m) => Object.values(m));
+    return {
+      pary: ['nr', 'liczba_stron', 'sekcja', 'projekt', 'nr_ogolny'].map((n) => [f(n), f(nazwaPola(n, 'en')), f(nazwaPola(n, 'uk'))]),
+      tekst: podstawWTekscie('Page {page} of {page_count} – {номер}/{кількість_сторінок}', null, f).text,
+      kanon: [polePodstawowe('page'), polePodstawowe('номер'), polePodstawowe('dzien')],
+      wszystkieZnane: Object.values(NAZWY_POL).every((m) => Object.keys(m).every((k) => nazwy.includes(k))),
+      bezDubli: new Set(obce).size === obce.length && obce.every((n) => !nazwy.includes(n) || nazwaPola(n, 'uk') === n),
+      znane: ['page', 'номер', 'nr'].every((n) => WSZYSTKIE_POLA_DOKUMENTU.has(n)),
+    };
+  });
+  for (const [pl, en, uk] of w.pary) { assert.equal(en, pl); assert.equal(uk, pl); }
+  assert.match(w.tekst, /^Page \d+ of 96 – \d+\/96$/);
+  assert.deepEqual(w.kanon, ['nr', 'nr', 'dzien']);
+  assert.ok(w.wszystkieZnane);
+  assert.ok(w.bezDubli);
+  assert.ok(w.znane);
+  assert.deepEqual(bledy, []);
+});

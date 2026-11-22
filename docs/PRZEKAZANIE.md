@@ -19,7 +19,7 @@ oczywiste, proste i dobrze opisane w instrukcji.
   ```
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
-  ostatni użyty: **#363**; numery w planie: #364 = tryb Komiks), commit i push.
+  ostatni użyty: **#365**; #364 zarezerwowany dla trybu Komiks), commit i push.
 - Testy: `node --test --test-concurrency=3 tests/*.test.cjs` (pełny przebieg ~45 min; pojedyncze pliki szybko).
   Lint: `npx eslint js` (albo `/opt/node-tools/node_modules/.bin/eslint --no-config-lookup -c eslint.config.mjs <pliki>`).
   Po zmianie listy modułów: `node scripts/moduly-buduj.cjs`; po zmianie rdzenia łącznika AI
@@ -49,7 +49,7 @@ strona|kadr|postać|kolejność – przesunięte zostają).
 
 **W toku (gałąź robocza, jeszcze niepodłączone):** `js/app/komiks-narzedzia.js` (#364) – układy kadrów (okno z 9
 układami, rynna, na spad), podział kadru dwoma kliknięciami, „Scenariusz” (tworzy tabelę i otwiera okno Dane),
-„Ustaw dymki” (z wyborem kolumny języka). Klucze `komiks.*` użyte w tym pliku **trzeba dopisać** do słowników (pl/en/uk).
+„Ustaw dymki” (z wyborem kolumny języka). Klucze `komiks.*` są już w słownikach (pl/en/uk); nowe napisy dopisuj tak samo.
 Brakuje podłączenia (wzór: składanka):
 1. js/typ-sekcji.js – typ `komiks` (nazwa, opis przez t(), ikona 'komentarz', rola 'blok');
 2. js/app/panel-strony.js – `document.body.classList.toggle('w-komiksie', … typSekcji(…) === 'komiks')`;
@@ -69,13 +69,17 @@ Dalej według planu: style „Dialog” i „Efekt dźwiękowy” (A4), karty po
 
 ## Inne otwarte wątki
 
+- **Pełny przebieg testów i scalenie z main**: gałąź ma #363 (czcionki), #365 (pola w językach) i komiks w toku – przed
+  scaleniem puść cały zestaw testów (ostatni pełny: 631/632, przed zmianą czcionek).
 - Rysowanie na serwerze (Cloudflare Browser Rendering) niesprawdzone na żywo – worker „book” potrzebuje powiązań
   PRZEGLADARKA i RYSOWANIE oraz sekretu SUPABASE_SERVICE_ROLE_KEY; bez nich aplikacja rysuje na urządzeniu (bez szkody).
-- Migracja `supabase/migrations/20261121100000_eksport_na_serwerze.sql` – sprawdzić, czy integracja Supabase ją wdrożyła.
-- Urwana wiadomość właściciela: „Rzeczy związane z danymi były wcześniej tylko po polsku, a teraz…” – zapytać rano;
-  do tego czasu sprawdzić okno Dane i pola danych po angielsku i ukraińsku.
-- Tłumaczenie: po ukraińsku style „Tytuł” i „Nagłówek” mają tę samą nazwę („Заголовок”).
-- Zrzuty instrukcji en/uk – workflow „Zrzuty instrukcji” ma je robić; sprawdzić, czy powstały (img/instrukcja/en, uk).
+- Łącznik AI (js/ai-narzedzia-rdzen.js, seriodruk-mcp-rdzen.mjs) zna tylko polskie nazwy pól dokumentu – tekst z {page}
+  oznaczy jako nieznane pole (tylko ostrzeżenie). Do dopisania przy części B.
+- Kolumny kalendarza ({dzien}, {miesiac}, {dzien_tygodnia}…) są po polsku – to nazwy kolumn tabeli. Ewentualnie
+  w przyszłości: nazwy kolumn w języku projektu przy tworzeniu kalendarza.
 - Chwiejne testy (wyżej) – ustabilizować, żeby fałszywe alarmy nie zasłaniały prawdziwych.
 - Przypomnienie co godzinę: ustaw w nowej sesji własne (create_trigger, cron co godzinę, ten sam cel: „wznów pracę
-  według docs/PRZEKAZANIE.md i docs/PLAN-KOMIKS.md”). Stare (w poprzedniej sesji) zostało usunięte.
+  według docs/PRZEKAZANIE.md i docs/PLAN-KOMIKS.md”). Stare zostało usunięte.
+
+Zamknięte 22.11 rano: migracje bazy wdrażają się same przy wypchnięciu na main; zrzuty instrukcji en/uk są (126 + 126);
+pola dokumentu po angielsku/ukraińsku (#365); ukraiński „Tytuł” = „Назва”.

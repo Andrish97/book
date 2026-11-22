@@ -1131,7 +1131,7 @@ In the page list, under the section name, you'll see e.g. “46 of 48 – 2 miss
 
 ## 10.8 Page numbering
 
-You insert the page number with the `{nr}` field — best in a master, so it's on every page (→ 11.7).
+You insert the page number with the `{page}` field — best in a master, so it's on every page (→ 11.7).
 Numbering depends on the section settings (→ 10.4) and counts pages after series repeats. Only
 book block sections are numbered (type **Regular**, **Block**, **Yearly calendar**): the cover, endpapers, dust jacket, insert, backing board
 and separate prints have no numbers and don't shift the numbering — the first page of the block is number 1 even
@@ -1328,7 +1328,7 @@ writing lines**. Instead of inserting them on each page separately, you insert t
 - A master lies **under** the content of every page that has it. You can't select it on the page itself
   or move it — so it won't get shifted by accident.
 - You change it once, and **all** those pages change.
-- The `{nr}` field in a master shows each page's own number: one master, and on the pages 1, 2, 3…
+- The `{page}` field in a master shows each page's own number: one master, and on the pages 1, 2, 3…
 - A page can have several masters at once, e.g. “Grid” under the content and “Page number” at the bottom.
 
 When a master, and when an ordinary element? If something should be **on many pages in the same place** —
@@ -1403,7 +1403,7 @@ Master elements lie **under** the page content. Select an element in the master 
 
 ## 11.7 Fields in a master
 
-Type a text with a field in the master, e.g. `Strona {nr} z {liczba_stron}`, `{sekcja}` or `{rozdzial}`
+Type a text with a field in the master, e.g. `Page {page} of {page_count}`, `{section}` or `{chapter}`
 (the title of the current chapter). Each page will show its own value. The easiest way is to start from a ready-made
 master with a page number (→ 11.3).
 
@@ -1514,9 +1514,9 @@ Flow a long table of contents into another frame, also on the next page (→ 5.7
 A running head is the title of the current chapter in the page footer or header.
 
 1. Open the footer master (→ 11).
-2. In the footer text choose **Insert field** → **{rozdzial}**. You can put the page number next to it: `{rozdzial} – {nr}`.
+2. In the footer text choose **Insert field** → **{chapter}**. You can put the page number next to it: `{chapter} – {page}`.
 
-On each page the field shows the last heading 1 up to that page. `{rozdzial:2}` shows heading 2 – a new chapter resets it.
+On each page the field shows the last heading 1 up to that page. `{chapter:2}` shows heading 2 – a new chapter resets it.
 
 ## 13.5 Footnotes
 

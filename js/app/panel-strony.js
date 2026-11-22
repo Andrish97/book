@@ -5,7 +5,8 @@ import { bokStrony, rozwin, tabelaSerii, tabeleSerii } from '../serie.js';
 import { typSekcji } from '../typ-sekcji.js';
 import { panelPolaczen } from './skladanka-narzedzia.js';
 import { maElementyDoWklejenia, wklejElementy } from './schowek-okno.js';
-import { POLA_DOKUMENTU } from '../pola.js';
+import { POLA_DOKUMENTU, WSZYSTKIE_POLA_DOKUMENTU, nazwaPola } from '../pola.js';
+import { wybranyJezyk } from '../jezyk.js';
 import { $ } from '../ui.js';
 import { ikona } from '../ikony.js';
 import { liczba, stan, biezacyWzorzec, biezacaSekcja, biezacaStrona, edytor, tenSamRozmiar, jednaStrona } from './kontekst.js';
@@ -64,7 +65,7 @@ export function odswiezPasekEdytora() {
 // ---------- Pola: co można wstawić i co jest znane na otwartej stronie ----------
 
 const POLA_USTAWIEN = new Set(['projekt', 'format', 'oprawa', 'grzbiet', 'stron_bloku', 'papier', 'rok_kalendarza']);
-export const NAZWY_POL_DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
+export const NAZWY_POL_DOKUMENTU = WSZYSTKIE_POLA_DOKUMENTU;
 
 // Tabela, z której strona bierze dane (przez swoją serię), albo null.
 export function tabelaStrony(strona) {
@@ -91,8 +92,9 @@ export function polaDoWstawienia() {
     ...dodatkowe.map((t) => ({ grupa: `Tabela dodatkowa serii: ${t.nazwa}`, pola: t.kolumny.map((k) => [`${t.nazwa}.${k}`, '']) })),
     ...reszta.map((t) => ({ grupa: `Tabela: ${t.nazwa}`, pola: t.kolumny.map((k) => [k, '']) })),
     // Pola z ustawień projektu osobną grupą (#209) – łatwo je znaleźć na liście.
-    { grupa: 'Pola dokumentu', pola: POLA_DOKUMENTU.filter(([n]) => !POLA_USTAWIEN.has(n)) },
-    { grupa: 'Z ustawień projektu', pola: POLA_DOKUMENTU.filter(([n]) => POLA_USTAWIEN.has(n)) },
+    // Nazwy pól w języku aplikacji (#365): po angielsku {page}, po ukraińsku {номер} – działają tak samo jak {nr}.
+    { grupa: 'Pola dokumentu', pola: POLA_DOKUMENTU.filter(([n]) => !POLA_USTAWIEN.has(n)).map(([n, o]) => [nazwaPola(n, wybranyJezyk()), o]) },
+    { grupa: 'Z ustawień projektu', pola: POLA_DOKUMENTU.filter(([n]) => POLA_USTAWIEN.has(n)).map(([n, o]) => [nazwaPola(n, wybranyJezyk()), o]) },
   ];
 }
 

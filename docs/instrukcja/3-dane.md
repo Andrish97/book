@@ -112,6 +112,8 @@ Pola dokumentu wynikają z samego projektu i działają na każdej stronie, tak�
 
 {{tabela-pol}}
 
+Nazwy pól dokumentu działają w każdym języku aplikacji: `{nr}`, `{page}` i `{номер}` to to samo pole. Lista **Wstaw pole** podaje nazwy w języku, który masz wybrany; projekt otwarty w innym języku liczy się tak samo.
+
 Pola **z ustawień projektu** — `{format}`, `{oprawa}`, `{grzbiet}`, `{stron_bloku}`, `{papier}`,
 `{rok_kalendarza}` (i `{projekt}`) — nie wymagają wpisywania: biorą wartość z ustawień sekcji, okładki i kalendarza
 i zmieniają się razem z nimi, np. stopka redakcyjna „Format {format}, oprawa {oprawa}, {stron_bloku} stron”. Na liście

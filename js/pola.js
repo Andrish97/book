@@ -62,6 +62,34 @@ export const POLA_DOKUMENTU = [
   ['przypis', 'Numer przypisu dolnego – wstawia „Wstaw przypis”'],
 ];
 
+// Nazwy pól dokumentu w innych językach (#365): {page} i {номер} działają jak {nr}. W tekście zostaje to, co wpisano
+// (projekt otwarty w innym języku dalej działa); lista „Wstaw pole” i instrukcja pokazują nazwy w języku aplikacji.
+export const NAZWY_POL = {
+  en: {
+    nr: 'page', nr_ogolny: 'page_overall', nr_w_sekcji: 'page_in_section', liczba_stron: 'page_count',
+    liczba_stron_sekcji: 'section_page_count', sekcja: 'section', nr_sekcji: 'section_no', strona: 'page_name',
+    projekt: 'project', oprawa: 'binding', grzbiet: 'spine', stron_bloku: 'block_pages', papier: 'paper',
+    rok_kalendarza: 'calendar_year', seria: 'series', egzemplarz: 'copy', liczba_egzemplarzy: 'copy_count',
+    data: 'date', rok: 'year', poczatek: 'start', koniec: 'end', nr_strony: 'page_of', rozdzial: 'chapter',
+    przypis: 'footnote',
+  },
+  uk: {
+    nr: 'номер', nr_ogolny: 'номер_загальний', nr_w_sekcji: 'номер_у_розділі', liczba_stron: 'кількість_сторінок',
+    liczba_stron_sekcji: 'сторінок_розділу', sekcja: 'розділ', nr_sekcji: 'номер_розділу', strona: 'сторінка',
+    projekt: 'проєкт', format: 'формат', oprawa: 'палітурка', grzbiet: 'корінець', stron_bloku: 'сторінок_блоку',
+    papier: 'папір', rok_kalendarza: 'рік_календаря', seria: 'серія', egzemplarz: 'примірник',
+    liczba_egzemplarzy: 'кількість_примірників', data: 'дата', rok: 'рік', poczatek: 'початок', koniec: 'кінець',
+    nr_strony: 'номер_сторінки', rozdzial: 'глава', przypis: 'виноска',
+  },
+};
+const PODSTAWOWE = new Map(Object.values(NAZWY_POL).flatMap((m) => Object.entries(m).map(([pl, obca]) => [obca, pl])));
+// Nazwa pola w dowolnym języku → nazwa podstawowa (polska); inne nazwy bez zmian.
+export const polePodstawowe = (nazwa) => PODSTAWOWE.get(nazwa) ?? nazwa;
+// Nazwa podstawowa → nazwa w danym języku (pl albo brak tłumaczenia: bez zmian).
+export const nazwaPola = (nazwa, jezyk) => NAZWY_POL[jezyk]?.[nazwa] ?? nazwa;
+// Wszystkie nazwy pól dokumentu we wszystkich językach.
+export const WSZYSTKIE_POLA_DOKUMENTU = new Set([...POLA_DOKUMENTU.map(([n]) => n), ...PODSTAWOWE.keys()]);
+
 // Zapisy liczb po dwukropku: {nr:I}, {nr:000}, {egzemplarz:a}…
 export const ZAPISY_LICZB = [
   ['', '1, 2, 3'],

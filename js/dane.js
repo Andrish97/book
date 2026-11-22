@@ -7,7 +7,7 @@ import { nowaTabela, normalizujTabele, nowaSeria } from './projekt.js';
 import { wczytajPlik, parsujTekst, doCsv, doXlsx, zmienNazwePola, zmienNazweTabeliWPolach } from './tabele.js';
 import { kolumnySerii, brakujaceKolumny, szablonSerii, powtorzenia, opisKroku, spozaListy } from './kontrola.js';
 import { blokiSerii, bilansSerii, tabeleSerii, polePoTabelach, kolumnyZmiany, zapisZmiany, wierszPomijany, ZNACZNIK_POMIJANIA } from './serie.js';
-import { POLA_DOKUMENTU } from './pola.js';
+import { WSZYSTKIE_POLA_DOKUMENTU } from './pola.js';
 import { $, powiadom, potwierdz, pobierz, bezpiecznaNazwa } from './ui.js';
 import { wstawIkony } from './ikony.js';
 import { zPostepem } from './postep.js';
@@ -319,7 +319,7 @@ export class Dane {
       powiadom(tt('dane.kolumnaJuzJestW', { nowa }), true);
       return;
     }
-    if (POLA_DOKUMENTU.some(([nazwa]) => nazwa === nowa)) {
+    if (WSZYSTKIE_POLA_DOKUMENTU.has(nowa)) {
       powiadom(tt('dane.uwagaToTakzeNazwa', { nowa }));
     }
     // Samo {stara} poprawiamy tylko tam, gdzie bierze dane z tej tabeli: na stronach serii, w których

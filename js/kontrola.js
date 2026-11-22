@@ -4,7 +4,7 @@
 import { uwagiSkladanki } from './skladanka.js';
 import { sprawdzPopup } from './makieta-3d.js';
 import { opisWykonczenia } from './materialy.js';
-import { polaWObiektach, POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie, znajdzPola } from './pola.js';
+import { polaWObiektach, WSZYSTKIE_POLA_DOKUMENTU, WARTOSCI_KADRU, podstawWTekscie, znajdzPola } from './pola.js';
 import { normalizujKod, uwagiKodu } from './kody.js';
 import { wzorceStrony } from './projekt.js';
 import { blokiSerii, tabelaSerii, tabeleSerii, tabeleDodatkowe, polePoTabelach, bilansSerii, rozwin, wartosciPol, kolumnyZmiany, wierszPomijany, wierszyZDanymi, ZNACZNIK_POMIJANIA } from './serie.js';
@@ -16,7 +16,7 @@ import { tacKoloru, silnikTac, LIMIT_TAC } from './separacje.js';
 import { indeksKsiazki, uzywaKsiazki } from './ksiazka.js';
 import { t as tt } from './jezyk.js';
 
-const DOKUMENTU = new Set(POLA_DOKUMENTU.map(([nazwa]) => nazwa));
+const DOKUMENTU = WSZYSTKIE_POLA_DOKUMENTU;
 
 function obrazyZPol(obiekty, zbior = new Set()) {
   for (const o of obiekty || []) {

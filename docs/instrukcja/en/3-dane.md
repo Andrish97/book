@@ -112,9 +112,11 @@ Document fields come from the project itself and work on every page, masters inc
 
 {{tabela-pol}}
 
-Fields **from project settings** — `{format}`, `{oprawa}`, `{grzbiet}`, `{stron_bloku}`, `{papier}`,
-`{rok_kalendarza}` (and `{projekt}`) — need no typing in: they take their value from the section, cover and calendar settings
-and change along with them, e.g. an imprint line “Format {format}, binding {oprawa}, {stron_bloku} pages”. In the
+Document field names work in every app language: `{page}`, `{nr}` (Polish) and `{номер}` (Ukrainian) are the same field. **Insert field** lists the names in the language you have chosen; a project opened in another language is calculated the same way.
+
+Fields **from project settings** — `{format}`, `{binding}`, `{spine}`, `{block_pages}`, `{paper}`,
+`{calendar_year}` (and `{project}`) — need no typing in: they take their value from the section, cover and calendar settings
+and change along with them, e.g. an imprint line “Format {format}, binding {binding}, {block_pages} pages”. In the
 **Insert field** list they're in a separate group, **From project settings**. When the project has no cover or calendar, the field is empty.
 
 When a table column has the same name as a document field, the column wins on that table's pages.
@@ -233,7 +235,7 @@ color or the whole gradient in shades.
 
 | Setting | Meaning |
 |---|---|
-| **Horizontal offset from field**, **Vertical offset from field** | A field with a number — a table column or e.g. `{egzemplarz}` (the repeat number). |
+| **Horizontal offset from field**, **Vertical offset from field** | A field with a number — a table column or e.g. `{copy}` (the repeat number). |
 | **Field value is** | **position number** — the element moves by the **Step** (mm) for each position; **Restart every** N goes back to the start. Or **offset in mm** — the number from the table taken directly. |
 | **Width from field**, **Height from field** | The value is a **percentage of the template size (100 = unchanged)** or a **size in mm**. **When resizing, keep in place** — which side or corner stays put. |
 | **Rotation from field (degrees)** | An angle added to the template's rotation, e.g. a clock hand that's different on each page. |

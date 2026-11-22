@@ -198,6 +198,6 @@ changes made on this device; changes by other people and AI stay.
   - **Scribus** – an SLA template with `%VAR_imie%` variables for the ScribusGenerator plugin and `dane.csv`;
   - **Word / Publisher** – text in DOCX with real merge fields and `dane.xlsx` (Mailings → Select
     Recipients → Use an Existing List).
-  Document fields (`{nr}`, `{sekcja}`…) are already calculated. The `CZYTAJ-MNIE.txt` file in the package explains step by step what to do next,
+  Document fields (`{page}`, `{section}`…) are already calculated. The `CZYTAJ-MNIE.txt` file in the package explains step by step what to do next,
   and at the end it has the same description of “what transferred and how”.
   The other way round: text from Word with merge fields (Insert text from file) comes in with `{imie}` fields.

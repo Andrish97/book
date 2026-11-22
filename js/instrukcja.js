@@ -9,7 +9,7 @@
 
 import { wstawIkony } from './ikony.js';
 import { SKROTY, opisKlawiszy } from './skroty.js';
-import { POLA_DOKUMENTU, ZAPISY_LICZB } from './pola.js';
+import { POLA_DOKUMENTU, ZAPISY_LICZB, nazwaPola } from './pola.js';
 import { czyCiemny } from './motyw.js';
 import { biezacyJezyk, t as tt } from './jezyk.js';
 import { CZESCI as CZESCI_PL, ROZDZIALY as ZRODLO_PL } from './instrukcja-tresc.js';
@@ -39,8 +39,8 @@ export const tekstRozdzialu = (r) => naTekst(`${r.tytul} ${r.sekcje.map((s) => `
 const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 function tabelaPol() {
-  const pola = POLA_DOKUMENTU.map(([nazwa, opis]) => `<tr><td><code>{${nazwa}}</code></td><td>${opis.replace(/\{[^}]+\}/g, (m) => `<code>${m}</code>`)}</td></tr>`).join('');
-  const zapisy = ZAPISY_LICZB.map(([zapis, opis]) => `<tr><td><code>{nr${zapis ? `:${zapis}` : ''}}</code></td><td>${opis}</td></tr>`).join('');
+  const pola = POLA_DOKUMENTU.map(([nazwa, opis]) => `<tr><td><code>{${nazwaPola(nazwa, jezykTresci)}}</code>${nazwaPola(nazwa, jezykTresci) !== nazwa ? ` <small>(<code>{${nazwa}}</code>)</small>` : ''}</td><td>${opis.replace(/\{[^}]+\}/g, (m) => `<code>${m}</code>`)}</td></tr>`).join('');
+  const zapisy = ZAPISY_LICZB.map(([zapis, opis]) => `<tr><td><code>{${nazwaPola('nr', jezykTresci)}${zapis ? `:${zapis}` : ''}}</code></td><td>${opis}</td></tr>`).join('');
   return `<div class="tabela-instrukcji"><table><thead><tr><th>${tt('instrukcja.pole')}</th><th>${tt('instrukcja.znaczenie')}</th></tr></thead><tbody>${pola}</tbody></table></div>`
     + `<h4>${tt('instrukcja.zapisLiczby')}</h4><div class="tabela-instrukcji"><table><thead><tr><th>${tt('instrukcja.zapis')}</th><th>${tt('instrukcja.znaczenie')}</th></tr></thead><tbody>${zapisy}</tbody></table></div>`;
 }

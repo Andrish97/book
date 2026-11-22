@@ -31,7 +31,7 @@
 // wydruku, z numerami, stroną rozkładówki i wierszem danych.
 
 import { sekcjaStrony } from './projekt.js';
-import { zapiszLiczbe } from './pola.js';
+import { zapiszLiczbe, polePodstawowe } from './pola.js';
 import { poleKsiazki } from './ksiazka.js';
 import { pozaNumeracja as bezNumerow } from './typ-sekcji.js';
 import { t as tt } from './jezyk.js';
@@ -366,6 +366,7 @@ export function wartosciPol(projekt, egz, ciag) {
       const v = zrodla.find((z) => z.tabela === pole.tabela).wiersz?.[pole.kolumna] ?? '';
       return zapis && /^\d+$/.test(v) ? zapiszLiczbe(Number(v), zapis) : v;
     }
+    nazwa = polePodstawowe(nazwa); // {page}, {номер} = {nr} (#365)
     switch (nazwa) {
       case 'nr': return liczba(egz.nr, zapis);
       case 'nr_ogolny': return liczba(egz.indeks + 1, zapis);
