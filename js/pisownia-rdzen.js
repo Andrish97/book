@@ -153,7 +153,7 @@ export class Pisownia {
 }
 
 // Słowa do sprawdzenia w tekście: [{ start, koniec, slowo }]. Pomija pola {…}, liczby, adresy (www, @, ://),
-// słowa z cyframi i pojedyncze litery.
+// słowa z cyframi, słowa spoza alfabetu łacińskiego i pojedyncze litery.
 export function slowaWTekscie(tekst) {
   const t = String(tekst || '');
   const pomin = [];
@@ -163,6 +163,8 @@ export function slowaWTekscie(tekst) {
     const start = m.index;
     const koniec = start + m[0].length;
     if (m[0].length < 2 || /\p{N}/u.test(m[0])) continue;
+    // Słownik jest polski: słowa w innym piśmie (np. ukraińskie dymki komiksu cyrylicą) nie są błędami (#368).
+    if (/[^\p{Script=Latin}\-'’]/u.test(m[0])) continue;
     if (pomin.some(([a, b]) => start < b && koniec > a)) continue;
     wynik.push({ start, koniec, slowo: m[0] });
   }

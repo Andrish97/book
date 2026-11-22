@@ -144,6 +144,7 @@ test('komiks: szablon projektu – okładka zeszytowa, strony z kadrami, scenari
     };
   });
   assert.deepEqual(p.sekcje, ['okladka', 'komiks']);
+  assert.deepEqual(await strona.evaluate(async () => { const m = await import('./js/postacie.js'); const x = window.seriodruk.stan.projekt; return [m.karty(x, 'postacie').map((k) => k.imie), m.karty(x, 'miejsca').map((k) => k.nazwa)]; }), [['Ala', 'Ola'], ['Miasteczko']], 'przykładowe karty');
   assert.equal(p.stron, 24);
   assert.deepEqual(p.format, [170, 260]);
   assert.deepEqual(p.kadry, [3, 4, 4], 'pierwsza strona – duży kadr i dwa mniejsze, dalej 2 × 2');
@@ -203,5 +204,67 @@ test('komiks: style „Dialog” i „Efekt dźwiękowy” – dymki ze scenariu
     return o.styl === p.style.find((s) => s.komiks === 'dialog').id;
   });
   assert.equal(zeScenariusza, true);
+  assert.deepEqual(bledy, []);
+});
+
+test('komiks: karty postaci i miejsc – dodanie z obrazem i kolorem dymka, tabela, kolor w dymkach, poprawka, usunięcie (#368)', async (t) => {
+  const { PNG_2X2 } = require('./pomoc.cjs');
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Postacie');
+  await strona.evaluate(async () => { window.seriodruk.stan.projekt.sekcje[0].typ = 'komiks'; await window.seriodruk.przeladuj(); });
+  await strona.click('[data-akcja="komiks-postacie"]');
+  const dlg = strona.locator('#dlg-postacie');
+  await dlg.waitFor();
+  assert.equal(await dlg.locator('.karta-komiksu:not(.dodaj)').count(), 0, 'na początku bez kart');
+  // Nowa postać: imię, wygląd, znak, obraz wzorcowy z urządzenia, kolor dymka.
+  await dlg.locator('[data-akcja-karty="dodaj-postacie"]').click();
+  await dlg.locator('input[name="imie"]').fill('Ala');
+  await dlg.locator('textarea[name="wyglad"]').fill('8 lat, rude warkocze');
+  await dlg.locator('input[name="znak"]').fill('żółty plecak');
+  await dlg.locator('input[name="plik"]').setInputFiles({ name: 'ala.png', mimeType: 'image/png', buffer: PNG_2X2 });
+  await dlg.locator('.obraz-karty img').waitFor();
+  await dlg.locator('input[name="kolor"]').evaluate((e) => { e.value = '#ffeeaa'; });
+  await dlg.locator('button[value="zapisz"]').click();
+  await dlg.locator('.karta-komiksu:not(.dodaj)').first().waitFor();
+  assert.match(await dlg.locator('.karta-komiksu:not(.dodaj)').first().textContent(), /Ala.*żółty plecak/);
+  // Miejsce.
+  await dlg.locator('[data-akcja-karty="dodaj-miejsca"]').click();
+  await dlg.locator('input[name="nazwa"]').fill('Rynek');
+  await dlg.locator('textarea[name="opis"]').fill('brukowany plac z fontanną');
+  await dlg.locator('button[value="zapisz"]').click();
+  await dlg.locator('.karty-komiksu[data-rodzaj="miejsca"] .karta-komiksu:not(.dodaj)').waitFor();
+  const tabele = await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.map((tb) => ({ nazwa: tb.nazwa, kolumny: tb.kolumny, wiersze: tb.wiersze })));
+  const postacie = tabele.find((x) => x.nazwa === 'Postacie');
+  assert.deepEqual(postacie.kolumny, ['imię', 'wygląd', 'znak rozpoznawczy', 'charakter', 'obraz', 'kolor dymka']);
+  assert.deepEqual(postacie.wiersze, [['Ala', '8 lat, rude warkocze', 'żółty plecak', '', 'ala.png', '#ffeeaa']]);
+  assert.deepEqual(tabele.find((x) => x.nazwa === 'Miejsca').wiersze[0].slice(0, 2), ['Rynek', 'brukowany plac z fontanną']);
+  assert.equal(await strona.evaluate(() => Object.values(window.seriodruk.stan.projekt.zasoby).some((z) => z.nazwa === 'ala.png')), true, 'obraz wzorcowy w obrazach projektu');
+  await dlg.locator('button[value="zamknij"]').click();
+
+  // Dymki Ali ze scenariusza mają kolor z karty.
+  await strona.click('[data-akcja="komiks-scenariusz"]');
+  await strona.keyboard.press('Escape');
+  await strona.evaluate(() => {
+    const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('rodzaj'));
+    tb.wiersze = [['1', '1', 'Ala', 'Cześć!', 'mowa', ''], ['1', '1', 'Ola', 'Hej!', 'mowa', '']];
+  });
+  await strona.click('[data-akcja="komiks-dymki"]');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.z_dialogu).length === 2);
+  const kolory = await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.z_dialogu).map((o) => [o.text, o.dymek.wypelnienie]));
+  assert.deepEqual(kolory, [['Cześć!', '#ffeeaa'], ['Hej!', '#ffffff']]);
+
+  // Poprawka karty (opis) i usunięcie.
+  await strona.click('[data-akcja="komiks-postacie"]');
+  await dlg.locator('.karta-komiksu:not(.dodaj)').first().click();
+  assert.equal(await dlg.locator('input[name="imie"]').inputValue(), 'Ala');
+  await dlg.locator('input[name="charakter"]').fill('odważna');
+  await dlg.locator('button[value="zapisz"]').click();
+  await dlg.locator('.karty-komiksu').first().waitFor();
+  assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.tabele.find((x) => x.nazwa === 'Postacie').wiersze[0][3]), 'odważna');
+  await dlg.locator('.karty-komiksu[data-rodzaj="miejsca"] .karta-komiksu:not(.dodaj)').click();
+  await dlg.locator('[data-akcja-karty="usun"]').click();
+  await strona.click('#potwierdz-tak');
+  await dlg.locator('.karty-komiksu[data-rodzaj="miejsca"]').waitFor();
+  assert.equal(await dlg.locator('.karty-komiksu[data-rodzaj="miejsca"] .karta-komiksu:not(.dodaj)').count(), 0);
   assert.deepEqual(bledy, []);
 });

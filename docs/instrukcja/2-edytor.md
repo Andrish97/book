@@ -1337,6 +1337,7 @@ W sekcji komiksu pasek wstawiania ma dodatkowe narzędzia:
 | [Podziel kadr] | Kliknij dwa punkty – linia między nimi dzieli kadr na dwa (może być ukośna), z tym samym odstępem. <kbd>Esc</kbd> przerywa. |
 | [Scenariusz] | Otwiera tabelę scenariusza w oknie **Dane** (→ 14). Gdy jej nie ma – tworzy ją. |
 | [Ustaw dymki] | Stawia dymki z tekstami ze scenariusza na stronach, w odpowiednich kadrach. |
+| [Postacie] | Karty postaci i miejsc – kto występuje w komiksie i gdzie dzieje się akcja. |
 
 ![Okno Kadry – 9 gotowych układów](k-komiks-kadry.png)
 
@@ -1369,6 +1370,20 @@ Scenariusz wpiszesz w oknie **Dane** albo wkleisz z arkusza (→ 14.3).
    zostają na swoim miejscu. Wiersz usunięty ze scenariusza usuwa swój dymek.
 
 **Style komiksu.** Dymki z [Dymek] i [Ustaw dymki] mają styl **Dialog** (Comic Neue, wersaliki, wyśrodkowany), a [Efekt] – styl **Efekt dźwiękowy** (Bangers, żółty z czarnym obrysem). Style dochodzą do projektu przy pierwszym użyciu; zmiana stylu (→ 5.4) zmienia naraz wszystkie dymki albo efekty. W projekcie po ukraińsku oba style mają czcionkę Pangolin – Comic Neue i Bangers nie mają cyrylicy.
+
+**Postacie i miejsca.** [Postacie] otwiera karty: dla postaci **Imię**, **Wygląd**, **Znak rozpoznawczy**, **Charakter**, **Obraz wzorcowy** (rysunek albo zdjęcie z urządzenia – trafia do obrazów projektu) i **Kolor dymka**; dla miejsca **Miejsce**, **Opis**, **Porę dnia**, **Światło** i obraz. Opisz postać raz – opis i obraz to wzór do każdej sceny (dla Ciebie, rysownika albo generatora obrazów). Szablon **Komiks** ma przykładowe karty Ali, Oli i miasteczka.
+
+![Karty postaci i miejsc](k-komiks-postacie.png)
+
+1. Kliknij [Postacie], potem **Dodaj postać**.
+2. Wpisz imię i wygląd, np. „8 lat, rude warkocze, zielona sukienka”.
+3. [Wybierz obraz…] – rysunek postaci z urządzenia.
+4. Ustaw **Kolor dymka**, jeśli dymki tej postaci mają się wyróżniać (biały – zwykły dymek), i kliknij [Zapisz].
+5. [Ustaw dymki] – dymki postaci o tym imieniu w scenariuszu dostają jej kolor.
+
+![Karta postaci](k-komiks-postac.png)
+
+Karty to zwykłe tabele **Postacie** i **Miejsca** – zobaczysz je też w oknie **Dane**. Kliknięcie karty otwiera ją do poprawki; [Usuń] usuwa kartę (dymki i obrazy na stronach zostają).
 
 **Wersje językowe.** Dodaj do scenariusza kolumny `tekst_pl`, `tekst_en`, `tekst_uk` (każda z tekstem w jednym
 języku). [Ustaw dymki] zapyta wtedy, z której kolumny wziąć teksty – ten sam układ dostaje teksty w innym języku.

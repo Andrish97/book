@@ -542,6 +542,7 @@ export const akcje = {
   'komiks-podziel': () => obsluzAkcjeKomiksu('komiks-podziel'),
   'komiks-scenariusz': () => obsluzAkcjeKomiksu('komiks-scenariusz'),
   'komiks-dymki': () => obsluzAkcjeKomiksu('komiks-dymki'),
+  'komiks-postacie': () => obsluzAkcjeKomiksu('komiks-postacie'),
   'dodaj-elipse': () => edytor.dodajElipse(),
   'dodaj-linie': () => edytor.dodajLinie(),
   'dodaj-wielokat': () => otworzWyborWielokata(),

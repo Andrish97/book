@@ -358,6 +358,17 @@ body.w-komiksie .pasek-narzedzi .tylko-komiks { display: inline-flex; }
 .uklad-kadrow input { position: absolute; opacity: 0; pointer-events: none; }
 .uklad-kadrow:has(input:checked) { border-color: var(--akcent); background: var(--akcent-tlo); }
 .uklad-kadrow:has(input:focus-visible) { outline: 2px solid var(--akcent); outline-offset: 2px; }
+/* Okno „Postacie i miejsca” (#368): karty z obrazem wzorcowym */
+.okno-postaci .formularz { width: min(640px, 100%); }
+.karty-komiksu { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; margin: 6px 0 14px; }
+.karta-komiksu { display: flex; flex-direction: column; gap: 4px; align-items: stretch; text-align: left; padding: 8px; border: 1px solid var(--linia); border-left: 4px solid var(--kolor-karty, var(--linia)); border-radius: var(--r-s); background: var(--powierzchnia); color: var(--tusz); cursor: pointer; font: inherit; min-height: 44px; }
+.karta-komiksu:hover { border-color: var(--akcent); }
+.karta-komiksu img, .karta-komiksu .bez-obrazu, .karta-komiksu .plus { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: calc(var(--r-s) - 2px); background: var(--akcent-tlo); }
+.karta-komiksu .plus { display: grid; place-items: center; font-size: 32px; color: var(--akcent); }
+.karta-komiksu .ciche { font-size: 12px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.karta-komiksu.dodaj { border-style: dashed; }
+.obraz-karty img, .obraz-karty .bez-obrazu { display: block; width: 72px; height: 72px; object-fit: cover; border-radius: var(--r-s); background: var(--akcent-tlo); }
+.okno-postaci .rzad { display: flex; gap: 10px; align-items: center; }
 .czat-ai-do-skopiowania { max-height: 160px; overflow: auto; margin: 6px 0 0; padding: 8px; font-size: 11px; white-space: pre-wrap; word-break: break-word; background: var(--tlo-pola); border-radius: var(--r-s); }
 .kroki-montazu { max-height: min(56vh, 480px); overflow: auto; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
 #dodaj-klucz-ai[data-tryb="czat"] [data-dla]:not([data-dla~="czat"]),

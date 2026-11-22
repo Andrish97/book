@@ -11,6 +11,8 @@ import { $, powiadom } from '../ui.js';
 import { stan, edytor, biezacaSekcja } from './kontekst.js';
 import { t } from '../jezyk.js';
 import { stylKomiksu, wartosciStylu, zastosujStyl } from '../style-tekstu.js';
+import { kolorPostaci } from '../postacie.js';
+import { oknoPostaci } from './komiks-postacie.js';
 
 export const wKomiksie = () => stan.tryb === 'strona' && typSekcji(biezacaSekcja()) === 'komiks';
 
@@ -187,7 +189,7 @@ export async function ustawDymki({ kolumnaTekstu = null } = {}) {
   };
   let n = 0;
   const dialog = stylKomiksu(p, 'dialog');
-  const wynik = dymkiZTabeli({ strony: stronyKomiksu(p) }, tb, { styl: { id: dialog.id, wartosci: wartosciStylu(dialog) }, kolumnaTekstu, wymiaryStrony, noweId: () => `dym_${Date.now().toString(36)}_${(n += 1)}` });
+  const wynik = dymkiZTabeli({ strony: stronyKomiksu(p) }, tb, { kolorPostaci: (imie) => kolorPostaci(p, imie), styl: { id: dialog.id, wartosci: wartosciStylu(dialog) }, kolumnaTekstu, wymiaryStrony, noweId: () => `dym_${Date.now().toString(36)}_${(n += 1)}` });
   await zaladujCel();
   zaplanujZapis();
   powiadom(t('komiks.ustawionoDymki', { dodane: wynik.dodane, zmienione: wynik.zmienione, usuniete: wynik.usuniete }) + (wynik.pominiete.length ? ` ${t('komiks.pominieto', { lista: wynik.pominiete.slice(0, 3).join('; ') })}` : ''), wynik.pominiete.length > 0);
@@ -236,5 +238,6 @@ export function obsluzAkcjeKomiksu(akcja) {
   if (akcja === 'komiks-podziel') return narzedziePodzialu() ? zakonczPodzial() : zacznijPodzial();
   if (akcja === 'komiks-scenariusz') return otworzScenariusz();
   if (akcja === 'komiks-dymki') return ustawDymkiZWyborem();
+  if (akcja === 'komiks-postacie') return oknoPostaci();
   return null;
 }

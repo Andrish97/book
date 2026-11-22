@@ -1337,6 +1337,7 @@ In a comic section the insert bar has extra tools:
 | [Split panel] | Click two points – the line between them splits the panel in two (it can be diagonal), with the same gap. <kbd>Esc</kbd> cancels. |
 | [Script] | Opens the script table in the **Data** window (→ 14). If there is none, it creates one. |
 | [Place bubbles] | Places speech bubbles with the script texts on the pages, in the right panels. |
+| [Characters] | Character and place cards – who appears in the comic and where it happens. |
 
 ![The Panels window – 9 ready layouts](k-komiks-kadry.png)
 
@@ -1370,6 +1371,20 @@ Type the script in the **Data** window or paste it from a spreadsheet (→ 14.3)
    where they are. A row deleted from the script removes its bubble.
 
 **Comic styles.** Bubbles from [Speech bubble] and [Place bubbles] use the **Dialogue** style (Comic Neue, capitals, centred), and [Effect] uses **Sound effect** (Bangers, yellow with a black outline). The styles are added to the project the first time you use them; changing a style (→ 5.4) changes all bubbles or effects at once. In a Ukrainian project both styles use Pangolin – Comic Neue and Bangers have no Cyrillic.
+
+**Characters and places.** [Characters] opens the cards: for a character **Name**, **Appearance**, **Distinctive feature**, **Personality**, **Reference image** (a drawing or photo from your device – it goes to the project images) and **Bubble colour**; for a place **Place**, **Description**, **Time of day**, **Light** and an image. Describe a character once – the description and image are the model for every scene (for you, an artist or an image generator). The **Comic** template has sample cards for Ala, Ola and the town.
+
+![Character and place cards](k-komiks-postacie.png)
+
+1. Click [Characters], then **Add character**.
+2. Type the name and appearance, e.g. “8 years old, red braids, green dress”.
+3. [Choose image…] – a drawing of the character from your device.
+4. Set a **Bubble colour** if this character's bubbles should stand out (white – a normal bubble) and click [Save].
+5. [Place bubbles] – bubbles of the character with this name in the script get its colour.
+
+![Character card](k-komiks-postac.png)
+
+The cards are ordinary **Postacie** (characters) and **Miejsca** (places) tables – you also see them in the **Data** window. Clicking a card opens it for editing; [Delete] removes the card (bubbles and images on the pages stay).
 
 **Language versions.** Add columns `tekst_pl`, `tekst_en`, `tekst_uk` to the script (each with the text in one
 language). [Place bubbles] then asks which column to use – the same layout gets the texts in another language.

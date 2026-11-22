@@ -54,6 +54,7 @@ test('pisownia (rdzeń): odmiana przez przyrostki, „nie-”, wielkie litery, �
   p.dodajWlasne(['Drukarnix']);
   assert.ok(p.poprawne('Drukarnix') && p.poprawne('drukarnix'));
   assert.deepEqual(slowaWTekscie('Dzień {dzien} – www.makietka.app, a@b.pl, 2027 r., Ola').map((s) => s.slowo), ['Dzień', 'Ola']);
+  assert.deepEqual(slowaWTekscie('Олю! Швидше, Ola – мама’s Kraków').map((s) => s.slowo), ['Ola', 'Kraków'], 'cyrylica pomijana (słownik polski)');
 });
 
 test('znajdź i zamień w aplikacji: Ctrl+F, trafienia ze stron i wzorca, przejście do miejsca, „Zamień wszystkie” jednym krokiem cofania', async (t) => {

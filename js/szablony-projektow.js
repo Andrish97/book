@@ -9,6 +9,7 @@ import { domyslnaSpecjalna, dodajWyklejki } from './sekcje-specjalne.js';
 import { domyslneStyle, stylKomiksu } from './style-tekstu.js';
 import { wstawGotowaSekcje, usunPustyStart } from './gotowe-sekcje.js';
 import { siatkaKadrow, elementKadru, UKLADY_KADROW } from './kadry.js';
+import { zapiszKarte } from './postacie.js';
 import { t } from './jezyk.js';
 
 export const FORMATY_KSIAZKI = [
@@ -152,6 +153,11 @@ function komiksWBloku(p, blok) {
       ['2', '2', t('komiks.szablonOla'), t('komiks.szablon5'), 'mysl', t('komiks.szablon5Scena')],
     ],
   }];
+  // Karty postaci i miejsca (#368) z przykładem – obraz wzorcowy dodaje użytkownik.
+  const noweId = () => uid('t');
+  zapiszKarte(p, 'postacie', { imie: t('komiks.szablonAla'), wyglad: t('komiks.szablonAlaWyglad'), znak: t('komiks.szablonAlaZnak') }, { nazwa: t('komiks.postacie'), noweId });
+  zapiszKarte(p, 'postacie', { imie: t('komiks.szablonOla'), wyglad: t('komiks.szablonOlaWyglad'), znak: t('komiks.szablonOlaZnak') }, { nazwa: t('komiks.postacie'), noweId });
+  zapiszKarte(p, 'miejsca', { nazwa: t('komiks.szablonMiejsce'), opis: t('komiks.szablonMiejsceOpis'), pora: t('komiks.szablonPora') }, { nazwa: t('komiks.miejsca'), noweId });
 }
 
 // Buduje cały projekt z szablonu. opcje: { nazwa, odpowiedzi, paleta (obiekt albo klucz), czcionki }.
