@@ -1287,7 +1287,7 @@ Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy kr
 
 ### 10.13 Komiks
 
-Komiks to dodatek do zwykłej publikacji: zeszytu, książki, luźnych kartek albo pliku do oglądania na ekranie. Wszystko działa bez AI; AI (z gwiazdką ✦) może pomóc napisać scenariusz i narysować kadry.
+Komiks zrobisz jako zeszyt, książkę, luźne kartki albo plik do oglądania na ekranie. Wszystko działa bez AI; AI (z gwiazdką ✦) może pomóc napisać scenariusz i narysować kadry.
 
 **Jak zacząć**
 

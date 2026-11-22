@@ -1386,7 +1386,7 @@ na 90°, jak daleko sięga od kartki i czy po zamknięciu chowa się w kartce, c
 
 ## 10.13 Komiks
 
-Komiks to dodatek do zwykłej publikacji: zeszytu, książki, luźnych kartek albo pliku do oglądania na ekranie. Wszystko
+Komiks zrobisz jako zeszyt, książkę, luźne kartki albo plik do oglądania na ekranie. Wszystko
 działa bez AI; AI (z gwiazdką ✦) może pomóc napisać scenariusz i narysować kadry.
 
 **Jak zacząć**
