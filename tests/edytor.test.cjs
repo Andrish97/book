@@ -122,7 +122,7 @@ test('telefon: praca w pionie – panele z dołu, schowany wielokąt; trzymany p
   // Pasek wstawiania na telefonie (#139, #142): podstawowe narzędzia w pasku, reszta (wielokąt, rysowanie, pióro,
   // komentarz, „Kopiuj wygląd”) pod jego przyciskiem ⋯.
   await strona.tap('.zakladki-mobilne button.aktywny').catch(() => {});
-  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja || b.id)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
+  assert.deepEqual(await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => getComputedStyle(b).display !== 'none').map((b) => b.dataset.akcja || b.id)), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'ai-menu', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
 
   // Telefon trzymany poziomo (i każde zbyt niskie okno): plansza; przycisk wraca do projektów, gdzie poziom jest w porządku.
   const plansza = () => strona.evaluate(() => getComputedStyle(document.querySelector('#blokada-ekranu')).display);

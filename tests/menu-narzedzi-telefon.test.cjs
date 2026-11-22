@@ -11,7 +11,7 @@ test('telefon: menu ⋯ paska wstawiania – narzędzia, stan na przycisku, kopi
   await strona.setViewportSize({ width: 360, height: 740 });
   await nowyProjekt(strona, 'Menu narzędzi');
   const widoczne = () => strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => b.offsetParent).map((b) => b.dataset.akcja || b.id));
-  assert.deepEqual(await widoczne(), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
+  assert.deepEqual(await widoczne(), ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-linie', 'dodaj-obraz', 'ai-menu', 'dodaj-tabele', 'biblioteka', 'przycisk-narzedzia-wiecej']);
   const miesci = await strona.evaluate(() => { const n = document.querySelector('.pasek-narzedzi'); return n.scrollWidth <= n.clientWidth && n.getBoundingClientRect().right <= window.innerWidth; });
   assert.ok(miesci, 'pasek mieści się na 360 px');
 
@@ -60,6 +60,6 @@ test('komputer: pasek wstawiania bez ⋯ – wszystkie narzędzia widoczne', asy
   const { strona, bledy } = await otworz(t);
   await nowyProjekt(strona, 'Menu narzędzi');
   const widoczne = await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => b.offsetParent).map((b) => b.dataset.akcja || b.id));
-  assert.deepEqual(widoczne, ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-wielokat', 'dodaj-linie', 'dodaj-obraz', 'rysuj', 'pioro', 'dodaj-tabele', 'biblioteka', 'komentarz']);
+  assert.deepEqual(widoczne, ['dodaj-tekst', 'dodaj-prostokat', 'dodaj-elipse', 'dodaj-wielokat', 'dodaj-linie', 'dodaj-obraz', 'ai-menu', 'rysuj', 'pioro', 'dodaj-tabele', 'biblioteka', 'komentarz']);
   assert.deepEqual(bledy, []);
 });
