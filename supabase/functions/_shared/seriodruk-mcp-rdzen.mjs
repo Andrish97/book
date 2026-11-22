@@ -3049,11 +3049,19 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         required: inputSchema.required,
         additionalProperties: false,
       },
-      annotations: { readOnlyHint: Boolean(readOnly), destructiveHint: name.startsWith('usun'), openWorldHint: name === 'wgraj_obraz' },
+      // Adnotacje dla katalogu łączników Claude: każde narzędzie ma readOnlyHint i (przy zmianach) destructiveHint.
+      // Niszczące – usuwają albo zastępują dane bez kroku cofania w narzędziu; openWorld – sięgają poza Makietkę.
+      annotations: readOnly
+        ? { readOnlyHint: true, openWorldHint: false }
+        : { readOnlyHint: false, destructiveHint: name.startsWith('usun') || NISZCZACE.has(name), idempotentHint: IDEMPOTENTNE.has(name), openWorldHint: SWIAT.has(name) },
     }));
   }
 
   // Narzędzia konta (bez parametru „projekt” albo z własnym, jak usun_projekt) – reszta działa na wskazanym projekcie.
+  const NISZCZACE = new Set(['zmien_projekt', 'zmien_czesc', 'zmien_tabele', 'podmien_obraz', 'uporzadkuj_obrazy', 'cofnij_zmiany_ai']);
+  const IDEMPOTENTNE = new Set(['nazwa_projektu', 'zmien_strone', 'kolejnosc_stron', 'zmien_nazwe_obrazu', 'rozwiaz_komentarz', 'ustaw_dymki', 'udostepnij_link']);
+  // wgraj_obraz pobiera adres z internetu, generuj_obraz i rysuj_kadry wołają Google Gemini, link publikuje podgląd.
+  const SWIAT = new Set(['wgraj_obraz', 'podmien_obraz', 'generuj_obraz', 'rysuj_kadry', 'udostepnij_link']);
   const BEZ_PROJEKTU = new Set(['projekty', 'nowy_projekt', 'kopiuj_projekt', 'usun_projekt', 'opis_formatu', 'stan_eksportu', 'biblioteka']);
   const PARAMETR_PROJEKTU = tekst('id albo nazwa projektu (lista: narzędzie projekty); można pominąć, gdy klucz obejmuje jeden projekt.');
 

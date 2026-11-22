@@ -168,3 +168,25 @@ Kopiowanie projektu – zrobione (#391). Eksport PDF i PNG działa także przy z
 **Testy z prawdziwym kluczem**: najwyżej ok. 5 zł z budżetu właściciela (ok. 40 zł) – głównie teksty, obrazy oszczędnie (tańszy model, 1K), każde wywołanie zapisane z kosztem, po przekroczeniu limitu testy stają. **Odbiorca to laik**: jedno okno na raz, rozsądne domyślne, każdy krok w instrukcji z przykładem; na końcu przejście całego komiksu jak użytkownik.
 
 Treści, które muszą być dokładne (np. wersety), zawsze ze źródła, nie z generatora.
+
+
+## Część I – zgłoszenie łącznika do katalogu Claude (22.11, wieczór)
+
+Słowa właściciela: „Żeby pozbyć się tej etykiety, musisz zgłosić konektor do katalogu w portalu dla deweloperów na
+claude.ai/directory/manage (Submit new → MCP connector; wymaga płatnego planu Claude). Wymagania: serwer zdalny przez
+HTTPS; logowanie OAuth 2.0 przy danych konta; każde narzędzie ma title i readOnlyHint albo destructiveHint; link do
+dokumentacji, polityka prywatności, kontakt do wsparcia, ikona, konto testowe dla recenzentów; każde narzędzie
+przetestowane jako konektor niestandardowy w Claude. Możemy to zrobić?”
+
+| # | Wymaganie | Stan |
+|---|---|---|
+| I1 | Serwer zdalny HTTPS | jest – api.makietka.app/mcp (Funkcja Edge mcp przez przekaźnik Cloudflare) |
+| I2 | OAuth 2.0 | jest – OAuth 2.1 z PKCE i rejestracją klientów (#244), działa w Claude jako konektor niestandardowy |
+| I3 | title + adnotacje | zrobione (#395) – wszystkie 48 narzędzi: readOnlyHint, destructiveHint (usuwanie i zastępowanie danych), idempotentHint, openWorldHint (internet, Gemini, link publiczny); test katalog-lacznikow |
+| I4 | Dokumentacja | jest instrukcja 25 i ai/api.md – brakuje strony po angielsku dla recenzentów |
+| I5 | Polityka prywatności | brak – potrzebne dane administratora od właściciela |
+| I6 | Kontakt do wsparcia | kontakt@makietka.app (do potwierdzenia) |
+| I7 | Ikona | jest – img/ikony/ikona-512.png, ikona.svg |
+| I8 | Konto testowe | do założenia (konto z przykładowymi projektami, bez danych prywatnych) |
+| I9 | Test każdego narzędzia w Claude | do zrobienia przez właściciela albo przez sesję z podłączonym konektorem |
+| I10 | Zgłoszenie w portalu | tylko właściciel (płatny plan, jego konto claude.ai) |
