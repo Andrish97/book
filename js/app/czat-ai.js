@@ -7,7 +7,7 @@
 import { $, powiadom } from '../ui.js';
 import * as chmura from '../chmura.js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../konfiguracja.js';
-import { DOSTAWCY, modeleDostawcy, nowaRozmowa, zapytaj, adresLogowaniaOpenRouter } from '../ai-dostawcy.js';
+import { DOSTAWCY, modeleDostawcy, nowaRozmowa, zapytaj, adresLogowaniaOpenRouter, nazwaZMozliwosciami } from '../ai-dostawcy.js';
 import { otwartySejf, sejfKonta, maKluczeDoPrzeniesienia } from './sejf-ai.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
@@ -129,7 +129,7 @@ function dopisz(rodzaj, tekst) {
 
 function pokazUstawienia() {
   const u = ustawienia();
-  f.elements.dostawca.replaceChildren(...Object.entries(DOSTAWCY).map(([id, d]) => new Option(d.nazwa, id)));
+  f.elements.dostawca.replaceChildren(...Object.entries(DOSTAWCY).map(([id, d]) => new Option(d.bezKlucza ? d.nazwa : nazwaZMozliwosciami(id), id)));
   f.elements.dostawca.value = u.dostawca;
   f.elements.rola.value = u.rola || 'edycja';
   wypelnijDostawce();

@@ -16,7 +16,7 @@ import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
 import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
-import { DOSTAWCY, modeleDostawcy } from '../ai-dostawcy.js';
+import { DOSTAWCY, modeleDostawcy, nazwaZMozliwosciami } from '../ai-dostawcy.js';
 import { wydatki, ustawLimit, opisKosztu } from '../ai-koszty.js';
 import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
@@ -442,7 +442,7 @@ async function rysujDostawcow() {
       przyciskAi(tt('dostepAi.otworz'), async () => { if (await otwartySejf()) { rysujDostawcow(); odswiezListe(); } }, 'glowny')));
   } else {
     lista.replaceChildren(...Object.entries(DOSTAWCY).filter(([id, d]) => !d.bezKlucza && st === 'otwarty' && s.klucz(id))
-      .map(([id, d]) => wiersz(d.nazwa, `klucz API · zaszyfrowany (…${s.klucz(id).slice(-4)})`, przyciskAi(tt('dostepAi.edytuj'), () => edytujKluczDostawcy(id)))));
+      .map(([id]) => wiersz(nazwaZMozliwosciami(id), `klucz API · zaszyfrowany (…${s.klucz(id).slice(-4)})`, przyciskAi(tt('dostepAi.edytuj'), () => edytujKluczDostawcy(id)))));
   }
   akcje.replaceChildren(...(st === 'otwarty'
     ? [przyciskAi(tt('dostepAi.zamknijKluczeNaTym'), async () => { await s.zamknij(); rysujDostawcow(); }),
@@ -460,7 +460,7 @@ let czytajNoweUprawnienia = () => null;
 function przygotujKluczDostawcy(dostawca) {
   const wybor = $('#ai-nowy-dostawca');
   if (!wybor.options.length) {
-    wybor.replaceChildren(...Object.entries(DOSTAWCY).filter(([, d]) => !d.bezKlucza).map(([id, d]) => new Option(d.nazwa, id)));
+    wybor.replaceChildren(...Object.entries(DOSTAWCY).filter(([, d]) => !d.bezKlucza).map(([id]) => new Option(nazwaZMozliwosciami(id), id)));
     wybor.addEventListener('change', gdzieWziac);
   }
   if (dostawca) wybor.value = dostawca;

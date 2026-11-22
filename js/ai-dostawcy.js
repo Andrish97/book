@@ -10,7 +10,7 @@ import { t as tt } from './jezyk.js';
 export const DOSTAWCY = {
   anthropic: { nazwa: 'Anthropic (Claude)', rodzaj: 'anthropic', adres: 'https://api.anthropic.com/v1', modele: ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'], kluczUrl: 'https://console.anthropic.com/settings/keys' },
   openai: { nazwa: 'OpenAI (ChatGPT)', rodzaj: 'openai', adres: 'https://api.openai.com/v1', modele: [], kluczUrl: 'https://platform.openai.com/api-keys' },
-  gemini: { nazwa: 'Google Gemini', rodzaj: 'gemini', adres: 'https://generativelanguage.googleapis.com/v1beta', modele: [], kluczUrl: 'https://aistudio.google.com/apikey' },
+  gemini: { nazwa: 'Google Gemini', rodzaj: 'gemini', adres: 'https://generativelanguage.googleapis.com/v1beta', modele: [], kluczUrl: 'https://aistudio.google.com/apikey', obrazy: true },
   deepseek: { nazwa: 'DeepSeek', rodzaj: 'openai', adres: 'https://api.deepseek.com/v1', modele: [], kluczUrl: 'https://platform.deepseek.com/api_keys' },
   mistral: { nazwa: 'Mistral', rodzaj: 'openai', adres: 'https://api.mistral.ai/v1', modele: [], kluczUrl: 'https://console.mistral.ai/api-keys' },
   xai: { nazwa: 'xAI (Grok)', rodzaj: 'openai', adres: 'https://api.x.ai/v1', modele: [], kluczUrl: 'https://console.x.ai' },
@@ -21,6 +21,11 @@ export const DOSTAWCY = {
 };
 
 const MAKS = 16000;
+
+// Co umie klucz dostawcy w Makietce (D7): każdy dostawca rozmawia i zmienia projekt narzędziami Makietki; obrazy
+// rysuje tylko Gemini (modele obrazów Google).
+export const opisMozliwosci = (id) => (DOSTAWCY[id]?.obrazy ? tt('aiDostawcy.tekstIObrazy') : tt('aiDostawcy.tylkoTekst'));
+export const nazwaZMozliwosciami = (id) => `${DOSTAWCY[id].nazwa} – ${opisMozliwosci(id)}`;
 
 // Czytelny komunikat błędu dostawcy (#256, plan AI krok 5). status – kod HTTP (0 – brak połączenia), opis – tekst dostawcy.
 export function komunikatBleduDostawcy(status, opis = '') {
@@ -110,7 +115,9 @@ export async function modeleDostawcy(id, ust) {
   }
   if (d.rodzaj === 'gemini') {
     const w = await zadanie(`${adres}/models?pageSize=200&key=${encodeURIComponent(ust.klucz)}`, {});
-    return (w?.models || []).filter((m) => (m.supportedGenerationMethods || []).includes('generateContent')).map((m) => m.name.replace(/^models\//, ''));
+    // do rozmowy tylko modele tekstowe (modele obrazów, mowy i muzyki rysują albo mówią, ale nie prowadzą rozmowy z narzędziami)
+    return (w?.models || []).filter((m) => (m.supportedGenerationMethods || []).includes('generateContent')).map((m) => m.name.replace(/^models\//, ''))
+      .filter((m) => !/(image|imagen|tts|audio|live|lyria|banana|embedding|aqa)/i.test(m));
   }
   const w = await zadanie(`${adres}/models`, { headers: { authorization: `Bearer ${ust.klucz}` } });
   return (w?.data || []).map((m) => m.id).sort();
