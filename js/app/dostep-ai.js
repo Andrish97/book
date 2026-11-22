@@ -16,7 +16,7 @@ import { ADRES_API, ADRES_LACZNIKA } from '../marka.js';
 import { polecenieZAdresem, ADRES_ZASTEPCZY } from '../polecenia-ai.js';
 import { stan } from './kontekst.js';
 import { edytorGotowy } from './doczytaj.js';
-import { DOSTAWCY, modeleDostawcy, nazwaZMozliwosciami } from '../ai-dostawcy.js';
+import { DOSTAWCY, modeleDostawcy, nazwaZMozliwosciami, zalecaneModele } from '../ai-dostawcy.js';
 import { wydatki, ustawLimit, opisKosztu } from '../ai-koszty.js';
 import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
@@ -336,7 +336,7 @@ function zapiszUstawieniaDostawcy(id, zmiany) {
 function polaPolaczenia(id, kluczFn) {
   const d = DOSTAWCY[id];
   const zapisane = ustawieniaCzatu().dostawcy?.[id] || {};
-  const model = el('input', { id: 'klucz-ai-model', autocomplete: 'off', spellcheck: false, value: zapisane.model || d.modele[0] || '', placeholder: tt('dostepAi.nazwaModelu') });
+  const model = el('input', { id: 'klucz-ai-model', autocomplete: 'off', spellcheck: false, value: zapisane.model || '', placeholder: tt('dostepAi.modelAutomatycznie') }); // G1: puste – zalecany
   const lista = el('datalist', { id: 'klucz-ai-modele' });
   lista.append(...d.modele.map((m) => new Option(m, m)));
   model.setAttribute('list', 'klucz-ai-modele');
@@ -352,9 +352,12 @@ function polaPolaczenia(id, kluczFn) {
     wynik.classList.remove('blad', 'dobrze');
     try {
       const modele = await modeleDostawcy(id, { klucz, adres: adres?.value.trim() || '' });
-      lista.replaceChildren(...modele.map((m) => new Option(m, m)));
-      const jest = !modele.length || modele.includes(model.value.trim());
-      wynik.textContent = tt('dostepAi.dzialaDostawcaPrzyjalKlucz', { x: modele.length ? tt('dostepAi.modeli', { modeleIle: modele.length }) : '', x2: jest ? '' : tt('dostepAi.wybranegoModeluNieMa') });
+      const z = zalecaneModele(id, modele);
+      const opisy = [[z.zalecany, tt('czatAi.modelZalecany')], [z.tani, tt('czatAi.modelTani')], [z.najlepszy, tt('czatAi.modelNajlepszy')]].filter(([m]) => m);
+      lista.replaceChildren(...opisy.map(([m, o]) => new Option(o, m)), ...modele.filter((m) => !opisy.some(([x]) => x === m)).map((m) => new Option(m, m)));
+      if (z.zalecany) model.placeholder = tt('czatAi.modelAutomatyczny', { model: z.zalecany });
+      const jest = !modele.length || !model.value.trim() || modele.includes(model.value.trim());
+      wynik.textContent = tt('dostepAi.dzialaDostawcaPrzyjalKlucz', { x: modele.length ? tt('dostepAi.modeli', { modeleIle: modele.length }) : '', x2: jest ? '' : tt('dostepAi.wybranegoModeluNieMa') }) + (z.zalecany && !model.value.trim() ? ` ${tt('dostepAi.uzyjeZalecanego', { model: z.zalecany })}` : '');
       wynik.classList.add(jest ? 'dobrze' : 'blad');
     } catch (e) {
       wynik.textContent = e.message;

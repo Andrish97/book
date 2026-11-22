@@ -7,7 +7,7 @@
 import { $, powiadom } from '../ui.js';
 import * as chmura from '../chmura.js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../konfiguracja.js';
-import { DOSTAWCY, modeleDostawcy, nowaRozmowa, zapytaj, adresLogowaniaOpenRouter, nazwaZMozliwosciami } from '../ai-dostawcy.js';
+import { DOSTAWCY, nowaRozmowa, zapytaj, adresLogowaniaOpenRouter, nazwaZMozliwosciami, zalecaneModele, modeleZPamieci, modelAutomatyczny } from '../ai-dostawcy.js';
 import { otwartySejf, sejfKonta, maKluczeDoPrzeniesienia } from './sejf-ai.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
@@ -154,10 +154,14 @@ function wypelnijDostawce() {
 }
 async function odswiezModele(id, ust) {
   try {
-    const modele = await modeleDostawcy(id, ust);
+    const modele = await modeleZPamieci(id, ust);
     if (f.elements.dostawca.value !== id || !modele.length) return;
-    $('#czat-ai-modele').replaceChildren(...modele.map((m) => new Option(m, m)));
-    if (!f.elements.model.value) f.elements.model.value = DOSTAWCY[id].modele.find((m) => modele.includes(m)) || modele[0];
+    // G1: puste pole = zalecany model; na liście najpierw zalecany, najtańszy i najlepszy z opisem po ludzku.
+    const z = zalecaneModele(id, modele);
+    const opisy = [[z.zalecany, tt('czatAi.modelZalecany')], [z.tani, tt('czatAi.modelTani')], [z.najlepszy, tt('czatAi.modelNajlepszy')]].filter(([m]) => m);
+    const pierwsze = [...new Set(opisy.map(([m]) => m))];
+    $('#czat-ai-modele').replaceChildren(...opisy.map(([m, o]) => new Option(o, m)), ...modele.filter((m) => !pierwsze.includes(m)).map((m) => new Option(m, m)));
+    f.elements.model.placeholder = tt('czatAi.modelAutomatyczny', { model: z.zalecany });
   } catch { /* lista modeli niedostępna – można wpisać nazwę */ }
 }
 function zapamietajPola() {
@@ -168,7 +172,7 @@ function zapamietajPola() {
   u.rola = f.elements.rola.value;
   u.dostawcy[id] = { model: f.elements.model.value.trim(), ...(DOSTAWCY[id].wlasnyAdres ? { adres: f.elements.adres.value.trim() } : {}) };
   zapisz(PAMIEC, u);
-  if (stary !== id || (rozmowa && (rozmowa.model !== u.dostawcy[id].model || rozmowa.klucz !== ustDostawcy(u, id).klucz))) { rozmowa = null; zawszePozwalaj = false; } // nowy dostawca albo model – nowa rozmowa
+  if (stary !== id || (rozmowa && ((rozmowa.wybrany ?? rozmowa.model) !== u.dostawcy[id].model || rozmowa.klucz !== ustDostawcy(u, id).klucz))) { rozmowa = null; zawszePozwalaj = false; } // nowy dostawca albo model – nowa rozmowa
   if (narzedzia && narzedzia.rola !== u.rola) narzedzia = null;
 }
 f.addEventListener('change', async (e) => {
@@ -359,6 +363,8 @@ async function wyslij(tekst) {
   if (DOSTAWCY[u.dostawca]?.bezKlucza) { await wyslijPrzezSchowek(tekst); return; }
   if (!ust.klucz && stan.uzytkownik) { await otwartySejf(); Object.assign(ust, ustDostawcy(u)); }
   if (!ust.klucz) { f.hidden = false; powiadom(tt('czatAi.podajKluczApiWybranego'), true); f.elements.klucz.focus(); return; }
+  const wybranyModel = ust.model;
+  if (!ust.model) ust.model = await modelAutomatyczny(u.dostawca, ust); // G1: puste pole – zalecany model dostawcy
   if (!ust.model) { f.hidden = false; powiadom(tt('czatAi.wybierzModel'), true); f.elements.model.focus(); return; }
   if (!stan.uzytkownik) { powiadom(tt('czatAi.asystentAiDzialaNa'), true); return; }
   trwa = true;
@@ -373,7 +379,7 @@ async function wyslij(tekst) {
     await synchronizuj({ wymus: true }).catch(() => {});
     const n = await przygotujNarzedzia();
     const zal = zalaczniki.length ? await przygotujZalaczniki(n) : { opis: '', podglady: [] };
-    if (!rozmowa || rozmowa.projekt !== n.projekt) { rozmowa = { ...nowaRozmowa({ dostawca: u.dostawca, model: ust.model, ust, system: systemDla(n), narzedzia: n.lista }), projekt: n.projekt }; zawszePozwalaj = false; }
+    if (!rozmowa || rozmowa.projekt !== n.projekt) { rozmowa = { ...nowaRozmowa({ dostawca: u.dostawca, model: ust.model, ust, system: systemDla(n), narzedzia: n.lista }), projekt: n.projekt, wybrany: wybranyModel }; zawszePozwalaj = false; }
     let zmiany = false;
     // Streaming (#259): dymek odpowiedzi rośnie na bieżąco; każdy krok AI (przed narzędziami) – osobny dymek.
     let dymek = null;

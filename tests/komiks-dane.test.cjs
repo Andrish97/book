@@ -96,10 +96,15 @@ test('import stron: numer strony i kadru z nazwy pliku (#369)', async () => {
   assert.deepEqual(m('p03 k02.png'), { strona: 3, kadr: 2 });
   assert.equal(m('okladka.png'), null);
   assert.equal(m('03.txt'), null);
-  const plan = planImportu(['10.png', 's2-k1.png', '2.png', 'x.png']);
+  // G2: nazwy z generatorów to nie numery stron
+  assert.equal(m('Gemini_Generated_Image_abc123.png'), null);
+  assert.equal(m('image (2).jpg'), null);
+  assert.deepEqual(m('page_4.png'), { strona: 4, kadr: null });
+  const plan = planImportu(['10.png', 's2-k1.png', '2.png', 'x.png', 'Gemini_Generated_Image_b2.png', 'Gemini_Generated_Image_a10.png', 'notatki.txt']);
   assert.deepEqual(plan.strony.map((x) => x.strona), [2, 10]);
   assert.deepEqual(plan.kadry, [{ nazwa: 's2-k1.png', strona: 2, kadr: 1 }]);
-  assert.deepEqual(plan.pominiete, ['x.png']);
+  assert.deepEqual(plan.bezNumeru, ['Gemini_Generated_Image_a10.png', 'Gemini_Generated_Image_b2.png', 'x.png'], 'bez numeru – do pustych kadrów, po nazwie');
+  assert.deepEqual(plan.pominiete, ['notatki.txt']);
 });
 
 test('webtoon: strony pocięte na kawałki do 1280 px (#371)', async () => {

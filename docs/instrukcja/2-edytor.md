@@ -1546,16 +1546,29 @@ scenariusza] wraca do opisu złożonego od nowa (np. po zmianie scenariusza albo
 w **Obrazach projektu** (→ 7.5). Drobną zmianę w jednym kadrze (np. „Ala ma mieć zamknięte oczy”) zrobisz bez rysowania od nowa: zaznacz kadr →
 [AI ▾] → **Popraw obraz w ramce…** (→ 7.11).
 
-**Gotowe rysunki stron.** Masz strony narysowane w innym programie? [Wgraj gotowe strony…] i wybierz wiele plików
-naraz albo jeden plik ZIP. Nazwa pliku mówi, gdzie trafi obraz:
+**Obrazy zrobione gdzie indziej.** Nie musisz rysować w Makietce. Obrazy z darmowego Gemini, z Flow, z innego
+generatora albo Twoje rysunki i skany wstawisz tak:
+
+1. Otwórz stronę komiksu, od której mają zacząć się obrazy.
+2. **Przeciągnij kilka plików naraz na stronę** (albo plik ZIP) – albo kliknij [Wgraj gotowe obrazy…] w kroku 3 i wybierz
+   pliki.
+3. Obrazy trafiają po kolei do pustych kadrów: od tej strony dalej, w kolejności czytania, pliki w kolejności nazw.
+   Kadry z obrazem są pomijane. Jeśli kadrów zabraknie, Makietka powie, których plików nie wstawiła.
+
+Jeden obraz upuszczony na kadr trafia do tego kadru (→ 7.7). Numer w nazwie pliku stawia obraz na konkretnym miejscu:
 
 | Nazwa pliku | Gdzie trafia |
 |---|---|
-| `01.png`, `strona 7.jpg` | Cała strona 1 (7) na spad. Kadry tej strony znikają (są już na rysunku), dymki zostają nad obrazem. |
+| `01.png`, `strona 7.jpg`, `page_3.png` | Cała strona 1 (7, 3) na spad. Kadry tej strony znikają (są już na rysunku), dymki zostają nad obrazem. |
 | `s03-k2.png`, `str3_kadr2.jpg` | Kadr 2 na stronie 3 – obraz wypełnia kadr (przesuniesz go podwójnym kliknięciem, → 7). |
+| każda inna, np. `Gemini_Generated_Image_….png` | Następny pusty kadr. |
 
-Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na końcu sekcji. Pliki bez numeru (np.
-`okladka.png`) są pomijane – Makietka o nich powie.
+Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na końcu sekcji.
+
+**Opisy kadrów do darmowego AI.** W oknie **Rysuj kadry** kliknij [Kopiuj opisy kadrów]. Makietka kopiuje do schowka
+opisy wszystkich kadrów tej strony – ze stylem rysunków i prośbą „bez napisów i dymków”. Wklej je w darmowym Gemini
+albo Flow, pobierz obrazy i przeciągnij je na stronę (wyżej). Bez klucza Google Gemini okno jest dostępne właśnie po
+to: [Rysuj] jest wyszarzony, a kopiowanie opisów działa.
 
 ### Krok 4. Dymki
 

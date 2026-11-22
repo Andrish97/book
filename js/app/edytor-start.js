@@ -668,6 +668,12 @@ kontener.addEventListener('drop', (e) => {
   const cel = edytor.elementWPunkcie(e);
   const pliki = [...e.dataTransfer.files];
   if (cel && edytor.moznaWstawicObraz(cel) && pliki.length === 1 && pliki[0].type.startsWith('image/')) { obrazDoKsztaltu(cel, pliki[0]); return; }
+  // Komiks (uwaga G2): kilka obrazów albo ZIP – do pustych kadrów po kolei (numer w nazwie: na swoje miejsce).
+  const obrazy = pliki.filter((x) => x.type.startsWith('image/') || /\.zip$/i.test(x.name));
+  if (document.body.classList.contains('w-komiksie') && (obrazy.length > 1 || obrazy.some((x) => /\.zip$/i.test(x.name)))) {
+    import('./komiks-narzedzia.js').then((k) => k.importujStrony(obrazy)).catch((er) => powiadom(er.message, true));
+    return;
+  }
   for (const plik of pliki) {
     if (plik.type.startsWith('image/')) wstawObraz(plik);
     else if (/\.(seriodruk|json)$/i.test(plik.name)) wczytajPlikProjektu(plik);

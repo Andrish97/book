@@ -183,7 +183,7 @@ export async function menuAi() {
     ...(komiks ? ['-',
       { ikona: 'komiks', tekst: t('pasekNarzedzi.komiksScenariuszAi'), opis: t('aiMenu.scenariuszOpis'), wartosc: 'scenariusz', wykonaj: () => k.oknoScenariuszaAi(), ...bez },
       { ikona: 'uzytkownik', tekst: t('aiMenu.wzorce'), opis: t('aiMenu.wzorceOpis'), wartosc: 'wzorce', wykonaj: () => k.obsluzAkcjeKomiksu('komiks-postacie'), ...bez },
-      { ikona: 'kadry', tekst: t('pasekNarzedzi.komiksRysuj'), opis: t('aiMenu.rysujOpis'), wartosc: 'rysuj', wykonaj: () => k.oknoRysujKadry(), ...bez }] : []),
+      { ikona: 'kadry', tekst: t('pasekNarzedzi.komiksRysuj'), opis: t('aiMenu.rysujOpis'), wartosc: 'rysuj', wykonaj: () => k.oknoRysujKadry() }] : []), // bez klucza też – okno ma „Kopiuj opisy kadrów” (G3)
     '-',
     { ikona: 'asystent', tekst: t('aiMenu.asystent'), opis: t('aiMenu.asystentOpis'), wartosc: 'asystent', wykonaj: () => akcjaAi('ai-asystent') },
     { ikona: 'klucz', tekst: t('aiMenu.ustawienia'), opis: t('aiMenu.ustawieniaOpis'), wartosc: 'ustawienia', wykonaj: ustawienia },

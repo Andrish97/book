@@ -308,7 +308,7 @@ test('komiks: wgraj strony – 01.png na spad (kadry strony znikają, dymki zost
     { name: 'strony.zip', mimeType: 'application/zip', buffer: Buffer.from(zip, 'base64') },
   ]);
   await strona.waitForFunction(() => /Wgrano/.test(document.querySelector('#powiadomienie').textContent));
-  assert.match(await strona.textContent('#powiadomienie'), /Wgrano: 2 strony, obrazy w kadrach: 1\. Pominięto: okladka\.png; s02-k7\.png – na stronie 2 nie ma kadru 7/);
+  assert.match(await strona.textContent('#powiadomienie'), /Wgrano: 2 strony, obrazy w kadrach: 2\. Pominięto: s02-k7\.png – na stronie 2 nie ma kadru 7/);
   const p = await strona.evaluate(() => {
     const x = window.seriodruk.stan.projekt;
     const w = x.sekcje[0].wydruk;
@@ -321,7 +321,7 @@ test('komiks: wgraj strony – 01.png na spad (kadry strony znikają, dymki zost
   });
   assert.equal(p.stron, 3, 'strona 3 z ZIP-a doszła');
   assert.deepEqual(p.s1, [['image', null, [-p.spad, p.w + 2 * p.spad]], ['textbox', null, 'Hej']], 'strona 1: obraz na spad pod spodem, kadry znikają, dymek zostaje');
-  assert.deepEqual(p.s2, [[1, true], [2, false], [3, false]], 'obraz w kadrze 1 strony 2');
+  assert.deepEqual(p.s2, [[1, true], [2, true], [3, false]], 'obraz w kadrze 1 strony 2; plik bez numeru (G2) – w pierwszym pustym kadrze');
   assert.deepEqual(p.s3, ['image']);
   assert.deepEqual(bledy, []);
 });
@@ -590,5 +590,43 @@ test('komiks: rekwizyty – karta w oknie Postacie i miejsca, wybór w kadrze sc
   await strona.waitForFunction(() => !document.querySelector('#dlg-scenariusz').open);
   const w = await strona.evaluate(() => { const tb = window.seriodruk.stan.projekt.tabele.find((x) => x.kolumny.includes('rekwizyty')); const i = tb.kolumny.indexOf('rekwizyty'); return tb.wiersze.filter((r) => r[0] === '1' && r[1] === '1').map((r) => r[i]); });
   assert.deepEqual(w, ['Latawiec']);
+  assert.deepEqual(bledy, []);
+});
+
+test('komiks: obrazy z zewnątrz – przeciągnięcie kilku plików do pustych kadrów, opisy kadrów do darmowego AI bez klucza (G2, G3)', async (t) => {
+  const { strona, kontekst, bledy } = await otworz(t);
+  const { PNG_2X2 } = require('./pomoc.cjs');
+  await kontekst.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await strona.locator('[data-akcja="nowy-projekt"]:visible').first().click();
+  await strona.fill('#form-nowy [name="nazwa"]', 'Z zewnątrz');
+  await strona.check('#form-nowy input[name="start"][value="szablon"]', { force: true });
+  await strona.click('#nowy-szablony .karta-szablonu[data-id="komiks"]');
+  await strona.click('#gotowe-wstaw');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt?.nazwa === 'Z zewnątrz');
+  await strona.evaluate(async () => { const x = window.seriodruk.stan.projekt; const k = x.sekcje.find((s) => s.typ === 'komiks'); await window.seriodruk.przejdzDoStrony(x.strony.findIndex((s) => s.sekcja === k.id)); });
+  await strona.waitForFunction(() => document.body.classList.contains('w-komiksie'));
+  // G3: bez klucza – okno rysowania: [Rysuj] wyszarzony, informacja, „Kopiuj opisy kadrów” działa.
+  await zMenu(strona, 'ai-menu', 'rysuj');
+  const r = strona.locator('#dlg-rysuj-kadry');
+  await r.waitFor();
+  await strona.waitForFunction(() => document.querySelector('#dlg-rysuj-kadry button[value="tak"]').disabled);
+  assert.equal(await r.locator('[data-rola="bez-klucza"]').isVisible(), true);
+  await r.locator('[data-rola="kopiuj-opisy"]').click();
+  const schowek = await strona.evaluate(() => navigator.clipboard.readText());
+  assert.match(schowek, /^Narysuj kolejno obrazy do kadrów strony 1 komiksu – osobny obraz do każdego kadru, w stylu: Kolorowa bajka/);
+  assert.match(schowek, /Kadr 2\. Ujęcie: plan pełny.*\nBez napisów, liter i dymków w obrazie/s);
+  await r.locator('[data-rola="anuluj"]').click();
+  // G2: trzy obrazy z generatora przeciągnięte na stronę – kadry 1–3 strony 1 po kolei (po nazwie)
+  const dt = await strona.evaluateHandle((b64) => {
+    const d = new DataTransfer();
+    const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    // różna zawartość (te same pliki projekt łączy w jeden obraz) – bajt po końcu PNG
+    for (const [i, n] of ['Gemini_Generated_Image_c.png', 'Gemini_Generated_Image_a.png', 'Gemini_Generated_Image_b.png'].entries()) d.items.add(new File([bin, new Uint8Array([i])], n, { type: 'image/png' }));
+    return d;
+  }, PNG_2X2.toString('base64'));
+  await strona.dispatchEvent('#kontener-plotna', 'drop', { dataTransfer: dt });
+  await strona.waitForFunction(() => /Wgrano/.test(document.querySelector('#powiadomienie').textContent));
+  const kadry = await strona.evaluate(() => { const x = window.seriodruk.stan.projekt; return window.seriodruk.edytor.canvas.getObjects().filter((o) => o.kadr_nr).sort((a, b) => a.kadr_nr - b.kadr_nr).map((o) => x.zasoby[o.zasob]?.nazwa || null); });
+  assert.deepEqual(kadry, ['Gemini_Generated_Image_a.png', 'Gemini_Generated_Image_b.png', 'Gemini_Generated_Image_c.png']);
   assert.deepEqual(bledy, []);
 });

@@ -126,6 +126,20 @@ da się. Możesz dodać rekwizyty postaci, żeby one były też dodawane.”
 | F5 | Więcej stylów rysunków (z miniaturami) | ✅ #389 |
 | F6 | Rekwizyty: karty rekwizytów (nazwa, opis, obraz wzorcowy, czyj), wybierane w kadrze w scenariuszu, w opisie i wzorcach dla AI | ✅ #389 |
 
+## Część G – uwagi właściciela z 22.11 (popołudnie)
+
+Słowa właściciela: „Muszę zgadywać model, a laik nie zna raczej nazw modeli. Najlepiej mieć w Makietce obie drogi:
+1. »Generuj« w Makietce jako główna, wygodna droga; 2. szybki import z zewnątrz (przeciągnięcie plików albo ZIP do
+kadrów) dla kogoś, kto chce korzystać z darmowych kredytów Flow albo Gemini, albo ma własne rysunki. Czy mamy obie
+opcje? Również scenariusz bez AI itd.?” Wcześniej: „Czy łącznik ma dostęp do generowania obrazów?” (nie – B6).
+
+| # | Co | Stan |
+|---|---|---|
+| G1 | Model bez zgadywania: puste pole = zalecany model dostawcy (najnowszy szybki), na liście „Zalecany / Najtańszy / Najlepszy” | ✅ #390 |
+| G2 | Import z zewnątrz: pliki bez numeru (np. z Gemini/Flow) po kolei do pustych kadrów; przeciągnięcie kilku plików albo ZIP na stronę komiksu | ✅ #390 |
+| G3 | „Kopiuj opisy kadrów” do darmowego AI; okno rysowania dostępne bez klucza (Rysuj wyszarzony) | ✅ #390 |
+| G4 | Scenariusz bez AI – jest (okno Scenariusz, tabela, wklejanie z arkusza); wszystko poza rysowaniem i pisaniem przez AI działa bez klucza | ✅ (bez zmian) |
+
 ## Koszty (szacunek z dokumentu; ceny w konfiguracji)
 
 | Pozycja | Szacunek |

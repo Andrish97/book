@@ -1395,14 +1395,23 @@ Kadr to kształt z białym tłem i czarnym obrysem, z numerem w kolejności czyt
 
 **Rysuj jeszcze raz.** Obraz się nie podoba? Otwórz znów **Rysuj kadry tej strony…** i zaznacz ten kadr. Pole opisu pokazuje opis, **z którego powstał obecny obraz** – popraw jedno słowo albo narysuj jeszcze raz bez zmian. **Opis ze scenariusza** wraca do opisu złożonego od nowa (np. po zmianie scenariusza albo karty). Poprzednie obrazy zostają w **Obrazach projektu** (rozdział „7.5 Okno Obrazy projektu”). Drobną zmianę w jednym kadrze (np. „Ala ma mieć zamknięte oczy”) zrobisz bez rysowania od nowa: zaznacz kadr → **AI ▾** → **Popraw obraz w ramce…** (rozdział „7.11 Obraz AI”).
 
-**Gotowe rysunki stron.** Masz strony narysowane w innym programie? **Wgraj gotowe strony…** i wybierz wiele plików naraz albo jeden plik ZIP. Nazwa pliku mówi, gdzie trafi obraz:
+**Obrazy zrobione gdzie indziej.** Nie musisz rysować w Makietce. Obrazy z darmowego Gemini, z Flow, z innego generatora albo Twoje rysunki i skany wstawisz tak:
+
+1. Otwórz stronę komiksu, od której mają zacząć się obrazy.
+2. **Przeciągnij kilka plików naraz na stronę** (albo plik ZIP) – albo kliknij **Wgraj gotowe obrazy…** w kroku 3 i wybierz pliki.
+3. Obrazy trafiają po kolei do pustych kadrów: od tej strony dalej, w kolejności czytania, pliki w kolejności nazw. Kadry z obrazem są pomijane. Jeśli kadrów zabraknie, Makietka powie, których plików nie wstawiła.
+
+Jeden obraz upuszczony na kadr trafia do tego kadru (rozdział „7.7 Obraz w kształcie”). Numer w nazwie pliku stawia obraz na konkretnym miejscu:
 
 | Nazwa pliku | Gdzie trafia |
 |---|---|
-| `01.png`, `strona 7.jpg` | Cała strona 1 (7) na spad. Kadry tej strony znikają (są już na rysunku), dymki zostają nad obrazem. |
+| `01.png`, `strona 7.jpg`, `page_3.png` | Cała strona 1 (7, 3) na spad. Kadry tej strony znikają (są już na rysunku), dymki zostają nad obrazem. |
 | `s03-k2.png`, `str3_kadr2.jpg` | Kadr 2 na stronie 3 – obraz wypełnia kadr (przesuniesz go podwójnym kliknięciem, rozdział „7 Obrazy”). |
+| każda inna, np. `Gemini_Generated_Image_….png` | Następny pusty kadr. |
 
-Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na końcu sekcji. Pliki bez numeru (np. `okladka.png`) są pomijane – Makietka o nich powie.
+Strony liczą się od pierwszej strony komiksu; brakujące strony dochodzą na końcu sekcji.
+
+**Opisy kadrów do darmowego AI.** W oknie **Rysuj kadry** kliknij **Kopiuj opisy kadrów**. Makietka kopiuje do schowka opisy wszystkich kadrów tej strony – ze stylem rysunków i prośbą „bez napisów i dymków”. Wklej je w darmowym Gemini albo Flow, pobierz obrazy i przeciągnij je na stronę (wyżej). Bez klucza Google Gemini okno jest dostępne właśnie po to: **Rysuj** jest wyszarzony, a kopiowanie opisów działa.
 
 #### Krok 4. Dymki
 
@@ -2512,7 +2521,7 @@ Przy każdym kluczu na liście jest **Edytuj** – edycja otwiera się w okienku
 | **Zapisz zmiany** | Zapisuje zakres i ważność. |
 | **Odbierz klucz** | Wyłącza klucz od razu. |
 
-Klucz API dostawcy w okienku edycji: **Pokaż klucz**, **Zamień klucz** (wklejasz nowy i **Zapisz**) i **Usuń klucz**. Część **Model i połączenie** (także przy dodawaniu): **Model domyślny** – od niego zaczyna Asystent AI (lista podpowiada modele dostawcy), przy „Inny – zgodne z OpenAI” także **Adres API**, i **Sprawdź połączenie** – Makietka pyta dostawcę o listę modeli i mówi, czy klucz działa, a jeśli nie – dlaczego (zły klucz, brak środków, limit, model niedostępny, brak internetu).
+Klucz API dostawcy w okienku edycji: **Pokaż klucz**, **Zamień klucz** (wklejasz nowy i **Zapisz**) i **Usuń klucz**. Część **Model i połączenie** (także przy dodawaniu): **Model domyślny** – puste oznacza zalecany model dostawcy (po **Sprawdź połączenie** widać, który; lista podpowiada też najtańszy i najlepszy), przy „Inny – zgodne z OpenAI” także **Adres API**, i **Sprawdź połączenie** – Makietka pyta dostawcę o listę modeli i mówi, czy klucz działa, a jeśli nie – dlaczego (zły klucz, brak środków, limit, model niedostępny, brak internetu).
 
 Gdy klucze są zaszyfrowane na tym urządzeniu, sekcja Czat w Makietce pokazuje **Otwórz** – podajesz hasło do kluczy raz na urządzeniu.
 
@@ -2582,7 +2591,7 @@ Bez osobnej aplikacji AI: w edytorze **Asystent AI** na górnym pasku (obok **Po
 
 1. **Dostawca** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok), OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem). Przy nazwie widać, co potrafi: **rozmowa i zmiany w projekcie** – każdy dostawca czyta i zmienia projekt narzędziami Makietki; **i obrazy** – Google Gemini dodatkowo rysuje obrazy.
 2. **Klucz API** — od wybranego dostawcy (**Gdzie wziąć klucz?** prowadzi do jego strony). Przy OpenRouter zamiast wklejać klucz wystarczy **Zaloguj przez OpenRouter** — zalogujesz się i zatwierdzisz dostęp u nich.
-3. **Model** — lista modeli przychodzi od dostawcy po wpisaniu klucza; można też wpisać nazwę.
+3. **Model** — zostaw puste: Makietka sama wybierze zalecany model dostawcy (szybki i rozsądny; w polu widać, który). Lista podpowiada też **Najtańszy** i **Najlepszy – droższy**, a zaawansowani mogą wpisać dowolną nazwę.
 4. **AI może w tym projekcie** — **czytać i zmieniać** albo **tylko czytać**.
 
 Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik (rozdział „25.1 Co potrafi AI”); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. **Przerwij** zatrzymuje po bieżącym kroku. Ikona suwaków w nagłówku pokazuje i chowa ustawienia.

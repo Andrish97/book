@@ -123,6 +123,47 @@ export async function modeleDostawcy(id, ust) {
   return (w?.data || []).map((m) => m.id).sort();
 }
 
+// Model bez zgadywania nazw (uwaga G1): z listy dostawcy wybieramy zalecany (szybki, rozsądny), najtańszy i najlepszy –
+// po wzorcach nazw, najnowsza wersja, bez wersji próbnych i datowanych. Puste pole „Model” = zalecany.
+const ZALECENIA = {
+  anthropic: { zalecany: [/sonnet/], tani: [/haiku/], najlepszy: [/opus/] },
+  gemini: { zalecany: [/flash(?!-lite)/], tani: [/flash-lite/], najlepszy: [/pro/] },
+  openai: { zalecany: [/^gpt-[\d.]+-mini$/, /^gpt-.*mini/], tani: [/^gpt-.*nano/, /^gpt-.*mini/], najlepszy: [/^gpt-[\d.]+$/, /^gpt-/] },
+  deepseek: { zalecany: [/deepseek-chat/], tani: [/deepseek-chat/], najlepszy: [/reasoner/, /deepseek-chat/] },
+  mistral: { zalecany: [/mistral-medium-latest/, /medium/], tani: [/mistral-small-latest/, /small/], najlepszy: [/mistral-large-latest/, /large/] },
+  xai: { zalecany: [/grok.*(fast|mini)/, /grok/], tani: [/grok.*(fast|mini)/], najlepszy: [/^grok-[\d.]+$/, /grok/] },
+  openrouter: { zalecany: [/^google\/gemini-[\d.]+-flash$/, /gemini.*flash(?!-lite)/], tani: [/gemini.*flash-lite/, /mini/], najlepszy: [/anthropic\/claude.*sonnet/, /claude/] },
+};
+const wersja = (m) => { const w = String(m).match(/(\d+(?:\.\d+)?)/); return w ? parseFloat(w[1]) : 0; };
+const probna = (m) => /preview|exp|latest-|\d{4}-?\d{2}-?\d{2}|\d{3,}$|-\d{2}-\d{2}|thinking|search|vision|audio|realtime|transcribe|codex|instruct/i.test(m) && !/-latest$/.test(m);
+function najlepszyWg(modele, wzorce) {
+  for (const w of wzorce) {
+    const pasujace = modele.filter((m) => w.test(m));
+    const stabilne = pasujace.filter((m) => !probna(m));
+    const lista = (stabilne.length ? stabilne : pasujace).sort((a, b) => wersja(b) - wersja(a) || a.length - b.length);
+    if (lista.length) return lista[0];
+  }
+  return '';
+}
+export function zalecaneModele(id, modele = []) {
+  const z = ZALECENIA[id];
+  if (!z || !modele.length) return { zalecany: DOSTAWCY[id]?.modele?.[0] || modele[0] || '', tani: '', najlepszy: '' };
+  return { zalecany: najlepszyWg(modele, z.zalecany) || modele[0], tani: najlepszyWg(modele, z.tani), najlepszy: najlepszyWg(modele, z.najlepszy) };
+}
+const pamiecModeli = new Map();
+export async function modeleZPamieci(id, ust) {
+  const k = `${id}|${String(ust?.klucz || '').slice(-6)}|${ust?.adres || ''}`;
+  if (!pamiecModeli.has(k)) pamiecModeli.set(k, modeleDostawcy(id, ust).catch((e) => { pamiecModeli.delete(k); throw e; }));
+  return pamiecModeli.get(k);
+}
+// Model do rozmowy: wpisany albo zalecany z listy dostawcy.
+export async function modelAutomatyczny(id, ust) {
+  if (ust?.model) return ust.model;
+  let modele = [];
+  try { modele = await modeleZPamieci(id, ust); } catch { /* bez listy – wbudowane */ }
+  return zalecaneModele(id, modele).zalecany;
+}
+
 // Schemat narzędzia dla Gemini: tylko pola, które Gemini przyjmuje.
 export function schematGemini(s) {
   if (!s || typeof s !== 'object') return s;

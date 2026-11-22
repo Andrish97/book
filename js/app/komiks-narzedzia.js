@@ -13,11 +13,11 @@ import { t, biezacyJezyk } from '../jezyk.js';
 import { stylKomiksu, wartosciStylu, zastosujStyl } from '../style-tekstu.js';
 import { kolorPostaci } from '../postacie.js';
 import { oknoPostaci } from './komiks-postacie.js';
-import { planImportu, wstawStrone, wstawDoKadru } from '../import-stron.js';
+import { planImportu, wstawStrone, wstawDoKadru, pusteKadry } from '../import-stron.js';
 import { przyjmijPlik, wymiaryPliku, poNazwie } from '../obrazy-projektu.js';
 import { nowaStrona, uid, uporzadkujStrony } from '../projekt.js';
 import { biblioteka } from '../biblioteki.js';
-import { kadryStrony, stylProjektu } from '../komiks-ai.js';
+import { kadryStrony, stylProjektu, STYL_DOMYSLNY } from '../komiks-ai.js';
 import { zapytanieScenariusza, scenariuszZOdpowiedzi, zapiszScenariusz } from '../komiks-scenariusz-ai.js';
 import { tekstZOdpowiedzi } from '../ai-tekst.js';
 import { zadanie } from '../ai-dostawcy.js';
@@ -273,7 +273,7 @@ export async function importujStrony(pliki) {
   if (!p) return null;
   const lista = await plikiZWyboru([...pliki]);
   const plan = planImportu(lista.map((x) => x.nazwa));
-  if (!plan.strony.length && !plan.kadry.length) { powiadom(t('komiks.nicDoWgrania'), true); return null; }
+  if (!plan.strony.length && !plan.kadry.length && !plan.bezNumeru.length) { powiadom(t('komiks.nicDoWgrania'), true); return null; }
   zapiszBiezacyCel();
   const sekcja = typSekcji(biezacaSekcja()) === 'komiks' ? biezacaSekcja() : (p.sekcje.find((x) => typSekcji(x) === 'komiks') || biezacaSekcja());
   // brakujące strony komiksu dochodzą na końcu sekcji
@@ -295,6 +295,16 @@ export async function importujStrony(pliki) {
   for (const x of plan.kadry) {
     if (wstawDoKadru(strony[x.strona - 1], x.kadr, await obraz(x.nazwa))) kadry += 1;
     else pominiete.push(t('komiks.brakKadru', { plik: x.nazwa, strona: x.strona, kadr: x.kadr }));
+  }
+  // G2: pliki bez numeru (np. z Gemini albo Flow) – po kolei do pustych kadrów, od bieżącej strony komiksu dalej.
+  if (plan.bezNumeru.length) {
+    const od = Math.max(0, strony.indexOf(p.strony[stan.indeks]));
+    const wolne = pusteKadry(strony, od);
+    plan.bezNumeru.forEach((nazwa, i) => { if (!wolne[i]) pominiete.push(t('komiks.brakPustegoKadru', { plik: nazwa })); });
+    for (const [i, nazwa] of plan.bezNumeru.entries()) {
+      if (!wolne[i]) break;
+      if (wstawDoKadru(wolne[i].strona, wolne[i].kadr, await obraz(nazwa))) kadry += 1;
+    }
   }
   await zaladujCel();
   zaplanujZapis();
@@ -445,7 +455,8 @@ export function oknoRysujKadry() {
     <label class="przelacznik"><input type="checkbox" name="cala"><span>${t('komiks.rysujCalaStrone')}</span></label>
     <label class="pole"><span>${t('aiObraz.jakosc')}</span><select name="jakosc"><option value="szkic">${t('aiObraz.jakoscSzkic')}</option><option value="dokladny">${t('aiObraz.jakoscDokladny')}</option><option value="pro">${t('aiObraz.jakoscPro')}</option></select></label>
     <p class="koszt-ai" aria-live="polite"></p><p class="blad-ai" role="alert" hidden></p>
-    <div class="przyciski-dialogu"><button class="przycisk" type="button" data-rola="anuluj">${t('komiks.anuluj')}</button><button class="przycisk glowny" type="submit" value="tak">${t('komiks.rysuj')}</button></div></form>`;
+    <p class="uwaga-ai" data-rola="bez-klucza" hidden>${t('komiks.rysujBezKlucza')}</p>
+    <div class="przyciski-dialogu"><button class="przycisk" type="button" data-rola="kopiuj-opisy">${t('komiks.kopiujOpisy')}</button><button class="przycisk" type="button" data-rola="anuluj">${t('komiks.anuluj')}</button><button class="przycisk glowny" type="submit" value="tak">${t('komiks.rysuj')}</button></div></form>`;
   const f = dlg.querySelector('form');
   pozycje.forEach((x, i) => { f.elements[`o${i}`].value = x.poprzedni || x.opis; });
   for (const b of dlg.querySelectorAll('[data-ze-scenariusza]')) b.addEventListener('click', () => { const i = Number(b.dataset.zeScenariusza); f.elements[`o${i}`].value = pozycje[i].opis; f.elements[`k${i}`].checked = true; f.dispatchEvent(new Event('change')); });
@@ -465,6 +476,18 @@ export function oknoRysujKadry() {
   policz();
   const blad = dlg.querySelector('.blad-ai');
   dlg.querySelector('[data-rola="anuluj"]').onclick = () => dlg.close('nie');
+  // G3: opisy kadrów do darmowego AI (Gemini, Flow…) – ze stylem i prośbą o brak napisów; obrazy wracają przeciągnięciem.
+  dlg.querySelector('[data-rola="kopiuj-opisy"]').onclick = async () => {
+    const styl = `${t(`komiks.styl_${stan.projekt.komiks_ai?.styl || STYL_DOMYSLNY}`)} (${stylProjektu(stan.projekt)})`;
+    const tekst = [t('komiks.opisyNaglowek', { nr, styl }), ...pozycje.map((x, i) => `${f.elements[`o${i}`].value.trim()}\n${t('komiks.opisyBezNapisow')}`)].join('\n\n');
+    try { await navigator.clipboard.writeText(tekst); powiadom(t('komiks.opisySkopiowane', { ile: pozycje.length })); } catch { powiadom(t('komiks.opisyNieSkopiowane'), true); }
+  };
+  // Bez klucza Gemini (F3): rysowanie wyszarzone, kopiowanie opisów działa.
+  import('./sejf-ai.js').then(({ maKluczGemini }) => maKluczGemini()).then((ma) => {
+    if (ma) return;
+    f.querySelector('button[value="tak"]').disabled = true;
+    dlg.querySelector('[data-rola="bez-klucza"]').hidden = false;
+  });
   f.onsubmit = async (e) => {
     e.preventDefault();
     const lista = wybrane();

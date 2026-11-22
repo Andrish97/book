@@ -174,7 +174,7 @@ Przy każdym kluczu na liście jest [Edytuj] – edycja otwiera się w okienku, 
 | [Zapisz zmiany] | Zapisuje zakres i ważność. |
 | [Odbierz klucz] | Wyłącza klucz od razu. |
 
-Klucz API dostawcy w okienku edycji: [Pokaż klucz], **Zamień klucz** (wklejasz nowy i [Zapisz]) i [Usuń klucz]. Część **Model i połączenie** (także przy dodawaniu): **Model domyślny** – od niego zaczyna Asystent AI (lista podpowiada modele dostawcy), przy „Inny – zgodne z OpenAI” także **Adres API**, i [Sprawdź połączenie] – Makietka pyta dostawcę o listę modeli i mówi, czy klucz działa, a jeśli nie – dlaczego (zły klucz, brak środków, limit, model niedostępny, brak internetu).
+Klucz API dostawcy w okienku edycji: [Pokaż klucz], **Zamień klucz** (wklejasz nowy i [Zapisz]) i [Usuń klucz]. Część **Model i połączenie** (także przy dodawaniu): **Model domyślny** – puste oznacza zalecany model dostawcy (po [Sprawdź połączenie] widać, który; lista podpowiada też najtańszy i najlepszy), przy „Inny – zgodne z OpenAI” także **Adres API**, i [Sprawdź połączenie] – Makietka pyta dostawcę o listę modeli i mówi, czy klucz działa, a jeśli nie – dlaczego (zły klucz, brak środków, limit, model niedostępny, brak internetu).
 
 Gdy klucze są zaszyfrowane na tym urządzeniu, sekcja Czat w Makietce pokazuje [Otwórz] – podajesz hasło do kluczy raz
 na urządzeniu.
@@ -247,7 +247,8 @@ Napisz, co zrobić, np. „ułóż tę stronę na dwie kolumny” albo „dodaj 
    **i obrazy** – Google Gemini dodatkowo rysuje obrazy.
 2. **Klucz API** — od wybranego dostawcy ([Gdzie wziąć klucz?] prowadzi do jego strony). Przy OpenRouter zamiast
    wklejać klucz wystarczy [Zaloguj przez OpenRouter] — zalogujesz się i zatwierdzisz dostęp u nich.
-3. **Model** — lista modeli przychodzi od dostawcy po wpisaniu klucza; można też wpisać nazwę.
+3. **Model** — zostaw puste: Makietka sama wybierze zalecany model dostawcy (szybki i rozsądny; w polu widać, który). Lista
+   podpowiada też **Najtańszy** i **Najlepszy – droższy**, a zaawansowani mogą wpisać dowolną nazwę.
 4. **AI może w tym projekcie** — **czytać i zmieniać** albo **tylko czytać**.
 
 Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik
