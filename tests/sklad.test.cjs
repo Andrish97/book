@@ -480,3 +480,23 @@ test('wyrównanie łamów: lewa i prawa ramka rozkładówki mają równą wysoko
   assert.equal(z.teksty.join('\n').replace(/\s+/g, ' '), bez.teksty.join('\n').replace(/\s+/g, ' '), 'treść ta sama, tylko inaczej rozłożona');
   assert.deepEqual(bledy, []);
 });
+
+// #413: uwagi o polskich zasadach składu z ramek rosnących z tekstem są też w „Sprawdź przed drukiem” (wcześniej
+// kontrola przed drukiem sprawdzała tylko ramki o stałej wysokości).
+test('polskie zasady: ramka rosnąca z tekstem – uwaga także przed drukiem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Zasady przed drukiem');
+  const w = await strona.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    e.canvas.add(new fabric.Textbox('Ala ma kota i psa w domu oraz  dwa koty "w domu" - tak.', { left: 20, top: 20, width: 30, fontSize: 5, id: 'zasady1' }));
+    e.zatwierdz?.();
+    await window.seriodruk.zapiszTeraz?.();
+    const { sprawdzMieszczenie } = await import('./js/kontrola-skladu.js');
+    const k = await sprawdzMieszczenie(window.seriodruk.stan.projekt);
+    return k.filter((x) => x.rodzaj === 'sklad_pl').map((x) => [x.idObiektu, x.opis]);
+  });
+  assert.equal(w.length, 1, JSON.stringify(w));
+  assert.equal(w[0][0], 'zasady1');
+  assert.match(w[0][1], /podwójne spacje/);
+  assert.deepEqual(bledy, []);
+});

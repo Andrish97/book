@@ -183,6 +183,7 @@ A list of things to check before you send the file to the print shop.
 | **Missing image file** | The table contains the name of an image that hasn't been uploaded. |
 | **Duplicates** | The same value in a column marked **≠**, with page numbers. |
 | **Values outside the list** | Values outside the list of a column marked **☰**, with row numbers. |
+| **Typesetting against Polish rules** | A conjunction at the end of a line, double spaces, a straight quote, a space before a comma, etc. — in every text frame (also ones that grow with the text) and on every repeated page, with the data from the table filled in. The same notes as in the editor's **Warnings** panel; **Mute** on an element skips them. |
 | **Missing data** | An additional table ran out of rows before the end of the series. |
 | **Series pages in spreads** | Where blank pages are, or from which page the block lands on the opposite side. |
 | **Table goes off the page** | The rows grew with the content and the table went off the sheet. |

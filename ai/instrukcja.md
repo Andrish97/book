@@ -2079,6 +2079,7 @@ Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
 | **Brak pliku obrazu** | W tabeli jest nazwa obrazu, którego nie wgrano. |
 | **Powtórzenia** | Ta sama wartość w kolumnie z **≠**, z numerami stron. |
 | **Wartości spoza listy** | Wartości spoza listy kolumny z **☰**, z numerami wierszy. |
+| **Skład niezgodny z polskimi zasadami** | Spójnik na końcu wiersza, podwójne spacje, cudzysłów prosty, spacja przed przecinkiem itp. — w każdej ramce tekstu (także rosnącej z tekstem) i na każdej powielonej stronie, z danymi wstawionymi z tabeli. Te same uwagi co w panelu **Ostrzeżenia** edytora; **Wycisz** przy elemencie je pomija. |
 | **Brak danych** | Tabeli dodatkowej zabrakło wierszy przed końcem serii. |
 | **Strony serii w rozkładówkach** | Gdzie stoją puste strony albo od której strony blok wychodzi po przeciwnej stronie. |
 | **Tabela wychodzi poza stronę** | Wiersze urosły razem z treścią i tabela wyszła poza kartkę. |

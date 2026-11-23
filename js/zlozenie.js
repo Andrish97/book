@@ -288,7 +288,8 @@ export function obiektyZSasiadem(projekt, cel, ciag = rozwin(projekt)) {
 // Ramki tekstu egzemplarza po podstawieniu danych i przelaniu – same teksty, bez rysowania.
 // Służy do sprawdzenia przed drukiem, czy tekst mieści się w ramce na każdej powielonej stronie.
 // Zwraca [{ obiekt (Fabric), zrodlo: 'strona' | 'wzorzec', id }].
-export async function tekstyEgzemplarza(projekt, egz, ciag) {
+// wszystkie – także ramki rosnące z tekstem (polskie zasady składu, #413); bez – tylko te, które mogą się nie zmieścić.
+export async function tekstyEgzemplarza(projekt, egz, ciag, { wszystkie = false } = {}) {
   if (uzywaDzielenia(egz.strona.obiekty) || projekt.wzorce.some((w) => uzywaDzielenia(w.obiekty))) await zaladujDzielenie();
   const wartosc = wartosciPol(projekt, egz, ciag);
   const zbierz = (obiekty, wynik = []) => {
@@ -303,7 +304,7 @@ export async function tekstyEgzemplarza(projekt, egz, ciag) {
   const wynik = [];
   const zrodla = [['strona', egz.strona.obiekty], ...wzorceStrony(projekt, egz.strona).map((w) => ['wzorzec', w.obiekty])];
   for (const [zrodlo, obiekty] of zrodla) {
-    const ramki = zbierz(podstawWObiektach(obiekty, wartosc)).filter((o) => o.ramka_h > 0 || o.watek);
+    const ramki = zbierz(podstawWObiektach(obiekty, wartosc)).filter((o) => wszystkie || o.ramka_h > 0 || o.watek);
     if (!ramki.length) continue;
     const zywe = await ozyw(ramki);
     const idWatkow = new Set(ramki.filter((o) => o.watek).map((o) => o.watek));

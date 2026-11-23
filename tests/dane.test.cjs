@@ -395,10 +395,12 @@ test('szablon danych i kontrola przed drukiem: brakujące kolumny, plik Excela z
   await strona.click('#przycisk-wiecej');
   await strona.click('[data-akcja="pdf"]');
   await strona.waitForSelector('#dlg-pdf[open]');
-  assert.equal(await strona.textContent('#pdf-uwagi summary'), 'Do sprawdzenia przed drukiem: 2 uwagi');
+  // #413: także polskie zasady składu z ramek rosnących z tekstem (puste pola dają „ , ” na stronie 4).
+  assert.equal(await strona.textContent('#pdf-uwagi summary'), 'Do sprawdzenia przed drukiem: 3 uwagi');
   assert.deepEqual(await strona.locator('#pdf-uwagi li').allTextContents(), [
     'Nie ma w projekcie obrazu „chmura.png” (kolumna „ikona”) – strona 2.',
     'Wartość „2” z kolumny „dzien” (tabela „Dni”) powtarza się na stronach 2 i 4.',
+    'Tekst „2 – , , strona 4” – skład niezgodny z polskimi zasadami: spacja przed przecinkiem, kropką albo nawiasem zamykającym – strona 4.',
   ]);
   assert.deepEqual(bledy, []);
 });
@@ -634,12 +636,14 @@ test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszys
     await strona.click('#przycisk-wiecej');
     await strona.click('[data-akcja="kontrola"]');
     await strona.waitForSelector('#dlg-kontrola[open]');
-    await strona.waitForFunction(() => /1 uwaga do sprawdzenia/.test(document.querySelector('#kontrola-stan').textContent));
+    // #413: druga uwaga – podwójne spacje po wstawieniu danych (polskie zasady składu).
+    await strona.waitForFunction(() => /2 uwagi do sprawdzenia/.test(document.querySelector('#kontrola-stan').textContent));
   };
   await otworzKontrole();
   assert.equal(await strona.textContent('#kontrola-lista li span'), 'Tekst „Bardzo długi opis, który na pe…” nie mieści się w ramce – strona 2.');
-  assert.deepEqual(await strona.locator('#kontrola-lista li button').allTextContents(), ['Pokaż', 'Otwórz wzór']);
-  await strona.click('#kontrola-lista li button:has-text("Pokaż")');
+  assert.match(await strona.locator('#kontrola-lista li').nth(1).textContent(), /skład niezgodny z polskimi zasadami: podwójne spacje/);
+  assert.deepEqual(await strona.locator('#kontrola-lista li').first().locator('button').allTextContents(), ['Pokaż', 'Otwórz wzór']);
+  await strona.locator('#kontrola-lista li').first().locator('button:has-text("Pokaż")').click();
   await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad' && document.querySelector('.podglad-strona.wskazana'));
   const wskazana = await strona.evaluate(() => { const f = document.querySelector('.podglad-strona.wskazana'); return [[...document.querySelectorAll('.podglad-strona[data-id]')].indexOf(f), f.querySelector('figcaption').textContent]; });
   assert.equal(wskazana[0], 1, 'wyróżniona jest druga strona wydruku');
@@ -648,14 +652,14 @@ test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszys
   await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
   await strona.evaluate(() => window.seriodruk.edytor.odznacz());
   await otworzKontrole();
-  await strona.click('#kontrola-lista li button:has-text("Otwórz wzór")');
+  await strona.locator('#kontrola-lista li').first().locator('button:has-text("Otwórz wzór")').click();
   await strona.waitForFunction(() => window.seriodruk.edytor?.aktywny?.id === 'o_opis');
   // Przełącznik klamr jest w panelu tekstu, gdy w tekście są klamry.
   assert.ok(await strona.locator('.wlasciwosci label:has-text("Klamry { } to zwykły tekst")').count());
   // Okno PDF dopisuje tę uwagę po chwili.
   await strona.click('#przycisk-wiecej');
   await strona.click('[data-akcja="pdf"]');
-  await strona.waitForFunction(() => /1 uwaga/.test(document.querySelector('#pdf-uwagi summary').textContent));
+  await strona.waitForFunction(() => /2 uwagi/.test(document.querySelector('#pdf-uwagi summary').textContent));
   await strona.click('#pdf-anuluj');
 
   // Długa tabela: wiersze dorysowują się przy przewijaniu, a przejście do dalekiej komórki ją pokazuje.

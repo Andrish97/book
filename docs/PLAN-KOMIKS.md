@@ -267,3 +267,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - N4 ✅ zapis/import/eksport w jednym menu; mniej pozycji w prawym menu (telefon).
 - N5 ✅ okno czatu na telefonie nie ucieka. (#411)
 - „Pasek narzędzi jest nad oknami a czat dalej wygląda brzydko”, „Mogę czasem potrzebować OpenRouter” – ✅ N6 czat modalny na telefonie, nowy wygląd, logowanie OpenRouter w ustawieniach (#412).
+- „problemy z polskimi zasadami nie pokazują się przy problemach przed drukiem” – ✅ (#413).

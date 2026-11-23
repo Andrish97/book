@@ -37,7 +37,9 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
       wpis.ile = Math.max(wpis.ile, ile);
       tabele.set(id, wpis);
     }
-    for (const { obiekt, zrodlo, id } of await tekstyEgzemplarza(projekt, egz, ciag)) {
+    // Wszystkie ramki tekstu (#413): polskie zasady składu dotyczą też ramek rosnących z tekstem – wcześniej
+    // sprawdzane były tylko ramki o stałej wysokości, więc uwagi z edytora nie trafiały do „Sprawdź przed drukiem”.
+    for (const { obiekt, zrodlo, id } of await tekstyEgzemplarza(projekt, egz, ciag, { wszystkie: true })) {
       const uw = uwagiSkladuTekstu(obiekt);
       if (uw.length) {
         const tresc0 = (obiekt.nazwa || obiekt.text || '').replace(/\s+/g, ' ').trim();
