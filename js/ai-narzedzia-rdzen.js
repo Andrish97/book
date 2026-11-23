@@ -2605,6 +2605,10 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         const rozmiary = lista.map(({ r }) => (poz ? r.w : r.h));
         const koniec = poz ? lista.at(-1).r.x + lista.at(-1).r.w : lista.at(-1).r.y + lista.at(-1).r.h;
         const odstep = staly != null ? staly : (koniec - start - rozmiary.reduce((a, b) => a + b, 0)) / (lista.length - 1);
+        // Elementy szersze niż miejsce między skrajnymi: równe odstępy wyszłyby ujemne i elementy nachodziłyby na siebie.
+        if (staly == null && odstep < 0) {
+          throw new BladBazy(`Elementy nie mieszczą się między skrajnymi (brakuje ${Math.round(-odstep * (lista.length - 1) * 10) / 10} mm) – równe odstępy nałożyłyby je na siebie. Podaj odstep_mm (np. 5) albo najpierw odsuń skrajne elementy.`);
+        }
         let pozycja = start;
         for (const { o, r } of lista) {
           if (poz) przesun(o, pozycja - r.x, 0); else przesun(o, 0, pozycja - r.y);

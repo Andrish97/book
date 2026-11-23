@@ -496,6 +496,13 @@ test('MCP: kopiowanie strony z nowymi id, wyrównanie i równe rozmieszczenie el
   assert.equal((await narzedzie('rozmiesc_elementy', { gdzie: 'strona:s1', id: ['a', 'b'], kierunek: 'pionowo' })).blad, true, 'dwa bez odstępu – odmowa');
   assert.ok(!(await narzedzie('rozmiesc_elementy', { gdzie: 'strona:s1', id: ['a', 'b'], kierunek: 'pionowo', odstep_mm: 5 })).blad);
   assert.equal(el('b').top, 25);
+  // Elementy szersze niż miejsce między skrajnymi (zgłoszenie 22.11: „odstęp -30 mm”) – odmowa bez zmian, z podpowiedzią.
+  await narzedzie('zmien_elementy', { gdzie: 'strona:s1', zmiany: [{ id: 'b', pola: { left: 15, width: 80 } }, { id: 'c', pola: { left: 40 } }] });
+  const przedRozm = [el('a').left, el('b').left, el('c').left];
+  const zle = await narzedzie('rozmiesc_elementy', { gdzie: 'strona:s1', id: ['a', 'b', 'c'], kierunek: 'poziomo' });
+  assert.equal(zle.blad, true);
+  assert.match(zle.tekst, /nie mieszczą się między skrajnymi .*odstep_mm/);
+  assert.deepEqual([el('a').left, el('b').left, el('c').left], przedRozm, 'nic się nie zmieniło');
   // Klucz tylko do odczytu – odmowa.
   assert.equal((await s.uruchom(s.odczyt).narzedzie('kopiuj_strone', { id: 's1' })).blad, true);
 });
