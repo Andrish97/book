@@ -258,6 +258,8 @@ async function start() {
       if (trasa.odczytaj().ekran === 'zaproszenie') konto.komunikat(t('aplikacja.maszZaproszenieDoProjektu'), true);
       // #/instrukcja bez konta: podręcznik nad ekranem logowania (#114).
       if (trasa.odczytaj().ekran === 'instrukcja') instrukcja.otworzZAdresu('#/', trasa.odczytaj().cel);
+      // #/kontakt bez konta: formularz kontaktowy nad ekranem logowania (#406).
+      if (trasa.odczytaj().ekran === 'kontakt') import('./app/kontakt.js').then((m) => m.otworzKontakt({ adresPrzed: '#/' }));
     }
   } catch (e) {
     pokazEkran('logowanie');

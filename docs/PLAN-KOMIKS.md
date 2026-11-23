@@ -235,3 +235,12 @@ Przetestowane w Claude jako konektor niestandardowy:
 - **uwaga:** katalog Biblioteki w łączniku ma nazwy po polsku (kategorie i elementy) – AI tłumaczy je sam, ale dla recenzentów warto kiedyś dodać nazwy angielskie.
 
 Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty, kod QR, wstęga z Biblioteki, komentarz z odpowiedzią do rozwiązania), „Wall Calendar 2027” (styczeń i luty z obrazem i kalendarzem miesiąca), „Comic – The Parcel” (kadr z obrazem, trzy kadry, cztery dymki). Do usunięcia ręcznie: „Spring Fair – Poster (copy)” (kopia z testu kopiuj_projekt – usun_projekt zablokowany w tej sesji).
+
+## Część L – wypełnianie formularza katalogu Claude (23.11, południe)
+- Właściciel: „pyta najpierw o połączenie, a nie powinno… ma być uniwersalne” – połączenie w formularzu tylko sprawdza serwer;
+  zalogować się kontem test+recenzja@makietka.app. URL configuration: „Everyone uses the same URL”, OAuth + Dynamic Client Registration.
+- Formularz wykrył 50 narzędzi, 14 tylko do czytania – zgodne z kodem.
+- Kategorie: Creative, Productivity, Media & Entertainment, Education (bez Nonprofit).
+- „Ikonę widzi stara dalej” – serwer podaje nową, starą trzyma pamięć ikon Google (odświeży się sama); w polu Icon wgrać img/ikony/ikona-512.png.
+- „A czy formularz kontaktowy ma url? Może lepiej go dodać jako kontakt?” – ✅ adres makietka.app/#/kontakt (#406), link wsparcia w zgłoszeniu.
+- Właściciel: okienka zgody przy łączniku i komendach w tej rozmowie – zezwolenia ustawia właściciel („Zawsze zezwalaj” albo .claude/settings.json).

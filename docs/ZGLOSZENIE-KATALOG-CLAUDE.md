@@ -12,7 +12,7 @@ Pola poniżej są po angielsku – do wklejenia.
 | Authentication | OAuth 2.1 (dynamic client registration, PKCE) – discovery: `https://api.makietka.app/.well-known/oauth-protected-resource` |
 | Documentation | `https://makietka.app/#/instrukcja/25` (rozdział „Working with AI” – otwiera się w języku przeglądarki) oraz `https://makietka.app/ai/api.md` (opis narzędzi) |
 | Privacy policy | `https://makietka.app/privacy.html` (po polsku: `https://makietka.app/prywatnosc.html`) |
-| Support contact | kontakt@makietka.app |
+| Support contact | `https://makietka.app/#/kontakt` (formularz kontaktowy, bez logowania) albo kontakt@makietka.app |
 | Icon | `img/ikony/ikona-512.png` (512 × 512) albo `img/ikony/ikona.svg` z repozytorium |
 | Website | `https://makietka.app` |
 
@@ -48,7 +48,7 @@ Pola poniżej są po angielsku – do wklejenia.
 4. Wypełnij pola, kopiując je z tabeli „Dane łącznika” i opisów wyżej:
    - Name, Server URL, krótki i długi opis,
    - linki: dokumentacja, polityka prywatności, strona,
-   - kontakt do wsparcia: kontakt@makietka.app,
+   - kontakt do wsparcia: `https://makietka.app/#/kontakt` (albo kontakt@makietka.app),
    - ikona: wgraj plik `img/ikony/ikona-512.png` z repozytorium (albo pobierz z `https://makietka.app/img/ikony/ikona-512.png`).
 5. W części dla recenzentów wpisz adres konta testowego (`test+recenzja@makietka.app`), jego hasło i wklej „Test instructions”.
 6. Potwierdź, że każde narzędzie przetestowano jako konektor niestandardowy (zrobione na łączniku „Makietka recenzja” – patrz plan I9).

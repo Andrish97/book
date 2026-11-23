@@ -56,6 +56,12 @@ export function przejdzDoTrasy() {
       await instrukcja.otworzZAdresu(stan.projekt ? `#/p/${stan.projekt.id}` : (stan.uzytkownik ? '#/projekty' : '#/'), t.cel);
       return;
     }
+    // #/kontakt – formularz kontaktowy nad bieżącym ekranem, także bez konta (link wsparcia w katalogu Claude, #406).
+    if (t.ekran === 'kontakt') {
+      if (stan.uzytkownik && !stan.projekt && document.body.dataset.ekran !== 'projekty') await pokazProjekty();
+      await (await import('./kontakt.js')).otworzKontakt({ adresPrzed: stan.projekt ? `#/p/${stan.projekt.id}` : (stan.uzytkownik ? '#/projekty' : '#/') });
+      return;
+    }
     if (!stan.uzytkownik) return;
     // #/zaproszenie/<kod> – zaproszenie do projektu (współpraca): pytanie, czy je przyjąć.
     if (t.ekran === 'zaproszenie') {

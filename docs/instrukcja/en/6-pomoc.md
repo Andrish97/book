@@ -118,7 +118,7 @@ export the projects you want to keep (→ 2.6).
 
 A question, an idea or a bug? [Contact] is in the account menu and below the sign-in form. [Attach files]
 adds a screenshot, a project file or a PDF (up to 5 files, 10 MB in total). You can also write
-to kontakt@makietka.app.
+to kontakt@makietka.app. The address **makietka.app/#/kontakt** also opens the form – no sign-in needed.
 
 ![Contact form with an attachment](k-kontakt.png)
 

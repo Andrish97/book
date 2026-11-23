@@ -118,7 +118,7 @@ wyeksportuj projekty, które chcesz zachować (→ 2.6).
 
 Pytanie, pomysł albo błąd? [Kontakt] jest w menu konta i pod formularzem logowania. [Załącz pliki]
 dodaje zrzut ekranu, plik projektu albo PDF (do 5 plików, razem 10 MB). Możesz też pisać
-na kontakt@makietka.app.
+na kontakt@makietka.app. Formularz otwiera też adres **makietka.app/#/kontakt** – bez logowania.
 
 ![Formularz kontaktowy z załącznikiem](k-kontakt.png)
 

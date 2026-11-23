@@ -62,7 +62,14 @@ function turnstile() {
   });
 }
 
-export async function otworzKontakt() {
+// adresPrzed – formularz otwarty z adresu #/kontakt: po zamknięciu adres wraca na poprzedni ekran (#406).
+let adresPrzed = null;
+dlg.addEventListener('close', () => {
+  if (/^#\/kontakt/.test(location.hash)) history.replaceState(null, '', adresPrzed || '#/');
+});
+
+export async function otworzKontakt(opcje = {}) {
+  if (opcje.adresPrzed) adresPrzed = opcje.adresPrzed;
   kom.textContent = '';
   kom.className = 'komunikat';
   if (stan.uzytkownik?.email && !form.email.value) form.email.value = stan.uzytkownik.email;
