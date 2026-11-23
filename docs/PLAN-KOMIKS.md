@@ -222,3 +222,15 @@ nazwy projektów opisać w instrukcji dla recenzentów w docs/ZGLOSZENIE-KATALOG
 |---|---|---|
 | K1 | „Zapisz też, że trzeba zmienić na łączniku ikonkę ze starej z literką M na nową.” | zrobione (#397) – api.makietka.app i makietka.app nie miały /favicon.ico (404), więc Claude pokazywał zastępczą literę; teraz favicon.ico z nowym logo i strona główna API z &lt;link rel="icon"&gt;. Claude może trzymać starą ikonę w pamięci – wtedy usunąć i dodać łącznik jeszcze raz. |
 | K2 | „W tłumaczeniach nie ma ikon i trzeba to poprawić.” | zrobione (#397) – tłumaczenie napisu (textContent) kasowało ikonę w przycisku; po angielsku 0 ze 113 przycisków miało ikonę, po ukraińsku 2. Teraz zmienia się sam tekst. Test jezyki-ikony. |
+
+
+### I9 – test narzędzi na łączniku „Makietka recenzja” (konto test+recenzja@makietka.app, 23.11 rano)
+
+Przetestowane w Claude jako konektor niestandardowy:
+- **działają:** projekty, nowy_projekt, przeglad_projektu, czytaj, opis_formatu, czcionki, biblioteka, dodaj_elementy (tekst, kształty, kod QR, kalendarz miesiąca, dymki), zmien_elementy, dodaj_strone, kopiuj_strone, zmien_strone, kolejnosc_stron, nazwa_projektu, wyrownaj_elementy, wgraj_obraz (SVG z wstawieniem), wgraj_czesciami (start/część/koniec), obrazy_projektu, zmien_nazwe_obrazu, link_do_wgrywania, adres_do_wysylki, skomentuj, komentarze, odpowiedz, rozwiaz_komentarz, kontrola, kopiuj_projekt, wstaw_z_biblioteki (wstęga „Ribbon” wstawiona przez otwartą Makietkę w podane miejsce), udostepnij_link (odmowa bez zgody – zgodnie z zasadą), rozmiesc_elementy (odmowa, gdy się nie mieszczą – poprawka #398), stan_eksportu;
+- **zadania dla otwartej Makietki:** generuj_obraz i rysuj_kadry czekają na kartę z tym projektem (otwarta karta miała inny projekt – tak ma być); ustaw_dymki – poprawna odmowa „W projekcie nie ma scenariusza” (była podwójna kropka – poprawione #401);
+- **błąd znaleziony i naprawiony (#400):** pliki PDF/PNG robione na serwerze (Makietka zamknięta) kończyły się „net::ERR_FAILED at https://makietka.app/rysuj.html” – hosting przekierowuje /rysuj.html na /rysuj, a przeglądarka serwera tego nie przepuszczała; dotyczyło też rysowania linku na serwerze;
+- **nie przetestowane w Claude:** narzędzia oznaczone jako niszczące (zmien_tabele, zmien_czesc, zmien_projekt, usun_*, podmien_obraz, uporzadkuj_obrazy, cofnij_zmiany_ai) – tryb uprawnień tej sesji odrzuca je automatycznie; mają testy automatyczne (klucze-ai, mcp, zakresy-ai). Właściciel może je sprawdzić ręcznie w swoim Claude (pytają o zgodę).
+- **uwaga:** katalog Biblioteki w łączniku ma nazwy po polsku (kategorie i elementy) – AI tłumaczy je sam, ale dla recenzentów warto kiedyś dodać nazwy angielskie.
+
+Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty, kod QR, wstęga z Biblioteki, komentarz z odpowiedzią do rozwiązania), „Wall Calendar 2027” (styczeń i luty z obrazem i kalendarzem miesiąca), „Comic – The Parcel” (kadr z obrazem, trzy kadry, cztery dymki). Do usunięcia ręcznie: „Spring Fair – Poster (copy)” (kopia z testu kopiuj_projekt – usun_projekt zablokowany w tej sesji).

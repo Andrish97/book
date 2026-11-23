@@ -1864,7 +1864,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       if (z.rodzaj === 'link') return `Link do podglądu gotowy: ${w.adres}${w.haslo ? ' (z hasłem, które podał użytkownik)' : ''}${w.wazny_do ? `, ważny do ${String(w.wazny_do).slice(0, 10)}` : ''}. Strony podglądu mogą dorysowywać się jeszcze chwilę. Link unieważnia użytkownik w aplikacji: Podgląd → Udostępnij → Unieważnij link.`;
       return w.opis || `Zadanie „${co}” gotowe.`;
     }
-    if (z.stan === 'blad') return `Aplikacja nie wykonała zadania „${co}”: ${z.blad || 'nieznany błąd'}. Zlecenie: ${z.id}.`;
+    if (z.stan === 'blad') return `Aplikacja nie wykonała zadania „${co}”: ${String(z.blad || 'nieznany błąd').replace(/\.+$/, '')}. Zlecenie: ${z.id}.`;
     if (z.stan === 'w_toku') return `Aplikacja właśnie wykonuje zadanie „${co}” (zlecenie ${z.id}). Może to potrwać kilka minut – sprawdź narzędziem stan_eksportu (zlecenie: ${z.id}).`;
     return `Zadanie „${co}” czeka (${z.id}): wykonuje je aplikacja Makietki w przeglądarce, a teraz żadna nie jest otwarta na tym koncie. Daj użytkownikowi ten link – po jego otwarciu (zalogowany na koncie klucza) aplikacja wykona zadanie sama: ${ADRES_APLIKACJI}#/p/${z.projekt_id}/eksport/${z.id}\nPotem sprawdź stan_eksportu (zlecenie: ${z.id}).`;
   }
@@ -1894,7 +1894,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       const uwagi = Array.isArray(z.uwagi) && z.uwagi.length ? `\nUwagi z kontroli przed drukiem (${z.uwagi.length}):\n${z.uwagi.map((u) => `- ${u}`).join('\n')}` : '';
       return `Plik ${rodzaj} gotowy: ${z.nazwa} (${MB(z.rozmiar)}${z.strony ? `, ${z.strony} ${z.strony === 1 ? 'strona' : 'stron(y)'}` : ''}).\nLink do pobrania (bez logowania, ważny 7 dni – do ${z.wygasa}): ${link}${uwagi}`;
     }
-    if (z.stan === 'blad') return `Aplikacja nie zrobiła pliku ${rodzaj}: ${z.blad || 'nieznany błąd'}. Zlecenie: ${z.id}. Popraw ustawienia albo projekt i zleć jeszcze raz.`;
+    if (z.stan === 'blad') return `Aplikacja nie zrobiła pliku ${rodzaj}: ${String(z.blad || 'nieznany błąd').replace(/\.+$/, '')}. Zlecenie: ${z.id}. Popraw ustawienia albo projekt i zleć jeszcze raz.`;
     if (z.stan === 'w_toku') return `Aplikacja właśnie robi plik ${rodzaj} (zlecenie ${z.id}). Duży projekt może potrwać kilka minut – sprawdź narzędziem stan_eksportu (zlecenie: ${z.id}).`;
     return `Zlecenie eksportu ${rodzaj} czeka (${z.id}): plik rysuje aplikacja Makietki w przeglądarce, a teraz żadna nie jest otwarta na tym koncie. Daj użytkownikowi ten link – po jego otwarciu (zalogowany na koncie klucza) aplikacja sama zrobi plik: ${linkAplikacji}\nPotem sprawdź stan_eksportu (zlecenie: ${z.id}) i podaj link do pobrania. Gdy aplikacja jest już otwarta, przyjmie zlecenie sama w ciągu kilku sekund.`;
   }
