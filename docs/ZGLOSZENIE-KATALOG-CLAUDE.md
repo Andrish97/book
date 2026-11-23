@@ -24,16 +24,33 @@ Pola poniżej są po angielsku – do wklejenia.
 
 ## Konto testowe dla recenzentów
 
-1. Załóż w Makietce konto na osobny adres e-mail (nie Twój prywatny).
-2. Zaloguj się i przeciągnij na listę projektów trzy pliki z `ai/przyklady/recenzja/`:
-   `wall-calendar-2027.makietka`, `comic-the-parcel.makietka`, `brochure-spring-fair.makietka`.
-3. W formularzu podaj e-mail i hasło tego konta (pole dla recenzentów). Hasła nie wpisuj do repozytorium.
+- Adres: **`test+recenzja@makietka.app`**. Konta testowe to adresy `test+<cokolwiek>@makietka.app` (subaddressing
+  w Cloudflare: reguła `test@` → worker) – poczta do nich trafia do skrzynki w panelu administratora Makietki,
+  nie na prywatny e-mail. Kolejne konto testowe: np. `test+2@makietka.app`.
+- Hasło tego konta wpisz **tylko w formularzu zgłoszenia** (pole dla recenzentów) – nie w repozytorium ani w czacie.
+- Na koncie są gotowe projekty po angielsku (przygotowane przez łącznik „Makietka recenzja”):
+  „Spring Fair – Poster” (plakat z obrazem, kodem QR i tabelą danych) oraz – w przygotowaniu – kalendarz i komiks.
 
 **Test instructions (dla recenzentów, po angielsku):**
-> 1. Add the connector in Claude and sign in with the test account. On the Makietka consent screen choose "All (also creating and deleting)" and "read and change".
-> 2. Try: "List my Makietka projects", "In the comic, add a speech bubble on page 2 saying 'Hello!'", "Insert a rounded frame from the Library on the first page of the brochure", "Export the wall calendar as a PDF for screen".
-> 3. Keep https://makietka.app open in a browser tab signed in to the test account – PDF/PNG export works without it, but drawing pictures, comic panels, bubbles, Library elements and preview links are done by the open app.
+> Test account: the email and password given in this form. The account already has sample projects (e.g. "Spring Fair – Poster").
+> 1. Add the connector in Claude (Settings → Connectors → Add custom connector → `https://api.makietka.app/mcp`) and sign in with the test account. On the Makietka consent screen choose "All (also creating and deleting)" and "read and change", then "Allow".
+> 2. Try: "List my Makietka projects", "Show an overview of Spring Fair – Poster", "Change the poster title to 'Spring Fair 2028'", "Add a row to the Stalls table", "Find a rounded frame in the Makietka Library", "Export the poster as a PDF for screen".
+> 3. Keep https://makietka.app open in a browser tab signed in to the test account – PDF/PNG export also works without it, but drawing pictures, comic panels, speech bubbles, Library elements and preview links are done by the open app (pictures need the user's own Google Gemini key, so in the test account they are expected to report a missing key).
 > 4. "Undo AI changes" (Claude asks first) restores the project to its state before Claude's latest series of edits.
+
+## Jak wysłać zgłoszenie – krok po kroku
+
+1. Zaloguj się na claude.ai na koncie z płatnym planem (Pro, Max, Team albo Enterprise).
+2. Wejdź na **claude.ai/directory/manage**.
+3. Kliknij **Submit new**, a potem **MCP connector**.
+4. Wypełnij pola, kopiując je z tabeli „Dane łącznika” i opisów wyżej:
+   - Name, Server URL, krótki i długi opis,
+   - linki: dokumentacja, polityka prywatności, strona,
+   - kontakt do wsparcia: kontakt@makietka.app,
+   - ikona: wgraj plik `img/ikony/ikona-512.png` z repozytorium (albo pobierz z `https://makietka.app/img/ikony/ikona-512.png`).
+5. W części dla recenzentów wpisz adres konta testowego (`test+recenzja@makietka.app`), jego hasło i wklej „Test instructions”.
+6. Potwierdź, że każde narzędzie przetestowano jako konektor niestandardowy (zrobione na łączniku „Makietka recenzja” – patrz plan I9).
+7. Wyślij. Odpowiedź przyjdzie na e-mail konta Claude; recenzenci mogą zadać pytania albo poprosić o poprawki.
 
 ## Wymagania – stan
 
@@ -43,9 +60,10 @@ Pola poniżej są po angielsku – do wklejenia.
 | OAuth 2.0 | ✅ OAuth 2.1 |
 | `title` + `readOnlyHint`/`destructiveHint` dla każdego narzędzia | ✅ (test `katalog-lacznikow`) |
 | Dokumentacja | ✅ instrukcja (pl/en/uk) + `ai/api.md` |
-| Polityka prywatności | ✅ `privacy.html` / `prywatnosc.html` – **uzupełnij dane administratora** (imię i nazwisko albo firma, adres) w punkcie 1 |
+| Polityka prywatności | ✅ `privacy.html` / `prywatnosc.html` (administrator: operator serwisu Makietka, kontakt@makietka.app) |
 | Kontakt | ✅ kontakt@makietka.app |
-| Ikona | ✅ |
-| Konto testowe | ⏳ do założenia przez właściciela (punkt wyżej) |
-| Test każdego narzędzia w Claude jako konektor niestandardowy | ⏳ właściciel albo sesja z podłączonym łącznikiem |
+| Ikona | ✅ także `favicon.ico` pod api.makietka.app (Claude może trzymać starą ikonę – wtedy usunąć i dodać łącznik jeszcze raz) |
+| Konto testowe | ✅ `test+recenzja@makietka.app` (założone przez właściciela) |
+| Materiały testowe na koncie | ⏳ w przygotowaniu (wywołania łącznika wymagają zgody właściciela w czacie) |
+| Test każdego narzędzia w Claude jako konektor niestandardowy | ⏳ w toku – łącznik „Makietka recenzja” |
 | Płatny plan Claude i wysłanie formularza | ⏳ właściciel |
