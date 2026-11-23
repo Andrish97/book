@@ -247,3 +247,10 @@ Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty
 - „Dlaczego adres się kończy HTML? Polityki prywatności. Chciałbym, żeby nie było takich rzeczy.” – ✅ makietka.app/privacy i /prywatnosc (#407).
 - „ale potem piszesz testy i jak dodałeś tylko jedną rzecz” / „Nie, ale test ma być bardziej punktowy, a nie całości.” – ✅ zasada w docs/PRZEKAZANIE.md: test tylko zmienionej rzeczy, uruchamiane tylko testy tej zmiany, bez pełnego przebiegu.
 - Compliance: „does not use AI models to generate images” – właściciel: „wtedy łącznik nie będzie mógł rysować… możemy coś takiego zrobić”; „wkurza mnie trochę mieszanie polskich i angielskich nazw” – ✅ /mcp bez rysowania (katalog), /mcp/full pełny, opisy narzędzi bez odwołań, adresy #/docs i #/contact (#408).
+
+## Część M – tłumaczenia napisów w kodzie (23.11)
+- Właściciel: „Jest bardzo dużo problemów z tłumaczeniami szczególnie te które są w js. Np. Changed godzinę temu XD”.
+- M1 ✅ daty, lista projektów, konto, logowanie, współpraca, zapis (#409).
+- M2 ⏳ pozostałe okna i panele (właściwości, dane, sekcje, strony, komentarze, AI, eksport, druk…) – skaner napisów spoza słownika.
+- M3 ⏳ przykładowa treść szablonów (gotowe sekcje, kompozycje, planery) – tekst wstawiany do projektu.
+- M4 ⏳ komunikaty z bazy danych (limity, błędy) – po polsku z serwera.

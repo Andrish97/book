@@ -12,14 +12,14 @@ import { ikona } from '../ikony.js';
 import { zPostepem } from '../postep.js';
 import { stan, trasa } from './kontekst.js';
 import { poprawnaNazwa, szukajNazw } from '../nazwa-uzytkownika.js';
-import { t as tt } from '../jezyk.js';
+import { t as tt, jezykDat } from '../jezyk.js';
 
 // Adresat wyłączył e-maile o zaproszeniach (#206): zaproszenie czeka u niego w aplikacji.
-export const BEZ_MAILA = 'Ta osoba wyłączyła e-maile o zaproszeniach – zobaczy zaproszenie w aplikacji. Możesz też wysłać jej link sam.';
+export const BEZ_MAILA = 'wspolpraca.bezMaila';
 const KROTKO = { edycja: 'edytuje', odczyt: 'ogląda', wlasciciel: 'właściciel' };
-export const opisRoli = (rola) => wsp.ROLE[rola] || rola;
+export const opisRoli = (rola) => (wsp.ROLE[rola] ? tt(wsp.ROLE[rola]) : rola);
 export const krotkoRola = (rola) => KROTKO[rola] || rola;
-const dlaMnie = (rola) => (rola === 'edycja' ? 'możesz edytować' : 'możesz oglądać');
+const dlaMnie = (rola) => (rola === 'edycja' ? tt('wspolpraca.dlaMnieEdycja') : tt('wspolpraca.dlaMnieOdczyt'));
 const inicjal = (tekst) => (String(tekst || '?').trim()[0] || '?').toUpperCase();
 // Zaproszony: adres e-mail, jeśli zapraszający sam go wpisał, inaczej nazwa użytkownika z „@” (#100).
 const ktoZaproszony = (o) => o.email || (o.nazwa ? `@${o.nazwa}` : '');
@@ -93,7 +93,7 @@ function wierszOsoby(o) {
   tytul.textContent = o.typ === 'zaproszenie' ? ktoZaproszony(o) : `${kto(o)}${o.ja ? ' (Ty)' : ''}`;
   const szczegoly = document.createElement('span');
   szczegoly.className = 'ciche';
-  if (o.typ === 'zaproszenie') szczegoly.textContent = tt('wspolpraca.zaproszenieWyslaneWazneDo', { kiedy: kiedy(o.od), opisRoli: opisRoli(o.rola), toLocaleDateString: new Date(o.wazne_do).toLocaleDateString('pl-PL') });
+  if (o.typ === 'zaproszenie') szczegoly.textContent = tt('wspolpraca.zaproszenieWyslaneWazneDo', { kiedy: kiedy(o.od), opisRoli: opisRoli(o.rola), toLocaleDateString: new Date(o.wazne_do).toLocaleDateString(jezykDat()) });
   else if (o.typ === 'wlasciciel') szczegoly.textContent = tt('wspolpraca.wlasciciel2', { x: o.email ? `${o.email} · ` : '' });
   else szczegoly.textContent = `${o.email ? `${o.email} · ` : ''}${opisRoli(o.rola)}`;
   opis.append(tytul, szczegoly);
@@ -105,7 +105,7 @@ function wierszOsoby(o) {
     rola.innerHTML = `<option value="edycja">${tt('wspolpraca.mozeEdytowac')}</option><option value="odczyt">${tt('wspolpraca.mozeOgladac')}</option>`;
     rola.value = o.rola;
     rola.addEventListener('change', async () => {
-      try { await wsp.zmienRole(otwarty.id, o.id, rola.value); powiadom(`${kto(o)}: ${opisRoli(rola.value)}.`); } catch (e) { powiadom(komunikatBledu(e), true); }
+      try { await wsp.zmienRole(otwarty.id, o.id, rola.value); powiadom(tt('wspolpraca.zmianaRoli', { kto: kto(o), rola: opisRoli(rola.value) })); } catch (e) { powiadom(komunikatBledu(e), true); }
       odswiezOsoby();
     });
     const odbierz = przycisk(tt('wspolpraca.odbierz'), 'niebezpieczny', async () => {
@@ -120,7 +120,7 @@ function wierszOsoby(o) {
     akcje.append(przyciskIkona('wyslij', 'Wyślij e-mail z zaproszeniem ponownie', '', async () => {
       const m = await wsp.wyslijZaproszenieMailem(o.id);
       if (m.wyslano) powiadom(o.email ? tt('wspolpraca.wyslanoEMailZ', { email: o.email }) : tt('wspolpraca.wyslanoEMailZ2', { ktoZaproszony: ktoZaproszony(o) }));
-      else if (m.powod === 'adresat-wylaczyl') powiadom(BEZ_MAILA);
+      else if (m.powod === 'adresat-wylaczyl') powiadom(tt(BEZ_MAILA));
       else powiadom(m.powod === 'brak-konfiguracji' ? tt('wspolpraca.aplikacjaNieWysylaJeszcze') : (m.blad || tt('wspolpraca.eMailNieWyszedl')), true);
     }));
     akcje.append(przyciskIkona('zamknij', 'Cofnij zaproszenie', 'niebezpieczny', async () => {
@@ -169,8 +169,8 @@ async function kopiuj(tekst, komunikat) {
 function trescMaila(nazwaProjektu, rola, link) {
   const kto = stan.uzytkownik?.user_metadata?.nazwa || stan.uzytkownik?.email || '';
   return {
-    temat: `Zaproszenie do projektu „${nazwaProjektu}” w Makietce`,
-    tresc: `Cześć!\n\n${kto ? `${kto} zaprasza` : 'Zapraszam'} Cię do wspólnej pracy nad projektem „${nazwaProjektu}” w Makietce (${opisRoli(rola)}).\n\nOtwórz link, zaloguj się albo załóż konto – projekt pojawi się na Twojej liście:\n${link}\n\nLink jest ważny 14 dni i działa jeden raz.`,
+    temat: tt('wspolpraca.mailTemat', { nazwa: nazwaProjektu }),
+    tresc: tt(kto ? 'wspolpraca.mailTrescKto' : 'wspolpraca.mailTresc', { kto, nazwa: nazwaProjektu, rola: opisRoli(rola), link }),
   };
 }
 
@@ -199,11 +199,11 @@ async function zapros(e) {
       // Maile idą przez kolejkę z limitami (decyzja #95): zwykle od razu, czasem po chwili albo – przy zbyt
       // częstym wysyłaniu – dopiero po odstępie.
       const powody = {
-        'brak-konfiguracji': 'Aplikacja nie wysyła jeszcze e-maili',
-        'za-czesto': `Kolejny e-mail na ten adres można wysłać za ${m.za || 'chwilę'}`,
+        'brak-konfiguracji': tt('dawne.aplikacjaNieWysylaJeszczeE'),
+        'za-czesto': tt('wspolpraca.zaCzesto', { za: m.za || tt('wspolpraca.chwile') }),
       };
       $('#wspolpraca-gotowe-opis').textContent = m.powod === 'adresat-wylaczyl'
-        ? BEZ_MAILA
+        ? tt(BEZ_MAILA)
         : m.wyslano
         ? tt('wspolpraca.wyslanoEMailZ3', { x: z.email ? tt('wspolpraca.naAdres', { email: z.email }) : `do ${ktoZaproszony(z)}`, gdzie })
         : m.powod === 'w-kolejce'
@@ -370,7 +370,7 @@ function rysujZaproszenia() {
 
 async function przyjmij(kod, nazwa) {
   try {
-    const w = await zPostepem(`Dołączanie do „${nazwa || 'projektu'}”…`, () => wsp.przyjmijZaproszenie(kod));
+    const w = await zPostepem(tt('wspolpraca.dolaczanie', { nazwa: nazwa || tt('wspolpraca.projekt') }), () => wsp.przyjmijZaproszenie(kod));
     for (const id of ['#dlg-zaproszenia', '#dlg-zaproszenie']) if ($(id).open) $(id).close();
     powiadom(tt('wspolpraca.dolaczonoDoProjektu', { x: nazwa || tt('wspolpraca.projekt'), dlaMnie: dlaMnie(w.rola) }));
     await odswiezZaproszenia();

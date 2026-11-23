@@ -6,7 +6,7 @@ import { publikujDoMagazynu } from './publikacja-magazyn.js';
 import { blobZasobu } from './zasoby.js';
 import { podstawaProjektu, kanon } from './laczenie.js';
 import { biblioteka } from './biblioteki.js';
-import { t } from './jezyk.js';
+import { t, jezykDat } from './jezyk.js';
 
 // Biblioteka Supabase leży w repozytorium (js/zewnetrzne/) – aplikacja nie pobiera kodu z obcych serwerów.
 const SUPABASE_JS = 'js/zewnetrzne/supabase-js-2.57.4.umd.js';
@@ -30,7 +30,7 @@ async function tokenSesji() {
   const sb = await supabase();
   const { data } = await sb.auth.getSession();
   const token = data.session?.access_token;
-  if (!token) throw new Error('Nie jesteś zalogowany.');
+  if (!token) throw new Error(t('chmura.niezalogowany'));
   return token;
 }
 
@@ -46,7 +46,7 @@ async function zapytaniePliku(adres, { metoda = 'GET', tresc, typ, cache, bezLog
   if (!odp.ok) {
     let dane = null;
     try { dane = await odp.json(); } catch { /* nie JSON */ }
-    throw new BladPliku(dane?.blad || `Plik niedostępny (błąd ${odp.status}).`, odp.status, dane?.kod || '');
+    throw new BladPliku(dane?.blad || t('chmura.plikNiedostepny', { status: odp.status }), odp.status, dane?.kod || '');
   }
   return odp;
 }
@@ -116,27 +116,28 @@ export async function naZmianeSesji(callback) {
 
 const adresPowrotu = () => location.origin + location.pathname;
 
+// Klucze komunikatów (#409) – tekst w języku interfejsu dopiero przy pokazaniu (t).
 const KOMUNIKATY = {
-  invalid_credentials: 'Nieprawidłowy e-mail lub hasło.',
-  invalid_credentials_nazwa: 'Nieprawidłowa nazwa użytkownika lub hasło.',
-  email_not_confirmed: 'Konto czeka na potwierdzenie – kliknij link z wiadomości e-mail.',
-  user_already_exists: 'Konto z tym adresem już istnieje. Zaloguj się albo przypomnij hasło.',
-  email_exists: 'Ten adres e-mail jest już zajęty.',
-  weak_password: 'Hasło jest za słabe.',
-  same_password: 'Nowe hasło musi różnić się od obecnego.',
-  email_address_invalid: 'Nieprawidłowy adres e-mail.',
-  validation_failed: 'Sprawdź wpisane dane.',
-  signup_disabled: 'Zakładanie kont jest teraz wyłączone.',
-  over_email_send_rate_limit: 'Za dużo wiadomości w krótkim czasie. Spróbuj ponownie za kilka minut.',
-  over_request_rate_limit: 'Za dużo prób. Odczekaj chwilę i spróbuj ponownie.',
-  otp_expired: 'Link wygasł albo został już użyty. Poproś o nowy.',
-  session_not_found: 'Sesja wygasła. Zaloguj się ponownie.',
-  user_not_found: 'Nie ma takiego konta.',
+  invalid_credentials: 'chmura.bladLogowania',
+  invalid_credentials_nazwa: 'chmura.bladLogowaniaNazwa',
+  email_not_confirmed: 'chmura.kontoNiepotwierdzone',
+  user_already_exists: 'chmura.kontoIstnieje',
+  email_exists: 'chmura.adresZajety',
+  weak_password: 'chmura.hasloSlabe',
+  same_password: 'chmura.hasloTakieSame',
+  email_address_invalid: 'chmura.adresNieprawidlowy',
+  validation_failed: 'chmura.sprawdzDane',
+  signup_disabled: 'chmura.rejestracjaWylaczona',
+  over_email_send_rate_limit: 'chmura.limitWiadomosci',
+  over_request_rate_limit: 'chmura.limitProb',
+  otp_expired: 'chmura.linkWygasl',
+  session_not_found: 'chmura.sesjaWygasla',
+  user_not_found: 'chmura.brakKonta',
 };
 
 // Komunikaty Supabase po polsku.
 export function komunikatBledu(e) {
-  if (e?.kod && KOMUNIKATY[e.kod]) return KOMUNIKATY[e.kod];
+  if (e?.kod && KOMUNIKATY[e.kod]) return t(KOMUNIKATY[e.kod]);
   const m = String(e?.message || e || '');
   // Limity z bazy (migracja 20261114180000_pliki_r2_limity.sql): „limit_projektow: Masz już …”.
   const limit = /\b(?:limit_(?:projektow|osob)|za_duzo_prob_logowania):\s*(.+)$/s.exec(m);
@@ -150,14 +151,14 @@ export function komunikatBledu(e) {
     [/unable to validate email|invalid email/i, KOMUNIKATY.email_address_invalid],
     [/rate limit|too many requests|security purposes/i, KOMUNIKATY.over_request_rate_limit],
     [/expired|invalid.*link/i, KOMUNIKATY.otp_expired],
-    [/failed to fetch|network|load failed/i, 'Brak połączenia z serwerem. Sprawdź internet.'],
+    [/failed to fetch|network|load failed/i, 'chmura.brakPolaczenia'],
     [/signups not allowed/i, KOMUNIKATY.signup_disabled],
   ];
   for (const [wzor, tekst] of mapa) {
     const r = m.match(wzor);
-    if (r) return typeof tekst === 'function' ? tekst(r) : tekst;
+    if (r) return typeof tekst === 'function' ? tekst(r) : t(tekst);
   }
-  return m || 'Wystąpił nieznany błąd.';
+  return m || t('chmura.nieznanyBlad');
 }
 
 // ---------- Konto ----------
@@ -307,7 +308,7 @@ export async function przestanSluchac() {
 // Zapis odrzucony, bo na koncie jest wersja zapisana z innego urządzenia.
 export class KonfliktZapisu extends Error {
   constructor(zmieniono) {
-    super('Projekt został zmieniony na innym urządzeniu.');
+    super(t('chmura.zmienionyGdzieIndziej'));
     this.konflikt = true;
     this.zmieniono = zmieniono;
   }
@@ -321,7 +322,7 @@ export class KonfliktZapisu extends Error {
 export async function zapiszWChmurze(projekt, { wymus = false, postep = null } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
 
   // Obrazy wgrane przez AI (ścieżka „ai:<id>”) czekają w tabeli bazy – przy zapisie przechodzą do folderu
   // plików konta jak każdy nowy obraz, a po udanym zapisie projektu wiersz w tabeli jest usuwany.
@@ -534,10 +535,10 @@ export async function pobierzZasob(sciezka) {
     };
     await Promise.all(Array.from({ length: Math.min(3, w.czesci) }, robotnik));
     const blob = new Blob(kawalki, { type: w.typ });
-    if (w.rozmiar && blob.size !== w.rozmiar) throw new Error(`Obraz „${w.nazwa}” przyszedł niepełny (${blob.size} z ${w.rozmiar} bajtów).`);
+    if (w.rozmiar && blob.size !== w.rozmiar) throw new Error(t('chmura.obrazNiepelny', { nazwa: w.nazwa, ile: blob.size, razem: w.rozmiar }));
     if (w.skrot) {
       const { skrotSha256 } = await import('./obrazy-wspolne.js');
-      if (await skrotSha256(await blob.arrayBuffer()) !== w.skrot) throw new Error(`Obraz „${w.nazwa}” przyszedł uszkodzony (inny skrót treści).`);
+      if (await skrotSha256(await blob.arrayBuffer()) !== w.skrot) throw new Error(t('chmura.obrazUszkodzony', { nazwa: w.nazwa }));
     }
     return blob;
   }
@@ -567,7 +568,7 @@ const SPIS_CZCIONEK = 'spis.json';
 
 export async function kontoCzcionek() {
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
   const folder = `${uzytkownik.id}/${FOLDER_CZCIONEK}`;
   // [{ name }] – pliki bezpośrednio w folderze czcionek.
   const pliki = async () => (await r2.lista(BUCKET, `${folder}/`))
@@ -590,7 +591,7 @@ export async function kontoCzcionek() {
 // (pliki na „_” nie są sprzątane jako osierocone – jak „Moje czcionki”).
 export async function kontoElementow() {
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Moje elementy są na koncie – zaloguj się.');
+  if (!uzytkownik) throw new Error(t('chmura.mojeElementyZaloguj'));
   const folder = `${uzytkownik.id}/_elementy`;
   const json = (dane) => new Blob([JSON.stringify(dane)], { type: 'application/json' });
   return {
@@ -610,7 +611,7 @@ export async function kontoElementow() {
 // Folder na „_” nie jest sprzątany jako osierocony – jak „Moje elementy”.
 export async function kontoMarki() {
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Zestaw marki jest na koncie – zaloguj się.');
+  if (!uzytkownik) throw new Error(t('chmura.zestawMarkiZaloguj'));
   const folder = `${uzytkownik.id}/_marka`;
   return {
     wczytaj: async () => {
@@ -687,7 +688,7 @@ const publikujDoFolderu = (...a) => publikujDoMagazynu(magazynR2, ...a);
 // odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
 export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg', naLink = null } = {}) {
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
   const w = await publikujDoFolderu(`${uzytkownik.id}/${projektId}/${kod}`, uklad, strony, obraz, postep, odciski, { rozszerzenie, naLink: naLink && (() => naLink({ konto: uzytkownik.id })) });
   return { konto: uzytkownik.id, ...w };
 }
@@ -726,18 +727,18 @@ export async function usunKrotkiLink(projektId) {
 
 export async function wylaczPodglad(projektId, kod) {
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
   await usunPliki(await plikiFolderu(`${uzytkownik.id}/${projektId}/${kod}`));
 }
 
 // Odczyt bez logowania (zwykłe pobranie pliku z publicznego adresu).
 export async function wczytajPodgladPubliczny(konto, projektId, kod) {
-  if (!chmuraSkonfigurowana()) throw new Error('Podgląd jest niedostępny.');
+  if (!chmuraSkonfigurowana()) throw new Error(t('chmura.podgladNiedostepny'));
   const folder = `${konto}/${projektId}/${kod}`;
   const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
-  if (!odp.ok) throw new Error('Ten link nie działa – podgląd został wyłączony albo adres jest niepełny.');
+  if (!odp.ok) throw new Error(t('chmura.linkNieDziala'));
   const manifest = await odp.json();
-  if (manifest.format !== 'seriodruk-podglad') throw new Error('To nie jest podgląd projektu.');
+  if (manifest.format !== 'seriodruk-podglad') throw new Error(t('chmura.toNiePodglad'));
   return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
 }
 
@@ -752,11 +753,11 @@ export async function wczytajPodgladPubliczny(konto, projektId, kod) {
 // Błąd z czytelnym stanem linku (pole stanLinku): 'brak', 'wygasl', 'haslo', 'zle_haslo', 'blokada'.
 function bladLinku(stan, doKiedy = null) {
   const teksty = {
-    brak: 'Ten link nie działa – podgląd został wyłączony albo adres jest niepełny.',
-    wygasl: 'Link wygasł – minęła data ważności ustawiona przez osobę, która go udostępniła.',
-    haslo: 'Ten podgląd jest chroniony hasłem.',
-    zle_haslo: 'Hasło się nie zgadza.',
-    blokada: `Za dużo prób z błędnym hasłem. Spróbuj ponownie${doKiedy ? ` po ${new Date(doKiedy).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}` : ' za kwadrans'}.`,
+    brak: t('chmura.linkNieDziala'),
+    wygasl: t('chmura.linkPoTerminie'),
+    haslo: t('chmura.chronionyHaslem'),
+    zle_haslo: t('chmura.zleHaslo'),
+    blokada: doKiedy ? t('chmura.blokadaDo', { godzina: new Date(doKiedy).toLocaleTimeString(jezykDat(), { hour: '2-digit', minute: '2-digit' }) }) : t('chmura.blokadaKwadrans'),
   };
   const e = new Error(teksty[stan] || teksty.brak);
   e.stanLinku = teksty[stan] ? stan : 'brak';
@@ -803,7 +804,7 @@ export async function usunPodgladChroniony(projektId, kod) {
 export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false, rozszerzenie = 'jpg', naLink = null } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
   const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null);
   const folder = `${uzytkownik.id}/${projektId}/${w.folder}`;
   const wynik = await publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie, pelna: pelna || w.nowy, chroniony: true, naLink: naLink && (() => naLink({ konto: uzytkownik.id })) });
@@ -816,7 +817,7 @@ export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, o
 // nowy: sekret dopiero powstał (strony trzeba narysować od nowa).
 export async function folderLinku(projektId, kod, chroniony) {
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
   if (!chroniony) return { konto: uzytkownik.id, folder: `${uzytkownik.id}/${projektId}/${kod}`, nowy: false };
   const w = await wywolajPodgladChroniony(await supabase(), uzytkownik.id, projektId, kod, null);
   return { konto: uzytkownik.id, folder: `${uzytkownik.id}/${projektId}/${w.folder}`, nowy: Boolean(w.nowy) };
@@ -833,7 +834,7 @@ export async function zlecRysowanieLinku(projekt, folder, pelna = false) {
     body: JSON.stringify({ projekt, folder, pelna }),
   });
   const dane = await odp.json().catch(() => ({}));
-  if (!odp.ok) { const e = new Error(dane.blad || `Rysowanie na serwerze niedostępne (${odp.status}).`); e.status = odp.status; throw e; }
+  if (!odp.ok) { const e = new Error(dane.blad || t('chmura.rysowanieNiedostepne', { status: odp.status })); e.status = odp.status; throw e; }
   return dane;
 }
 
@@ -845,7 +846,7 @@ export async function zlecPdfNaSerwerze(projekt, opcje) {
     body: JSON.stringify({ projekt, opcje }),
   });
   const dane = await odp.json().catch(() => ({}));
-  if (!odp.ok) { const e = new Error(dane.blad || `Eksport na serwerze niedostępny (${odp.status}).`); e.status = odp.status; throw e; }
+  if (!odp.ok) { const e = new Error(dane.blad || t('chmura.eksportNiedostepny', { status: odp.status })); e.status = odp.status; throw e; }
   return dane;
 }
 // Plik zrobiony na serwerze: pobranie z konta i usunięcie (plik tylko dla tego eksportu).
@@ -859,7 +860,7 @@ export async function odbierzPlikSerwera(plik) {
 export async function zuzycieSerwera() {
   const odp = await fetch(`${SUPABASE_URL}/rysuj/zuzycie`, { headers: { authorization: `Bearer ${await tokenSesji()}` }, cache: 'no-store', signal: globalThis.AbortSignal.timeout(8000) });
   const dane = await odp.json().catch(() => ({}));
-  if (!odp.ok) throw new Error(dane.blad || `Zużycie serwera niedostępne (${odp.status}).`);
+  if (!odp.ok) throw new Error(dane.blad || t('chmura.zuzycieNiedostepne', { status: odp.status }));
   return dane;
 }
 
@@ -867,14 +868,14 @@ export async function zuzycieSerwera() {
 // rodzaj: 'link' albo 'pdf' (#338).
 export async function stanRysowaniaLinku(projektId, rodzaj = 'link') {
   const odp = await fetch(`${SUPABASE_URL}/rysuj/stan?projekt=${encodeURIComponent(projektId)}&rodzaj=${rodzaj}`, { headers: { authorization: `Bearer ${await tokenSesji()}` }, cache: 'no-store' });
-  if (!odp.ok) { const e = new Error(`Stan rysowania niedostępny (${odp.status}).`); e.status = odp.status; throw e; }
+  if (!odp.ok) { const e = new Error(t('chmura.stanRysowaniaNiedostepny', { status: odp.status })); e.status = odp.status; throw e; }
   return odp.json();
 }
 
 // Oglądający: stan chronionego linku bez hasła. Rzuca błąd z polem stanLinku ('brak', 'wygasl',
 // 'haslo', 'blokada'); dla linku z samą datą ważności zwraca { stan: 'ok', folder }.
 export async function sprawdzLinkChroniony(konto, projektId, kod) {
-  if (!chmuraSkonfigurowana()) throw new Error('Podgląd jest niedostępny.');
+  if (!chmuraSkonfigurowana()) throw new Error(t('chmura.podgladNiedostepny'));
   const sb = await supabase();
   return wywolajPodgladChroniony(sb, konto, projektId, kod, null);
 }
@@ -887,7 +888,7 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
   const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
   if (!odp.ok) throw bladLinku('brak');
   const manifest = await odp.json();
-  if (manifest.format !== 'seriodruk-podglad') throw new Error('To nie jest podgląd projektu.');
+  if (manifest.format !== 'seriodruk-podglad') throw new Error(t('chmura.toNiePodglad'));
   return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
 }
 
@@ -895,7 +896,7 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
 // jak przy publikacji). Ujęcia makiety dla urządzeń bez 3D (#307, #311).
 export async function wczytajPodgladWlasciciela(projektId, kod, chroniony = false) {
   const uzytkownik = await biezacyUzytkownik();
-  if (!uzytkownik) throw new Error('Nie jesteś zalogowany.');
+  if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
   let folder = `${uzytkownik.id}/${projektId}/${kod}`;
   if (chroniony) {
     const sb = await supabase();

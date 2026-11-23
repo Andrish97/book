@@ -95,6 +95,8 @@ export function wybranyJezyk() {
   return nav.startsWith('uk') ? 'uk' : nav.startsWith('pl') || !nav ? 'pl' : nav.startsWith('en') ? 'en' : 'pl';
 }
 export const biezacyJezyk = () => jezyk;
+// Kod języka dla dat i liczb (toLocaleDateString itp.) – w języku interfejsu (#409).
+export const jezykDat = () => ({ en: 'en-GB', uk: 'uk-UA' }[jezyk] || 'pl-PL');
 
 try {
   const startowy = wybranyJezyk();

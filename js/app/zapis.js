@@ -663,7 +663,7 @@ export async function zapiszTeraz() {
       if (stan.uzytkownik) zaplanujChmure();
       else stanZapisu('ok', 'Zapisano w przeglądarce');
     } catch (e) {
-      stanZapisu('blad', `Błąd zapisu: ${e.message}`);
+      stanZapisu('blad', t('zapis.bladZapisu', { blad: e.message }));
     }
   });
   return stan.zapisywanie;
@@ -745,7 +745,7 @@ async function wyslijNaKonto({ wymus = false, projekt = null } = {}) {
       powiadom(t('zapis.wlascicielOdebralCiPrawo'), true);
       return;
     }
-    stanZapisu('blad', `Nie wysłano: ${chmura.komunikatBledu(e)}`);
+    stanZapisu('blad', t('zapis.nieWyslano', { blad: chmura.komunikatBledu(e) }));
   } finally {
     pasek?.koniec();
   }
@@ -966,7 +966,7 @@ async function polaczZKontem(p, { konflikt = null } = {}) {
   } catch (blad) {
     // Nic nie wysłano; następny zapis albo następne powiadomienie spróbuje połączyć jeszcze raz.
     stan.konflikt = null;
-    if (konflikt) stanZapisu('blad', `Nie udało się połączyć zmian z konta: ${chmura.komunikatBledu(blad)}`);
+    if (konflikt) stanZapisu('blad', t('zapis.nieZlaczono', { blad: chmura.komunikatBledu(blad) }));
   }
 }
 
@@ -1038,7 +1038,7 @@ async function zapytajOCalyProjekt(p, e) {
   if (!tylkoKonto) {
     try {
       if (stan.projekt === p) zapiszBiezacyCel(); // kopia z tym, co jest na płótnie
-      const kopia = kopiujProjekt(p, `${p.nazwa} (z tego urządzenia)`);
+      const kopia = kopiujProjekt(p, t('zapis.kopiaZTegoUrzadzenia', { nazwa: p.nazwa }));
       await kopiujPliki(p, kopia, { pobierz: (sc) => chmura.pobierzZasob(sc) });
       await zapiszLokalnie(kopia, wlasciciel(), true);
       await chmura.zapiszWChmurze(kopia);
@@ -1067,7 +1067,7 @@ export async function zastapWersjaZKonta(p, komunikat) {
     return true;
   } catch (blad) {
     stan.konflikt = null;
-    stanZapisu('blad', `Nie udało się wczytać wersji z konta: ${chmura.komunikatBledu(blad)}`);
+    stanZapisu('blad', t('zapis.nieWczytano', { blad: chmura.komunikatBledu(blad) }));
     return false;
   }
 }

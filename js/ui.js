@@ -1,6 +1,6 @@
 // Wspólne elementy interfejsu: wybieranie elementów, powiadomienia, okna
 // potwierdzeń, menu rozwijane, pobieranie plików.
-import { t } from './jezyk.js';
+import { t, jezykDat } from './jezyk.js';
 
 export const $ = (sel, korzen = document) => korzen.querySelector(sel);
 export const $$ = (sel, korzen = document) => [...korzen.querySelectorAll(sel)];
@@ -108,9 +108,11 @@ export function kiedy(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   const roznica = (Date.now() - d.getTime()) / 1000;
-  if (roznica < 60) return 'przed chwilą';
+  if (roznica < 60) return t('ui.przedChwila');
   if (roznica < 3600) return t('ui.minTemu', { floor: Math.floor(roznica / 60) });
   const dzis = new Date();
-  if (d.toDateString() === dzis.toDateString()) return `dziś, ${d.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}`;
-  return d.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: d.getFullYear() === dzis.getFullYear() ? undefined : 'numeric' });
+  // Data i godzina w języku interfejsu (#409; było zawsze pl-PL).
+  const loc = jezykDat();
+  if (d.toDateString() === dzis.toDateString()) return t('ui.dzisGodzina', { godzina: d.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' }) });
+  return d.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: d.getFullYear() === dzis.getFullYear() ? undefined : 'numeric' });
 }

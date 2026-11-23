@@ -28,12 +28,6 @@ import {
 } from './wspolpraca.js';
 import { wpiszNazwe, t } from '../jezyk.js';
 
-function odmianaProjektow(n) {
-  if (n === 1) return 'projekt';
-  const j = n % 10; const d = n % 100;
-  return j >= 2 && j <= 4 && (d < 10 || d >= 20) ? 'projekty' : 'projektów';
-}
-
 // ======================================================================
 // Lista projektów
 // ======================================================================
@@ -55,7 +49,7 @@ export async function wpisyProjektow() {
         // Projekt kogoś innego, do którego mnie zaproszono (współpraca, decyzja #86).
         const cudzy = Boolean(c.owner_id) && c.owner_id !== stan.uzytkownik.id;
         const u = udzialy.get(c.id);
-        w.wspolpraca = cudzy ? { wlasciciel: c.owner_id, nazwa: u?.wlasciciel || 'Właściciel', rola: u?.rola || 'odczyt' } : null;
+        w.wspolpraca = cudzy ? { wlasciciel: c.owner_id, nazwa: u?.wlasciciel || t('projekty.wlasciciel'), rola: u?.rola || 'odczyt' } : null;
         if (!w.lokalnie || !w.doSynchronizacji) w.udostepniony = !cudzy && Boolean(c.udostepnienie);
         if (!w.lokalnie || (!w.doSynchronizacji && c.zmieniono > (w.zmieniono || ''))) {
           w.nazwa = c.nazwa;
@@ -139,11 +133,11 @@ export async function pokazProjekty({ cicho = false } = {}) {
   $('#pusto-projekty').hidden = wszystkie.length > 0;
   $('.projekty-naglowek .przyciski-naglowka').hidden = wszystkie.length === 0;
   const wlasne = wszystkie.length - udostepnione;
-  const ileUdostepnionych = `${udostepnione} ${udostepnione === 1 ? 'udostępniony' : 'udostępnione'} Ci`;
+  // Liczby z odmianą w języku interfejsu (#409; było składane po polsku).
   $('#podsumowanie-projektow').textContent = !wszystkie.length ? ''
-    : !udostepnione ? `${wlasne} ${odmianaProjektow(wlasne)}`
-      : !wlasne ? `${udostepnione} ${odmianaProjektow(udostepnione)} – ${udostepnione === 1 ? 'udostępniony' : 'udostępnione'} Ci`
-        : `${wlasne} ${odmianaProjektow(wlasne)} · ${ileUdostepnionych}`;
+    : !udostepnione ? t('projekty.ileWlasnych', { n: wlasne })
+      : !wlasne ? t('projekty.ileUdostepnionych', { n: udostepnione })
+        : t('projekty.ileWlasnychIUdostepnionych', { n: wlasne, u: udostepnione });
 
   for (const w of wpisy) {
     const li = document.createElement('li');
@@ -153,31 +147,31 @@ export async function pokazProjekty({ cicho = false } = {}) {
         <div class="okladka">${w.miniatura ? '<img alt="">' : '<div class="pusta-okladka"></div>'}</div>
         <div class="opis"><strong></strong><small></small></div>
       </button>
-      ${w.udostepniony || w.wspolpraca ? `<div class="plakietki-karty">${w.udostepniony ? `<button class="plakietka-linku" title="${t('projekty.projektMaLinkDo')}">${ikona('link', { rozmiar: 14 })}<span>Udostępniony</span></button>` : ''}${w.wspolpraca ? `<button class="plakietka-linku plakietka-wspolpracy" title="${t('projekty.projektUdostepnionyCiPrzez')}">${ikonaWspolpracy()}<span></span></button>` : ''}</div>` : ''}
+      ${w.udostepniony || w.wspolpraca ? `<div class="plakietki-karty">${w.udostepniony ? `<button class="plakietka-linku" title="${t('projekty.projektMaLinkDo')}">${ikona('link', { rozmiar: 14 })}<span>${t('projekty.udostepniony')}</span></button>` : ''}${w.wspolpraca ? `<button class="plakietka-linku plakietka-wspolpracy" title="${t('projekty.projektUdostepnionyCiPrzez')}">${ikonaWspolpracy()}<span></span></button>` : ''}</div>` : ''}
       <button class="przycisk-ikona menu-karty" aria-label="${t('projekty.opcjeProjektu')}" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej')}</button>
       <div class="menu" role="menu" hidden>
-        <button role="menuitem" data-op="podglad">${ikona('oko')}Podgląd</button>
-        ${w.wspolpraca?.rola === 'odczyt' ? '' : `<button role="menuitem" data-op="nazwa">${ikona('tekst')}Zmień nazwę</button>`}
-        <button role="menuitem" data-op="duplikuj">${ikona('kopiuj')}${w.wspolpraca ? 'Zrób własną kopię' : 'Duplikuj'}</button>
-        <button role="menuitem" data-op="eksport">${ikona('pobierz')}Eksportuj do pliku (.makietka)</button>
-        ${w.wspolpraca ? '' : `<button role="menuitem" data-op="udostepnij">${ikona('link')}${w.udostepniony ? 'Link do podglądu…' : 'Udostępnij linkiem…'}</button>`}
-        <button role="menuitem" data-op="wspolpraca">${ikona('uzytkownik')}Współpraca…</button>
+        <button role="menuitem" data-op="podglad">${ikona('oko')}${t('projekty.podglad')}</button>
+        ${w.wspolpraca?.rola === 'odczyt' ? '' : `<button role="menuitem" data-op="nazwa">${ikona('tekst')}${t('projekty.zmienNazwe')}</button>`}
+        <button role="menuitem" data-op="duplikuj">${ikona('kopiuj')}${w.wspolpraca ? t('projekty.zrobKopie') : t('projekty.duplikuj')}</button>
+        <button role="menuitem" data-op="eksport">${ikona('pobierz')}${t('projekty.eksportujDoPliku')}</button>
+        ${w.wspolpraca ? '' : `<button role="menuitem" data-op="udostepnij">${ikona('link')}${w.udostepniony ? t('projekty.linkDoPodgladu') : t('projekty.udostepnijLinkiem')}</button>`}
+        <button role="menuitem" data-op="wspolpraca">${ikona('uzytkownik')}${t('projekty.wspolpraca')}</button>
         <hr>
         ${w.wspolpraca
-    ? `<button role="menuitem" data-op="opusc" class="niebezpieczny">${ikona('wyloguj')}Opuść projekt</button>`
-    : `<button role="menuitem" data-op="usun" class="niebezpieczny">${ikona('kosz')}Usuń projekt</button>`}
+    ? `<button role="menuitem" data-op="opusc" class="niebezpieczny">${ikona('wyloguj')}${t('projekty.opusc')}</button>`
+    : `<button role="menuitem" data-op="usun" class="niebezpieczny">${ikona('kosz')}${t('projekty.usun')}</button>`}
       </div>`;
     if (w.wspolpraca) {
       li.classList.add('wspoldzielony');
       wpiszNazwe($('.plakietka-wspolpracy span', li), w.wspolpraca.nazwa);
     }
     if (w.miniatura) $('img', li).src = w.miniatura;
-    wpiszNazwe($('strong', li), w.nazwa || t('Bez nazwy'));
+    wpiszNazwe($('strong', li), w.nazwa || t('projekty.bezNazwy'));
     const niewyslany = stan.uzytkownik && w.lokalnie && w.doSynchronizacji;
     // Stan wysyłki jako mała chmurka przy nazwie (#109): zapisano na koncie / czeka na wysłanie / offline.
     if (stan.uzytkownik) {
-      const [nazwaIkony, opis] = !niewyslany ? ['chmura_ok', 'Zapisano na koncie']
-        : (navigator.onLine ? ['chmura_czeka', 'Czeka na wysłanie na konto'] : ['chmura_brak', 'Offline – zapisano na tym urządzeniu, wyślę po powrocie internetu']);
+      const [nazwaIkony, opis] = !niewyslany ? ['chmura_ok', t(STANY_WYSYLKI.chmura_ok)]
+        : (navigator.onLine ? ['chmura_czeka', t(STANY_WYSYLKI.chmura_czeka)] : ['chmura_brak', t(STANY_WYSYLKI.chmura_brak)]);
       const stanWysylki = document.createElement('span');
       stanWysylki.dataset.projekt = w.id;
       stanWysylki.className = `stan-wysylki ${nazwaIkony}`;
@@ -187,7 +181,7 @@ export async function pokazProjekty({ cicho = false } = {}) {
       stanWysylki.innerHTML = ikona(nazwaIkony, { rozmiar: 15 });
       $('strong', li).prepend(stanWysylki);
     }
-    const rola = w.wspolpraca ? `${krotkoRola(w.wspolpraca.rola) === 'edytuje' ? 'Możesz edytować' : 'Możesz oglądać'} · ` : '';
+    const rola = w.wspolpraca ? (krotkoRola(w.wspolpraca.rola) === 'edytuje' ? t('projekty.moznaEdytowac') : t('projekty.moznaOgladac')) : '';
     $('small', li).textContent = t('projekty.zmieniono', { rola, kiedy: kiedy(najnowsza(w)) });
     $('.otworz-projekt', li).addEventListener('click', () => otworzZListy(w));
     $('.plakietka-linku:not(.plakietka-wspolpracy)', li)?.addEventListener('click', async () => {
@@ -262,7 +256,7 @@ async function otworzZListy(w) {
   const pasek = postep(t('projekty.otwieranie', { x: w.nazwa || t('projekty.projektu') }));
   try {
     const projekt = await wczytajProjektZWpisu(w, pasek);
-    if (!projekt) throw new Error('Nie znaleziono projektu.');
+    if (!projekt) throw new Error(t('projekty.nieZnaleziono'));
     pasek.opis(t('projekty.otwieranie2', { nazwa: projekt.nazwa }));
     pasek.razem(null);
     await otworzProjekt(projekt);
@@ -364,7 +358,7 @@ async function usunProjekt(w) {
 
 // ---------- Nowy projekt ----------
 
-const FORMATY_KART = [...Object.entries(FORMATY), ['Własny', null]];
+const FORMATY_KART = [...Object.entries(FORMATY), [t('projekty.wlasnyFormat'), null]];
 
 // Limit projektów konta (#92): komunikat zamiast nowego projektu, którego baza i tak nie przyjmie.
 async function ponadLimit() {
@@ -439,7 +433,7 @@ async function projektZFormularza() {
   let [w, h] = FORMATY[format] || [Number(f.elements.szerokosc_mm.value) || 148, Number(f.elements.wysokosc_mm.value) || 210];
   if (f.elements.orientacja.value === 'poziom' && h > w) [w, h] = [h, w];
   if (f.elements.orientacja.value === 'pion' && w > h) [w, h] = [h, w];
-  const projekt = nowyProjekt(f.elements.nazwa.value.trim() || 'Nowy projekt', normalizujWydruk({
+  const projekt = nowyProjekt(f.elements.nazwa.value.trim() || t('projekty.nowyProjekt'), normalizujWydruk({
     format: FORMATY[format] ? format : 'wlasny',
     szerokosc_mm: Math.max(20, w),
     wysokosc_mm: Math.max(20, h),
@@ -451,12 +445,12 @@ async function projektZFormularza() {
   // Okładka liczona sama (#119): osobna sekcja przed środkiem, format z formatu i liczby stron środka.
   if (f.elements.okladka.value) {
     const srodek = projekt.sekcje[0];
-    srodek.nazwa = 'Środek';
-    const okladka = nowaSekcja('Okładka', { ...srodek.wydruk, marginesy: { ...srodek.wydruk.marginesy } });
+    srodek.nazwa = t('projekty.srodek');
+    const okladka = nowaSekcja(t('projekty.okladka'), { ...srodek.wydruk, marginesy: { ...srodek.wydruk.marginesy } });
     okladka.okladka = normalizujOkladke({ oprawa: f.elements.okladka.value });
     okladka.numeracja = { tryb: 'brak', od: 1 };
     projekt.sekcje.unshift(okladka);
-    projekt.strony.unshift(nowaStrona('Okładka', okladka.id));
+    projekt.strony.unshift(nowaStrona(t('projekty.okladka'), okladka.id));
     przeliczOkladki(projekt);
   }
   // Komiks (D3): zwykły projekt z sekcją komiksu – pasek komiksu, kadry, style dymków, pusty scenariusz.
@@ -556,7 +550,7 @@ async function wczytajPlikSkladu(plik) {
     if (stan.projekt) await zapiszTeraz();
     await otworzProjekt(projekt);
     await zapiszTeraz();
-    const czesci = [`${raport.stron} ${raport.stron === 1 ? 'strona' : 'stron'}`, t('projekty.ramkiTekstu', { teksty: raport.teksty }), `kształty ${raport.ksztalty}`, `obrazy ${raport.obrazy}`];
+    const czesci = [t('projekty.ileStron', { n: raport.stron }), t('projekty.ramkiTekstu', { teksty: raport.teksty }), t('projekty.ksztaltyIle', { n: raport.ksztalty }), t('projekty.obrazyIle', { n: raport.obrazy })];
     let opis = t('projekty.wczytanoZProgramu', { format: raport.format, join: czesci.join(', ') });
     if (raport.pola.length) opis += t('projekty.polaKorespondencjiSeryjnejZamienione', { join: raport.pola.map((x) => `{${x}}`).join(', ') });
     if (raport.nieobslugiwane?.length) opis += t('projekty.obrazyWStarymFormacie', { join: raport.nieobslugiwane.join(', ') });
@@ -569,8 +563,8 @@ async function wczytajPlikSkladu(plik) {
       const edytor = await czekajNaEdytor();
       const kontrola = await pokazRaport({
         tytul: t('projekty.coPrzeszloZProgramu', { format: raport.format }),
-        wstep: `${opis} Elementy uproszczone przy odczycie są oznaczone – zobaczysz je w „Sprawdź przed drukiem”, dopóki nie usuniesz oznaczenia.`,
-        raport: przeniesienie, przycisk: t('projekty.sprawdzPrzedDrukiem'), anuluj: 'Zamknij',
+        wstep: t('projekty.wstepRaportu', { opis }),
+        raport: przeniesienie, przycisk: t('projekty.sprawdzPrzedDrukiem'), anuluj: t('projekty.zamknij'),
         pokaz: (s, o) => edytor.pokazElement(s, o),
       });
       if (kontrola) edytor.otworzKontrole();
@@ -626,9 +620,9 @@ export async function otworzOczekujacePliki() {
 // Chmurki na kartach idą za stanem wysyłki (#109): po zapisie na koncie (np. tuż po wyjściu z edytora,
 // gdy lista pokazała się, zanim wysyłka skończyła) i po zmianie połączenia.
 const STANY_WYSYLKI = {
-  chmura_ok: 'Zapisano na koncie',
-  chmura_czeka: 'Czeka na wysłanie na konto',
-  chmura_brak: 'Offline – zapisano na tym urządzeniu, wyślę po powrocie internetu',
+  chmura_ok: 'projekty.stanOk',
+  chmura_czeka: 'projekty.stanCzeka',
+  chmura_brak: 'projekty.stanOffline',
 };
 async function odswiezStanyWysylki() {
   for (const el of document.querySelectorAll('#siatka-projektow .stan-wysylki[data-projekt]')) {
@@ -637,8 +631,8 @@ async function odswiezStanyWysylki() {
     const nazwa = !rekord?.doSynchronizacji ? 'chmura_ok' : (navigator.onLine ? 'chmura_czeka' : 'chmura_brak');
     if (el.classList.contains(nazwa)) continue;
     el.className = `stan-wysylki ${nazwa}`;
-    el.title = STANY_WYSYLKI[nazwa];
-    el.setAttribute('aria-label', STANY_WYSYLKI[nazwa]);
+    el.title = t(STANY_WYSYLKI[nazwa]);
+    el.setAttribute('aria-label', t(STANY_WYSYLKI[nazwa]));
     el.innerHTML = ikona(nazwa, { rozmiar: 15 });
   }
 }

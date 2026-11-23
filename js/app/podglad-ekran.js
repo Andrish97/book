@@ -12,7 +12,7 @@ import { zapiszTeraz, pokazEdytor, plotnoOdlozone, przygotujDoRysowania } from '
 import { podglad } from './skladniki.js';
 import { przejdzDoStrony } from './lista-stron.js';
 import { zapiszGdziekolwiek, pokazProjekty } from './projekty.js';
-import { t } from '../jezyk.js';
+import { t, jezykDat } from '../jezyk.js';
 
 export async function doEdycji(idStrony) {
   const i = stan.projekt.strony.findIndex((s) => s.id === idStrony);
@@ -122,7 +122,7 @@ const dzienZIso = (iso) => {
 };
 // Link jest ważny do końca wybranego dnia (czasu urządzenia, na którym go ustawiono).
 const isoZDnia = (dzien) => (dzien ? new Date(`${dzien}T23:59:59.999`).toISOString() : null);
-const dataSlownie = (iso) => new Date(iso).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+const dataSlownie = (iso) => new Date(iso).toLocaleDateString(jezykDat(), { day: 'numeric', month: 'long', year: 'numeric' });
 
 function opisOchrony(ochrona) {
   if (!ochrona) return 'Link bez ochrony – podgląd zobaczy każdy, kto dostanie link.';

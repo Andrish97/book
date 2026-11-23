@@ -20,7 +20,7 @@ import { DOSTAWCY, modeleDostawcy, nazwaZMozliwosciami, zalecaneModele } from '.
 import { wydatki, ustawLimit, opisKosztu } from '../ai-koszty.js';
 import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
-import { wpiszNazwe, t as tt } from '../jezyk.js';
+import { wpiszNazwe, t as tt, jezykDat } from '../jezyk.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
 // Drobniejsze zakresy (#252) – pilnuje baza (ai_zakres_brak). Brak listy (null) – wszystko.
@@ -167,7 +167,7 @@ export async function kopiujPolecenieZwykle() {
 const opisZakresu = (d) => (d.zakres === 'pelny'
   ? 'pełny dostęp – wszystkie projekty, tworzenie i usuwanie'
   : (d.projekty?.length ? d.projekty.map((p) => `„${p.nazwa}”`).join(', ') : 'żadnego projektu (dodaj w „Zmień zakres”)'));
-const opisWaznosci = (d) => (d.wazny_do ? tt('dostepAi.waznyDo', { toLocaleDateString: new Date(d.wazny_do).toLocaleDateString('pl-PL') }) : 'bez terminu');
+const opisWaznosci = (d) => (d.wazny_do ? tt('dostepAi.waznyDo', { toLocaleDateString: new Date(d.wazny_do).toLocaleDateString(jezykDat()) }) : 'bez terminu');
 
 function przyciskiZakresu(nazwa, zakres) {
   const w = document.createElement('div');

@@ -6,9 +6,9 @@ import { postep } from './postep.js';
 import {
   miejsce, planSprzatania, posprzataj, rozmiar, udzialKonta, ostrzezenie,
 } from './miejsce.js';
-import { t } from './jezyk.js';
+import { t, jezykDat } from './jezyk.js';
 
-const procent = (x) => `${(Math.min(100, Math.round(x * 1000) / 10)).toLocaleString('pl-PL')}%`;
+const procent = (x) => `${(Math.min(100, Math.round(x * 1000) / 10)).toLocaleString(jezykDat())}%`;
 const liczba = (x) => Number(x) || 0;
 const pliki = (n) => {
   if (n === 1) return 'plik';

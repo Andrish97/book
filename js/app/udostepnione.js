@@ -7,7 +7,7 @@ import { $ } from '../ui.js';
 import { NAZWA } from '../marka.js';
 import { Podglad } from '../podglad.js';
 import { pokazEkran } from './kontekst.js';
-import { t as tt } from '../jezyk.js';
+import { t as tt, jezykDat } from '../jezyk.js';
 
 let podgladPubliczny = null;
 let daneLinku = null; // ostatni manifest i adresy obrazów – do makiety 3D (#188)
@@ -50,7 +50,7 @@ const CO_ILE_SPRAWDZAC = 60000;
 let sledzony = null; // { t, haslo, chroniony, zaktualizowano, timer }
 
 function zrodloLinku({ manifest, adresObrazu }) {
-  const kiedyStan = new Date(manifest.zaktualizowano).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+  const kiedyStan = new Date(manifest.zaktualizowano).toLocaleDateString(jezykDat(), { day: 'numeric', month: 'long', year: 'numeric' });
   return {
     // Strona jeszcze nieprzygotowana (#204): bez obrazu – zostaje migoczące miejsce, dorysuje się po odświeżeniu.
     obraz: (strona) => (manifest.przygotowanie && !manifest.skroty?.[strona.id] ? Promise.reject(new Error('w przygotowaniu')) : adresObrazu(strona.id)),

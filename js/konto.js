@@ -7,7 +7,7 @@ import { ikona } from './ikony.js';
 import { NAZWA } from './marka.js';
 import { ustawMotyw, wybranyMotyw } from './motyw.js';
 import { podpowiedzNazwy, poprawnaNazwa, ustawNazwe, ZASADY_NAZWY } from './nazwa-uzytkownika.js';
-import { t as tt } from './jezyk.js';
+import { t as tt, jezykDat } from './jezyk.js';
 
 // Te same wymagania co w ustawieniach Supabase
 // (password_requirements = lower_upper_letters_digits_symbols, min. 8 znaków).
@@ -18,7 +18,7 @@ export const ZASADY_HASLA = [
   ['cyfra', 'cyfra', (h) => /\d/.test(h)],
   ['znak', 'znak specjalny', (h) => /[!@#$%^&*()_+\-=[\]{};'\\:"|<>?,./`~]/.test(h)],
 ];
-export const brakiHasla = (h) => ZASADY_HASLA.filter(([, , test]) => !test(h)).map(([, opis]) => opis);
+export const brakiHasla = (h) => ZASADY_HASLA.filter(([, , test]) => !test(h)).map(([, opis]) => tt(opis));
 
 const poprawnyEmail = (e) => /^\S+@\S+\.\S+$/.test(e);
 const ODSTEP_WYSYLKI = 60; // sekund między kolejnymi wiadomościami
@@ -200,12 +200,12 @@ export class Konto {
     const b = document.createElement('strong');
     b.textContent = email;
     if (rodzaj === 'rejestracja') {
-      opis.append('Wysłaliśmy link potwierdzający na ', b, '. Kliknij go, aby uruchomić konto – potem zalogujesz się tutaj.');
+      opis.append(tt('konto.wyslanoLinkPrzed'), b, tt('konto.wyslanoLinkPo'));
     } else {
-      opis.append('Jeśli konto ', b, ' istnieje, link do ustawienia nowego hasła jest już w drodze.');
+      opis.append(tt('konto.resetPrzed'), b, tt('konto.resetPo'));
     }
     $('#komunikat-wyslano').textContent = '';
-    odliczaj($('#wyslij-ponownie'), 'Wyślij ponownie');
+    odliczaj($('#wyslij-ponownie'), tt('konto.wyslijPonownie'));
   }
 
   async wyslijPonownie() {
@@ -216,7 +216,7 @@ export class Konto {
       else await chmura.wyslijResetHasla(this.ostatniEmail);
       k.textContent = tt('konto.wyslanoPonownieZajrzyjTez');
       k.classList.add('sukces');
-      odliczaj($('#wyslij-ponownie'), 'Wyślij ponownie');
+      odliczaj($('#wyslij-ponownie'), tt('konto.wyslijPonownie'));
     } catch (e) {
       k.textContent = chmura.komunikatBledu(e);
     }
@@ -353,7 +353,7 @@ export class Konto {
     podpowiedzNazwy($('#konto-nazwa'), $('#konto-nazwa-podpowiedz'));
     formularz('#form-nazwa', async (f, blad) => {
       const nazwa = f.elements.nazwa.value.trim();
-      if (!poprawnaNazwa(nazwa)) { blad(`Nazwa użytkownika: ${ZASADY_NAZWY}`); return null; }
+      if (!poprawnaNazwa(nazwa)) { blad(tt('konto.nazwaZasady', { zasady: tt(ZASADY_NAZWY) })); return null; }
       this.zaktualizuj(await ustawNazwe(nazwa));
       powiadom(tt('konto.nazwaUzytkownikaZapisana'));
       return null;
@@ -374,10 +374,10 @@ export class Konto {
     formularz('#form-haslo', async (f, blad) => {
       const nowe = f.elements.nowe.value;
       const braki = brakiHasla(nowe);
-      if (!f.elements.obecne.value) { blad('Wpisz obecne hasło.'); return null; }
-      if (braki.length) { blad(`W nowym haśle brakuje: ${braki.join(', ')}.`); return null; }
-      if (nowe !== f.elements.nowe2.value) { blad('Nowe hasła nie są takie same.'); return null; }
-      if (nowe === f.elements.obecne.value) { blad('Nowe hasło musi różnić się od obecnego.'); return null; }
+      if (!f.elements.obecne.value) { blad(tt('Wpisz obecne hasło.')); return null; }
+      if (braki.length) { blad(tt('konto.wNowymHasleBrakuje', { braki: braki.join(', ') })); return null; }
+      if (nowe !== f.elements.nowe2.value) { blad(tt('Nowe hasła nie są takie same.')); return null; }
+      if (nowe === f.elements.obecne.value) { blad(tt('Nowe hasło musi różnić się od obecnego.')); return null; }
       try {
         await chmura.zalogujHaslem(this.o.stan.uzytkownik.email, f.elements.obecne.value);
       } catch (e) {
@@ -468,7 +468,7 @@ export class Konto {
     $('#email-oczekuje').hidden = !oczekuje;
     if (oczekuje) $('#email-oczekuje-adres').textContent = u.new_email;
     $('#konto-od').textContent = u.created_at
-      ? new Date(u.created_at).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' })
+      ? new Date(u.created_at).toLocaleDateString(jezykDat(), { day: 'numeric', month: 'long', year: 'numeric' })
       : '—';
     this.o.liczbaProjektow().then((n) => { $('#konto-projekty').textContent = String(n); }).catch(() => {});
     for (const k of ['nazwa', 'email', 'motyw', 'ai', 'miejsce']) this.podsumuj(k);

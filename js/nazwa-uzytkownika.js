@@ -53,10 +53,10 @@ export function podpowiedzNazwy(pole, el) {
   const sprawdz = async () => {
     const nr = (licznik += 1);
     const n = pole.value.trim();
-    if (!n) { pokaz(ZASADY_NAZWY); return false; }
-    if (!poprawnaNazwa(n)) { pokaz(`Nazwa: ${ZASADY_NAZWY}`, 'blad'); return false; }
+    if (!n) { pokaz(tt(ZASADY_NAZWY)); return false; }
+    if (!poprawnaNazwa(n)) { pokaz(tt('nazwaUzytkownika.nazwa', { ZASADY_NAZWY: tt(ZASADY_NAZWY) }), 'blad'); return false; }
     let w;
-    try { w = await nazwaWolna(n); } catch { if (nr === licznik) pokaz(ZASADY_NAZWY); return true; }
+    try { w = await nazwaWolna(n); } catch { if (nr === licznik) pokaz(tt(ZASADY_NAZWY)); return true; }
     if (nr !== licznik) return Boolean(w?.wolna);
     if (w?.wolna) { pokaz(`„${n}” jest wolna.`, 'ok'); return true; }
     el.replaceChildren(`„${n}” jest już zajęta. `);
@@ -72,7 +72,7 @@ export function podpowiedzNazwy(pole, el) {
     return false;
   };
   pole.addEventListener('input', () => { clearTimeout(czasomierz); czasomierz = setTimeout(sprawdz, 350); });
-  pokaz(ZASADY_NAZWY);
+  pokaz(tt(ZASADY_NAZWY));
   return sprawdz;
 }
 
@@ -116,7 +116,7 @@ async function oknoNazwy(uzytkownik) {
       e.preventDefault();
       const przycisk = form.querySelector('button[type="submit"]');
       komunikat.textContent = '';
-      if (!poprawnaNazwa(pole.value.trim())) { komunikat.textContent = tt('nazwaUzytkownika.nazwa', { ZASADY_NAZWY }); return; }
+      if (!poprawnaNazwa(pole.value.trim())) { komunikat.textContent = tt('nazwaUzytkownika.nazwa', { ZASADY_NAZWY: tt(ZASADY_NAZWY) }); return; }
       przycisk.disabled = true;
       try {
         const u = await ustawNazwe(pole.value);

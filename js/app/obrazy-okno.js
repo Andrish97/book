@@ -28,7 +28,7 @@ import {
 import { generujMiniatury, przejdzDoStrony } from './lista-stron.js';
 import { edytujWzorzec } from './wzorce.js';
 import { panel } from './skladniki.js';
-import { wpiszNazwe, t as tt } from '../jezyk.js';
+import { wpiszNazwe, t as tt, jezykDat } from '../jezyk.js';
 
 const okno = $('#dlg-obrazy');
 const lista = $('#obrazy-lista');
@@ -42,7 +42,7 @@ let trybZaznaczania = false; // telefon: stuknięcie przełącza zaznaczenie
 let przytrzymanie = null;
 let przytrzymano = 0;
 
-const mb = (b) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(b / 1024))} kB`);
+const mb = (b) => (b >= 1024 * 1024 ? `${(b / 1024 / 1024).toLocaleString(jezykDat(), { maximumFractionDigits: 1 })} MB` : `${Math.max(1, Math.round(b / 1024))} kB`);
 const usunZKonta = (sciezka) => (stan.uzytkownik ? chmura.usunZasobZKonta(sciezka, { projekt: stan.projekt?.id }) : null); // plik kopii z łącznika zostaje
 const kolejnosc = () => [...lista.querySelectorAll('li[data-id]')].map((li) => li.dataset.id);
 

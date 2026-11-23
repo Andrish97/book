@@ -6,11 +6,11 @@
 import { $ } from './ui.js';
 import * as chmura from './chmura.js';
 import { rozmiar } from './miejsce.js';
-import { wpiszNazwe, t } from './jezyk.js';
+import { wpiszNazwe, t, jezykDat } from './jezyk.js';
 
 const liczba = (x) => Number(x) || 0;
 const procent = (x) => `${Math.min(100, Math.round(x * 100))}%`;
-const data = (d) => (d ? new Date(d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+const data = (d) => (d ? new Date(d).toLocaleDateString(jezykDat(), { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
 
 let ostatnie = null; // { m, uzycie } – do ponownego sortowania bez pytania bazy
 let sortowanie = 'rozmiar';

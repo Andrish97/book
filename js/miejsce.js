@@ -5,7 +5,7 @@
 
 import * as chmura from './chmura.js';
 import { sciezkiLokalne } from './lokalny.js';
-import { t } from './jezyk.js';
+import { t, jezykDat } from './jezyk.js';
 
 export const PROG_OSTRZEZENIA = 0.8;
 const WAZNOSC_MS = 10 * 60 * 1000; // stan miejsca z pamięci przez 10 minut
@@ -13,8 +13,8 @@ const SPRZATANIE_CO_MS = 24 * 3600 * 1000;
 
 export const rozmiar = (b) => {
   const n = Number(b) || 0;
-  if (n >= 1024 ** 3) return `${(n / 1024 ** 3).toLocaleString('pl-PL', { maximumFractionDigits: 2 })} GB`;
-  if (n >= 1024 ** 2) return `${(n / 1024 ** 2).toLocaleString('pl-PL', { maximumFractionDigits: 1 })} MB`;
+  if (n >= 1024 ** 3) return `${(n / 1024 ** 3).toLocaleString(jezykDat(), { maximumFractionDigits: 2 })} GB`;
+  if (n >= 1024 ** 2) return `${(n / 1024 ** 2).toLocaleString(jezykDat(), { maximumFractionDigits: 1 })} MB`;
   if (n > 0) return `${Math.max(1, Math.round(n / 1024))} kB`;
   return '0 kB';
 };

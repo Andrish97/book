@@ -6,9 +6,9 @@ import * as chmura from '../chmura.js';
 import { powiadom, potwierdz } from '../ui.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, synchronizuj, zastapWersjaZKonta } from './zapis.js';
-import { t, biezacyJezyk } from '../jezyk.js';
+import { t, jezykDat } from '../jezyk.js';
 
-const godzina = (d) => new Date(d).toLocaleString(biezacyJezyk() === 'uk' ? 'uk-UA' : biezacyJezyk() === 'en' ? 'en-GB' : 'pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const godzina = (d) => new Date(d).toLocaleString(jezykDat(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 export async function oknoCofnijZmianyAi() {
   const p = stan.projekt;

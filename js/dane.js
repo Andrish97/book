@@ -13,7 +13,7 @@ import { wstawIkony } from './ikony.js';
 import { zPostepem } from './postep.js';
 import { przypnijZrodlo, odepnijZrodlo, zmienionaWMakietce, podpisDanych, porownajTabele, opisPorownania, zapamietajUchwyt, uchwytTabeli, plikZUchwytu, moznaZapamietacPlik, wybierzPlikZDostepem, plikZLinku } from './zrodla-danych.js';
 import { dataUrlZasobu } from './zasoby.js';
-import { wpiszNazwe, t as tt } from './jezyk.js';
+import { wpiszNazwe, t as tt, jezykDat } from './jezyk.js';
 
 // Długa tabela rysuje się porcjami: kolejne wiersze dochodzą przy przewijaniu.
 const PORCJA_WIERSZY = 400;
@@ -718,7 +718,7 @@ export class Dane {
     const z = t?.zrodlo;
     el.hidden = !z;
     if (!z) return;
-    const kiedy = z.wczytano ? new Date(z.wczytano).toLocaleString('pl-PL', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+    const kiedy = z.wczytano ? new Date(z.wczytano).toLocaleString(jezykDat(), { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
     $('#dane-zrodlo-opis').textContent = tt('dane.daneZ', { x: z.plik || z.url, x2: z.arkusz && z.arkusz !== t.nazwa ? tt('dane.arkusz', { arkusz: z.arkusz }) : '', x3: kiedy ? tt('dane.wczytano2', { kiedy }) : '' });
     $('#dane-zrodlo-zmiany').hidden = !zmienionaWMakietce(t);
     $('#dane-zrodlo-link').hidden = z.rodzaj !== 'link';
