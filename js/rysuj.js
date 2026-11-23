@@ -37,7 +37,9 @@ const magazyn = {
 const naDataUrl = (blob) => new Promise((ok, blad) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => blad(r.error); r.readAsDataURL(blob); });
 
 // Przygotowanie projektu do rysowania – jak przygotujDoRysowania w aplikacji (js/app/zapis.js).
+const etap = (e) => window.__mkEtap?.(e);
 async function przygotuj(projekt) {
+  etap('czcionki aplikacji');
   await zaladujCzcionki();
   const p = normalizuj(projekt);
   const pobierz = async (sciezka) => { const w = await window.__mkPobierz(sciezka); if (!w) throw new Error('brak pliku'); return zBase64(w.b64, w.typ); };
@@ -48,7 +50,9 @@ async function przygotuj(projekt) {
     if (!z || z.dataUrl || !z.sciezka) continue;
     try { z.dataUrl = await naDataUrl(await pobierz(z.sciezka)); } catch { brak.push(z.nazwa || c.id); }
   }
+  etap('obrazy projektu');
   brak.push(...await podlaczZasoby(p, pobierz).catch(() => []));
+  etap('czcionki projektu');
   await zarejestrujCzcionkiProjektu(p);
   try { przeliczOkladki(p); } catch { /* okładka zostaje jak była */ }
   return { p, brak };
@@ -79,6 +83,7 @@ window.makietkaRysuj.eksportuj = async ({ projekt, rodzaj = 'pdf', ustawienia = 
     const egz = ciag.egzemplarze.filter((e) => e.strona?.id === u.strona);
     const e = egz[Math.max(0, Math.min(egz.length - 1, (Number(u.egzemplarz) || 1) - 1))];
     if (!e) throw new Error(`Projekt nie ma strony „${u.strona ?? ''}”.`);
+    etap('obraz PNG');
     const { renderujCel } = await import('./zlozenie.js');
     const dpi = Math.min(600, Math.max(72, Number(u.dpi) || 150));
     const w = e.sekcja.wydruk;
@@ -90,7 +95,9 @@ window.makietkaRysuj.eksportuj = async ({ projekt, rodzaj = 'pdf', ustawienia = 
   const { opcjePdf } = await import('./eksport-opcje.js');
   // Opcje z okna „Eksportuj do PDF” (#338) – jak w aplikacji, bez własnego profilu ICC; zlecenie AI – z ustawień.
   const opcje = opcjeOkna ? { ...opcjeOkna, profilWlasny: null } : opcjePdf(p, u);
+  etap('plik PDF');
   const wynik = await eksportujPdf(p, { ...opcje, postep: (i, n) => window.__mkPostep?.(i, n) });
+  etap('wysyłanie pliku');
   for (const [powod, n] of wynik.uwagi || []) uwagi.push(tt('rysuj.zapisaneJakoObraz', { n, powod }));
   for (const [czcionka, n] of wynik.krzywe || []) uwagi.push(tt('rysuj.tekstJakoKrzywe', { n, czcionka }));
   uwagi = uwagi.slice(0, 40);

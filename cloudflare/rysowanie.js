@@ -354,10 +354,20 @@ async function wPrzegladarce(env, { pobierz, postep = () => {} }, praca) {
       const o = await env.PLIKI.get(`zasoby/${sciezka}`);
       return o ? { b64: await doBase64(o), typ: o.httpMetadata?.contentType || 'application/octet-stream' } : null;
     });
-    await strona.exposeFunction('__mkPostep', (i, n) => postep(i, n));
-    await strona.goto(`${env.APLIKACJA || APLIKACJA}/rysuj.html`, { waitUntil: 'load', timeout: 60000 });
-    await strona.waitForFunction('window.makietkaRysujGotowe === true', { timeout: 60000 });
-    return await praca(strona);
+    // Diagnostyka (23.11: PDF na serwerze przekraczał czas, lokalnie rysował się w 0,4 s): ostatni etap i postęp
+    // trafiają do komunikatu błędu, żeby było widać, na czym rysowanie stanęło.
+    let etap = 'otwieranie strony rysowania';
+    let ostatni = '';
+    await strona.exposeFunction('__mkPostep', (i, n) => { ostatni = `${i} z ${n}`; postep(i, n); });
+    await strona.exposeFunction('__mkEtap', (e) => { etap = String(e).slice(0, 80); });
+    try {
+      await strona.goto(`${env.APLIKACJA || APLIKACJA}/rysuj.html`, { waitUntil: 'load', timeout: 60000 });
+      await strona.waitForFunction('window.makietkaRysujGotowe === true', { timeout: 60000 });
+      etap = 'rysowanie';
+      return await praca(strona);
+    } catch (e) {
+      throw new Error(`${String(e?.message || e).slice(0, 300)} [etap: ${etap}${ostatni ? `, strony ${ostatni}` : ''}]`);
+    }
   } finally {
     await przegladarka.close().catch(() => {});
   }
