@@ -397,7 +397,7 @@ const POLA_SPECJALNE = {
   wyklejka: { zadruk: 'sp_zadruk', gramatura: 'sp_gramatura' }, // przednia albo tylna – z typu sekcji
   obwoluta: { skrzydelko_mm: 'sp_skrzydelko_mm', zapas_mm: 'sp_zapas_mm', naddatek_wys_mm: 'sp_naddatek_wys_mm' },
   ulotka: { panele: 'sp_panele', zlozenie: 'sp_zlozenie', szerokosc_mm: 'sp_szerokosc_mm', wysokosc_mm: 'sp_wysokosc_mm', skrot_mm: 'sp_skrot_mm' },
-  kalendarz: { rok: 'sp_rok', jednostka: 'sp_jednostka', pierwszy: 'sp_pierwszy', swieta: 'sp_swieta' },
+  kalendarz: { rok: 'sp_rok', jednostka: 'sp_jednostka', pierwszy: 'sp_pierwszy', swieta: 'sp_swieta', jezyk: 'sp_jezyk' },
   trojdzielny: { szerokosc_mm: 'sp_t_szerokosc_mm', glowka_mm: 'sp_glowka_mm', kalendarium_mm: 'sp_kalendarium_mm', reklama_mm: 'sp_reklama_mm', okienko: 'sp_okienko' },
   wykrojnik: {
     ksztalt: 'sp_ksztalt', zadruk: 'sp_w_zadruk', koperta: 'sp_koperta', panel_szer_mm: 'sp_panel_szer_mm', panel_wys_mm: 'sp_panel_wys_mm', grzbiet_mm: 'sp_grzbiet_mm',

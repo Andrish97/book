@@ -13,7 +13,8 @@ import { mmNaPt, ptNaMm } from './projekt.js';
 import { nazwaTypu, toKolaz, WIELOKATY, podgladWielokata } from './edytor.js';
 import { WZORY, podgladWzoru, moznaWzor } from './wzor-wypelnienia.js';
 import { RODZAJE_KSZTALTU, normalizujKsztalt, ustawKontrolkiKsztaltu, sciezkaZKsztaltu, czyWygiecie } from './tekst-ksztalt.js';
-import { toKalendarz, MIESIACE, KOLORY_DOMYSLNE } from './kalendarz-miesiaca.js';
+import { toKalendarz, KOLORY_DOMYSLNE } from './kalendarz-miesiaca.js';
+import { miesiaceWielka } from './nazwy-dat.js';
 import { toWykres, RODZAJE, PALETA, normalizujWykres } from './wykres.js';
 import { KOLAZE, RODZAJE_KRESEK, wzorKresek, rodzajKresek } from './ksztalty-biblioteka.js';
 import { RODZAJE_MIEKKICH, maMiekkie } from './miekkie-krawedzie.js';
@@ -676,7 +677,8 @@ export class PanelWlasciwosci {
     const k = () => obj.kalendarz;
     const zmien = (zmiana) => { obj.kalendarz = { ...obj.kalendarz, ...zmiana }; };
     const s = this.sekcja(tt('wlasciwosci.kalendarz'));
-    s.append(this.wybor(tt('wlasciwosci.miesiac'), MIESIACE.map((m, i) => [String(i + 1), m]), () => String(k().miesiac), (v) => zmien({ miesiac: Number(v) })));
+    s.append(this.wybor(tt('wlasciwosci.miesiac'), miesiaceWielka(k().jezyk).map((m, i) => [String(i + 1), m]), () => String(k().miesiac), (v) => zmien({ miesiac: Number(v) })));
+    s.append(this.wybor(tt('wlasciwosci.jezykNazw'), [['pl', 'Polski'], ['en', 'English'], ['uk', 'Українська']], () => k().jezyk || 'pl', (v) => { zmien({ jezyk: v }); this.zbuduj(); }));
     s.append(this.liczba(tt('wlasciwosci.rok'), () => k().rok, (v) => zmien({ rok: Math.round(v) }), { krok: 1, min: 1600 }));
     s.append(this.wybor(tt('wlasciwosci.miesiacZKolumnyDanych'), this._kolumnyDanych('Nie – stały miesiąc'), () => k().pole_daty || '', (v) => { zmien({ pole_daty: v || undefined }); this.zbuduj(); }));
     if (k().pole_daty) {

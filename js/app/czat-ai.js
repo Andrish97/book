@@ -288,7 +288,7 @@ async function wyslijPrzezSchowek(tekst) {
         } catch (e) { wyniki.push(tt('czatAi.blad2', { nazwa: w.nazwa, message: e.message })); }
       }
       if (zmiany) sprawdzKonto();
-      dopiszDoSkopiowania('ai', 'Wykonane. Wyniki są w schowku – wklej je czatowi AI, żeby wiedział, co się udało (i ewentualnie zrobił resztę).', `Wyniki z Makietki:\n\n${wyniki.join('\n\n')}`);
+      dopiszDoSkopiowania('ai', tt('tresc.czatAi.wykonaneWynikiSaWSchowku'), `${tt('czatAi.wynikiZMakietki')}\n\n${wyniki.join('\n\n')}`);
       return;
     }
     // Polecenie użytkownika: składamy pełne polecenie dla czatu – zasady, narzędzia, stan projektu, zadanie.
@@ -298,21 +298,8 @@ async function wyslijPrzezSchowek(tekst) {
     const przeglad = await n.wolaj('tools/call', { name: 'przeglad_projektu', arguments: {} }).then((r) => (r?.content || []).map((c) => c.text || '').join('\n')).catch(() => '');
     const polecenie = `${systemDla(n)}
 
-JAK ODPOWIADAĆ: nie masz bezpośredniego dostępu do Makietki – użytkownik przenosi wiadomości. Napisz krótko (w języku użytkownika), co zrobisz, a potem JEDEN blok kodu z poleceniami:
-\`\`\`makietka
-[{"narzedzie": "nazwa_narzedzia", "parametry": { … }}]
-\`\`\`
-Użytkownik wklei go do Makietki; ona wykona polecenia po kolei i odda Ci wyniki. Gdy najpierw musisz coś przeczytać (czytaj, opis_formatu…), wyślij tylko te polecenia i poczekaj na wyniki. Parametry podawaj dokładnie według listy (* – wymagany).
-
-NARZĘDZIA:
-${opisNarzedzi(n.lista)}
-
-STAN PROJEKTU (przeglad_projektu):
-${przeglad}
-
-ZADANIE UŻYTKOWNIKA:
-${tekst}`;
-    dopiszDoSkopiowania('ai', 'Polecenie dla czatu jest w schowku. Wklej je w darmowym czacie (np. chatgpt.com, claude.ai, gemini.google.com), a jego odpowiedź z blokiem „makietka” wklej tutaj i wyślij.', polecenie);
+${tt('czatAi.jakOdpowiadac', { narzedzia: opisNarzedzi(n.lista), przeglad, tekst })}`;
+    dopiszDoSkopiowania('ai', tt('tresc.czatAi.polecenieDlaCzatuJestW'), polecenie);
   } catch (e) {
     dopisz('blad', e.message);
   } finally {

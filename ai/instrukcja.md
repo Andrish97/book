@@ -412,6 +412,7 @@ Siatka dni jednego miesiąca z nazwą miesiąca i dniami tygodnia. Niedziele i p
 | **Miesiąc z kolumny danych** | Na każdej stronie serii inny miesiąc – z kolumny z wartościami typu „2027-03”, „marzec 2027” albo „3” (rok wtedy z **Rok z kolumny**). Tak powstaje kalendarz na 12 miesięcy z jednej strony-wzoru (rozdział „16 Serie”). |
 | **Tydzień zaczyna się od** | Poniedziałku albo niedzieli. |
 | **Nazwy dni** | Pełne, skrócone albo same litery. |
+| **Język nazw** | Polski, angielski albo ukraiński – nazwy miesięcy i dni. Nowy kalendarz bierze język interfejsu; zmiana języka interfejsu nie zmienia gotowego kalendarza. |
 | **Dni innych miesięcy** | Wyszarzone, jak zwykłe dni albo ukryte. |
 | **Nazwa miesiąca nad dniami**, **Numery tygodni** | Dodatkowy wiersz i kolumna. |
 | **Miejsce na notatki** | Data w rogu, wyższe kratki do pisania. |
@@ -1215,7 +1216,7 @@ Sekcja specjalna działa jak okładka z grzbietem (rozdział „10.6 Okładka z 
 | **Wyklejka przednia / tylna** | Twarda oprawa: arkusz o szerokości dwóch stron bloku, ze zgięciem pośrodku. Połowa **Na okładce (przyklejona)** przykleja się do wnętrza okładki, druga to pierwsza (przednia) albo ostatnia (tylna) luźna kartka książki. **Zadruk**: czysta, zadrukowana strona widoczna albo obie strony; **Papier** (g/m²) — luźna kartka dochodzi do grubości grzbietu. Wyklejka nie ma numerów stron. |
 | **Obwoluta ze skrzydełkami** | Tył, grzbiet i przód z twardej okładki projektu (płyty i grzbiet), dwa skrzydełka (**Skrzydełko**, 0 – około połowy przodu) i zapas na zgięcie przy płycie. Przybędzie stron – obwoluta przeliczy się sama, a elementy przodu przesuną się razem z nim. |
 | **Ulotka składana** | Arkusz na 2, 3 albo 4 panele, **Złożenie**: **Zwijane** (łamana C – panel składany do środka jest węższy o **Skrót**, żeby się nie zaginał) albo **Harmonijka** (Z – panele równe). Sekcja ma dwie strony: zewnętrzną (z panelem **Okładka**) i wewnętrzną. |
-| **Kalendarz z datami (rok)** | **Rok**, **Strona na** miesiąc, tydzień albo dzień, początek tygodnia i **Święta** (Polska: stałe i ruchome – Wielkanoc, Zielone Świątki, Boże Ciało). Tworzy tabelę danych i serię: pierwsza strona sekcji powiela się dla każdego miesiąca, tygodnia albo dnia. Zmiana roku przelicza wszystko. |
+| **Kalendarz z datami (rok)** | **Rok**, **Strona na** miesiąc, tydzień albo dzień, początek tygodnia i **Święta** (Polska: stałe i ruchome – Wielkanoc, Zielone Świątki, Boże Ciało) oraz **Język nazw miesięcy i dni** w danych (polski, angielski, ukraiński). Tworzy tabelę danych i serię: pierwsza strona sekcji powiela się dla każdego miesiąca, tygodnia albo dnia. Zmiana roku przelicza wszystko. |
 | **Kalendarz trójdzielny** | Główka, trzy kalendaria jedno pod drugim, okienko na środkowym i pasek reklamowy – z bigiem pod główką i perforacjami. |
 | **Wykrojnik** | **Koperta** (C6, DL, C5, kwadrat), **Teczka ofertowa** z kieszenią i nacięciami na wizytówkę albo **Pudełko** (długość, szerokość, wysokość → siatka z wieczkiem, dnem, klapkami i zakładką klejową). **Zadruk z obu stron** dodaje drugą stronę – wnętrze arkusza: strefy, zgięcia i linia cięcia są na niej odbite w poziomie, tak jak wypadną po odwróceniu arkusza, więc wnętrze pudełka czy koperty projektujesz w dobrym miejscu. Linie wykrojnika idą do PDF tylko z pierwszej strony; makieta 3D pokazuje wnętrze. |
 | **Arkusz użytków** | Naklejki, wizytówki, etykiety: projektujesz jeden użytek (albo kolejne z danych – seria), a w PDF stoją obok siebie na arkuszu (SRA3, A3, A4, B2) ze znakami cięcia. **Cięcie**: prostokąt (gilotyna), **naklejka** z zaokrąglonymi rogami, **naklejka okrągła / owalna** (koło albo owal w wymiarach użytku) albo **zawieszka z otworem** – ścięte górne rogi (ścięcie w polu zaokrąglenia) i otwór Ø 5 mm na sznurek; kontrola przed drukiem ostrzega o elementach w otworze i poza wykrojem. Gotowy szablon: **Zawieszki na prezenty** (dla kogo, życzenia, od kogo – z tabeli). |
@@ -1927,7 +1928,7 @@ Jedna strona na dzień, z dniem tygodnia, imieninami i świętami w kolorze.
 
 ```text
 Korzystając z łącznika Makietka, w projekcie „<nazwa projektu>”:
-1. Przeczytaj opis formatu (narzędzie opis_formatu) i przegląd projektu.
+1. Przeczytaj opis formatu (narzędzie get_format_spec) i przegląd projektu (get_project_overview).
 2. Zrób tabelę danych „Dni 2027” z kolumnami: data, dzien, miesiac, dzien_tygodnia, swieto, kolor (kolor liczby: czarny w dni zwykłe, czerwony #c0392b w niedziele i święta).
 3. Wypełnij ją dla całego roku 2027 (polskie święta państwowe i kościelne w kolumnie swieto).
 4. Zrób stronę-wzór dnia: duża liczba {dzien} z kolorem z pola „kolor”, pod nią {dzien_tygodnia} i {miesiac}, a niżej {swieto}. Ustaw serię „Dni” z tą tabelą.
@@ -2582,7 +2583,7 @@ Twoje zadanie:
 1. Ustal, w jakiej aplikacji teraz rozmawiamy (claude.ai w przeglądarce, aplikacja Claude na telefonie, Claude Desktop, Claude Code, ChatGPT, Cursor albo inna) i czy na moim planie da się w niej dodać własny łącznik MCP. Jeśli nie wiesz – zapytaj mnie.
 2. Poprowadź mnie po kolei, co kliknąć, żeby dodać łącznik o nazwie „Makietka” z moim adresem. Nie proś mnie o wklejenie klucza do tej rozmowy – wkleję go sam w ustawieniach.
 3. Jeśli ta aplikacja albo mój plan nie obsługuje łączników, powiedz to wprost i zaproponuj najprostszą drogę (inna aplikacja, Claude Desktop z rozszerzeniem, Claude Code).
-4. Po podłączeniu sprawdź, czy widzisz narzędzie „projekty”, i pokaż mi listę moich projektów.
+4. Po podłączeniu sprawdź, czy widzisz narzędzie „list_projects”, i pokaż mi listę moich projektów.
 Pisz prosto, po polsku, jeden krok na raz i czekaj, aż powiem, że zrobione.
 ```
 

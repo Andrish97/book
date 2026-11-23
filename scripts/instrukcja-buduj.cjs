@@ -286,7 +286,7 @@ async function zbuduj(j = 'pl') {
   const wynik = rozdzialy.map((r) => {
     const sekcje = r.sekcje.map((s) => {
       const b = bloki(s.linie);
-      const html = htmlBlokow(b, t, polecenia, SLOWA[j]);
+      const html = htmlBlokow(b, t, { ...polecenia, ...(polecenia.POLECENIA_JEZYKI?.[j] || {}) }, SLOWA[j]); // polecenia w języku instrukcji (#409)
       return { id: s.id, tytul: s.tytul, html, bloki: b };
     });
     return { ...r, sekcje };

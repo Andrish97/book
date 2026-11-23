@@ -140,8 +140,14 @@ export function komunikatBledu(e) {
   if (e?.kod && KOMUNIKATY[e.kod]) return t(KOMUNIKATY[e.kod]);
   const m = String(e?.message || e || '');
   // Limity z bazy (migracja 20261114180000_pliki_r2_limity.sql): „limit_projektow: Masz już …”.
-  const limit = /\b(?:limit_(?:projektow|osob)|za_duzo_prob_logowania):\s*(.+)$/s.exec(m);
-  if (limit) return limit[1].trim();
+  // Kod przed dwukropkiem wybiera tekst w języku interfejsu (#409), liczba – z treści bazy.
+  const limit = /\b(limit_projektow|limit_osob|za_duzo_prob_logowania):\s*(.+)$/s.exec(m);
+  if (limit) {
+    const n = Number(/\d+/.exec(limit[2])?.[0] || 0);
+    if (limit[1] === 'limit_projektow') return t('chmura.limitProjektow', { n });
+    if (limit[1] === 'limit_osob') return t(/zaprosz/.test(limit[2]) ? 'chmura.limitOsobZZaproszonymi' : 'chmura.limitOsob', { n });
+    return t('chmura.zaDuzoProbLogowania');
+  }
   const mapa = [
     [/invalid login credentials/i, KOMUNIKATY.invalid_credentials],
     [/email not confirmed/i, KOMUNIKATY.email_not_confirmed],

@@ -11,7 +11,8 @@
 
 import { biezacaMarka } from './zestaw-marki.js';
 import { trybKolorow, koloryDodatkowe, spotyDruku, mapaSpotow, hexSpotu, sekcjaBiezaca, koloryWZakresie, dodajKolorDodatkowy, rgbNaCmyk } from './kolory-druku.js';
-import { t as tt } from './jezyk.js';
+import { t as tt, biezacyJezyk } from './jezyk.js';
+import { miesiace, miesiaceDopelniacz, dniKrotkieOdPon } from './nazwy-dat.js'; // daty w języku interfejsu (#409)
 
 const wartoscSelect = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
 const indeksSelect = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'selectedIndex');
@@ -623,12 +624,9 @@ function ulepszKolor(input) {
 // przycisk z datą po polsku i własny kalendarz miesiąca. Atrybut min="dzis" (albo zwykłe min=RRRR-MM-DD)
 // wyłącza dni wcześniejsze.
 
-const MIESIACE = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'];
-const MIESIACA = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
-const DNI_TYGODNIA = ['pn', 'wt', 'śr', 'cz', 'pt', 'so', 'nd'];
 const naIso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const zIso = (t) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(t || ''); return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null; };
-const dataSlownie = (iso) => { const d = zIso(iso); return d ? `${d.getDate()} ${MIESIACA[d.getMonth()]} ${d.getFullYear()}` : ''; };
+const dataSlownie = (iso) => { const d = zIso(iso); return d ? `${d.getDate()} ${miesiaceDopelniacz()[d.getMonth()]} ${d.getFullYear()}` : ''; };
 const IKONA_KALENDARZA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>';
 
 function ulepszDate(input) {
@@ -686,16 +684,16 @@ function ulepszDate(input) {
     const wolno = (iso) => !min || iso >= min;
     const rysuj = () => {
       const rok = aktywny.getFullYear(); const mies = aktywny.getMonth();
-      okienko.querySelector('strong').textContent = `${MIESIACE[mies]} ${rok}`;
+      okienko.querySelector('strong').textContent = `${miesiace()[mies]} ${rok}`;
       const pierwszy = new Date(rok, mies, 1);
       const przesuniecie = (pierwszy.getDay() + 6) % 7; // poniedziałek pierwszy
       const dni = new Date(rok, mies + 1, 0).getDate();
-      const komorki = DNI_TYGODNIA.map((d) => `<span class="kalendarz-dzien-tyg" role="columnheader">${d}</span>`);
+      const komorki = (biezacyJezyk() === 'pl' ? ['pn', 'wt', 'śr', 'cz', 'pt', 'so', 'nd'] : dniKrotkieOdPon()).map((d) => `<span class="kalendarz-dzien-tyg" role="columnheader">${d}</span>`);
       for (let i = 0; i < przesuniecie; i += 1) komorki.push('<span></span>');
       for (let d = 1; d <= dni; d += 1) {
         const iso = naIso(new Date(rok, mies, d));
         const klasy = ['kalendarz-dzien', iso === dzis ? 'dzis' : '', iso === naIso(aktywny) ? 'aktywny' : ''].filter(Boolean).join(' ');
-        komorki.push(`<button type="button" tabindex="-1" role="gridcell" class="${klasy}" data-dzien="${iso}" aria-selected="${iso === wybrany}" ${wolno(iso) ? '' : 'disabled'} aria-label="${d} ${MIESIACA[mies]} ${rok}">${d}</button>`);
+        komorki.push(`<button type="button" tabindex="-1" role="gridcell" class="${klasy}" data-dzien="${iso}" aria-selected="${iso === wybrany}" ${wolno(iso) ? '' : 'disabled'} aria-label="${d} ${miesiaceDopelniacz()[mies]} ${rok}">${d}</button>`);
       }
       siatka.innerHTML = komorki.join('');
       siatka.setAttribute('aria-activedescendant', '');

@@ -20,7 +20,7 @@ import { DOSTAWCY, modeleDostawcy, nazwaZMozliwosciami, zalecaneModele } from '.
 import { wydatki, ustawLimit, opisKosztu } from '../ai-koszty.js';
 import { wstawIkony } from '../ikony.js';
 import { otwartySejf, sejfKonta } from './sejf-ai.js';
-import { wpiszNazwe, t as tt, jezykDat } from '../jezyk.js';
+import { wpiszNazwe, t as tt, jezykDat, biezacyJezyk } from '../jezyk.js';
 
 const ROLE = { edycja: 'czyta i zmienia', odczyt: 'tylko czyta' };
 // Drobniejsze zakresy (#252) – pilnuje baza (ai_zakres_brak). Brak listy (null) – wszystko.
@@ -121,34 +121,18 @@ let adresWOknie = '';
 // Zwykły czat bez łączników (#239): adres otwarty jak strona – opis i narzędzia w tekście.
 // Część czatów (np. ChatGPT) otwiera tylko adresy wklejone przez użytkownika – nie linki znalezione na stronie – więc
 // adresy narzędzi do odczytu są w poleceniu wprost (#253).
-export const polecenieZwyklegoCzatu = (adres) => `Pracujesz z moim projektem w Makietce (edytor publikacji do druku). Poniżej są adresy przygotowane dla Ciebie w tej rozmowie – otwieraj je dokładnie tak, jak są podane (pełny adres).
-
-Zasady i lista narzędzi Makietki:
-${adres}
-
-Moje projekty:
-${adres}/n/projekty
-
-Przegląd projektu (gdy mam kilka projektów, dopisz ?projekt=<id albo nazwa>):
-${adres}/n/przeglad_projektu
-
-Opis formatu projektu:
-${adres}/n/opis_formatu
-
-Pozostałe narzędzia wywołujesz, otwierając adresy ${adres}/n/<narzędzie>?parametr=wartość (opis na stronie zasad). Zmieniaj małymi krokami i po każdej zmianie sprawdź wynik. Jeśli Twoja przeglądarka nie otworzy adresu, który sam zbudowałeś, napisz mi to krótko – zmiany zrobimy wtedy w Makietce przez Asystenta AI w trybie „kopiuj i wklej”.
-
-Na początek otwórz adres „Moje projekty”, pokaż mi moje projekty i zapytaj, co mam zrobić.`;
+export const polecenieZwyklegoCzatu = (adres) => tt('dostepAi.polecenieZwyklegoCzatu', { adres }); // w języku interfejsu (#409)
 function pokazPolecenia(adres = '') {
   adresWOknie = adres;
   const zw = $('#dostep-ai-polecenie-zwykly');
   if (zw) zw.textContent = adres ? polecenieZwyklegoCzatu(adres) : '';
-  $('#dostep-ai-polecenie').textContent = polecenieZAdresem(adres);
+  $('#dostep-ai-polecenie').textContent = polecenieZAdresem(adres, biezacyJezyk());
   $('#dostep-ai-polecenie-code').textContent = tt('dostepAi.claudeMcpAddTransport2', { x: adres || ADRES_ZASTEPCZY });
 }
 
 export async function kopiujPolecenieAi() {
   try {
-    await navigator.clipboard.writeText(polecenieZAdresem(adresWOknie));
+    await navigator.clipboard.writeText(polecenieZAdresem(adresWOknie, biezacyJezyk()));
     powiadom(tt('dostepAi.skopiowanoPolecenieWklejJe'));
   } catch {
     powiadom(tt('dostepAi.nieUdaloSieSkopiowac'), true);

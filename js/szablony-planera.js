@@ -7,32 +7,32 @@
 //            pierwsza: [teksty pierwszej kolumny pod nagłówkiem], srodek: [numery kolumn wyśrodkowanych],
 //            linie: 'siatka' | 'poziome', ostatni: tekst w pierwszej komórce ostatniego wiersza (pogrubiony) }
 import { t as tt } from './jezyk.js';
+import { dniKrotkieOdPon } from './nazwy-dat.js';
 
 const DNI = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
-const DNI_KROTKO = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
 export const KOLOR_LINII = '#8a877f';
 
 export const SZABLONY = [
   { id: 'lista-zadan', nazwa: 'Lista zadań', slowa: 'lista zadan todo do zrobienia checkbox', opis: tt('szablonyPlanera.kratkiDoOdhaczania'), kolumny: [7, 0], wiersze: 13, wysokosc: 7, naglowek: ['', 'Zadanie'], linie: 'siatka' },
-  { id: 'tracker-nawykow', nazwa: 'Tracker nawyków', slowa: 'tracker nawyki nawykow tydzien habit', opis: tt('szablonyPlanera.nawykISiedemDni'), kolumny: [0, 9, 9, 9, 9, 9, 9, 9], wiersze: 9, wysokosc: 8, naglowek: ['Nawyk', ...DNI_KROTKO], srodek: [1, 2, 3, 4, 5, 6, 7], linie: 'siatka' },
+  { id: 'tracker-nawykow', nazwa: 'Tracker nawyków', slowa: 'tracker nawyki nawykow tydzien habit', opis: tt('szablonyPlanera.nawykISiedemDni'), kolumny: [0, 9, 9, 9, 9, 9, 9, 9], wiersze: 9, wysokosc: 8, naglowek: ['Nawyk', ...dniKrotkieOdPon()], srodek: [1, 2, 3, 4, 5, 6, 7], linie: 'siatka' },
   { id: 'plan-tygodnia', nazwa: 'Plan tygodnia', slowa: 'plan tygodnia tydzien dni planer', opis: tt('szablonyPlanera.dzienPoDniu'), kolumny: [28, 0], wiersze: 8, wysokosc: 20, naglowek: ['Dzień', 'Plan'], pierwsza: DNI, linie: 'siatka' },
   { id: 'plan-dnia', nazwa: 'Plan dnia', slowa: 'plan dnia godziny harmonogram planer', opis: tt('szablonyPlanera.godzinaPoGodzinie6'), kolumny: [16, 0], wiersze: 17, wysokosc: 8, naglowek: ['Godzina', 'Plan'], pierwsza: Array.from({ length: 16 }, (_, i) => `${i + 6}:00`), linie: 'poziome' },
   { id: 'notatki-linie', nazwa: 'Notatki w linie', slowa: 'notatki linie liniatura zeszyt pisanie', opis: tt('szablonyPlanera.linieDoPisaniaCo'), kolumny: [0], wiersze: 16, wysokosc: 8, naglowek: null, linie: 'poziome' },
-  { id: 'siatka-dni', nazwa: 'Siatka dni tygodnia', slowa: 'siatka dni tygodnia miesiac kalendarz pusty', opis: tt('szablonyPlanera.pustyMiesiacDoWpisania'), kolumny: [0, 0, 0, 0, 0, 0, 0], wiersze: 6, wysokosc: 18, naglowek: DNI_KROTKO, srodek: [0, 1, 2, 3, 4, 5, 6], linie: 'siatka' },
+  { id: 'siatka-dni', nazwa: 'Siatka dni tygodnia', slowa: 'siatka dni tygodnia miesiac kalendarz pusty', opis: tt('szablonyPlanera.pustyMiesiacDoWpisania'), kolumny: [0, 0, 0, 0, 0, 0, 0], wiersze: 6, wysokosc: 18, naglowek: dniKrotkieOdPon(), srodek: [0, 1, 2, 3, 4, 5, 6], linie: 'siatka' },
   { id: 'lista-zakupow', nazwa: 'Lista zakupów', slowa: 'lista zakupow sklep produkty', opis: tt('szablonyPlanera.produktIIlosc'), kolumny: [7, 0, 20], wiersze: 13, wysokosc: 7, naglowek: ['', 'Produkt', 'Ilość'], srodek: [2], linie: 'siatka' },
   { id: 'cele', nazwa: 'Cele', slowa: 'cele miesiaca plan termin', opis: tt('szablonyPlanera.celITermin'), kolumny: [7, 0, 24], wiersze: 7, wysokosc: 11, naglowek: ['', 'Cel', 'Termin'], srodek: [2], linie: 'siatka' },
   { id: 'budzet', nazwa: 'Budżet', slowa: 'budzet wydatki pieniadze plan finanse', opis: tt('szablonyPlanera.planIWydatkiZ'), kolumny: [0, 26, 26], wiersze: 11, wysokosc: 7, naglowek: ['Pozycja', 'Plan', 'Wydano'], srodek: [1, 2], linie: 'siatka', ostatni: 'Razem' },
   { id: 'kontakty', nazwa: 'Kontakty', slowa: 'kontakty telefony adresy email', opis: tt('szablonyPlanera.imieTelefonEMail'), kolumny: [0, 32, 0], wiersze: 11, wysokosc: 8, naglowek: ['Imię i nazwisko', 'Telefon', 'E-mail'], linie: 'siatka' },
-  { id: 'plan-lekcji', nazwa: 'Plan lekcji', slowa: 'plan lekcji szkola zajecia tydzien', opis: tt('szablonyPlanera.piecDniOsiemLekcji'), kolumny: [10, 0, 0, 0, 0, 0], wiersze: 9, wysokosc: 11, naglowek: ['', ...DNI_KROTKO.slice(0, 5)], pierwsza: ['1', '2', '3', '4', '5', '6', '7', '8'], srodek: [0, 1, 2, 3, 4, 5], linie: 'siatka' },
+  { id: 'plan-lekcji', nazwa: 'Plan lekcji', slowa: 'plan lekcji szkola zajecia tydzien', opis: tt('szablonyPlanera.piecDniOsiemLekcji'), kolumny: [10, 0, 0, 0, 0, 0], wiersze: 9, wysokosc: 11, naglowek: ['', ...dniKrotkieOdPon().slice(0, 5)], pierwsza: ['1', '2', '3', '4', '5', '6', '7', '8'], srodek: [0, 1, 2, 3, 4, 5], linie: 'siatka' },
 ];
 
 // Kolejne szablony planera (#162): plany, trackery, listy i budżet – grupa to nagłówek w kategorii „Planer”.
 const DNI_MIESIACA = Array.from({ length: 31 }, (_, i) => String(i + 1));
 SZABLONY.push(
   { id: 'plan-miesiaca-lista', grupa: 'Plany', nazwa: 'Plan miesiąca – lista dni', slowa: 'plan miesiaca dni lista 31', opis: tt('szablonyPlanera.dni131I'), kolumny: [9, 0], wiersze: 32, wysokosc: 5, naglowek: ['', 'Plan'], pierwsza: DNI_MIESIACA, srodek: [0], linie: 'poziome' },
-  { id: 'plan-tygodnia-kolumny', grupa: 'Plany', nazwa: 'Plan tygodnia – kolumny', slowa: 'plan tygodnia kolumny dni poziomo', opis: tt('szablonyPlanera.siedemDniObokSiebie'), kolumny: [0, 0, 0, 0, 0, 0, 0], wiersze: 2, wysokosc: 60, naglowek: DNI_KROTKO, srodek: [0, 1, 2, 3, 4, 5, 6], linie: 'siatka' },
+  { id: 'plan-tygodnia-kolumny', grupa: 'Plany', nazwa: 'Plan tygodnia – kolumny', slowa: 'plan tygodnia kolumny dni poziomo', opis: tt('szablonyPlanera.siedemDniObokSiebie'), kolumny: [0, 0, 0, 0, 0, 0, 0], wiersze: 2, wysokosc: 60, naglowek: dniKrotkieOdPon(), srodek: [0, 1, 2, 3, 4, 5, 6], linie: 'siatka' },
   { id: 'plan-tygodnia-priorytety', grupa: 'Plany', nazwa: 'Tydzień z priorytetami', slowa: 'plan tygodnia priorytety cele zadania', opis: tt('szablonyPlanera.dzienZadaniaINajwazniejsza'), kolumny: [26, 0, 36], wiersze: 8, wysokosc: 16, naglowek: ['Dzień', 'Zadania', 'Najważniejsze'], pierwsza: DNI, linie: 'siatka' },
-  { id: 'plan-posilkow', grupa: 'Plany', nazwa: 'Plan posiłków', slowa: 'plan posilkow jadlospis menu dieta tydzien', opis: tt('szablonyPlanera.sniadanieObiadKolacjaNa'), kolumny: [20, 0, 0, 0], wiersze: 8, wysokosc: 14, naglowek: ['', 'Śniadanie', 'Obiad', 'Kolacja'], pierwsza: DNI_KROTKO, srodek: [0], linie: 'siatka' },
+  { id: 'plan-posilkow', grupa: 'Plany', nazwa: 'Plan posiłków', slowa: 'plan posilkow jadlospis menu dieta tydzien', opis: tt('szablonyPlanera.sniadanieObiadKolacjaNa'), kolumny: [20, 0, 0, 0], wiersze: 8, wysokosc: 14, naglowek: ['', 'Śniadanie', 'Obiad', 'Kolacja'], pierwsza: dniKrotkieOdPon(), srodek: [0], linie: 'siatka' },
   { id: 'tracker-nastroju', grupa: 'Trackery', nazwa: 'Tracker nastroju', slowa: 'tracker nastroj samopoczucie emocje miesiac', opis: tt('szablonyPlanera.nastrojDzienPoDniu'), kolumny: [9, 0, 0, 0, 0, 0], wiersze: 32, wysokosc: 5, naglowek: ['', 'Świetnie', 'Dobrze', 'Średnio', 'Słabo', 'Źle'], pierwsza: DNI_MIESIACA, srodek: [0, 1, 2, 3, 4, 5], linie: 'siatka' },
   { id: 'tracker-wody', grupa: 'Trackery', nazwa: 'Tracker wody', slowa: 'tracker woda picie szklanki nawodnienie', opis: tt('szablonyPlanera.osiemSzklanekDziennie'), kolumny: [0, 9, 9, 9, 9, 9, 9, 9, 9], wiersze: 8, wysokosc: 9, naglowek: ['Dzień', '1', '2', '3', '4', '5', '6', '7', '8'], pierwsza: DNI, srodek: [1, 2, 3, 4, 5, 6, 7, 8], linie: 'siatka' },
   { id: 'tracker-czytania', grupa: 'Trackery', nazwa: 'Tracker czytania', slowa: 'tracker czytanie ksiazki lektura strony', opis: tt('szablonyPlanera.dataTytulStrony'), kolumny: [20, 0, 16, 16], wiersze: 13, wysokosc: 8, naglowek: ['Data', 'Tytuł', 'Strony', 'Koniec'], srodek: [2, 3], linie: 'siatka' },
@@ -76,7 +76,7 @@ export function zastosujSzablon(g, s, szer, { komorkiTabeli, ulozTabele, ustawLi
     else if (k === 0 && s.pierwsza) tekst = s.pierwsza[w - (naglowek ? 1 : 0)] || '';
     if (s.ostatni && w === W - 1 && k === 0) tekst = s.ostatni;
     const gruby = (naglowek && w === 0) || (s.ostatni && w === W - 1) || (k === 0 && s.pierwsza);
-    c.set({ text: tekst, fontWeight: gruby ? 'bold' : 'normal', textAlign: (s.srodek || []).includes(k) ? 'center' : 'left' });
+    c.set({ text: tt(tekst), fontWeight: gruby ? 'bold' : 'normal', textAlign: (s.srodek || []).includes(k) ? 'center' : 'left' });
     if (s.linie === 'siatka' && s.pierwsza && k === 0 && s.wysokosc >= 15) c.set('wyrownanie_pion', 'gora');
   });
   if (s.linie === 'poziome') {

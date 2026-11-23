@@ -253,7 +253,8 @@ Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty
 - M1 ✅ daty, lista projektów, konto, logowanie, współpraca, zapis (#409).
 - M2 ⏳ pozostałe okna i panele – ✅ właściwości, dane i serie, sekcje, lista stron, komentarze, ostrzeżenia, dostęp dla AI; dalej: eksport, druk, AI, komiks, makieta, kontrola…
 - M2/M3 ✅ większość (#409 cd.): stałe napisy w słownikach, napisy składane na kluczach, treść przykładowa Biblioteki i gotowych sekcji. Zostało: nazwy miesięcy w danych kalendarzy, szablony składanek i planerów z napisami składanymi, polecenia dla AI (czat w aplikacji odpowiada po polsku), panel administratora (tylko właściciel).
-- M4 ⏳ komunikaty z bazy danych (limity, błędy) – po polsku z serwera.
+- M4 ✅ komunikaty z bazy danych (limity projektów i osób, próby logowania) w języku interfejsu (#415).
+- „Wracaj do tłumaczenia żeby zamknąć temat” – ✅ nazwy miesięcy i dni (kalendarze, planery, dane serii, wybór daty), napisy składane w szablonach, polecenia dla AI po angielsku i ukraińsku, komunikaty limitów (#415). Świadomie po polsku: nazwy polskich świąt, panel administratora, opisy narzędzi asystenta w aplikacji.
 - „wkurza mnie też to, że na przykład nazwy narzędzi są po polsku… w Familiadzie nie ma takich problemów” → wybór: narzędzia łącznika AI – ✅ łącznik po angielsku (#410). Zgłoszenie do katalogu trzeba wypełnić od nowa (formularz pobierze nowe nazwy).
 
 ## Część N – czat AI i menu (23.11, popołudnie)

@@ -22,6 +22,7 @@ import { normalizujOkladke, geometriaOkladki } from './okladka.js';
 import { domyslnaSpecjalna, geometriaSpecjalna, dodajWyklejki } from './sekcje-specjalne.js';
 import { domyslneStyle } from './style-tekstu.js';
 import { t as tt } from './jezyk.js';
+import { miesiace, miesiaceDopelniacz, dni, dniKrotkie } from './nazwy-dat.js';
 
 // Zależności rysujące – wczytywane raz, przy pierwszym wstawieniu.
 let Z = null;
@@ -63,10 +64,6 @@ export function paletaZMarki(marka) {
 
 // ---------- Daty po polsku ----------
 
-const MIES = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'];
-const MIES_D = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
-const DNI = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
-const DNI_K = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];
 const wielka = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 const dzienUtc = (rok, m, d) => new Date(Date.UTC(rok, m, d));
 export const domyslnyRok = (teraz = new Date()) => teraz.getFullYear() + (teraz.getMonth() >= 8 ? 1 : 0);
@@ -324,7 +321,7 @@ export const SZABLONY_SEKCJI = [
         const ciecie = kawalek.lastIndexOf(' ');
         if (reszta.length > ile && ciecie > 0) kawalek = kawalek.slice(0, ciecie);
         reszta = reszta.slice(kawalek.length).replace(/^ /, '');
-        return { ...n.tekst(kawalek, p.x, y, p.w, { pt, lh, align: 'justify', styl: styl?.id, ramka_h: h, nazwa: `Tekst rozdziału ${nr}` }), watek, watek_nr: nr, ...(nr > 1 ? { lacznik: ' ' } : {}), dziel_wyrazy: true, wdowy: 2 };
+        return { ...n.tekst(kawalek, p.x, y, p.w, { pt, lh, align: 'justify', styl: styl?.id, ramka_h: h, nazwa: tt('gotoweSekcje.tekstRozdzialuN', { n: nr }) }), watek, watek_nr: nr, ...(nr > 1 ? { lacznik: ' ' } : {}), dziel_wyrazy: true, wdowy: 2 };
       };
       const otwarcieY = p.y + p.h * 0.38;
       const strony = [{
@@ -336,7 +333,7 @@ export const SZABLONY_SEKCJI = [
           ramka(otwarcieY, p.y + p.h - otwarcieY, 1),
         ],
       }];
-      for (let i = 1; i < stron; i += 1) strony.push({ nazwa: `Rozdział – strona ${i + 1}`, obiekty: [ramka(p.y, p.h, i + 1)] });
+      for (let i = 1; i < stron; i += 1) strony.push({ nazwa: tt('gotoweSekcje.rozdzialStronaN', { n: i + 1 }), obiekty: [ramka(p.y, p.h, i + 1)] });
       return { strony, wzorce: [stopkaNumer(c, n, { pagina: true })] };
     },
   },
@@ -349,7 +346,7 @@ export const SZABLONY_SEKCJI = [
     buduj(c, n) {
       const { pole: p } = c;
       const rok = c.rok;
-      const wiersze = MIES.map((m, i) => [`${rok}-${String(i + 1).padStart(2, '0')}`, `${wielka(m)}`]);
+      const wiersze = miesiace().map((m, i) => [`${rok}-${String(i + 1).padStart(2, '0')}`, `${wielka(m)}`]);
       const hZdj = p.h * 0.52;
       const yTyt = p.y + hZdj + 3;
       const yKal = yTyt + c.pt(18) * 1.5;
@@ -366,7 +363,7 @@ export const SZABLONY_SEKCJI = [
       ];
       return {
         strony: [{ nazwa: 'Okładka kalendarza', obiekty: okladka, wzorce: [] }, { nazwa: 'Miesiąc', obiekty: miesiac, seria: 'miesiace' }],
-        tabele: [{ klucz: 'miesiace', nazwa: `Miesiące ${rok}`, kolumny: ['miesiac', 'nazwa'], wiersze }],
+        tabele: [{ klucz: 'miesiace', nazwa: tt('gotoweSekcje.miesiaceRok', { rok }), kolumny: ['miesiac', 'nazwa'], wiersze }],
         serie: [{ klucz: 'miesiace', nazwa: 'Miesiące', tabela: 'miesiace', uklad: 'dlugi' }],
         numeracja: { tryb: 'brak', od: 1 },
       };
@@ -380,7 +377,7 @@ export const SZABLONY_SEKCJI = [
     buduj(c, n) {
       const { pole: p } = c;
       const rok = c.rok;
-      const wiersze = MIES.map((m, i) => [`${rok}-${String(i + 1).padStart(2, '0')}`, wielka(m)]);
+      const wiersze = miesiace().map((m, i) => [`${rok}-${String(i + 1).padStart(2, '0')}`, wielka(m)]);
       const poziom = c.W >= c.H;
       const lewa = poziom ? p.w * 0.36 : p.w;
       const obiekty = poziom
@@ -397,7 +394,7 @@ export const SZABLONY_SEKCJI = [
         ];
       return {
         strony: [{ nazwa: 'Miesiąc', obiekty, seria: 'miesiace' }],
-        tabele: [{ klucz: 'miesiace', nazwa: `Miesiące ${rok}`, kolumny: ['miesiac', 'nazwa'], wiersze }],
+        tabele: [{ klucz: 'miesiace', nazwa: tt('gotoweSekcje.miesiaceRok', { rok }), kolumny: ['miesiac', 'nazwa'], wiersze }],
         serie: [{ klucz: 'miesiace', nazwa: 'Miesiące', tabela: 'miesiace', uklad: 'dlugi' }],
         numeracja: { tryb: 'brak', od: 1 },
       };
@@ -435,7 +432,7 @@ export const SZABLONY_SEKCJI = [
       const rok = c.rok;
       const wiersze = [];
       for (let d = dzienUtc(rok, 0, 1), i = 1; d.getUTCFullYear() === rok; d = dzienUtc(rok, d.getUTCMonth(), d.getUTCDate() + 1), i += 1) {
-        wiersze.push([`${d.getUTCDate()} ${MIES_D[d.getUTCMonth()]}`, wielka(DNI[d.getUTCDay()]), String(i), wielka(MIES[d.getUTCMonth()])]);
+        wiersze.push([`${d.getUTCDate()} ${miesiaceDopelniacz()[d.getUTCMonth()]}`, wielka(dni()[d.getUTCDay()]), String(i), wielka(miesiace()[d.getUTCMonth()])]);
       }
       const y1 = p.y + c.pt(20) * 1.6;
       const kol = (p.w - 4) / 2;
@@ -478,8 +475,8 @@ export const SZABLONY_SEKCJI = [
         if (t > 0 && pon.getUTCFullYear() > rok) break;
         const dni = Array.from({ length: 7 }, (_, i) => dzienUtc(pon.getUTCFullYear(), pon.getUTCMonth(), pon.getUTCDate() + i));
         const nd = dni[6];
-        const zakres = `${dni[0].getUTCDate()} ${MIES_D[dni[0].getUTCMonth()]} – ${nd.getUTCDate()} ${MIES_D[nd.getUTCMonth()]}`;
-        wiersze.push([String(t + 1), zakres, ...dni.map((d) => `${DNI_K[d.getUTCDay()]} ${d.getUTCDate()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`)]);
+        const zakres = `${dni[0].getUTCDate()} ${miesiaceDopelniacz()[dni[0].getUTCMonth()]} – ${nd.getUTCDate()} ${miesiaceDopelniacz()[nd.getUTCMonth()]}`;
+        wiersze.push([String(t + 1), zakres, ...dni.map((d) => `${dniKrotkie()[d.getUTCDay()]} ${d.getUTCDate()}.${String(d.getUTCMonth() + 1).padStart(2, '0')}`)]);
       }
       const yG = p.y + c.pt(16) * 1.7;
       const o = [
@@ -511,7 +508,7 @@ export const SZABLONY_SEKCJI = [
     buduj(c, n) {
       const { pole: p } = c;
       const rok = c.rok;
-      const wiersze = MIES.map((m, i) => [`${rok}-${String(i + 1).padStart(2, '0')}`, `${wielka(m)} ${rok}`]);
+      const wiersze = miesiace().map((m, i) => [`${rok}-${String(i + 1).padStart(2, '0')}`, `${wielka(m)} ${rok}`]);
       const yK = p.y + c.pt(18) * 1.6;
       const hK = p.h * 0.68;
       const o = [
@@ -523,7 +520,7 @@ export const SZABLONY_SEKCJI = [
       if (l) o.push(l);
       return {
         strony: [{ nazwa: 'Miesiąc', obiekty: o, seria: 'miesiace' }],
-        tabele: [{ klucz: 'miesiace', nazwa: `Miesiące ${rok}`, kolumny: ['miesiac', 'nazwa'], wiersze }],
+        tabele: [{ klucz: 'miesiace', nazwa: tt('gotoweSekcje.miesiaceRok', { rok }), kolumny: ['miesiac', 'nazwa'], wiersze }],
         serie: [{ klucz: 'miesiace', nazwa: 'Miesiące', tabela: 'miesiace', uklad: 'dlugi' }],
       };
     },
@@ -560,7 +557,7 @@ export const SZABLONY_SEKCJI = [
       const kw = (p.w - lew) / 12; const kh = (p.y + p.h - yT - gor - c.pt(7) * 3) / 31;
       const o = [n.tekst(tt('gotoweSekcje.mojRok', { rok: c.rok }), p.x, p.y, p.w * 0.6, { pt: 16, font: c.f.tytul, bold: true, kolor: c.k.akcent, nazwa: 'Tytuł' }),
         n.tekst(tt('gotoweSekcje.coSledze'), p.x + p.w * 0.6, p.y + c.pt(16) * 0.3, p.w * 0.4, { pt: 8, align: 'right', kolor: c.k.akcent2 })];
-      MIES.forEach((m, i) => o.push(n.tekst(wielka(m).slice(0, 3), p.x + lew + i * kw, yT, kw, { pt: 7, align: 'center', bold: true, kolor: c.k.akcent })));
+      miesiace().forEach((m, i) => o.push(n.tekst(wielka(m).slice(0, 3), p.x + lew + i * kw, yT, kw, { pt: 7, align: 'center', bold: true, kolor: c.k.akcent })));
       for (let d = 1; d <= 31; d += 1) o.push(n.tekst(String(d), p.x, yT + gor + (d - 1) * kh + Math.max(0, (kh - c.pt(7)) / 2), lew - 1, { pt: 7, align: 'right', kolor: c.k.akcent2 }));
       let dd = '';
       for (let i = 0; i <= 12; i += 1) dd += `M ${(p.x + lew + i * kw).toFixed(2)} ${(yT + gor).toFixed(2)} L ${(p.x + lew + i * kw).toFixed(2)} ${(yT + gor + 31 * kh).toFixed(2)} `;
@@ -588,7 +585,7 @@ export const SZABLONY_SEKCJI = [
     buduj(c, n) {
       const { pole: p } = c;
       const rok = c.rok;
-      const wiersze = MIES.map((m, i) => [`${wielka(m)} ${rok}`]);
+      const wiersze = miesiace().map((m, i) => [`${wielka(m)} ${rok}`]);
       const yT = p.y + c.pt(16) * 1.7;
       const nazw = p.w * 0.28; const kw = (p.w - nazw) / 31;
       const wolne = p.y + p.h - yT - c.pt(6.5) * 2;
@@ -603,7 +600,7 @@ export const SZABLONY_SEKCJI = [
       ['Woda', 'Ruch', 'Czytanie', 'Sen 8 h', 'Modlitwa', 'Bez cukru'].forEach((t, i) => o.push(n.tekst(t, p.x + 1, y0 + i * kh + Math.max(0, (kh - c.pt(8)) / 2), nazw - 2, { pt: 8 })));
       return {
         strony: [{ nazwa: 'Nawyki', obiekty: o, seria: 'miesiace' }],
-        tabele: [{ klucz: 'miesiace', nazwa: `Miesiące ${rok}`, kolumny: ['miesiac'], wiersze }],
+        tabele: [{ klucz: 'miesiace', nazwa: tt('gotoweSekcje.miesiaceRok', { rok }), kolumny: ['miesiac'], wiersze }],
         serie: [{ klucz: 'miesiace', nazwa: 'Miesiące', tabela: 'miesiace', uklad: 'dlugi' }],
       };
     },
@@ -874,7 +871,7 @@ export const SZABLONY_SEKCJI = [
       for (const [nazwa, dania] of dzialy) {
         karta.push(n.tekst(nazwa, p.x, y, p.w, { pt: 13, font: c.f.tytul, bold: true, kolor: c.k.akcent2 }));
         y += c.pt(13) * 1.6;
-        karta.push({ ...n.tekst(dania.map(([d, cena]) => `${d}\t${cena.replace(' ', '\u00a0')}`).join('\n'), p.x, y, p.w, { pt: 10, lh: 1.7, nazwa: `Dania – ${nazwa}` }), tabulatory: tab });
+        karta.push({ ...n.tekst(dania.map(([d, cena]) => `${d}\t${cena.replace(' ', '\u00a0')}`).join('\n'), p.x, y, p.w, { pt: 10, lh: 1.7, nazwa: tt('gotoweSekcje.daniaNazwa', { nazwa }) }), tabulatory: tab });
         y += dania.length * c.pt(10) * 1.7 * 1.05 + c.pt(10) * 1.4;
       }
       return { strony: [{ nazwa: 'Menu – okładka', obiekty: okladka, wzorce: [] }, { nazwa: 'Menu – karta', obiekty: karta, wzorce: [] }], numeracja: { tryb: 'brak', od: 1 } };

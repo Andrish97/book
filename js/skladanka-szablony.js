@@ -234,7 +234,7 @@ function graniastoslup({ boki: n, bok: a, wysokosc: h }) {
   pkt.push({ x: 0, y: h }); kraw.push(['k', koniec]);
   const zgiecia = [zg([0, 0], [a, 0]), zg([a, h], [0, h])];
   for (let s = 1; s < n; s += 1) zgiecia.push(zg([s * a, 0], [s * a, h], 180 - 360 / n));
-  return [{ nazwa: `Graniastosłup ${n}-kątny`, punkty: pkt.map((q) => P(q.x, q.y)), krawedzie: kr(kraw, Math.min(7, Math.max(4, Math.min(a, h) * 0.3))), zgiecia }];
+  return [{ nazwa: tt('skladankaSzablony.graniastoslupN', { n }), punkty: pkt.map((q) => P(q.x, q.y)), krawedzie: kr(kraw, Math.min(7, Math.max(4, Math.min(a, h) * 0.3))), zgiecia }];
 }
 
 // Ostrosłup prawidłowy: podstawa n-kąt o boku a, wysokość h; trójkąty ścian dookoła podstawy.
@@ -261,7 +261,7 @@ function ostroslup({ boki: n, bok: a, wysokosc: h }) {
   }
   const minX = Math.min(...pkt.map((q) => q.x));
   const minY = Math.min(...pkt.map((q) => q.y));
-  return [{ nazwa: `Ostrosłup ${n}-kątny`, punkty: pkt.map((q) => P(q.x - minX, q.y - minY)), krawedzie: kr(kraw, Math.min(7, Math.max(4, a * 0.25))), zgiecia: zgiecia.map((z) => ({ ...z, a: P(z.a.x - minX, z.a.y - minY), b: P(z.b.x - minX, z.b.y - minY) })) }];
+  return [{ nazwa: tt('skladankaSzablony.ostroslupN', { n }), punkty: pkt.map((q) => P(q.x - minX, q.y - minY)), krawedzie: kr(kraw, Math.min(7, Math.max(4, a * 0.25))), zgiecia: zgiecia.map((z) => ({ ...z, a: P(z.a.x - minX, z.a.y - minY), b: P(z.b.x - minX, z.b.y - minY) })) }];
 }
 
 // Przegródki wsuwane na krzyż do pudełka L × W × H: dwie płytki ze szczelinami do połowy (od góry i od dołu),
@@ -482,7 +482,7 @@ function kula({ srednica: D, kliny: n }) {
   const lewy = ys.slice(1, -1).reverse().map((y) => P(hMax - pol(y), y));
   const szerZ = Math.min(5, Math.max(2.5, hMax * 0.35));
   return Array.from({ length: ile }, (_, i) => ({
-    nazwa: `Kula – klin ${i + 1}`,
+    nazwa: tt('skladankaSzablony.kulaKlinN', { n: i + 1 }),
     punkty: [...prawy, ...lewy],
     krawedzie: [
       ...Array.from({ length: k }, () => ({ typ: 'zakladka', para: `k${i}`, szer: szerZ })),

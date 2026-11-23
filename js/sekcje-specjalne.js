@@ -21,6 +21,7 @@ import { rozwin } from './serie.js';
 import { uid, WZORCE_Z_SEKCJI, uporzadkujStrony } from './projekt.js';
 import { TYPY_SEKCJI, typSekcji, rolaTypu } from './typ-sekcji.js';
 import { t as tt } from './jezyk.js';
+import { miesiace, miesiaceDopelniacz, dni, jezykTresci } from './nazwy-dat.js';
 
 export { TYPY_SEKCJI, typSekcji };
 
@@ -407,10 +408,7 @@ export function wyklejkiProjektu(projekt) {
 
 // ---------- Kalendarz z datami ----------
 
-const DNI = ['niedziela', 'poniedziałek', 'wtorek', 'środa', 'czwartek', 'piątek', 'sobota'];
-const MIESIACE = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad', 'grudzień'];
-const MIESIACE_D = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
-const wielka = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+const wielka = (t) => t.charAt(0).toLocaleUpperCase() + t.slice(1);
 
 export const KOLUMNY_KALENDARZA = {
   dzien: ['data', 'dzien', 'miesiac', 'miesiac_dopelniacz', 'miesiac_nr', 'rok', 'dzien_tygodnia', 'dzien_roku', 'tydzien', 'swieto', 'wolne', 'niedziela'],
@@ -430,6 +428,9 @@ export function tydzienIso(d) {
 // Wiersze danych kalendarza na rok: dzień po dniu, tydzień po tygodniu albo miesiąc po miesiącu.
 export function wierszeKalendarza(p) {
   const rok = p.rok;
+  // Nazwy miesięcy i dni w języku wybranym dla sekcji (#409); stare sekcje – po polsku.
+  const j = p.jezyk || 'pl';
+  const MIESIACE = miesiace(j), MIESIACE_D = miesiaceDopelniacz(j), DNI = dni(j);
   const swieta = p.swieta === 'pl' ? swietaPolskie(rok) : new Map();
   const dzien = (r, m, d) => new Date(Date.UTC(r, m, d));
   const wolny = (d) => d.getUTCDay() === 0 || swieta.has(dataIso(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()));
@@ -525,10 +526,11 @@ export const RODZAJE_SEKCJI = {
   kalendarz: {
     nazwa: 'Kalendarz z datami',
     opis: tt('sekcjeSpecjalne.sekcjaRokDatyDni'),
-    domyslne: { rok: new Date().getFullYear() + 1, jednostka: 'miesiac', pierwszy: 'pn', swieta: 'pl', tabela: null, seria: null },
+    domyslne: { rok: new Date().getFullYear() + 1, jednostka: 'miesiac', pierwszy: 'pn', swieta: 'pl', get jezyk() { return jezykTresci(); }, tabela: null, seria: null },
     normalizuj: (o, d) => ({
       rok: Math.round(liczbaLub(o.rok, d.rok, 1900, 2200)), jednostka: zListy(o.jednostka, ['dzien', 'tydzien', 'miesiac'], d.jednostka),
       pierwszy: zListy(o.pierwszy, ['pn', 'nd'], d.pierwszy), swieta: zListy(o.swieta, ['pl', 'brak'], d.swieta),
+      jezyk: zListy(o.jezyk, ['pl', 'en', 'uk'], o.rok === undefined ? d.jezyk : 'pl'), // nowa sekcja – język interfejsu, stara – polski
       tabela: typeof o.tabela === 'string' ? o.tabela : null, seria: typeof o.seria === 'string' ? o.seria : null,
     }),
     geometria: null, // format sekcji bez zmian – sekcja liczy dane

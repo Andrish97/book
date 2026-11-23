@@ -21,14 +21,15 @@
 import './fabric-ustawienia.js';
 import { nowaTabela, ulozTabele, komorkiTabeli, dodajWiersz, usunWiersz, dodajKolumne, usunKolumne, opisTabeli } from './tabela-obiekt.js';
 import { swietaPolskie, dataZTekstu, dataIso } from './swieta.js';
+import { miesiaceWielka, dniOdPon, dniKrotkieOdPon, dniLiteryOdPon, miesiace as miesiaceJ, miesiaceDopelniacz, jezykTresci } from './nazwy-dat.js';
 
 export const MIESIACE = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
 const MIESIACE_DOPELNIACZ = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
-// Od poniedziałku.
+// Od poniedziałku, w języku kalendarza (k.jezyk – zapisany przy tworzeniu; istniejące kalendarze: pl, #409).
 const DNI = {
-  pelne: ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'],
-  skrot: ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'],
-  litery: ['P', 'W', 'Ś', 'C', 'P', 'S', 'N'],
+  pelne: (j) => dniOdPon(j).map((d) => d[0].toLocaleUpperCase() + d.slice(1)),
+  skrot: (j) => dniKrotkieOdPon(j),
+  litery: (j) => dniLiteryOdPon(j),
 };
 
 export const KOLORY_DOMYSLNE = { dni: '#1a1a1a', naglowek: '#1a1a1a', niedziele: '#c62828', soboty: null, swieta: '#c62828', inne: '#b5b2aa' };
@@ -45,6 +46,7 @@ export function normalizujKalendarz(k = {}) {
     pole_roku: k.pole_roku || undefined,
     pierwszy: k.pierwszy === 0 ? 0 : 1,
     nazwy: ['pelne', 'skrot', 'litery'].includes(k.nazwy) ? k.nazwy : 'skrot',
+    jezyk: ['pl', 'en', 'uk'].includes(k.jezyk) ? k.jezyk : 'pl',
     tytul: k.tytul !== false,
     tygodnie: Boolean(k.tygodnie),
     inne: ['pokaz', 'wyszarz', 'ukryj'].includes(k.inne) ? k.inne : 'wyszarz',
@@ -75,6 +77,7 @@ export function miesiacZWartosci(v) {
     const zgodne = (lista) => lista.findIndex((x) => { const s = x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l'); return s.startsWith(n.slice(0, 3)) && (n.length <= 3 || s.startsWith(n.slice(0, Math.min(n.length, 5)))); });
     let i = zgodne(MIESIACE);
     if (i < 0) i = zgodne(MIESIACE_DOPELNIACZ);
+    for (const j of ['en', 'uk']) { if (i < 0) i = zgodne(miesiaceJ(j)); if (i < 0) i = zgodne(miesiaceDopelniacz(j)); } // dane po angielsku i ukraińsku (#409)
     if (i >= 0) return { rok: rok ? Number(rok[1]) : null, miesiac: i + 1 };
   }
   return null;
@@ -136,7 +139,7 @@ export function miesiacKalendarza(k, wartosc) {
   return { rok, miesiac };
 }
 
-const tytulMiesiaca = (rok, miesiac) => `${MIESIACE[miesiac - 1]} ${rok}`;
+const tytulMiesiaca = (rok, miesiac, j = 'pl') => `${miesiaceWielka(j)[miesiac - 1]} ${rok}`;
 
 // Układa treść kalendarza w tabeli g. dane: { rok, miesiac, swieta: Map z tabeli danych } (z opisu, gdy brak).
 export function ulozKalendarz(g, uid, dane = {}) {
@@ -183,7 +186,7 @@ export function ulozKalendarz(g, uid, dane = {}) {
   const kolejnosc = k.pierwszy === 1 ? [0, 1, 2, 3, 4, 5, 6] : [6, 0, 1, 2, 3, 4, 5];
   let w = 0;
   if (k.tytul) {
-    ustaw(komorki[0], tytulMiesiaca(rok, miesiac), { fontWeight: 'bold', fontSize: bazowy * 1.6, fill: kol.naglowek, textAlign: wzor?.textAlign === 'right' ? 'right' : (k.notatki ? 'left' : 'center') });
+    ustaw(komorki[0], tytulMiesiaca(rok, miesiac, k.jezyk), { fontWeight: 'bold', fontSize: bazowy * 1.6, fill: kol.naglowek, textAlign: wzor?.textAlign === 'right' ? 'right' : (k.notatki ? 'left' : 'center') });
     for (let i = 1; i < K; i += 1) ustaw(komorki[i], '', {});
     w = 1;
   }
@@ -192,7 +195,7 @@ export function ulozKalendarz(g, uid, dane = {}) {
   kolejnosc.forEach((d, i) => {
     const niedziela = d === 6;
     const sobota = d === 5;
-    ustaw(komorki[w * K + i + (k.tygodnie ? 1 : 0)], DNI[k.nazwy][d], {
+    ustaw(komorki[w * K + i + (k.tygodnie ? 1 : 0)], DNI[k.nazwy](k.jezyk)[d], {
       fontWeight: 'bold', fontSize: bazowy,
       fill: (niedziela && kol.niedziele) || (sobota && kol.soboty) || kol.naglowek,
     });
@@ -242,11 +245,11 @@ export function ulozKalendarz(g, uid, dane = {}) {
 
 // Nowy kalendarz miesiąca (jeszcze poza płótnem).
 export function nowyKalendarz({ rok, miesiac, szerokosc = 120, lewo = 0, gora = 0, wyglad = {}, opis = {} } = {}, uid) {
-  const k = normalizujKalendarz({ rok, miesiac, ...opis });
+  const k = normalizujKalendarz({ rok, miesiac, jezyk: jezykTresci(), ...opis }); // nowy kalendarz w języku interfejsu (#409)
   const g = nowaTabela({ wiersze: 8, kolumny: 7, szerokosc, wysokoscWiersza: k.wiersz_dnia, naglowek: true, lewo, gora, wyglad }, uid);
   g.kalendarz = k;
   g.tabela.linia = { kolor: '#c9c6bf', grubosc: 0.2 };
   return ulozKalendarz(g, uid, {});
 }
 
-export function opisMiesiaca(rok, miesiac) { return tytulMiesiaca(rok, miesiac); }
+export function opisMiesiaca(rok, miesiac, j) { return tytulMiesiaca(rok, miesiac, j); }
