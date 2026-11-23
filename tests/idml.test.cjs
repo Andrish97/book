@@ -4,7 +4,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, zPlikow } = require('./pomoc.cjs');
 
 test('idml: pakiet, strona, historia tekstu, kształty, obraz osadzony, pobranie z menu', async (t) => {
   const { strona, bledy } = await otworz(t);
@@ -75,7 +75,7 @@ test('idml: pakiet, strona, historia tekstu, kształty, obraz osadzony, pobranie
   for (const k of ['Black', 'Paper', 'Makietka #2a9d8f', 'Makietka #c1121f']) assert.ok(w.kolory.includes(k), k);
 
   // Z menu: najpierw raport przeniesienia (#232), pobranie po „Pobierz”.
-  await strona.evaluate(() => document.querySelector('[data-akcja="idml"]').click());
+  await zPlikow(strona, 'idml');
   await strona.waitForSelector('#dlg-raport-przeniesienia[open]');
   const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#dlg-raport-przeniesienia button[value="tak"]')]);
   assert.equal(plik.suggestedFilename(), 'Do InDesigna.idml');

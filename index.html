@@ -609,13 +609,19 @@
 
       <section class="sekcja-kluczy-ai" data-sposob="czat" role="tabpanel">
         <div class="wyjasnienie-ai">
-          <p><b>Rozmawiasz z AI wprost w edytorze Makietki</b> (menu ⋯ → Asystent AI). Asystent widzi otwarty projekt i sam robi zmiany – widzisz je od razu na stronie.</p>
+          <p><b>Rozmawiasz z AI wprost w edytorze Makietki</b> (menu AI → Asystent AI). Asystent widzi otwarty projekt i sam robi zmiany – widzisz je od razu na stronie.</p>
           <ul class="punkty-ai">
             <li><b>Czego potrzebujesz:</b> klucza API od dostawcy AI – Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI albo OpenRouter. Klucz zakładasz na stronie dostawcy („Gdzie wziąć klucz?” w okienku).</li>
             <li><b>Ile kosztuje:</b> płacisz dostawcy za to, ile rozmawiasz – Makietka nic nie dolicza.</li>
             <li><b>Bezpieczeństwo:</b> klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – <b>nie odczyta go nikt poza Tobą, nawet administratorzy Makietki</b>.</li>
-            <li><b>Bez klucza i bez opłat:</b> w Asystencie AI wybierz „Dowolny czat bez klucza – kopiuj i wklej” – działa z każdym czatem w przeglądarce, także darmowym ChatGPT; tu nic nie dodajesz.</li>
+            <li><b>Bez klucza i bez opłat:</b> wyżej wybierz „Dowolny czat bez klucza – kopiuj i wklej” – działa z każdym czatem w przeglądarce, także darmowym ChatGPT; tu nic nie dodajesz.</li>
           </ul>
+        </div>
+        <!-- N1 (23.11): czym rozmawia Asystent AI – tu, nie w oknie czatu. -->
+        <div class="formularz asystent-ustawienia" id="asystent-ustawienia">
+          <label class="pole"><span data-i18n="dostepAi.asystentUzywa">Asystent AI w edytorze używa</span><select id="asystent-dostawca"></select></label>
+          <label class="pole"><span data-i18n="dostepAi.asystentMoze">Asystent może w otwartym projekcie</span><select id="asystent-rola"><option value="edycja" data-i18n="czatAiUstawienia.czytacIZmieniac">czytać i zmieniać</option><option value="odczyt" data-i18n="czatAiUstawienia.tylkoCzytac">tylko czytać</option></select></label>
+          <p class="podpowiedz" data-i18n="dostepAi.modelWKluczu">Model wybierasz przy kluczu dostawcy (Edytuj → Model domyślny); puste pole – Makietka wybierze zalecany.</p>
         </div>
         <div class="naglowek-kluczy-ai">
           <h3 data-i18n="dostepAi.twojeKluczeApi">Twoje klucze API</h3>
@@ -854,8 +860,6 @@
       </div>
       <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="wzorce" data-ikona="wzorzec" title="Wzorce: wspólne elementy stron – tła, stopki, numery" aria-label="Wzorce" data-i18n-title="ekranEdytora.wzorceWspolneElementyStron" data-i18n-aria-label="ekranEdytora.wzorce"><span class="etyk etyk-paska" data-i18n="ekranEdytora.wzorce">Wzorce</span><span class="licznik" id="liczba-wzorcow">0</span></button>
       <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="dane" data-ikona="dane" title="Tabele z danymi do pól i serii" aria-label="Dane" data-i18n-title="ekranEdytora.tabeleZDanymiDo" data-i18n-aria-label="ekranEdytora.dane"><span class="etyk etyk-paska" data-i18n="ekranEdytora.dane">Dane</span></button>
-      <!-- Uwaga F2: rozmowa z AI (asystent zmienia projekt, np. „ułóż stronę…”) – osobny przycisk na górnym pasku. -->
-      <button class="przycisk przezroczysty poza-waskim-paskiem" data-akcja="ai-asystent" data-ikona="asystent" title="Asystent AI: napisz, co zrobić – np. „ułóż tę stronę na dwie kolumny” – AI zmienia projekt za Ciebie" aria-label="Asystent AI" data-i18n-title="ekranEdytora.asystentAiOpis" data-i18n-aria-label="pasekNarzedzi.aiAsystent"><span class="etyk etyk-paska" data-i18n="pasekNarzedzi.aiAsystent">Asystent AI</span></button>
       <button class="przycisk przezroczysty" data-akcja="podglad" data-ikona="oko" title="Podgląd całego projektu bez edycji (Shift+W)" aria-label="Podgląd" data-i18n-title="ekranEdytora.podgladCalegoProjektuBez" data-i18n-aria-label="ekranEdytora.podglad"><span class="etyk etyk-paska" data-i18n="ekranEdytora.podglad">Podgląd</span></button>
       <button class="przycisk przezroczysty" id="przycisk-format" data-akcja="wydruk" data-ikona="format" title="Ustawienia sekcji: format, spad, marginesy" data-i18n-title="przyciskFormat.ustawieniaSekcjiFormatSpad"><span class="etyk" id="opis-formatu" data-i18n="opisFormatu.a5">A5</span></button>
       <button class="przycisk-ikona pelny-ekran" data-akcja="pelny-ekran" data-ikona="pelny-ekran" title="Pełny ekran" aria-label="Pełny ekran" aria-pressed="false" hidden data-i18n-title="ekranEdytora.pelnyEkran" data-i18n-aria-label="ekranEdytora.pelnyEkran"></button>
@@ -872,9 +876,6 @@
           <button role="menuitem" class="tylko-waski-telefon" data-akcja="dane" data-ikona="dane" data-i18n="menuWiecej.dane">Dane…</button>
           <button role="menuitem" data-akcja="obrazy" data-ikona="obraz" data-i18n="menuWiecej.obrazyProjektu">Obrazy projektu…</button>
           <button role="menuitem" data-akcja="czcionki" data-ikona="tekst" data-i18n="menuWiecej.czcionkiProjektu">Czcionki projektu…</button>
-          <button role="menuitem" data-akcja="czat-ai" data-ikona="klucz" data-i18n="menuWiecej.asystentAiWlasnyKlucz">Asystent AI (własny klucz)…</button>
-          <button role="menuitem" data-akcja="cofnij-ai" data-ikona="cofnij" data-i18n="menuWiecej.cofnijZmianyAi">Cofnij zmiany AI…</button>
-          <button role="menuitem" data-akcja="wstaw-tekst-z-pliku" data-ikona="tekst" data-i18n="menuWiecej.wstawTekstZPliku">Wstaw tekst z pliku (Word, ODT, Markdown)…</button>
           <button role="menuitem" data-akcja="kolory-druku" data-ikona="kolor-druku" data-i18n="menuWiecej.koloryProjektu">Kolory projektu…</button>
           <hr>
           <button role="menuitem" data-akcja="format-projektu" data-ikona="skaluj" data-i18n="menuWiecej.zmienFormatProjektu">Zmień format projektu…</button>
@@ -882,17 +883,9 @@
           <hr>
           <button role="menuitem" data-akcja="kontrola" data-ikona="uwaga" data-i18n="menuWiecej.sprawdzPrzedDrukiem">Sprawdź przed drukiem</button>
           <button role="menuitem" data-akcja="pdf" data-ikona="pobierz" data-i18n="menuWiecej.eksportujDoPdf">Eksportuj do PDF…</button>
-          <button role="menuitem" data-akcja="specyfikacja" data-ikona="pobierz" data-i18n="menuWiecej.specyfikacjaDlaDrukarni">Specyfikacja dla drukarni</button>
-          <button role="menuitem" data-akcja="ploter-svg" data-ikona="pobierz" data-i18n="menuWiecej.plikDlaPloteraSvg">Plik dla plotera (SVG, bieżąca strona)</button>
-          <button role="menuitem" data-akcja="tekst-docx" data-ikona="pobierz" data-i18n="menuWiecej.zapiszTekstJakoWord">Zapisz tekst jako Word (.docx)</button>
-          <button role="menuitem" data-akcja="tekst-epub" data-ikona="pobierz" data-i18n="menuWiecej.zapiszJakoEBook">Zapisz jako e-book (EPUB)</button>
-          <button role="menuitem" data-akcja="scribus" data-ikona="pobierz" data-i18n="menuWiecej.zapiszDlaScribusaSla">Zapisz dla Scribusa (.sla)</button>
-          <button role="menuitem" data-akcja="idml" data-ikona="pobierz" data-i18n="menuWiecej.zapiszDlaIndesignaIdml">Zapisz dla InDesigna (.idml)</button>
-          <button role="menuitem" data-akcja="docx-uklad" data-ikona="pobierz" data-i18n="menuWiecej.zapiszDlaWordaZ">Zapisz dla Worda z układem stron (.docx)</button>
-          <button role="menuitem" data-akcja="svg-strony" data-ikona="pobierz" data-i18n="menuWiecej.zapiszStronyJakoSvg">Zapisz strony jako SVG (Inkscape, Illustrator)</button>
-          <button role="menuitem" data-akcja="seria-programy" data-ikona="pobierz" data-i18n="menuWiecej.seriaDlaInnegoProgramu">Seria dla innego programu (szablon + dane)…</button>
           <button role="menuitem" data-akcja="drukuj" data-ikona="drukarka">Drukuj w domu…<kbd data-i18n="menuWiecej.ctrlP">Ctrl P</kbd></button>
-          <button role="menuitem" data-akcja="png" data-ikona="pobierz" data-i18n="menuWiecej.pobierzBiezacaStroneJako">Pobierz bieżącą stronę jako PNG</button>
+          <!-- N4 (23.11): pozostałe formaty zapisu i import – jedno podmenu zamiast kilkunastu pozycji. -->
+          <button role="menuitem" data-akcja="pliki-menu" data-ikona="pobierz" data-i18n="menuWiecej.inneFormatyIImport">Inne formaty i import…</button>
           <hr>
           <button role="menuitem" data-akcja="wspolpraca" data-ikona="uzytkownik" data-i18n="menuWiecej.wspolpraca">Współpraca…</button>
           <hr>
@@ -2545,22 +2538,10 @@
     <div class="czat-ai">
       <div class="naglowek-dialogu">
         <h2 id="czat-ai-tytul" data-i18n="czatAiTytul.asystentAi">Asystent AI</h2>
-        <button type="button" class="przycisk-ikona" id="czat-ai-ustawienia-przelacz" data-ikona="suwaki" title="Dostawca, model i uprawnienia" aria-label="Dostawca, model i uprawnienia" data-i18n-title="czatAiUstawieniaPrzelacz.dostawcaModelIUprawnienia" data-i18n-aria-label="czatAiUstawieniaPrzelacz.dostawcaModelIUprawnienia"></button>
         <button type="button" class="przycisk-ikona x-okna" id="czat-ai-zamknij" data-ikona="zamknij" aria-label="Zamknij" data-i18n-aria-label="czatAiZamknij.zamknij"></button>
       </div>
-      <form class="czat-ai-ustawienia" id="czat-ai-ustawienia" novalidate autocomplete="off">
-        <label class="pole"><span data-i18n="czatAiUstawienia.dostawca">Dostawca</span><select name="dostawca" id="czat-ai-dostawca"></select></label>
-        <label class="pole" id="czat-ai-adres-pole" hidden><span data-i18n="czatAiAdresPole.adresApiZgodneZ">Adres API (zgodne z OpenAI)</span><input name="adres" type="url" placeholder="https://…/v1" data-i18n-placeholder="czatAiAdresPole.httpsV1"></label>
-        <label class="pole" data-z-kluczem><span data-i18n="czatAiUstawienia.kluczApi">Klucz API</span><input name="klucz" type="password" placeholder="Klucz od dostawcy" spellcheck="false" data-i18n-placeholder="czatAiUstawienia.kluczOdDostawcy"></label>
-        <p class="podpowiedz" id="czat-ai-schowek-opis" hidden>Bez klucza i bez opłat: napisz, co zrobić, a Makietka skopiuje do schowka gotowe polecenie (zasady, narzędzia, stan projektu). Wklej je w dowolnym czacie AI w przeglądarce, a jego odpowiedź – z blokiem „makietka” – wklej tutaj: Makietka wykona zmiany i skopiuje wyniki dla czatu.</p>
-        <div class="rzad-przyciskow" data-z-kluczem>
-          <button type="button" class="przycisk" id="czat-ai-openrouter" data-ikona="klucz" hidden data-i18n="czatAiOpenrouter.zalogujPrzezOpenrouter">Zaloguj przez OpenRouter</button>
-          <a class="link-przycisk" id="czat-ai-gdzie-klucz" target="_blank" rel="noopener" data-i18n="czatAiGdzieKlucz.gdzieWziacKlucz">Gdzie wziąć klucz?</a>
-        </div>
-        <label class="pole" data-z-kluczem><span data-i18n="czatAiUstawienia.model">Model</span><input name="model" list="czat-ai-modele" placeholder="Puste – Makietka wybierze zalecany model" data-i18n-placeholder="dostepAi.modelAutomatycznie"><datalist id="czat-ai-modele"></datalist></label>
-        <label class="pole"><span data-i18n="czatAiUstawienia.aiMozeWTym">AI może w tym projekcie</span><select name="rola"><option value="edycja" data-i18n="czatAiUstawienia.czytacIZmieniac">czytać i zmieniać</option><option value="odczyt" data-i18n="czatAiUstawienia.tylkoCzytac">tylko czytać</option></select></label>
-        <p class="podpowiedz">Klucz szyfruje Twoja przeglądarka Twoim hasłem do kluczy i dopiero wtedy zapisuje na koncie – nikt poza Tobą go nie odczyta, nawet administratorzy Makietki. Rozmowa idzie prosto do dostawcy (płacisz u niego). AI widzi wyłącznie ten projekt – przez jednodniowy klucz dostępu, który możesz odebrać w Ustawieniach konta → Sztuczna inteligencja.</p>
-      </form>
+      <!-- N1 (23.11): w czacie tylko rozmowa – dostawca, model i uprawnienia są w Ustawieniach → Sztuczna inteligencja. -->
+      <div class="czat-ai-pasek" id="czat-ai-pasek"><span class="ciche" id="czat-ai-kto"></span><button type="button" class="przycisk przezroczysty maly" id="czat-ai-ustawienia" data-ikona="suwaki" data-i18n="czatAi.ustawieniaAi">Ustawienia AI</button></div>
       <ol class="czat-ai-wiadomosci" id="czat-ai-wiadomosci" aria-live="polite"></ol>
       <form class="czat-ai-pisz" id="czat-ai-pisz">
         <ul class="czat-ai-zalaczniki" id="czat-ai-zalaczniki" hidden></ul>

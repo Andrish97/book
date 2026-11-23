@@ -71,6 +71,10 @@ test('komputer: pasek wstawiania bez ⋯ – kształty, AI i dymki zwinięte w p
   await nowyProjekt(strona, 'Menu narzędzi');
   const widoczne = await strona.evaluate(() => [...document.querySelectorAll('.pasek-narzedzi button')].filter((b) => b.offsetParent).map((b) => b.dataset.akcja || b.id));
   assert.deepEqual(widoczne, ['dodaj-tekst', 'ksztalty-menu', 'dodaj-obraz', 'ai-menu', 'dodaj-tabele', 'biblioteka', 'komentarz']);
-  assert.equal(await strona.isVisible('[data-akcja="ai-asystent"]'), true, 'Asystent AI na górnym pasku');
+  // N3 (23.11): asystent tylko w menu [AI ▾] – bez osobnego przycisku na górnym pasku i pozycji w menu ⋯.
+  assert.equal(await strona.locator('[data-akcja="ai-asystent"]').count(), 0, 'bez przycisku asystenta na górnym pasku');
+  assert.equal(await strona.locator('#menu-wiecej [data-akcja="czat-ai"], #menu-wiecej [data-akcja="cofnij-ai"]').count(), 0, 'bez asystenta w menu ⋯');
+  await strona.click('[data-akcja="ai-menu"]');
+  await strona.waitForSelector('.menu-przycisku [data-wartosc="asystent"]');
   assert.deepEqual(bledy, []);
 });

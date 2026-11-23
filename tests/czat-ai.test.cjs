@@ -6,6 +6,19 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { otworz, nowyProjekt, PNG_2X2 } = require('./pomoc.cjs');
 
+// N1 (23.11): dostawca, model i klucz ustawia się w Ustawieniach → Sztuczna inteligencja (sejf kluczy), nie w czacie.
+async function kluczWSejfie(strona, id, klucz, model = '') {
+  await strona.evaluate(([i, k, m]) => {
+    localStorage.setItem('makietka-czat-ai', JSON.stringify({ dostawca: i, rola: 'edycja', dostawcy: { [i]: { model: m } } }));
+    window.__klucz = (async () => { const { otwartySejf } = await import('./js/app/sejf-ai.js'); const s = await otwartySejf(); await s.ustaw(i, k); })();
+  }, [id, klucz, model]);
+  await strona.waitForSelector('#dlg-sejf-ai[open]');
+  await strona.fill('#dlg-sejf-ai [name="haslo"]', 'moje-haslo-123');
+  await strona.fill('#dlg-sejf-ai [name="powtorz"]', 'moje-haslo-123');
+  await strona.click('#dlg-sejf-ai button[value="tak"]');
+  await strona.evaluate(() => window.__klucz);
+}
+
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
 
 // Odpowiedź Anthropic jako strumień SSE: tekst po kawałkach, wejście narzędzia jako partial_json w dwóch kawałkach.
@@ -51,16 +64,13 @@ test('czat AI: klucz Anthropic, narzędzia na otwartym projekcie, zmiana nazwy p
   });
   await strona.evaluate(async () => (await import('./js/app/czat-ai.js')).otworzCzatAi());
   await strona.waitForSelector('#dlg-czat-ai[open]');
-  assert.ok(await strona.isVisible('#czat-ai-ustawienia'), 'bez klucza – ustawienia otwarte');
-  await strona.fill('#czat-ai-ustawienia [name="klucz"]', 'sk-ant-test');
-  await strona.dispatchEvent('#czat-ai-ustawienia [name="klucz"]', 'change');
+  // Bez klucza: w czacie nie ma pól ustawień – wiadomość z przyciskiem do ustawień AI.
+  assert.equal(await strona.locator('#dlg-czat-ai input[name="klucz"], #dlg-czat-ai select').count(), 0, 'w czacie tylko rozmowa');
+  await strona.fill('#czat-ai-tekst', 'Cześć');
+  await strona.press('#czat-ai-tekst', 'Enter');
+  await strona.waitForSelector('#czat-ai-wiadomosci li.blad button');
   // Sejf kluczy (#241): pierwszy klucz – hasło do kluczy; na koncie tylko szyfrogram.
-  await strona.waitForSelector('#dlg-sejf-ai[open]');
-  await strona.fill('#dlg-sejf-ai [name="haslo"]', 'moje-haslo-123');
-  await strona.fill('#dlg-sejf-ai [name="powtorz"]', 'moje-haslo-123');
-  await strona.click('#dlg-sejf-ai button[value="tak"]');
-  await strona.waitForSelector('#dlg-sejf-ai:not([open])', { state: 'attached' });
-  await strona.waitForFunction(() => document.querySelector('#czat-ai-ustawienia [name="model"]').value === 'claude-opus-5-5');
+  await kluczWSejfie(strona, 'anthropic', 'sk-ant-test', 'claude-opus-5-5');
   await strona.fill('#czat-ai-tekst', 'Zmień nazwę projektu na Kalendarz 2027');
   await strona.press('#czat-ai-tekst', 'Enter');
   await strona.waitForFunction(() => /Zmieniłem nazwę/.test(document.querySelector('#czat-ai-wiadomosci').textContent), null, { timeout: 20000 });
@@ -117,12 +127,10 @@ test('czat AI bez klucza: kopiuj i wklej – polecenie dla czatu, wklejona odpow
   await kontekst.grantPermissions(['clipboard-read', 'clipboard-write']);
   await nowyProjekt(strona, 'Plakat');
   await zapisano(strona);
+  await strona.evaluate(() => localStorage.setItem('makietka-czat-ai', JSON.stringify({ dostawca: 'schowek', rola: 'edycja', dostawcy: {} })));
   await strona.evaluate(async () => (await import('./js/app/czat-ai.js')).otworzCzatAi());
   await strona.waitForSelector('#dlg-czat-ai[open]');
-  if (!(await strona.isVisible('#czat-ai-ustawienia'))) await strona.click('#czat-ai-ustawienia-przelacz');
-  await strona.selectOption('#czat-ai-dostawca', 'schowek');
-  assert.equal(await strona.isVisible('#czat-ai-ustawienia [name="klucz"]'), false, 'bez pola klucza');
-  assert.ok(await strona.isVisible('#czat-ai-schowek-opis'));
+  assert.match(await strona.textContent('#czat-ai-kto'), /Kopiuj i wklej/);
   await strona.fill('#czat-ai-tekst', 'Zmień nazwę projektu na Plakat koncertu');
   await strona.press('#czat-ai-tekst', 'Enter');
   await strona.waitForSelector('.czat-ai-do-skopiowania');
@@ -158,13 +166,7 @@ test('czat AI: dołączone zdjęcie – model je widzi, a plik trafia do projekt
   });
   await strona.evaluate(async () => (await import('./js/app/czat-ai.js')).otworzCzatAi());
   await strona.waitForSelector('#dlg-czat-ai[open]');
-  await strona.fill('#czat-ai-ustawienia [name="klucz"]', 'sk-ant-test');
-  await strona.dispatchEvent('#czat-ai-ustawienia [name="klucz"]', 'change');
-  await strona.waitForSelector('#dlg-sejf-ai[open]');
-  await strona.fill('#dlg-sejf-ai [name="haslo"]', 'moje-haslo-123');
-  await strona.fill('#dlg-sejf-ai [name="powtorz"]', 'moje-haslo-123');
-  await strona.click('#dlg-sejf-ai button[value="tak"]');
-  await strona.waitForSelector('#dlg-sejf-ai:not([open])', { state: 'attached' });
+  await kluczWSejfie(strona, 'anthropic', 'sk-ant-test', 'claude-opus-5-5');
   await strona.setInputFiles('#czat-ai-plik', { name: 'kot.png', mimeType: 'image/png', buffer: PNG_2X2 });
   await strona.waitForSelector('#czat-ai-zalaczniki li');
   await strona.fill('#czat-ai-tekst', 'Co jest na zdjęciu?');

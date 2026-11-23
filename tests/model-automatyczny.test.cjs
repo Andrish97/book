@@ -30,8 +30,7 @@ test('model: puste pole – rozmowa z zalecanym modelem, podpowiedzi po ludzku',
   });
   await strona.evaluate(async () => (await import('./js/app/czat-ai.js')).otworzCzatAi());
   await strona.waitForSelector('#dlg-czat-ai[open]');
-  await strona.waitForFunction(() => /Automatycznie – zalecany \(claude-sonnet-5-5\)/.test(document.querySelector('#dlg-czat-ai [name="model"]').placeholder), null, { timeout: 15000 });
-  assert.deepEqual(await strona.evaluate(() => [...document.getElementById('czat-ai-modele').options].slice(0, 3).map((o) => [o.value, o.label])), [['claude-sonnet-5-5', 'Zalecany – szybki i rozsądny'], ['claude-haiku-5-5', 'Najtańszy'], ['claude-opus-5-5', 'Najlepszy – droższy']]);
+  assert.match(await strona.textContent('#czat-ai-kto'), /Anthropic.*zalecany model/, 'w czacie: dostawca i zalecany model z ustawień (N1)');
   await strona.fill('#czat-ai-tekst', 'Cześć');
   await strona.press('#czat-ai-tekst', 'Enter');
   await strona.waitForFunction(() => /Odpowiedź modelu/.test(document.querySelector('#czat-ai-wiadomosci').textContent), null, { timeout: 20000 });

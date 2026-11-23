@@ -448,6 +448,26 @@ export const akcje = {
     powiadom(t('edytorStart.zapisanoDlaScribusaStron', { stron: w.stron, teksty: w.ile.teksty, ksztalty: w.ile.ksztalty, obrazy: w.ile.obrazy, x: w.czcionki.join(', ') || '–' }));
   },
   'czat-ai': async () => { zamknijMenu(); (await import('./czat-ai.js')).otworzCzatAi(); },
+  // N4 (23.11): pozostałe formaty zapisu i import w jednym podmenu (przy przycisku ⋯) – pozycje wywołują te same akcje.
+  'pliki-menu': () => {
+    const przycisk = $('#przycisk-wiecej');
+    const akcja = (a) => () => { const b = Object.assign(document.createElement('button'), { hidden: true }); b.dataset.akcja = a; document.body.append(b); b.click(); b.remove(); };
+    const p = (ikona, klucz, a) => ({ ikona, tekst: t(klucz), wartosc: a, wykonaj: akcja(a) });
+    menuPrzy(przycisk, [
+      p('pobierz', 'menuWiecej.pobierzBiezacaStroneJako', 'png'),
+      p('pobierz', 'menuWiecej.zapiszTekstJakoWord', 'tekst-docx'),
+      p('pobierz', 'menuWiecej.zapiszJakoEBook', 'tekst-epub'),
+      p('pobierz', 'menuWiecej.zapiszDlaWordaZ', 'docx-uklad'),
+      p('pobierz', 'menuWiecej.zapiszDlaIndesignaIdml', 'idml'),
+      p('pobierz', 'menuWiecej.zapiszDlaScribusaSla', 'scribus'),
+      p('pobierz', 'menuWiecej.zapiszStronyJakoSvg', 'svg-strony'),
+      p('pobierz', 'menuWiecej.plikDlaPloteraSvg', 'ploter-svg'),
+      p('pobierz', 'menuWiecej.seriaDlaInnegoProgramu', 'seria-programy'),
+      p('pobierz', 'menuWiecej.specyfikacjaDlaDrukarni', 'specyfikacja'),
+      '-',
+      p('tekst', 'menuWiecej.wstawTekstZPliku', 'wstaw-tekst-z-pliku'),
+    ]);
+  },
   'cofnij-ai': async () => { zamknijMenu(); (await import('./cofnij-ai.js')).oknoCofnijZmianyAi(); }, // plan H3
   'wstaw-tekst-z-pliku': async () => { zamknijMenu(); await import('./import-tekstu-okno.js'); $('#plik-tekst').click(); },
   // Specyfikacja dla drukarni (#214): ustawienia oprawy, papieru, materiału i uszlachetnień – tekst i JSON.

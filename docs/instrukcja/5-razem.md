@@ -255,23 +255,27 @@ albo do czytania na ekranie, broszurę do złożenia albo PNG jednej strony.
 
 ## 25.6 Asystent AI w Makietce (własny klucz)
 
-Bez osobnej aplikacji AI: w edytorze [Asystent AI] na górnym pasku (obok [Podgląd]; na telefonie [AI ▾] →
-**Asystent AI…**, a także menu **⋯** → [Asystent AI (własny klucz)…]) otwiera czat obok strony (na telefonie — okno).
+Bez osobnej aplikacji AI: w edytorze [AI ▾] → **Asystent AI** otwiera czat obok strony (na telefonie — okno na prawie
+cały ekran; przewija się tylko rozmowa, a pole pisania stoi nad klawiaturą). Asystent jest tylko w menu [AI ▾].
 Napisz, co zrobić, np. „ułóż tę stronę na dwie kolumny” albo „dodaj tytuł i ramkę na zdjęcie”.
 
-1. **Dostawca** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok),
-   OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem). Przy nazwie
-   widać, co potrafi: **rozmowa i zmiany w projekcie** – każdy dostawca czyta i zmienia projekt narzędziami Makietki;
-   **i obrazy** – Google Gemini dodatkowo rysuje obrazy.
-2. **Klucz API** — od wybranego dostawcy ([Gdzie wziąć klucz?] prowadzi do jego strony). Przy OpenRouter zamiast
-   wklejać klucz wystarczy [Zaloguj przez OpenRouter] — zalogujesz się i zatwierdzisz dostęp u nich.
-3. **Model** — zostaw puste: Makietka sama wybierze zalecany model dostawcy (szybki i rozsądny; w polu widać, który). Lista
-   podpowiada też **Najtańszy** i **Najlepszy – droższy**, a zaawansowani mogą wpisać dowolną nazwę.
-4. **AI może w tym projekcie** — **czytać i zmieniać** albo **tylko czytać**.
+W czacie tylko rozmawiasz. **Czym rozmawia asystent**, ustawiasz w [Ustawienia konta] → **Sztuczna inteligencja**
+→ **Czat w Makietce** (z czatu: przycisk [Ustawienia AI] nad rozmową):
+
+1. **Asystent AI w edytorze używa** — jeden z dostawców, do których dodałeś klucz API: Anthropic (Claude), OpenAI
+   (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok), OpenRouter (setki modeli z jednego konta) albo **Inny – API
+   zgodne z OpenAI** (z własnym adresem) — albo **Dowolny czat bez klucza – kopiuj i wklej**. Klucz dodajesz
+   przyciskiem [Dodaj klucz] ([Gdzie wziąć klucz?] prowadzi do strony dostawcy).
+2. **Model** — przy kluczu dostawcy ([Edytuj] → **Model domyślny**). Zostaw puste: Makietka sama wybierze zalecany
+   model dostawcy (szybki i rozsądny). Lista podpowiada też **Najtańszy** i **Najlepszy – droższy**.
+3. **Asystent może w otwartym projekcie** — **czytać i zmieniać** albo **tylko czytać**.
+
+Nad rozmową widać krótko, czym rozmawiasz (dostawca · model · uprawnienia). Gdy wybrany dostawca nie ma klucza,
+czat mówi to i daje przycisk [Ustawienia AI].
 
 Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik
 (→ 25.1); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. [Przerwij] zatrzymuje
-po bieżącym kroku. Ikona suwaków w nagłówku pokazuje i chowa ustawienia.
+po bieżącym kroku.
 
 - **Klucze są zaszyfrowane i leżą na koncie.** Przy pierwszym kluczu Makietka prosi o **hasło do kluczy AI**
   (co najmniej 8 znaków, najlepiej inne niż hasło konta). Przeglądarka szyfruje nim klucz (AES-256) i dopiero
@@ -355,7 +359,7 @@ Jakie dane przetwarza Makietka i łącznik, opisuje polityka prywatności: makie
 
 Gdy zmiany AI Ci się nie podobają, cofniesz je jednym ruchem – także po zamknięciu projektu:
 
-1. W edytorze stuknij [⋯] → [Cofnij zmiany AI…] (to samo jest w menu [AI ▾]).
+1. W edytorze stuknij [AI ▾] → **Cofnij zmiany AI**.
 2. Okienko mówi, kiedy AI zmieniało projekt i ile razy zapisało zmiany.
 3. Stuknij [Cofnij zmiany AI]. Projekt wraca do stanu sprzed tych zmian: strony usunięte przez AI wracają,
    dodane przez AI znikają, a edytor od razu pokazuje przywróconą wersję.

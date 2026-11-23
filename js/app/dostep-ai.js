@@ -447,11 +447,33 @@ async function rysujDostawcow() {
     lista.replaceChildren(...Object.entries(DOSTAWCY).filter(([id, d]) => !d.bezKlucza && st === 'otwarty' && s.klucz(id))
       .map(([id]) => wiersz(nazwaZMozliwosciami(id), `klucz API · zaszyfrowany (…${s.klucz(id).slice(-4)})`, przyciskAi(tt('dostepAi.edytuj'), () => edytujKluczDostawcy(id)))));
   }
+  rysujWyborAsystenta(st === 'otwarty' ? Object.keys(DOSTAWCY).filter((id) => !DOSTAWCY[id].bezKlucza && s.klucz(id)) : null);
   akcje.replaceChildren(...(st === 'otwarty'
     ? [przyciskAi(tt('dostepAi.zamknijKluczeNaTym'), async () => { await s.zamknij(); rysujDostawcow(); }),
       przyciskAi(tt('dostepAi.usunWszystkieZaszyfrowaneKlucze'), async () => { if (await potwierdz(tt('dostepAi.usunacZapisaneKlucze'), tt('dostepAi.wszystkieKluczeApiDostawcow'), tt('dostepAi.usun'), true)) { await s.usun(); rysujDostawcow(); } })]
     : []));
   pokazPusto();
+}
+
+// Czym rozmawia Asystent AI w edytorze (N1, 23.11): dostawca z zapisanym kluczem albo „kopiuj i wklej”, uprawnienia.
+// Model – przy kluczu dostawcy (Edytuj → Model domyślny). zKluczem – dostawcy z kluczem (null – sejf zamknięty).
+function rysujWyborAsystenta(zKluczem) {
+  const wybor = $('#asystent-dostawca');
+  const rola = $('#asystent-rola');
+  if (!wybor || !rola) return;
+  const u = ustawieniaCzatu();
+  const ids = [...(zKluczem || (DOSTAWCY[u.dostawca] && !DOSTAWCY[u.dostawca].bezKlucza ? [u.dostawca] : [])), 'schowek'];
+  wybor.replaceChildren(...ids.map((id) => new Option(id === 'schowek' ? tt(DOSTAWCY.schowek.nazwa) : nazwaZMozliwosciami(id), id)));
+  const biezacy = ids.includes(u.dostawca) ? u.dostawca : ids[0];
+  wybor.value = biezacy;
+  rola.value = u.rola === 'odczyt' ? 'odczyt' : 'edycja';
+  if (biezacy !== u.dostawca && zKluczem) zapiszAsystenta({ dostawca: biezacy });
+  wybor.onchange = () => zapiszAsystenta({ dostawca: wybor.value });
+  rola.onchange = () => zapiszAsystenta({ rola: rola.value });
+}
+function zapiszAsystenta(zmiany) {
+  const u = { ...ustawieniaCzatu(), ...zmiany };
+  try { localStorage.setItem(PAMIEC_CZATU, JSON.stringify(u)); } catch { /* bez pamięci */ }
 }
 
 // ---------- Nowy klucz – okienko (#248) ----------

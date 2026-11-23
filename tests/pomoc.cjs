@@ -825,5 +825,13 @@ async function zMenu(strona, przycisk, wartosc) {
   await strona.click(`.menu-przycisku [data-wartosc="${wartosc}"]`);
 }
 
+// N4 (23.11): inne formaty zapisu i import – w podmenu „Inne formaty i import…” menu ⋯.
+async function zPlikow(strona, akcja) {
+  await strona.click('#przycisk-wiecej');
+  await strona.click('#menu-wiecej [data-akcja="pliki-menu"]');
+  await strona.click(`.menu-przycisku [data-wartosc="${akcja}"]`);
+}
+
 module.exports = {
+  zPlikow,
   krotkieLinkiGoscia, oknoAi, zamknijAi, otworz, drugieUrzadzenie, nowyProjekt, ekran, wAplikacji, PNG_2X2, podlaczAtrape, zaloguj, zamknijOkno, krokKomiksu, zMenu };

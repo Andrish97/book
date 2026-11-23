@@ -261,8 +261,8 @@ Właściciel: „Czat z AI jest okropny, w ustawieniach wybieramy jakiego AI uż
 Zapisywanie czy import może być w jednym menu a nie zawracać menu… Prawe menu szczególnie na telefonie jest zbyt zagracone.
 Jest problem że model się wybiera niepoprawnie dla dostawców szczególnie w tych ustawieniach w samym czacie.
 I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to poprawić. W ogóle okno czatu działa źle i ucieka na telefonie na pewno.”
-- N1 czat tylko do rozmowy – wybór dostawcy i modelu wyłącznie w ustawieniach.
-- N2 wybór modelu poprawny dla dostawcy.
-- N3 asystent w jednym miejscu; przegląd powtórzonych funkcji.
-- N4 zapis/import/eksport w jednym menu; mniej pozycji w prawym menu (telefon).
-- N5 okno czatu na telefonie nie ucieka.
+- N1 ✅ czat tylko do rozmowy – wybór dostawcy i modelu wyłącznie w ustawieniach.
+- N2 ✅ wybór modelu poprawny dla dostawcy.
+- N3 ✅ asystent w jednym miejscu; przegląd powtórzonych funkcji.
+- N4 ✅ zapis/import/eksport w jednym menu; mniej pozycji w prawym menu (telefon).
+- N5 ✅ okno czatu na telefonie nie ucieka. (#411)

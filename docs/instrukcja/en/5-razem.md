@@ -256,23 +256,27 @@ or one for reading on screen, a booklet for folding, or a PNG of a single page.
 
 ## 25.6 AI Assistant in Makietka (own key)
 
-No separate AI app needed: in the editor, [AI assistant] on the top bar (next to [Preview]; on a phone [AI ▾] →
-**AI assistant…**, and also the **⋯** menu → [AI assistant (own key)…]) opens a chat next to the page (on a phone — a window).
+No separate AI app needed: in the editor, [AI ▾] → **AI assistant** opens a chat next to the page (on a phone — a window over
+almost the whole screen; only the conversation scrolls, and the message field stays above the keyboard). The assistant is only in the [AI ▾] menu.
 Write what to do, e.g. “lay this page out in two columns” or “add a title and a frame for a photo”.
 
-1. **Provider** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok),
-   OpenRouter (hundreds of models from one account) or **Other – OpenAI-compatible API** (with its own address). Next
-   to the name you see what it can do: **chat and project changes** – every provider reads and changes the project with
-   Makietka's tools; **and images** – Google Gemini also draws images.
-2. **API key** — from the chosen provider ([Where do I get a key?] leads to their page). With OpenRouter, instead of
-   pasting a key, [Sign in with OpenRouter] is enough — you sign in and approve access on their side.
-3. **Model** — leave it empty: Makietka picks the provider's recommended model by itself (fast and sensible; the field shows which). The list
-   also suggests **Cheapest** and **Best – more expensive**, and advanced users can type any name.
-4. **In this project, AI can** — **read and edit** or **read only**.
+In the chat you only talk. **What the assistant uses** is set in [Account settings] → **Artificial intelligence**
+→ **Chat in Makietka** (from the chat: the [AI settings] button above the conversation):
+
+1. **The AI assistant in the editor uses** — one of the providers you added an API key for: Anthropic (Claude), OpenAI
+   (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok), OpenRouter (hundreds of models from one account) or **Other –
+   OpenAI-compatible API** (with its own address) — or **Any chat without a key – copy and paste**. You add a key with
+   [Add key] ([Where do I get a key?] leads to the provider's page).
+2. **Model** — at the provider key ([Edit] → **Default model**). Leave it empty: Makietka picks the provider's
+   recommended model by itself (fast and sensible). The list also suggests **Cheapest** and **Best – more expensive**.
+3. **In the open project the assistant can** — **read and edit** or **read only**.
+
+Above the conversation you briefly see what you're talking to (provider · model · permissions). When the chosen provider
+has no key, the chat says so and offers an [AI settings] button.
 
 Write what to do (Enter sends, Shift+Enter — new line). The AI uses the same tools as the connector
 (→ 25.1); the chat shows which ones (🔧), and the changes appear in the editor right away. [Stop] halts
-after the current step. The sliders icon in the header shows and hides the settings.
+after the current step.
 
 - **The keys are encrypted and stored in your account.** With the first key, Makietka asks for an **AI keys password**
   (at least 8 characters, preferably different from your account password). The browser encrypts the key with it (AES-256) and only
@@ -357,7 +361,7 @@ What data Makietka and the connector process is described in the privacy policy:
 
 If you don't like what the AI changed, undo it in one go – even after the project was closed:
 
-1. In the editor tap [⋯] → [Undo AI changes…] (the same item is in the [AI ▾] menu).
+1. In the editor tap [AI ▾] → **Undo AI changes**.
 2. The window tells you when the AI changed the project and how many times it saved.
 3. Tap [Undo AI changes]. The project returns to how it was before: pages the AI deleted come back,
    pages it added disappear, and the editor shows the restored version right away.

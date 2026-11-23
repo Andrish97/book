@@ -157,7 +157,7 @@ zmiany zrobione na tym urządzeniu; zmiany innych osób i AI zostają.
   już poprawiony. Formatowanie fragmentów (np. pogrubione pole `<<imie>>`) zostaje także przy polach scalania.
 - Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (→ 28.4).
 
-**Tekst z innych programów i do nich.** W edytorze, menu **⋯**:
+**Tekst z innych programów i do nich.** W edytorze, menu **⋯** → [Inne formaty i import…]:
 
 - [Wstaw tekst z pliku (Word, ODT, Markdown)…] — plik `.docx` (Word), `.odt` (LibreOffice, OpenOffice), `.md`
   (Markdown) albo `.txt` trafia do jednej ramki na bieżącej stronie, w marginesach, z włączonym **Dokładaj strony**:

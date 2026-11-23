@@ -145,7 +145,7 @@ Gdy projekt zmieniono w dwóch miejscach naraz, aplikacja **łączy zmiany eleme
 - **Importuj z pliku** obok **Nowy projekt** wczytuje projekt z pliku `.makietka` (na wąskim ekranie to sama ikona strzałki). Tak samo otworzysz projekt z **InDesigna** (`.idml` – w InDesignie: Plik → Zapisz jako → InDesign Markup) i ze **Scribusa** (`.sla`): powstaje nowy projekt ze stronami (sekcja na każdy format strony, spad i marginesy z pliku), ramkami tekstu z formatowaniem (połączone ramki dalej przelewają tekst), kształtami w kolorach (CMYK przeliczony na RGB) i obrazami zapisanymi w pliku. Obrazy, które w InDesignie czy Scribusie są tylko podlinkowane, wczytasz razem z projektem w pliku ZIP (w InDesignie: Plik → Pakiet; w Scribusie: Plik → Zbierz do wydruku) – bez nich w ich miejscu stoją szare pola z nazwą pliku. Pola korespondencji seryjnej InDesigna i Affinity (`<<imie>>`) oraz Worda i Publishera (`«imie»`) stają się polami Makietki (`{imie}`) – zostaje tylko wczytać dane (rozdział „14 Tabele danych”). Działa to też z plikami **Microsoft Publishera** (`.pub`, wersje 2002–2019 – Microsoft wycofał Publishera w październiku 2026): strony w formacie z pliku, ramki tekstu na swoich miejscach z czcionką, wielkością, pogrubieniem, kursywą, podkreśleniem i wyrównaniem, ramki połączone jako przelewany tekst, elementy stron wzorcowych pod treścią, zdjęcia (JPEG, PNG, GIF), kolorowe tła ramek i proste kształty. Obrazy w starym formacie Windows (WMF, EMF) przeglądarka nie wyświetla – w ich miejscu są szare pola. Starsze pliki (Publisher 98/2000) trzeba najpierw zapisać w nowszej wersji. Po wczytaniu okno **„Co przeszło z programu…”** mówi, co uproszczono: gradient zamieniony na jeden kolor, cień i inne efekty pominięte, obrócony obraz wstawiony bez obrotu, tabela z IDML jako tekst z tabulatorami, tekst na ścieżce i tabela Scribusa jako szare pole, brakujące obrazy, style akapitu jako zwykłe formatowanie. **Pokaż** otwiera stronę z pierwszym takim elementem. Uproszczone elementy mają oznaczenie i pojawiają się w **Sprawdź przed drukiem** jako „Z importu: …” – przycisk **Sprawdzone** zdejmuje oznaczenie, gdy element jest już poprawiony. Formatowanie fragmentów (np. pogrubione pole `<<imie>>`) zostaje także przy polach scalania.
 - Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem (rozdział „28.4 Instalacja aplikacji”).
 
-**Tekst z innych programów i do nich.** W edytorze, menu **⋯**:
+**Tekst z innych programów i do nich.** W edytorze, menu **⋯** → **Inne formaty i import…**:
 
 - **Wstaw tekst z pliku (Word, ODT, Markdown)…** — plik `.docx` (Word), `.odt` (LibreOffice, OpenOffice), `.md` (Markdown) albo `.txt` trafia do jednej ramki na bieżącej stronie, w marginesach, z włączonym **Dokładaj strony**: tekst sam rozkłada się na tyle stron, ile trzeba. Nagłówki zostają nagłówkami (większe, pogrubione), rozdziały (nagłówek 1) zaczynają się od nowej strony, a pogrubienia, kursywy i podkreślenia fragmentów zostają. Tabele wchodzą jako wiersze z tabulatorami; obrazy i przypisy z pliku trzeba wstawić osobno — aplikacja powie, ile ich było.
 - **Zapisz tekst jako Word (.docx)** i **Zapisz jako e-book (EPUB)** — sama treść stron w kolejności czytania (bez okładki), z nagłówkami i formatowaniem fragmentów; e-book ma spis treści i rozdział w osobnym pliku. Układ stron i obrazy zostają w Makietce.
@@ -193,7 +193,7 @@ Pozycje są w grupach:
 | Szukanie i uwagi | **Znajdź i zamień…** (rozdział „5.15 Znajdź i zamień”), **Komentarze** (rozdział „24.7 Komentarze”). |
 | Zasoby projektu | **Obrazy projektu…** (rozdział „7.5 Okno Obrazy projektu”), **Czcionki projektu…** (rozdział „5.8 Czcionki”), **Kolory projektu…** — kolory projektu i sekcji, kolory dodatkowe, wykończenia (rozdział „22.1 Kolory dodatkowe”, „22.5 Kolory projektu i druk kolorów — dla całości albo dla sekcji”); na telefonie też **Wzorce stron…** i **Dane…**. |
 | Format i marka | **Zmień format projektu…** (rozdział „10.9 Zmiana formatu ze skalowaniem”), **Zastosuj markę do projektu…** (rozdział „27.9 Zestaw marki”). |
-| Druk i eksport | **Sprawdź przed drukiem** (rozdział „20 Sprawdź przed drukiem”), **Eksportuj do PDF…** (rozdział „21 Eksport do PDF i PNG”), **Drukuj w domu…** (rozdział „21.8 Drukuj w domu”), **Pobierz bieżącą stronę jako PNG** (rozdział „21.5 Strona jako PNG”). |
+| Druk i eksport | **Sprawdź przed drukiem** (rozdział „20 Sprawdź przed drukiem”), **Eksportuj do PDF…** (rozdział „21 Eksport do PDF i PNG”), **Drukuj w domu…** (rozdział „21.8 Drukuj w domu”), **Inne formaty i import…** — jedno podmenu: PNG bieżącej strony (rozdział „21.5 Strona jako PNG”), Word, EPUB, InDesign, Scribus, SVG, plik dla plotera, seria dla innego programu, specyfikacja dla drukarni i wstawianie tekstu z pliku (rozdział „1 Makietka w skrócie”). |
 | Pozostałe | **Współpraca…** (rozdział „24 Współpraca”) i przełącznik motywu (rozdział „27.4 Motyw”). |
 
 ### 3.4 Pasek wstawiania
@@ -1153,7 +1153,7 @@ Gdy w środku przybędzie stron albo zmienisz papier, okładka przelicza się sa
 
 Na okleinie grafika okładki się nie drukuje — zostają elementy ze złoceniem albo tłoczeniem (Kolory do druku → Uszlachetnienie). Makieta 3D pokazuje okleinę w wybranym kolorze, z fakturą tkaniny, skóry albo papieru, a na niej złocenia i tłoczenia. **Sprawdź przed drukiem** przypomina o okleinie i rogach.
 
-**Specyfikacja dla drukarni** (menu **⋯**) pobiera dwa pliki: tekst do zamówienia albo maila i JSON. Są w nich formaty i liczby stron sekcji, oprawa i grzbiet, papier środka, materiał, folia i rogi okładki, tasiemka, składki, podłoże, tryb kolorów, kolory dodatkowe i uszlachetnienia.
+**Specyfikacja dla drukarni** (menu **⋯** → **Inne formaty i import…**) pobiera dwa pliki: tekst do zamówienia albo maila i JSON. Są w nich formaty i liczby stron sekcji, oprawa i grzbiet, papier środka, materiał, folia i rogi okładki, tasiemka, składki, podłoże, tryb kolorów, kolory dodatkowe i uszlachetnienia.
 
 ### 10.7 Składki
 
@@ -1272,7 +1272,7 @@ W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 - **Zgięcia** – **góra** (od siebie, kreska–kropka – nadruk zostaje na zewnątrz; tak są zgięcia szablonów i nowe zgięcia) albo **dolina** (do siebie, kreski) i **kąt po złożeniu** – kąt między ścianami w gotowym modelu (pudełko 90°, ściany sześciokątnego graniastosłupa 120°), a w kartce pop-up przełącznik **Grzbiet kartki (pop-up)**;
 - **Miejsca klejenia** i **Szczeliny** – numer pary, wymiary, na spodzie, usuwanie.
 
-Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy krawędzi albo w miejscu, do którego się przyklejają – po wycięciu wiesz, co z czym skleić. Plik dla plotera (menu **⋯**) i PDF dla drukarni dostają obrys cięcia części z zakładkami i szczelinami, zgięcia (także u nasady każdej zakładki) i miejsca klejenia.
+Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy krawędzi albo w miejscu, do którego się przyklejają – po wycięciu wiesz, co z czym skleić. Plik dla plotera (menu **⋯** → **Inne formaty i import…**) i PDF dla drukarni dostają obrys cięcia części z zakładkami i szczelinami, zgięcia (także u nasady każdej zakładki) i miejsca klejenia.
 
 **Co się z czym łączy.** Gdy nic nie jest zaznaczone, panel strony w sekcji składanki ma listę **Połączenia**: każdy numer z tym, co go nosi, np. „1 – A: zakładka 2 ↔ B: krawędź 4”, a przy kilku arkuszach także numer arkusza. Najechanie na pozycję podświetla na pomarańczowo obie strony pary na arkuszu, kliknięcie zaznacza część. Numer bez pary albo użyty więcej niż dwa razy ma pasek ostrzeżenia. Najechanie myszą na część podświetla wszystkie jej pary.
 
@@ -2146,7 +2146,7 @@ Element z cieniem, element przycięty maską i rysunek SVG z filtrem trafiają d
 
 ### 21.5 Strona jako PNG
 
-**⋯** → **Pobierz bieżącą stronę jako PNG** zapisuje obraz otwartej strony w 300 dpi, ze spadem — np. do pokazania komuś w wiadomości.
+**⋯** → **Inne formaty i import…** → **Pobierz bieżącą stronę jako PNG** zapisuje obraz otwartej strony w 300 dpi, ze spadem — np. do pokazania komuś w wiadomości.
 
 ### 21.6 Broszura i kilka stron na arkuszu
 
@@ -2261,7 +2261,7 @@ W tej samej części jest **Farba specjalna** — wypełnienie elementu kolorem 
 | **Perforacja** | Linia do oderwania (kupon, bilet). | pomarańczowa kropkowana | Perforation |
 | **Klej** | Pole, na które idzie klej (zakładka pudełka, koperty). | zielone pole | Glue |
 
-Linie zawsze widać na stronie, ale nie drukują się farbą — w PDF wektorowym trafiają na osobne płyty (CutContour rozpoznaje większość ploterów print & cut). Menu **⋯** → **Plik dla plotera (SVG, bieżąca strona)** pobiera same linie bieżącej strony w milimetrach — dla Cricut, Silhouette albo plotera w drukarni (kolor linii mówi, co robić). **Sprawdź przed drukiem** pilnuje, czy da się wyciąć i złożyć: cięcie z otwartej linii, big albo klej bez linii cięcia, big albo klej poza wycinanym kawałkiem. Gotowe wykroje koperty, teczki i pudełka z makietą 3D daje sekcja typu **Wykrojnik** (rozdział „10.4 Ustawienia sekcji”).
+Linie zawsze widać na stronie, ale nie drukują się farbą — w PDF wektorowym trafiają na osobne płyty (CutContour rozpoznaje większość ploterów print & cut). Menu **⋯** → **Inne formaty i import…** → **Plik dla plotera (SVG, bieżąca strona)** pobiera same linie bieżącej strony w milimetrach — dla Cricut, Silhouette albo plotera w drukarni (kolor linii mówi, co robić). **Sprawdź przed drukiem** pilnuje, czy da się wyciąć i złożyć: cięcie z otwartej linii, big albo klej bez linii cięcia, big albo klej poza wycinanym kawałkiem. Gotowe wykroje koperty, teczki i pudełka z makietą 3D daje sekcja typu **Wykrojnik** (rozdział „10.4 Ustawienia sekcji”).
 
 ### 22.3 Widok uszlachetnień
 
@@ -2600,14 +2600,17 @@ Link do pobrania działa bez logowania przez 7 dni, potem plik znika z konta. AI
 
 ### 25.6 Asystent AI w Makietce (własny klucz)
 
-Bez osobnej aplikacji AI: w edytorze **Asystent AI** na górnym pasku (obok **Podgląd**; na telefonie **AI ▾** → **Asystent AI…**, a także menu **⋯** → **Asystent AI (własny klucz)…**) otwiera czat obok strony (na telefonie — okno). Napisz, co zrobić, np. „ułóż tę stronę na dwie kolumny” albo „dodaj tytuł i ramkę na zdjęcie”.
+Bez osobnej aplikacji AI: w edytorze **AI ▾** → **Asystent AI** otwiera czat obok strony (na telefonie — okno na prawie cały ekran; przewija się tylko rozmowa, a pole pisania stoi nad klawiaturą). Asystent jest tylko w menu **AI ▾**. Napisz, co zrobić, np. „ułóż tę stronę na dwie kolumny” albo „dodaj tytuł i ramkę na zdjęcie”.
 
-1. **Dostawca** — Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok), OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem). Przy nazwie widać, co potrafi: **rozmowa i zmiany w projekcie** – każdy dostawca czyta i zmienia projekt narzędziami Makietki; **i obrazy** – Google Gemini dodatkowo rysuje obrazy.
-2. **Klucz API** — od wybranego dostawcy (**Gdzie wziąć klucz?** prowadzi do jego strony). Przy OpenRouter zamiast wklejać klucz wystarczy **Zaloguj przez OpenRouter** — zalogujesz się i zatwierdzisz dostęp u nich.
-3. **Model** — zostaw puste: Makietka sama wybierze zalecany model dostawcy (szybki i rozsądny; w polu widać, który). Lista podpowiada też **Najtańszy** i **Najlepszy – droższy**, a zaawansowani mogą wpisać dowolną nazwę.
-4. **AI może w tym projekcie** — **czytać i zmieniać** albo **tylko czytać**.
+W czacie tylko rozmawiasz. **Czym rozmawia asystent**, ustawiasz w **Ustawienia konta** → **Sztuczna inteligencja** → **Czat w Makietce** (z czatu: przycisk **Ustawienia AI** nad rozmową):
 
-Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik (rozdział „25.1 Co potrafi AI”); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. **Przerwij** zatrzymuje po bieżącym kroku. Ikona suwaków w nagłówku pokazuje i chowa ustawienia.
+1. **Asystent AI w edytorze używa** — jeden z dostawców, do których dodałeś klucz API: Anthropic (Claude), OpenAI (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok), OpenRouter (setki modeli z jednego konta) albo **Inny – API zgodne z OpenAI** (z własnym adresem) — albo **Dowolny czat bez klucza – kopiuj i wklej**. Klucz dodajesz przyciskiem **Dodaj klucz** (**Gdzie wziąć klucz?** prowadzi do strony dostawcy).
+2. **Model** — przy kluczu dostawcy (**Edytuj** → **Model domyślny**). Zostaw puste: Makietka sama wybierze zalecany model dostawcy (szybki i rozsądny). Lista podpowiada też **Najtańszy** i **Najlepszy – droższy**.
+3. **Asystent może w otwartym projekcie** — **czytać i zmieniać** albo **tylko czytać**.
+
+Nad rozmową widać krótko, czym rozmawiasz (dostawca · model · uprawnienia). Gdy wybrany dostawca nie ma klucza, czat mówi to i daje przycisk **Ustawienia AI**.
+
+Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik (rozdział „25.1 Co potrafi AI”); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. **Przerwij** zatrzymuje po bieżącym kroku.
 
 - **Klucze są zaszyfrowane i leżą na koncie.** Przy pierwszym kluczu Makietka prosi o **hasło do kluczy AI** (co najmniej 8 znaków, najlepiej inne niż hasło konta). Przeglądarka szyfruje nim klucz (AES-256) i dopiero wtedy zapisuje go na koncie – na serwerze leży tylko zaszyfrowany zapis. Bez Twojego hasła nikt go nie odczyta, **nawet administratorzy Makietki**. Na każdym nowym urządzeniu podajesz hasło raz; potem urządzenie je pamięta. Zgubione hasło: w oknie hasła **Nie pamiętam – usuń zapisane klucze** i wklej klucze od nowa.
 - Rozmowa idzie z przeglądarki prosto do dostawcy, a koszt rozliczasz u niego.
@@ -2663,7 +2666,7 @@ Jakie dane przetwarza Makietka i łącznik, opisuje polityka prywatności: makie
 
 Gdy zmiany AI Ci się nie podobają, cofniesz je jednym ruchem – także po zamknięciu projektu:
 
-1. W edytorze stuknij **⋯** → **Cofnij zmiany AI…** (to samo jest w menu **AI ▾**).
+1. W edytorze stuknij **AI ▾** → **Cofnij zmiany AI**.
 2. Okienko mówi, kiedy AI zmieniało projekt i ile razy zapisało zmiany.
 3. Stuknij **Cofnij zmiany AI**. Projekt wraca do stanu sprzed tych zmian: strony usunięte przez AI wracają, dodane przez AI znikają, a edytor od razu pokazuje przywróconą wersję.
 

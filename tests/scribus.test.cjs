@@ -4,7 +4,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, zPlikow } = require('./pomoc.cjs');
 
 test('scribus: strony, ramka tekstu, kształty, obraz w pliku, pobranie z menu', async (t) => {
   const { strona, bledy } = await otworz(t);
@@ -69,7 +69,7 @@ test('scribus: strony, ramka tekstu, kształty, obraz w pliku, pobranie z menu',
 
   // Z menu ⋯ – pobranie pliku .sla.
   await strona.click('#menu-projektu-przycisk, [data-akcja="menu-projektu"]').catch(() => {});
-  await strona.evaluate(() => document.querySelector('[data-akcja="scribus"]').click());
+  await zPlikow(strona, 'scribus');
   await strona.waitForSelector('#dlg-raport-przeniesienia[open]');
   const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#dlg-raport-przeniesienia button[value="tak"]')]);
   assert.equal(plik.suggestedFilename(), 'Do Scribusa.sla');

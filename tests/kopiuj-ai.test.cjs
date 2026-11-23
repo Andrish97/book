@@ -24,8 +24,8 @@ test('Sztuczna inteligencja → Kopiuj i wklej: projekt otwiera się z Asystente
   await strona.click('[data-akcja="ai-kopiuj-otworz"]');
   await strona.waitForSelector('#dlg-czat-ai[open]');
   assert.equal(await strona.evaluate(() => window.seriodruk.stan.projekt.id), id);
-  assert.equal(await strona.inputValue('#czat-ai-ustawienia [name="dostawca"]'), 'schowek');
-  assert.equal(await strona.isVisible('#czat-ai-schowek-opis'), false, 'ustawienia zwinięte – tryb wybrany');
+  assert.equal(await strona.evaluate(() => JSON.parse(localStorage.getItem('makietka-czat-ai')).dostawca), 'schowek');
+  assert.match(await strona.textContent('#czat-ai-kto'), /Kopiuj i wklej/, 'tryb kopiuj i wklej');
   await strona.waitForFunction(() => !/\/asystent$/.test(location.hash), null, { timeout: 5000 });
   assert.deepEqual(bledy, []);
 });

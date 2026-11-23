@@ -6,7 +6,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, zPlikow } = require('./pomoc.cjs');
 
 test('raport przeniesienia: zapis (okno, Pokaż, Pobierz, CZYTAJ-MNIE) i odczyt (oznaczenia, kontrola, tabela, pola)', async (t) => {
   const { strona, bledy } = await otworz(t);
@@ -46,7 +46,7 @@ test('raport przeniesienia: zapis (okno, Pokaż, Pobierz, CZYTAJ-MNIE) i odczyt 
   // Okno przed pobraniem: „Pokaż” zamyka okno bez pobierania i zaznacza element.
   let pobrane = 0;
   strona.on('download', () => { pobrane += 1; });
-  await strona.evaluate(() => document.querySelector('[data-akcja="scribus"]').click());
+  await zPlikow(strona, 'scribus');
   await strona.waitForSelector('#dlg-raport-przeniesienia[open]');
   const okno = await strona.evaluate(() => ({
     naglowki: [...document.querySelectorAll('#dlg-raport-przeniesienia h3')].map((h) => h.textContent),
@@ -60,7 +60,7 @@ test('raport przeniesienia: zapis (okno, Pokaż, Pobierz, CZYTAJ-MNIE) i odczyt 
   });
   await strona.waitForFunction(() => window.seriodruk.edytor?.canvas.getActiveObject()?.id === 'o_cien');
   assert.equal(pobrane, 0, '„Pokaż” – bez pobierania');
-  await strona.evaluate(() => document.querySelector('[data-akcja="scribus"]').click());
+  await zPlikow(strona, 'scribus');
   await strona.waitForSelector('#dlg-raport-przeniesienia[open]');
   const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#dlg-raport-przeniesienia button[value="tak"]')]);
   assert.equal(plik.suggestedFilename(), 'Raport.sla');

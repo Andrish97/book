@@ -7,16 +7,15 @@
 import { $, powiadom } from '../ui.js';
 import * as chmura from '../chmura.js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../konfiguracja.js';
-import { DOSTAWCY, nowaRozmowa, zapytaj, adresLogowaniaOpenRouter, nazwaZMozliwosciami, zalecaneModele, modeleZPamieci, modelAutomatyczny } from '../ai-dostawcy.js';
+import { DOSTAWCY, nowaRozmowa, zapytaj, modelAutomatyczny } from '../ai-dostawcy.js';
 import { otwartySejf, sejfKonta, maKluczeDoPrzeniesienia } from './sejf-ai.js';
 import { stan } from './kontekst.js';
 import { zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
 import { wymagaZgody } from '../zgoda-ai.js';
 import { NARZEDZIA_LOKALNE, nazwyLokalne, wykonajLokalne } from './czat-narzedzia-lokalne.js';
-import { t as tt } from '../jezyk.js';
+import { t as tt, biezacyJezyk } from '../jezyk.js';
 
 const dlg = $('#dlg-czat-ai');
-const f = $('#czat-ai-ustawienia');
 const lista = $('#czat-ai-wiadomosci');
 const pole = $('#czat-ai-tekst');
 const PAMIEC = 'makietka-czat-ai';
@@ -124,82 +123,32 @@ function dopisz(rodzaj, tekst) {
   return li;
 }
 
-// ---------- Ustawienia ----------
+// ---------- Ustawienia (N1, 23.11) ----------
+// Dostawca, model i uprawnienia ustawia się w Ustawieniach konta → Sztuczna inteligencja; czat tylko je pokazuje.
 
-function pokazUstawienia() {
-  const u = ustawienia();
-  f.elements.dostawca.replaceChildren(...Object.entries(DOSTAWCY).map(([id, d]) => new Option(d.bezKlucza ? d.nazwa : nazwaZMozliwosciami(id), id)));
-  f.elements.dostawca.value = u.dostawca;
-  f.elements.rola.value = u.rola || 'edycja';
-  wypelnijDostawce();
-}
-function wypelnijDostawce() {
-  const u = ustawienia();
-  const id = f.elements.dostawca.value;
-  const d = DOSTAWCY[id];
-  const ust = ustDostawcy(u, id);
-  f.elements.klucz.value = ust.klucz || '';
-  f.elements.klucz.placeholder = ust.klucz ? '' : tt('czatAi.kluczOdDostawcyZaszyfrowany');
-  f.elements.model.value = ust.model || '';
-  f.elements.adres.value = ust.adres || '';
-  $('#czat-ai-adres-pole').hidden = !d.wlasnyAdres;
-  for (const el of f.querySelectorAll('[data-z-kluczem]')) el.hidden = Boolean(d.bezKlucza);
-  $('#czat-ai-schowek-opis').hidden = !d.bezKlucza;
-  $('#czat-ai-openrouter').hidden = !d.logowanie;
-  const gdzie = $('#czat-ai-gdzie-klucz');
-  gdzie.hidden = !d.kluczUrl;
-  if (d.kluczUrl) gdzie.href = d.kluczUrl;
-  $('#czat-ai-modele').replaceChildren(...d.modele.map((m) => new Option(m, m)));
-  if (ust.klucz && !d.bezKlucza) odswiezModele(id, ust);
-}
-async function odswiezModele(id, ust) {
-  try {
-    const modele = await modeleZPamieci(id, ust);
-    if (f.elements.dostawca.value !== id || !modele.length) return;
-    // G1: puste pole = zalecany model; na liście najpierw zalecany, najtańszy i najlepszy z opisem po ludzku.
-    const z = zalecaneModele(id, modele);
-    const opisy = [[z.zalecany, tt('czatAi.modelZalecany')], [z.tani, tt('czatAi.modelTani')], [z.najlepszy, tt('czatAi.modelNajlepszy')]].filter(([m]) => m);
-    const pierwsze = [...new Set(opisy.map(([m]) => m))];
-    $('#czat-ai-modele').replaceChildren(...opisy.map(([m, o]) => new Option(o, m)), ...modele.filter((m) => !pierwsze.includes(m)).map((m) => new Option(m, m)));
-    f.elements.model.placeholder = tt('czatAi.modelAutomatyczny', { model: z.zalecany });
-  } catch { /* lista modeli niedostępna – można wpisać nazwę */ }
-}
-function zapamietajPola() {
-  const u = ustawienia();
-  const id = f.elements.dostawca.value;
-  const stary = u.dostawca;
-  u.dostawca = id;
-  u.rola = f.elements.rola.value;
-  u.dostawcy[id] = { model: f.elements.model.value.trim(), ...(DOSTAWCY[id].wlasnyAdres ? { adres: f.elements.adres.value.trim() } : {}) };
-  zapisz(PAMIEC, u);
-  if (stary !== id || (rozmowa && ((rozmowa.wybrany ?? rozmowa.model) !== u.dostawcy[id].model || rozmowa.klucz !== ustDostawcy(u, id).klucz))) { rozmowa = null; zawszePozwalaj = false; } // nowy dostawca albo model – nowa rozmowa
-  if (narzedzia && narzedzia.rola !== u.rola) narzedzia = null;
-}
-f.addEventListener('change', async (e) => {
-  if (e.target.name === 'dostawca') { zapamietajPola(); wypelnijDostawce(); return; }
-  if (e.target.name === 'klucz') {
-    // Klucz – prosto do sejfu (zaszyfrowany hasłem do kluczy), nigdy do pamięci przeglądarki.
-    const id = f.elements.dostawca.value;
-    const wartosc = f.elements.klucz.value.trim();
-    const s = await otwartySejf();
-    if (!s) { f.elements.klucz.value = ''; powiadom(tt('czatAi.kluczNieZostalZapisany'), true); return; }
-    await s.ustaw(id, wartosc);
-    rozmowa = null;
-    zapamietajPola();
-    odswiezModele(id, ustDostawcy());
-    return;
-  }
-  zapamietajPola();
-});
-$('#czat-ai-ustawienia-przelacz').addEventListener('click', () => { f.hidden = !f.hidden; });
+const otworzUstawieniaAi = async () => { dlg.close(); (await import('./dostep-ai.js')).otworzDostepAi(); };
+$('#czat-ai-ustawienia').addEventListener('click', otworzUstawieniaAi);
 
-// OpenRouter: logowanie i zgoda w oknie OpenRouter zamiast wklejania klucza.
-$('#czat-ai-openrouter').addEventListener('click', async () => {
-  const powrot = `${location.origin}${location.pathname}`;
-  const { weryfikator, adres } = await adresLogowaniaOpenRouter(powrot);
-  try { sessionStorage.setItem('makietka-openrouter', JSON.stringify({ weryfikator, hash: location.hash })); } catch { /* bez pamięci sesji */ }
-  location.href = adres;
-});
+// Krótko nad rozmową: czym rozmawiasz („Claude (Anthropic) · claude-… · czyta i zmienia”).
+function pokazKto() {
+  const u = ustawienia();
+  const d = DOSTAWCY[u.dostawca];
+  const ust = ustDostawcy(u);
+  const czesci = [d ? (d.bezKlucza ? tt('czatAi.kopiujIWklej') : d.nazwa) : tt('czatAi.brakDostawcy')];
+  if (d && !d.bezKlucza) czesci.push(ust.model || tt('czatAi.modelZalecanyKrotko'));
+  czesci.push(tt(u.rola === 'odczyt' ? 'czatAi.tylkoCzyta' : 'czatAi.czytaIZmienia'));
+  $('#czat-ai-kto').textContent = czesci.join(' · ');
+}
+
+// Brak klucza wybranego dostawcy: wiadomość w rozmowie z przyciskiem do ustawień zamiast pól w oknie czatu.
+function brakKlucza() {
+  const li = dopisz('blad', tt('czatAi.brakKluczaDostawcy'));
+  const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk maly glowny', textContent: tt('czatAi.ustawieniaAi') });
+  b.addEventListener('click', otworzUstawieniaAi);
+  li.append(' ', b);
+}
+
+// OpenRouter: po powrocie z logowania (sessionStorage) – obsługa w ustawieniach konta.
 // ---------- Narzędzia projektu ----------
 
 // Jednodniowy klucz dostępu AI do otwartego projektu (z wybraną rolą), zapamiętany na urządzeniu do wygaśnięcia.
@@ -266,7 +215,7 @@ function systemDla(n) {
   return [
     `Jesteś asystentem w Makietce – edytorze publikacji do druku. Pracujesz na otwartym projekcie „${stan.projekt.nazwa}” (id ${stan.projekt.id}); inne projekty są poza zasięgiem.`,
     n.rola === 'odczyt' ? 'Masz dostęp tylko do czytania: niczego nie zmieniaj, doradzaj i opisuj.' : 'Możesz czytać i zmieniać ten projekt – zmiany widać od razu w edytorze użytkownika.',
-    'Odpowiadaj po polsku, krótko i konkretnie. Przed zmianami zajrzyj do projektu narzędziem przeglad_projektu; zmieniaj małymi krokami i na końcu powiedz, co zrobiłeś.',
+    `${({ en: 'Answer in English', uk: 'Відповідай українською' })[biezacyJezyk()] || 'Odpowiadaj po polsku'} (albo w języku, w którym pisze użytkownik), krótko i konkretnie. Przed zmianami zajrzyj do projektu narzędziem przeglad_projektu; zmieniaj małymi krokami i na końcu powiedz, co zrobiłeś.`,
     n.instrukcje,
   ].join('\n\n');
 }
@@ -348,7 +297,7 @@ async function wyslijPrzezSchowek(tekst) {
     const przeglad = await n.wolaj('tools/call', { name: 'przeglad_projektu', arguments: {} }).then((r) => (r?.content || []).map((c) => c.text || '').join('\n')).catch(() => '');
     const polecenie = `${systemDla(n)}
 
-JAK ODPOWIADAĆ: nie masz bezpośredniego dostępu do Makietki – użytkownik przenosi wiadomości. Napisz krótko po polsku, co zrobisz, a potem JEDEN blok kodu z poleceniami:
+JAK ODPOWIADAĆ: nie masz bezpośredniego dostępu do Makietki – użytkownik przenosi wiadomości. Napisz krótko (w języku użytkownika), co zrobisz, a potem JEDEN blok kodu z poleceniami:
 \`\`\`makietka
 [{"narzedzie": "nazwa_narzedzia", "parametry": { … }}]
 \`\`\`
@@ -373,15 +322,18 @@ ${tekst}`;
 
 async function wyslij(tekst) {
   if (trwa || !tekst.trim()) return;
-  zapamietajPola();
   const u = ustawienia();
   const ust = ustDostawcy(u);
+  pokazKto();
   if (DOSTAWCY[u.dostawca]?.bezKlucza) { await wyslijPrzezSchowek(tekst); return; }
-  if (!ust.klucz && stan.uzytkownik) { await otwartySejf(); Object.assign(ust, ustDostawcy(u)); }
-  if (!ust.klucz) { f.hidden = false; powiadom(tt('czatAi.podajKluczApiWybranego'), true); f.elements.klucz.focus(); return; }
+  // Hasło do kluczy tylko wtedy, gdy klucze są zapisane, a sejf zamknięty; bez kluczy – od razu wskazówka (N1).
+  if (!ust.klucz && stan.uzytkownik && await sejfKonta()?.stan().catch(() => null) === 'zamkniety') { await otwartySejf(); Object.assign(ust, ustDostawcy(u)); }
+  if (!DOSTAWCY[u.dostawca] || !ust.klucz) { brakKlucza(); return; }
   const wybranyModel = ust.model;
   if (!ust.model) ust.model = await modelAutomatyczny(u.dostawca, ust); // G1: puste pole – zalecany model dostawcy
-  if (!ust.model) { f.hidden = false; powiadom(tt('czatAi.wybierzModel'), true); f.elements.model.focus(); return; }
+  if (!ust.model) { brakKlucza(); return; }
+  // Zmiana dostawcy albo modelu w ustawieniach – nowa rozmowa (model ma pasować do dostawcy, N2).
+  if (rozmowa && (rozmowa.dostawcaCzatu !== u.dostawca || rozmowa.wybrany !== wybranyModel || rozmowa.klucz !== ust.klucz)) { rozmowa = null; zawszePozwalaj = false; }
   if (!stan.uzytkownik) { powiadom(tt('czatAi.asystentAiDzialaNa'), true); return; }
   trwa = true;
   przerwano = false;
@@ -395,7 +347,7 @@ async function wyslij(tekst) {
     await synchronizuj({ wymus: true }).catch(() => {});
     const n = await przygotujNarzedzia();
     const zal = zalaczniki.length ? await przygotujZalaczniki(n) : { opis: '', podglady: [] };
-    if (!rozmowa || rozmowa.projekt !== n.projekt) { rozmowa = { ...nowaRozmowa({ dostawca: u.dostawca, model: ust.model, ust, system: systemDla(n), narzedzia: n.lista }), projekt: n.projekt, wybrany: wybranyModel }; zawszePozwalaj = false; }
+    if (!rozmowa || rozmowa.projekt !== n.projekt) { rozmowa = { ...nowaRozmowa({ dostawca: u.dostawca, model: ust.model, ust, system: systemDla(n), narzedzia: n.lista }), projekt: n.projekt, wybrany: wybranyModel, dostawcaCzatu: u.dostawca }; zawszePozwalaj = false; }
     let zmiany = false;
     // Streaming (#259): dymek odpowiedzi rośnie na bieżąco; każdy krok AI (przed narzędziami) – osobny dymek.
     let dymek = null;
@@ -460,10 +412,9 @@ export async function otworzCzatAi({ dostawca = null } = {}) {
   if (!stan.projekt) return;
   if (dostawca && DOSTAWCY[dostawca]) { const u = ustawienia(); if (u.dostawca !== dostawca) { u.dostawca = dostawca; zapisz(PAMIEC, u); } }
   if (stan.uzytkownik) await otwartySejf({ pytaj: maKluczeDoPrzeniesienia() }).catch(() => null);
-  pokazUstawienia();
-  f.hidden = Boolean(ustDostawcy().klucz) || Boolean(DOSTAWCY[ustawienia().dostawca]?.bezKlucza);
+  pokazKto();
   dlg.classList.toggle('obok-strony', window.matchMedia('(min-width: 901px)').matches);
   if (!dlg.open) dlg.show();
-  if (!lista.childElementCount) dopisz('ai', 'Cześć! Napisz, co zrobić w tym projekcie – np. „dodaj stronę z podziękowaniami” albo „popraw literówki na stronie 3”.');
+  if (!lista.childElementCount) dopisz('ai', tt('czatAi.powitanie'));
   pole.focus();
 }

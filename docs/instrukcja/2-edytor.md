@@ -43,7 +43,7 @@ Pozycje są w grupach:
 | Szukanie i uwagi | [Znajdź i zamień…] (→ 5.15), [Komentarze] (→ 24.7). |
 | Zasoby projektu | [Obrazy projektu…] (→ 7.5), [Czcionki projektu…] (→ 5.8), [Kolory projektu…] — kolory projektu i sekcji, kolory dodatkowe, wykończenia (→ 22.1, 22.5); na telefonie też [Wzorce stron…] i [Dane…]. |
 | Format i marka | [Zmień format projektu…] (→ 10.9), [Zastosuj markę do projektu…] (→ 27.9). |
-| Druk i eksport | [Sprawdź przed drukiem] (→ 20), [Eksportuj do PDF…] (→ 21), [Drukuj w domu…] (→ 21.8), [Pobierz bieżącą stronę jako PNG] (→ 21.5). |
+| Druk i eksport | [Sprawdź przed drukiem] (→ 20), [Eksportuj do PDF…] (→ 21), [Drukuj w domu…] (→ 21.8), [Inne formaty i import…] — jedno podmenu: PNG bieżącej strony (→ 21.5), Word, EPUB, InDesign, Scribus, SVG, plik dla plotera, seria dla innego programu, specyfikacja dla drukarni i wstawianie tekstu z pliku (→ 1). |
 | Pozostałe | [Współpraca…] (→ 24) i przełącznik motywu (→ 27.4). |
 
 ## 3.4 Pasek wstawiania
@@ -1184,7 +1184,7 @@ Na okleinie grafika okładki się nie drukuje — zostają elementy ze złocenie
 Uszlachetnienie). Makieta 3D pokazuje okleinę w wybranym kolorze, z fakturą tkaniny, skóry albo papieru,
 a na niej złocenia i tłoczenia. **Sprawdź przed drukiem** przypomina o okleinie i rogach.
 
-**Specyfikacja dla drukarni** (menu **⋯**) pobiera dwa pliki: tekst do zamówienia albo maila i JSON. Są w nich
+**Specyfikacja dla drukarni** (menu **⋯** → [Inne formaty i import…]) pobiera dwa pliki: tekst do zamówienia albo maila i JSON. Są w nich
 formaty i liczby stron sekcji, oprawa i grzbiet, papier środka, materiał, folia i rogi okładki, tasiemka, składki,
 podłoże, tryb kolorów, kolory dodatkowe i uszlachetnienia.
 
@@ -1349,7 +1349,7 @@ W tej sekcji pasek wstawiania ma dodatkowe narzędzia:
 - **Miejsca klejenia** i **Szczeliny** – numer pary, wymiary, na spodzie, usuwanie.
 
 Na arkuszu zakładki są jasnoszare z numerem pary, a ten sam numer stoi przy krawędzi albo w miejscu, do którego
-się przyklejają – po wycięciu wiesz, co z czym skleić. Plik dla plotera (menu **⋯**) i PDF dla drukarni dostają
+się przyklejają – po wycięciu wiesz, co z czym skleić. Plik dla plotera (menu **⋯** → [Inne formaty i import…]) i PDF dla drukarni dostają
 obrys cięcia części z zakładkami i szczelinami, zgięcia (także u nasady każdej zakładki) i miejsca klejenia.
 
 **Co się z czym łączy.** Gdy nic nie jest zaznaczone, panel strony w sekcji składanki ma listę **Połączenia**:

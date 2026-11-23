@@ -259,7 +259,7 @@ goes into the file as outlines. After export the app tells you if this has happe
 
 ## 21.5 Page as PNG
 
-[⋯] → [Download current page as PNG] saves an image of the open page at 300 dpi, with bleed —
+[⋯] → [Other formats and import…] → [Download current page as PNG] saves an image of the open page at 300 dpi, with bleed —
 e.g. to show someone in a message.
 
 ## 21.6 Booklet and several pages per sheet
@@ -387,7 +387,7 @@ line, closed pen shape, a whole group) stops being a drawing and becomes a line 
 | **Glue** | An area where glue goes (box or envelope flap). | green area | Glue |
 
 The lines are always visible on the page but don't print with ink — in a vector PDF they go onto separate plates (CutContour
-is recognized by most print & cut plotters). The **⋯** menu → [Plotter file (SVG, current page)] downloads just the
+is recognized by most print & cut plotters). The **⋯** menu → [Other formats and import…] → [Plotter file (SVG, current page)] downloads just the
 lines of the current page in millimeters — for Cricut, Silhouette or a print shop plotter (the line color says what to do).
 **Preflight check** makes sure it can be cut and folded: a cut from an open line, a crease or glue with no cut
 line, a crease or glue outside the cut-out piece. Ready-made die lines for envelopes, folders and boxes, with a 3D mockup, come from a section

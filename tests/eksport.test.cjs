@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, zPlikow } = require('./pomoc.cjs');
 
 test('czcionki są w repozytorium: aplikacja nie pyta serwerów Google, polskie znaki mają swój plik', async (t) => {
   const { strona, bledy } = await otworz(t);
@@ -138,8 +138,7 @@ test('eksport PDF: strony z powieleniami serii, spad i znaki cięcia, podział n
   assert.deepEqual(zip, [['Do druku - część 1 (s. 2-3).pdf', 2, 148, 210], ['Do druku - część 2 (s. 4-4).pdf', 1, 148, 210]]);
 
   // PNG bieżącej strony: 300 dpi ze spadem (154 × 216 mm → 1819 × 2551 px).
-  await strona.click('#przycisk-wiecej');
-  const [png] = await Promise.all([strona.waitForEvent('download'), strona.click('[data-akcja="png"]')]);
+  const [png] = await Promise.all([strona.waitForEvent('download'), zPlikow(strona, 'png')]);
   assert.equal(png.suggestedFilename(), 'Do druku-s1.png');
   const bajty = require('node:fs').readFileSync(await png.path());
   assert.deepEqual([bajty.readUInt32BE(16), bajty.readUInt32BE(20)], [1819, 2551]);

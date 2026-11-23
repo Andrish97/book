@@ -4,7 +4,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, zPlikow } = require('./pomoc.cjs');
 
 test('seria dla innych programów: IDML, SLA, DOCX z polami i dane z obrazami; MERGEFIELD z powrotem', async (t) => {
   const { strona, bledy } = await otworz(t);
@@ -74,7 +74,7 @@ test('seria dla innych programów: IDML, SLA, DOCX z polami i dane z obrazami; M
   assert.deepEqual(w.xlsx, [['imie', '@foto'], ['Anna Żak', 'obrazy/anna.png'], ['Bartek', ''], ['Celina', '']]);
 
   // Z menu ⋯: okno wyboru programu → ZIP.
-  await strona.evaluate(() => document.querySelector('[data-akcja="seria-programy"]').click());
+  await zPlikow(strona, 'seria-programy');
   await strona.waitForSelector('#dlg-seria-programy[open]');
   await strona.click('#dlg-seria-programy label:has(input[value="scribus"])');
   await strona.screenshot({ path: '/tmp/claude-0/-home-user-book/c7489e9c-f7c8-52f9-8669-f2a79a7c09c7/scratchpad/seria-okno.png' });

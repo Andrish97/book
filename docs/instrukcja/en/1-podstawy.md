@@ -157,7 +157,7 @@ changes made on this device; changes by other people and AI stay.
   fixed. Formatting of parts of text (e.g. a bold `<<imie>>` field) is kept for merge fields too.
 - The app installed on a computer opens `.makietka` files with a double-click (→ 28.4).
 
-**Text from and to other programs.** In the editor, the **⋯** menu:
+**Text from and to other programs.** In the editor, the **⋯** menu → [Other formats and import…]:
 
 - [Insert text from file (Word, ODT, Markdown)…] — a `.docx` (Word), `.odt` (LibreOffice, OpenOffice), `.md`
   (Markdown) or `.txt` file goes into one frame on the current page, within the margins, with **Add pages** turned on:

@@ -43,7 +43,7 @@ The items are grouped:
 | Search and notes | [Find and replace…] (→ 5.15), [Comments] (→ 24.7). |
 | Project resources | [Project images…] (→ 7.5), [Project fonts…] (→ 5.8), [Project colors…] — project and section colors, extra colors, finishes (→ 22.1, 22.5); on a phone also [Master pages…] and [Data…]. |
 | Format and brand | [Change project format…] (→ 10.9), [Apply brand to project…] (→ 27.9). |
-| Print and export | [Preflight check] (→ 20), [Export to PDF…] (→ 21), [Print at home…] (→ 21.8), [Download current page as PNG] (→ 21.5). |
+| Print and export | [Preflight check] (→ 20), [Export to PDF…] (→ 21), [Print at home…] (→ 21.8), [Other formats and import…] — one submenu: PNG of the current page (→ 21.5), Word, EPUB, InDesign, Scribus, SVG, plotter file, series for another program, print shop specification and inserting text from a file (→ 1). |
 | Other | [Collaboration…] (→ 24) and the theme switch (→ 27.4). |
 
 ## 3.4 Insert bar
@@ -1187,7 +1187,7 @@ On a covering, the cover artwork is not printed — only elements with gold foil
 Finishing). The 3D mockup shows the covering in the chosen color, with a cloth, leather or paper texture,
 and the foil and embossing on it. **Preflight check** reminds you about the covering and corners.
 
-**Print specification** (the **⋯** menu) downloads two files: text for an order or email, and JSON. They contain
+**Print specification** (the **⋯** menu → [Other formats and import…]) downloads two files: text for an order or email, and JSON. They contain
 the formats and page counts of the sections, binding and spine, body paper, cover material, laminate and corners, ribbon, signatures,
 substrate, color mode, spot colors and finishes.
 
@@ -1352,7 +1352,7 @@ In this section the insert bar has extra tools:
 - **Glue areas** and **Slots** – pair number, dimensions, on the underside, deleting.
 
 On the sheet, tabs are light grey with a pair number, and the same number stands by the edge or at the spot they are
-glued to – after cutting out you know what to glue to what. The plotter file (menu **⋯**) and the PDF for the printer get
+glued to – after cutting out you know what to glue to what. The plotter file (menu **⋯** → [Other formats and import…]) and the PDF for the printer get
 the cut outline of the parts with tabs and slots, folds (also at the base of each tab) and glue areas.
 
 **What joins what.** When nothing is selected, the page panel in a paper-model section has a **Connections** list:

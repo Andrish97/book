@@ -259,7 +259,7 @@ trafia do pliku jako krzywe. Po eksporcie aplikacja mówi, jeśli coś takiego s
 
 ## 21.5 Strona jako PNG
 
-[⋯] → [Pobierz bieżącą stronę jako PNG] zapisuje obraz otwartej strony w 300 dpi, ze spadem —
+[⋯] → [Inne formaty i import…] → [Pobierz bieżącą stronę jako PNG] zapisuje obraz otwartej strony w 300 dpi, ze spadem —
 np. do pokazania komuś w wiadomości.
 
 ## 21.6 Broszura i kilka stron na arkuszu
@@ -387,7 +387,7 @@ linia, zamknięty kształt piórem, cała grupa) przestaje być rysunkiem i staj
 | **Klej** | Pole, na które idzie klej (zakładka pudełka, koperty). | zielone pole | Glue |
 
 Linie zawsze widać na stronie, ale nie drukują się farbą — w PDF wektorowym trafiają na osobne płyty (CutContour
-rozpoznaje większość ploterów print & cut). Menu **⋯** → [Plik dla plotera (SVG, bieżąca strona)] pobiera same
+rozpoznaje większość ploterów print & cut). Menu **⋯** → [Inne formaty i import…] → [Plik dla plotera (SVG, bieżąca strona)] pobiera same
 linie bieżącej strony w milimetrach — dla Cricut, Silhouette albo plotera w drukarni (kolor linii mówi, co robić).
 **Sprawdź przed drukiem** pilnuje, czy da się wyciąć i złożyć: cięcie z otwartej linii, big albo klej bez linii
 cięcia, big albo klej poza wycinanym kawałkiem. Gotowe wykroje koperty, teczki i pudełka z makietą 3D daje sekcja
