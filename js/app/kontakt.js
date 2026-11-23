@@ -65,7 +65,7 @@ function turnstile() {
 // adresPrzed – formularz otwarty z adresu #/kontakt: po zamknięciu adres wraca na poprzedni ekran (#406).
 let adresPrzed = null;
 dlg.addEventListener('close', () => {
-  if (/^#\/kontakt/.test(location.hash)) history.replaceState(null, '', adresPrzed || '#/');
+  if (/^#\/(kontakt|contact)/.test(location.hash)) history.replaceState(null, '', adresPrzed || '#/');
 });
 
 export async function otworzKontakt(opcje = {}) {

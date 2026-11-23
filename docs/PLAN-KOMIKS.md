@@ -246,3 +246,4 @@ Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty
 - Właściciel: okienka zgody przy łączniku i komendach w tej rozmowie – zezwolenia ustawia właściciel („Zawsze zezwalaj” albo .claude/settings.json).
 - „Dlaczego adres się kończy HTML? Polityki prywatności. Chciałbym, żeby nie było takich rzeczy.” – ✅ makietka.app/privacy i /prywatnosc (#407).
 - „ale potem piszesz testy i jak dodałeś tylko jedną rzecz” / „Nie, ale test ma być bardziej punktowy, a nie całości.” – ✅ zasada w docs/PRZEKAZANIE.md: test tylko zmienionej rzeczy, uruchamiane tylko testy tej zmiany, bez pełnego przebiegu.
+- Compliance: „does not use AI models to generate images” – właściciel: „wtedy łącznik nie będzie mógł rysować… możemy coś takiego zrobić”; „wkurza mnie trochę mieszanie polskich i angielskich nazw” – ✅ /mcp bez rysowania (katalog), /mcp/full pełny, opisy narzędzi bez odwołań, adresy #/docs i #/contact (#408).

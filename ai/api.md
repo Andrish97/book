@@ -11,6 +11,7 @@ Dokumenty obok: [instrukcja obsługi](https://makietka.app/ai/instrukcja.md), [f
 | Droga | Dla kogo | Jak | Koszt |
 |---|---|---|---|
 | **Łącznik z logowaniem (OAuth 2.1)** | Claude, ChatGPT i inne klienty MCP | adres `https://api.makietka.app/mcp` bez klucza; klient rejestruje się (DCR), użytkownik loguje się w Makietce i wybiera zakres na stronie zgody (punkt 2) | plan aplikacji AI z własnymi łącznikami |
+| **Pełny łącznik z logowaniem** | jw., z rysowaniem obrazów (generuj_obraz, rysuj_kadry) | `https://api.makietka.app/mcp/full` – adres `/mcp` (katalog łączników Claude) nie ma tych dwóch narzędzi (zasady katalogu) | jw. |
 | **Łącznik z kluczem w adresie** | klienty MCP bez OAuth, Claude Code, serwer u siebie | `https://api.makietka.app/mcp/sdk_…` (punkt 1–2) | jw. |
 | **Zwykłe adresy (GET)** | czaty, które same otwierają dowolne strony | ten sam adres jak strona, narzędzia: `…/n/<narzędzie>?…` (punkt 2) | Makietka nic nie bierze |
 | **Kopiuj i wklej** | dowolny czat, także darmowy | Asystent AI w Makietce przygotowuje polecenie, czat odpowiada blokiem `makietka`, Makietka wykonuje (instrukcja 25.6) | nic |

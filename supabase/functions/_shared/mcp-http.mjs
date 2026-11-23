@@ -214,10 +214,13 @@ async function rpcBazy(env, funkcja, parametry) {
   return d;
 }
 
-export function metadaneOAuth(env = {}) {
+// Pełny łącznik (z rysowaniem obrazów, #408): /mcp/full – adres w Claude; /mcp – łącznik z katalogu Claude bez rysowania.
+export const pelnyLacznik = (sciezka) => /\/mcp\/full\/?$/.test(sciezka);
+
+export function metadaneOAuth(env = {}, pelny = false) {
   const pub = env.publiczny || ADRES_PUBLICZNY;
   return {
-    zasob: { resource: `${pub}/mcp`, authorization_servers: [pub], bearer_methods_supported: ['header'], resource_name: 'Makietka', resource_documentation: 'https://makietka.app/ai/api.md' },
+    zasob: { resource: `${pub}/mcp${pelny ? '/full' : ''}`, authorization_servers: [pub], bearer_methods_supported: ['header'], resource_name: 'Makietka', resource_documentation: 'https://makietka.app/ai/api.md' },
     serwer: {
       issuer: pub,
       authorization_endpoint: `${pub}/mcp/oauth/authorize`,
@@ -234,7 +237,7 @@ export function metadaneOAuth(env = {}) {
 }
 
 async function obsluzOAuth(request, url, env, cors) {
-  const m = metadaneOAuth(env);
+  const m = metadaneOAuth(env, pelnyLacznik(url.pathname));
   const sc = url.pathname;
   if (/\/\.well-known\/oauth-protected-resource/.test(sc)) return json(200, m.zasob, { ...cors, 'access-control-allow-origin': '*' });
   if (/\/\.well-known\/(oauth-authorization-server|openid-configuration)/.test(sc)) return json(200, m.serwer, { ...cors, 'access-control-allow-origin': '*' });
@@ -304,13 +307,16 @@ export async function obsluzHttp(request, env = {}) {
   if (!klucz) {
     const pub = env.publiczny || ADRES_PUBLICZNY;
     return json(401, { jsonrpc: '2.0', id: tresc?.id ?? null, error: { code: BLEDY.ZADANIE, message: 'Zaloguj się do Makietki (OAuth) albo użyj adresu łącznika z kluczem z ustawień konta → Sztuczna inteligencja.' } }, {
-      ...cors, 'www-authenticate': `Bearer resource_metadata="${pub}/.well-known/oauth-protected-resource/mcp"`, 'access-control-expose-headers': 'www-authenticate',
+      ...cors, 'www-authenticate': `Bearer resource_metadata="${pub}/.well-known/oauth-protected-resource/mcp${pelnyLacznik(url.pathname) ? '/full' : ''}"`, 'access-control-expose-headers': 'www-authenticate',
     });
   }
   const serwer = utworzSerwer({
     adres: env.adres || DOMYSLNY_ADRES,
     kluczPubliczny: env.kluczPubliczny || DOMYSLNY_KLUCZ_PUBLICZNY,
     klucz: WZOR_KLUCZA.test(klucz) ? klucz : '',
+    // Rysowanie obrazów modelem AI (generuj_obraz, rysuj_kadry) – pełny adres /mcp/full albo adres z kluczem w ścieżce
+    // lub ?klucz=; zwykły /mcp z logowaniem (katalog Claude) – bez rysowania (#408).
+    rysowanie: pelnyLacznik(url.pathname) || url.pathname.includes('/sdk_') || url.searchParams.has('klucz'),
     // Pliki z rozmowy (pole pliki_z_czatu z _meta „openai/fileParams”) tylko dla ChatGPT – Claude odrzucał listę
     // narzędzi z tym dopiskiem („Couldn't reload tools from the server”).
     plikiZCzatu: /openai|chatgpt/i.test(request.headers.get('user-agent') || ''),

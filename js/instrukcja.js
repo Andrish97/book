@@ -132,7 +132,7 @@ export class Instrukcja {
       this.przelaczSpis(false);
       this.powieksz(null);
       // Instrukcja otwarta z adresu #/instrukcja – po zamknięciu adres wraca na poprzedni.
-      if (/^#\/instrukcja/.test(location.hash)) history.replaceState(null, '', this.adresPrzed || '#/');
+      if (/^#\/(instrukcja|docs)/.test(location.hash)) history.replaceState(null, '', this.adresPrzed || '#/');
     });
   }
 

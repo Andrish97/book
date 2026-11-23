@@ -64,8 +64,9 @@ export const trasa = {
       };
     }
     if (rodzaj === 'konto') return { ekran: 'konto', sekcja: id || null };
-    if (rodzaj === 'instrukcja') return { ekran: 'instrukcja', cel: id || null }; // podręcznik – także bez konta (#114); #/instrukcja/25.10 – od razu ten rozdział
-    if (rodzaj === 'kontakt') return { ekran: 'kontakt' }; // formularz kontaktowy z adresu, także bez konta (#406)
+    // Angielskie nazwy adresów (zgłoszenie w katalogu Claude, #408): #/docs = #/instrukcja, #/contact = #/kontakt.
+    if (rodzaj === 'instrukcja' || rodzaj === 'docs') return { ekran: 'instrukcja', cel: id || null }; // podręcznik – także bez konta (#114); #/instrukcja/25.10 – od razu ten rozdział
+    if (rodzaj === 'kontakt' || rodzaj === 'contact') return { ekran: 'kontakt' }; // formularz kontaktowy z adresu, także bez konta (#406)
     if (rodzaj === 'admin') return { ekran: 'admin', zakladka: id || 'skrzynka' };
     if (rodzaj === 'zaproszenie' && id) return { ekran: 'zaproszenie', kod: id };
     if (rodzaj === 'polacz-ai' && id) return { ekran: 'polacz-ai', id }; // zgoda na łącznik z logowaniem (#244)

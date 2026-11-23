@@ -2536,7 +2536,11 @@ Gdy klucze są zaszyfrowane na tym urządzeniu, sekcja Czat w Makietce pokazuje 
 
 ### 25.3 Podłączenie w aplikacji AI
 
-**Najprościej – z logowaniem (bez kopiowania klucza).** W aplikacji AI dodaj własny łącznik pod adresem `https://api.makietka.app/mcp` (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy stronę Makietki **Połącz z Makietką**: logujesz się swoim hasłem, widzisz, kto prosi (np. „Claude”), wybierasz projekty (albo wszystkie), czytanie albo też zmiany i ważność – **Zezwól** wraca do aplikacji AI, **Odmów** kończy łączenie. Połączenie to zwykły klucz dostępu „Łącznik: nazwa aplikacji” – widać go w ustawieniach Sztuczna inteligencja i można go odebrać. Aplikacja AI nie dostaje Twojego hasła. Druga droga – adres z kluczem z okna – działa jak dotąd:
+**Najprościej – z logowaniem (bez kopiowania klucza).** W aplikacji AI dodaj własny łącznik pod adresem `https://api.makietka.app/mcp` (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy stronę Makietki **Połącz z Makietką**: logujesz się swoim hasłem, widzisz, kto prosi (np. „Claude”), wybierasz projekty (albo wszystkie), czytanie albo też zmiany i ważność – **Zezwól** wraca do aplikacji AI, **Odmów** kończy łączenie. Połączenie to zwykły klucz dostępu „Łącznik: nazwa aplikacji” – widać go w ustawieniach Sztuczna inteligencja i można go odebrać. Aplikacja AI nie dostaje Twojego hasła.
+
+**Rysowanie obrazów.** Łącznik pod adresem `https://api.makietka.app/mcp` (także ten z katalogu łączników Claude) nie rysuje obrazów ani kadrów komiksu – tak wymagają zasady katalogu. Żeby AI rysowało (Twoim kluczem Gemini), dodaj łącznik pod adresem **`https://api.makietka.app/mcp/full`** – logowanie i wszystko inne działa tak samo. Adres z kluczem z okna też ma rysowanie.
+
+Druga droga – adres z kluczem z okna – działa jak dotąd:
 
 | Aplikacja | Jak podłączyć |
 |---|---|

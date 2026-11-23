@@ -197,7 +197,14 @@ per device.
 **Connect to Makietka**: you sign in with your password, see who is asking (e.g. "Claude"), choose projects (or
 all of them), reading only or changes too, and the validity – [Allow] returns to the AI app, [Deny] ends the connection.
 The connection is an ordinary access key "Connector: app name" – you can see it in the Artificial intelligence settings and
-revoke it. The AI app doesn't get your password. The second way – the address with a key from the window – works as before:
+revoke it. The AI app doesn't get your password.
+
+**Drawing pictures.** The connector at `https://api.makietka.app/mcp` (also the one from the Claude connector directory)
+doesn't draw pictures or comic panels – the directory rules require that. For the AI to draw (with your Gemini key), add
+the connector at **`https://api.makietka.app/mcp/full`** – sign-in and everything else work the same. The address with a key
+from the window also draws.
+
+The second way – the address with a key from the window – works as before:
 
 | App | How to connect |
 |---|---|

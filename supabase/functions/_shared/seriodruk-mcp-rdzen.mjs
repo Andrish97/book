@@ -1790,11 +1790,15 @@ const tekst = (opis) => ({ type: 'string', description: opis });
 const obiekt = (opis) => ({ type: 'object', description: opis, additionalProperties: true });
 const GDZIE = tekst('„strona:<id strony>” albo „wzorzec:<id wzorca>”.');
 
-const INSTRUKCJE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc); zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Uwagi osób do stron czytasz narzędziem komentarze; odpowiadasz przez odpowiedz (rozwiaz=true, gdy poprawka jest już w projekcie), nowe uwagi dodaje skomentuj. Obraz z opisu rysuje generuj_obraz, kadry komiksu rysuj_kadry, dymki ustaw_dymki (robi to otwarta aplikacja kluczem Gemini użytkownika; kosztuje – mów użytkownikowi, co rysujesz). Gotowe elementy (ramki, ikony, kalendarze, wykresy, ozdobniki…): biblioteka i wstaw_z_biblioteki. Link do podglądu: udostepnij_link – tylko po wyraźnej zgodzie użytkownika. Zmiany AI cofa cofnij_zmiany_ai (najpierw sprawdz=true i pytanie). Gotowy plik: eksport_pdf (cały projekt, sekcja albo strony, do drukarni albo na ekran) i eksport_png (jedna strona) zwracają link do pobrania – plik robi otwarta aplikacja Makietki; gdy nie jest otwarta, daj użytkownikowi link do aplikacji z odpowiedzi i sprawdź stan_eksportu. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu, wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
+const INSTRUKCJE_PELNE = 'Narzędzia czytają i zmieniają projekty Makietki (edytor kalendarzy i publikacji z danymi) na koncie właściciela klucza – równolegle z nim, gdy ma projekt otwarty w edytorze. Zacznij od narzędzia projekty: lista projektów, do których prowadzi klucz (i czy możesz tworzyć oraz usuwać projekty). W każdym narzędziu projektu podaj projekt (id albo nazwa z listy); gdy klucz obejmuje jeden projekt, można go pominąć. Potem przeglad_projektu. Wymiary są w milimetrach (rozmiar pisma też: pt × 25,4 / 72). Zmieniaj możliwie małymi krokami (zmien_elementy, zmien_tabele, zmien_czesc; usuwanie: usun_z_tabeli, usun_czesc); element z Biblioteki zmieniasz potem przez zmien_elementy; zmien_projekt tylko dla zmian, których inne narzędzia nie obejmują. Przed większymi zmianami przeczytaj opis_formatu. Strony powtarzane robi się serią z tabeli, nie kopiami stron. Uwagi osób do stron czytasz narzędziem komentarze; odpowiadasz przez odpowiedz (rozwiaz=true, gdy poprawka jest już w projekcie), nowe uwagi dodaje skomentuj. Obraz z opisu rysuje generuj_obraz, kadry komiksu rysuj_kadry, dymki ustaw_dymki (robi to otwarta aplikacja kluczem Gemini użytkownika; kosztuje – mów użytkownikowi, co rysujesz). Gotowe elementy (ramki, ikony, kalendarze, wykresy, ozdobniki…): biblioteka i wstaw_z_biblioteki. Link do podglądu: udostepnij_link – tylko po wyraźnej zgodzie użytkownika (zaproponuj hasło albo datę ważności). Projekt usuwaj (usun_projekt) tylko po pytaniu wprost. Zmiany AI cofa cofnij_zmiany_ai: najpierw sprawdz=true, powiedz użytkownikowi, co się cofnie, i cofaj tylko na jego wyraźną prośbę. Gotowy plik: eksport_pdf (cały projekt, sekcja albo strony, do drukarni albo na ekran) i eksport_png (jedna strona) zwracają link do pobrania – plik robi otwarta aplikacja Makietki; gdy nie jest otwarta, daj użytkownikowi link do aplikacji z odpowiedzi i sprawdź stan_eksportu. Obrazy: wgraj_obraz (adres https, kod SVG, base64) dodaje plik do projektu (obraz z sieci – podaj źródło i pilnuj praw autorskich); użyty obraz wymienia na nowy plik podmien_obraz (strony od razu pokazują nowy), wstaw_obraz stawia go na stronie jako pojedynczy element, obrazy_projektu je wymienia. Pliki, które masz w swoim środowisku (miejsce robocze, załącznik w piaskownicy), wgrywasz sam przez wgraj_czesciami – kawałkami base64 przez łącznik, bez żadnego dostępu sieci (ZIP rozpakuj u siebie). To dobra droga dla grafik do kilkuset KB; jakości plików nie obniżaj bez zgody użytkownika. adres_do_wysylki podaje adres z kluczem – nie pokazuj go. Duże zdjęcia albo pliki, do których nie sięgasz: wywołaj link_do_wgrywania i daj użytkownikowi link – wrzuci je sam, potem sprawdź obrazy_projektu i działaj dalej. Nigdy nie odpowiadaj, że się nie da albo że nie masz dostępu do jego plików. Nie łącz się z bazą z własnej piaskownicy – używaj narzędzi łącznika Makietka i nie proś użytkownika o odblokowanie domen ani zmianę ustawień sieci.';
+// Łącznik z katalogu Claude (adres /mcp z logowaniem) – bez rysowania obrazów modelem AI (zasady katalogu, #408);
+// pełny łącznik: /mcp/full albo adres z kluczem.
+export const RYSUJACE = new Set(['generuj_obraz', 'rysuj_kadry']);
+const INSTRUKCJE_BEZ_RYSOWANIA = INSTRUKCJE_PELNE.replace('Obraz z opisu rysuje generuj_obraz, kadry komiksu rysuj_kadry, dymki ustaw_dymki (robi to otwarta aplikacja kluczem Gemini użytkownika; kosztuje – mów użytkownikowi, co rysujesz). ', 'Dymki komiksu ustawia ustaw_dymki. ');
 
 // czekanieEksportu, krokEksportu (ms): jak długo i jak często łącznik czeka na plik zlecony aplikacji (#175).
-export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Sztuczna inteligencja).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, projekt: wybranyProjekt = null, czekanieEksportu = 45000, krokEksportu = 1500, adresPobierania = ADRES_POBIERANIA }) {
-  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu, czekanieEksportu, krokEksportu, adresPobierania };
+export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Sztuczna inteligencja).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, rysowanie = true, projekt: wybranyProjekt = null, czekanieEksportu = 45000, krokEksportu = 1500, adresPobierania = ADRES_POBIERANIA }) {
+  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu, rysowanie, czekanieEksportu, krokEksportu, adresPobierania };
   const ADRES = String(adres || '').replace(/\/+$/, '');
   const KLUCZ_PUBLICZNY = kluczPubliczny;
   // Klucz konta (ustawienia konta → Sztuczna inteligencja) i – dla narzędzi projektu – wybrany projekt: funkcje bazy ai_*
@@ -2248,7 +2252,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'usun_projekt',
       title: 'Usuń projekt',
-      description: 'Usuwa cały projekt z konta – nieodwracalnie. Tylko klucz z pełnym dostępem i tylko projekt właściciela klucza (nie udostępniony przez kogoś). ZAWSZE najpierw zapytaj użytkownika wprost, czy usunąć ten projekt; w „potwierdz” podaj dokładną nazwę projektu.',
+      description: 'Usuwa cały projekt z konta – nieodwracalnie. Tylko klucz z pełnym dostępem i tylko projekt właściciela klucza (nie udostępniony przez kogoś). Wymaga potwierdzenia: „potwierdz” to dokładna nazwa projektu.',
       inputSchema: S('', { projekt: tekst('id albo nazwa projektu'), potwierdz: tekst('Dokładna nazwa projektu – potwierdzenie') }, ['projekt', 'potwierdz']),
       dzialaj: async ({ projekt, potwierdz }) => {
         const id = await jakiProjekt(projekt);
@@ -2281,7 +2285,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'zmien_elementy',
       title: 'Zmień elementy',
-      description: 'Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty – opis w opis_formatu), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole.',
+      description: 'Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole.',
       inputSchema: S('', { gdzie: GDZIE, zmiany: { type: 'array', items: S('', { id: tekst('id elementu'), pola: obiekt('Pola do zmiany') }, ['id', 'pola']) } }, ['gdzie', 'zmiany']),
       dzialaj: ({ gdzie, zmiany }) => zmien((p) => {
         const m = miejsce(p, gdzie);
@@ -2292,7 +2296,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'dodaj_elementy',
       title: 'Dodaj elementy',
-      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem – prościej narzędziem wstaw_obraz, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }; skrótem także kalendarz miesiąca { type: "kalendarz", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, wykres { type: "wykres", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } } kolaż { type: "kolaz", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } }, dymek { type: "dymek", tekst, left, top, ogonek: { x, y } (punkt na stronie, w który celuje), rodzaj: "mowa"|"mysl"|"krzyk"|"szept"|"narracja" } – dymek rośnie z tekstem, spis treści { type: "spis", left, top, width, poziomy } i skorowidz { type: "skorowidz", left, top, width } – opis w opis_formatu) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
+      description: 'Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: "kod", rodzaj: "qr"|"ean", tresc, szerokosc, left, top }; skrótem także kalendarz miesiąca { type: "kalendarz", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, wykres { type: "wykres", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } } kolaż { type: "kolaz", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } }, dymek { type: "dymek", tekst, left, top, ogonek: { x, y } (punkt na stronie, w który celuje), rodzaj: "mowa"|"mysl"|"krzyk"|"szept"|"narracja" } – dymek rośnie z tekstem, spis treści { type: "spis", left, top, width, poziomy } i skorowidz { type: "skorowidz", left, top, width }) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).',
       inputSchema: S('', { gdzie: GDZIE, elementy: { type: 'array', items: obiekt('Element') }, przed: tekst('id elementu, przed którym wstawić (niżej w warstwach)') }, ['gdzie', 'elementy']),
       dzialaj: ({ gdzie, elementy, przed }) => zmien((p) => {
         const m = miejsce(p, gdzie);
@@ -2305,7 +2309,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'obrazy_projektu',
       title: 'Obrazy projektu',
-      description: 'Lista obrazów projektu (to samo co okno „Obrazy projektu” w aplikacji): id, nazwa z rozszerzeniem, wymiary w pikselach i gdzie obraz jest użyty (strony, wzorce, dane w tabelach, albo „nieużywany”), do tego powtórzenia (kopie tego samego pliku, powtórzone nazwy). Nazwy wpisuje się w kolumny tabel danych; id albo nazwę podaje się narzędziom wstaw_obraz, zmien_nazwe_obrazu, podmien_obraz i usun_obrazy.',
+      description: 'Lista obrazów projektu (to samo co okno „Obrazy projektu” w aplikacji): id, nazwa z rozszerzeniem, wymiary w pikselach i gdzie obraz jest użyty (strony, wzorce, dane w tabelach, albo „nieużywany”), do tego powtórzenia (kopie tego samego pliku, powtórzone nazwy). Nazwy wpisuje się w kolumny tabel danych.',
       inputSchema: S('', {}),
       readOnly: true,
       dzialaj: async () => {
@@ -2331,11 +2335,10 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       title: 'Wgraj obrazy do projektu',
       meta: plikiZCzatu ? { 'openai/fileParams': ['pliki_z_czatu'] } : null, // tylko ChatGPT: załączniki rozmowy (adres do pobrania)
       description: `Wgrywa obraz albo archiwum ZIP z obrazami do projektu (trafiają do okna „Obrazy projektu” u właściciela, na żywo). Podaj dokładnie jedno źródło:
-- adres – plik w internecie (https). Działa też link udostępniania z Dysku Google („każdy, kto ma link”, pojedynczy plik albo ZIP) i z Dropboxa (plik albo folder – Dropbox odda folder jako ZIP). Obraz znaleziony w sieci: podaj użytkownikowi źródło i pilnuj praw autorskich.
+- adres – plik w internecie (https). Działa też link udostępniania z Dysku Google („każdy, kto ma link”, pojedynczy plik albo ZIP) i z Dropboxa (plik albo folder – Dropbox odda folder jako ZIP).
 - svg – rysunek, który sam piszesz (ozdobniki, ikony, ramki); potrzebny viewBox albo width/height; bez skryptów.
 - dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.${plikiZCzatu ? '\n- pliki_z_czatu – załączniki rozmowy (ChatGPT podaje je sam); dowolna wielkość.' : ''}${czytajPliki ? '\n- plik – ścieżka na dysku tego komputera albo lista ścieżek; folder = wszystkie obrazy i ZIP-y w nim (najwyżej 50 plików).' : ''}
-Pliki w Twoim środowisku (miejsce robocze, załącznik w piaskownicy): wgraj_czesciami – kawałkami przez łącznik, bez dostępu sieci. Zdjęcia, do których nie sięgasz, albo bardzo duże: NIE odmawiaj – wywołaj link_do_wgrywania i daj użytkownikowi link; wrzuci je sam (dowolna wielkość), a Ty zobaczysz je w obrazy_projektu. Ewentualnie poproś o link z Dysku Google albo Dropboxa. 
-Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – jak podmien_obraz. wstaw – od razu wstawia obraz jako pojedynczy element (pola jak w wstaw_obraz; tylko dla jednego obrazu).`,
+Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – podmienia ten obraz projektu na nowy plik. wstaw – od razu wstawia obraz jako pojedynczy element (tylko dla jednego obrazu).`,
       inputSchema: S('', {
         nazwa: tekst('Nazwa pliku z rozszerzeniem, np. „choinka.svg” (domyślnie z adresu albo pliku).'),
         adres: tekst('Adres https pliku (obraz albo ZIP), także link z Dysku Google albo Dropboxa.'),
@@ -2348,7 +2351,7 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
         } } : {}),
         ...(czytajPliki ? { plik: { anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }], description: 'Ścieżka pliku albo folderu na tym komputerze (może zaczynać się od ~/), albo lista ścieżek.' } } : {}),
         zastap: tekst('id albo nazwa obrazu, który ten plik zastępuje.'),
-        wstaw: obiekt('Opcjonalnie: { gdzie, x?, y?, szerokosc?, wysokosc?, dopasowanie? } – jak w wstaw_obraz.'),
+        wstaw: obiekt('Opcjonalnie: { gdzie (id strony albo wzorca), x?, y?, szerokosc?, wysokosc? (mm), dopasowanie? (zmiesc | wypelnij) }.'),
       }),
       dzialaj: async (a) => {
         const { wyniki, opisy, ostatni } = await wgrajPliki(await plikiZeZrodla(a), { zastap: a.zastap || null });
@@ -2362,7 +2365,7 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
     {
       name: 'link_do_wgrywania',
       title: 'Link do wgrania obrazów',
-      description: 'Link do aplikacji, który otwiera ten projekt od razu z oknem „Obrazy projektu”. Główna droga dla zdjęć, które użytkownik ma u siebie (z komputera, z telefonu, z załącznika rozmowy, archiwum ZIP, dowolnej wielkości) – wywołaj od razu, zamiast mówić, że nie masz dostępu do plików: wgra je tam przyciskiem „Wgraj obrazy…”, a Ty zobaczysz je potem w obrazy_projektu. Link wymaga zalogowania na konto właściciela.',
+      description: 'Link do aplikacji, który otwiera ten projekt od razu z oknem „Obrazy projektu”. Użytkownik wgrywa tam przyciskiem „Wgraj obrazy…” zdjęcia, które ma u siebie (z komputera, z telefonu, z załącznika rozmowy, archiwum ZIP, dowolnej wielkości); trafiają do obrazów projektu. Link wymaga zalogowania na konto właściciela.',
       inputSchema: S('', {}),
       readOnly: true,
       dzialaj: async () => {
@@ -2373,7 +2376,7 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
     {
       name: 'wstaw_obraz',
       title: 'Wstaw obraz na stronę',
-      description: 'Wstawia obraz z projektu (id albo nazwa z obrazy_projektu) jako pojedynczy element na stronę albo do wzorca – jak „Obraz → Wybierz z obrazów projektu” w aplikacji. Wymiary w mm. Bez rozmiaru: 60% strony, na środku. Sama szerokosc albo sama wysokosc: proporcje obrazu zachowane. szerokosc i wysokosc razem to ramka: dopasowanie „zmiesc” (cały obraz w ramce, domyślnie) albo „wypelnij” (wypełnia ramkę, brzegi przycięte wokół środka). x, y – lewy górny róg (ramki); bez nich – na środku strony.',
+      description: 'Wstawia obraz z projektu (id albo nazwa obrazu) jako pojedynczy element na stronę albo do wzorca – jak „Obraz → Wybierz z obrazów projektu” w aplikacji. Wymiary w mm. Bez rozmiaru: 60% strony, na środku. Sama szerokosc albo sama wysokosc: proporcje obrazu zachowane. szerokosc i wysokosc razem to ramka: dopasowanie „zmiesc” (cały obraz w ramce, domyślnie) albo „wypelnij” (wypełnia ramkę, brzegi przycięte wokół środka). x, y – lewy górny róg (ramki); bez nich – na środku strony.',
       inputSchema: S('', {
         obraz: tekst('id albo nazwa obrazu projektu'), gdzie: GDZIE,
         x: { type: 'number', description: 'mm od lewej krawędzi strony' }, y: { type: 'number', description: 'mm od górnej krawędzi strony' },
@@ -2409,7 +2412,7 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
     {
       name: 'podmien_obraz',
       title: 'Podmień plik obrazu',
-      description: 'Podmienia plik obrazu projektu na nowy – jak „Podmień plik” w oknie „Obrazy projektu”: elementy na stronach i dane w tabelach pokazują od teraz nowy plik, nazwa zostaje, stary plik znika. Źródło jak w wgraj_obraz (adres, svg, dane_base64' + (czytajPliki ? ', plik' : '') + '), jeden obraz.',
+      description: 'Podmienia plik obrazu projektu na nowy – jak „Podmień plik” w oknie „Obrazy projektu”: elementy na stronach i dane w tabelach pokazują od teraz nowy plik, nazwa zostaje, stary plik znika. Źródło: adres (https), svg albo dane_base64' + (czytajPliki ? ', albo plik' : '') + '; jeden obraz.',
       inputSchema: S('', {
         obraz: tekst('id albo nazwa obrazu, który podmieniasz'),
         adres: tekst('Adres https nowego pliku (także Dysk Google, Dropbox).'),
@@ -2425,11 +2428,11 @@ Obsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB
     {
       name: 'wgraj_czesciami',
       title: 'Wgraj plik kawałkami (base64)',
-      description: `Wgrywa obraz, który masz u siebie (plik w miejscu roboczym, załącznik w piaskownicy), gdy nie możesz go podać inaczej: nie ma adresu w internecie, a Twoje środowisko nie łączy się z bazą. Plik idzie w kawałkach base64 w kolejnych wywołaniach tego narzędzia, a łącznik składa je po swojej stronie. Każdy bajt przechodzi przez rozmowę, więc to droga dla grafik do kilkuset KB; przy dużych zdjęciach daj użytkownikowi link z link_do_wgrywania. Jakości plików nie obniżaj bez zgody użytkownika.
+      description: `Wgrywa obraz, który masz u siebie (plik w miejscu roboczym, załącznik w piaskownicy), gdy nie możesz go podać inaczej: nie ma adresu w internecie, a Twoje środowisko nie łączy się z bazą. Plik idzie w kawałkach base64 w kolejnych wywołaniach tego narzędzia, a łącznik składa je po swojej stronie. Każdy bajt przechodzi przez rozmowę, więc to droga dla grafik do kilkuset KB.
 Kroki:
 1. krok="start": nazwa (z rozszerzeniem), rozmiar (bajty), sha256 (skrót SHA-256 treści, 64 znaki hex), kawalek (bajty, od 16384 do 524288; zalecane 49152), opcjonalnie szer, wys (px), zastap (id albo nazwa obrazu do podmiany – strony pokazują od razu nowy plik). Wynik: id wgrania i liczba kawałków. Ten sam plik już w projekcie – wynik od razu to powie.
 2. krok="czesc": wgranie, nr (od 0), dane_base64 – bajty od nr×kawalek, długości kawalek (ostatni krótszy). Kolejność dowolna, powtórzenie zastępuje.
-3. krok="koniec": wgranie – sprawdzam komplet i rozmiar; obraz trafia do projektu (jak wgraj_obraz). Brakujące kawałki wymienię.
+3. krok="koniec": wgranie – sprawdzam komplet i rozmiar; obraz trafia do obrazów projektu. Brakujące kawałki wymienię.
 ZIP rozpakuj u siebie i wgraj obrazy po kolei. Wgranie niedokończone przez dobę znika.`,
       inputSchema: S('', {
         krok: { type: 'string', enum: ['start', 'czesc', 'koniec'] },
@@ -2475,7 +2478,7 @@ ZIP rozpakuj u siebie i wgraj obrazy po kolei. Wgranie niedokończone przez dob�
     {
       name: 'adres_do_wysylki',
       title: 'Adres do wysyłki plików',
-      description: 'Adres, pod który wysyłasz plik obrazu albo ZIP wprost z własnego środowiska (wykonywanie kodu, miejsce robocze z plikami): POST z treścią pliku na <adres>?nazwa=plik.jpg (opcjonalnie &zastap=<id albo nazwa> – podmiana użytego obrazu). Dowolna wielkość do limitów (obraz 25 MB, plik 50 MB), plik nie przechodzi przez rozmowę. Działa tylko, gdy Twoje środowisko już łączy się z hostem adresu (np. własny skrypt użytkownika). Gdy dostajesz błąd sieci (403, zablokowana domena) – nie proś o dopisywanie domen, tylko użyj wgraj_czesciami. Adres zawiera klucz – nie pokazuj go w odpowiedzi.',
+      description: 'Adres, pod który wysyłasz plik obrazu albo ZIP wprost z własnego środowiska (wykonywanie kodu, miejsce robocze z plikami): POST z treścią pliku na <adres>?nazwa=plik.jpg (opcjonalnie &zastap=<id albo nazwa> – podmiana użytego obrazu). Dowolna wielkość do limitów (obraz 25 MB, plik 50 MB), plik nie przechodzi przez rozmowę. Działa tylko, gdy środowisko łączy się z hostem adresu (np. własny skrypt użytkownika). Adres zawiera klucz dostępu.',
       inputSchema: S('', {}),
       readOnly: true,
       dzialaj: async () => `POST ${ADRES_LACZNIKA}/${KLUCZ_KONTA}/obraz?projekt=${(await pobierz()).projekt.id}&nazwa=<nazwa z rozszerzeniem>[&zastap=<id albo nazwa obrazu do podmiany>]
@@ -2486,7 +2489,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'usun_obrazy',
       title: 'Usuń obrazy z projektu',
-      description: 'Usuwa obrazy z projektu (id albo nazwy) – jak „Usuń” w oknie „Obrazy projektu”. Usuwa tylko obrazy nieużywane: obraz, który jest na stronie, we wzorcu albo w danych tabeli, zostaje, a wynik mówi, gdzie jest użyty. Użyty obraz wymieniasz na nowy plik jednym krokiem przez podmien_obraz (albo wgraj_obraz / POST z zastap): wszystkie strony, wzorce i dane pokazują od razu nowy plik, a stary znika – bez przepinania stron i bez osobnego usuwania. nieuzywane: true – usuwa wszystkie nieużywane obrazy. Plik znika też z konta właściciela.',
+      description: 'Usuwa obrazy z projektu (id albo nazwy) – jak „Usuń” w oknie „Obrazy projektu”. Usuwa tylko obrazy nieużywane: obraz, który jest na stronie, we wzorcu albo w danych tabeli, zostaje, a wynik mówi, gdzie jest użyty. nieuzywane: true – usuwa wszystkie nieużywane obrazy. Plik znika też z konta właściciela.',
       inputSchema: S('', { obrazy: { type: 'array', items: { type: 'string' }, description: 'id albo nazwy obrazów' }, nieuzywane: { type: 'boolean' } }),
       dzialaj: async ({ obrazy = [], nieuzywane = false }) => {
         const { projekt } = await pobierz();
@@ -2700,7 +2703,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'zmien_tabele',
       title: 'Zmień tabelę danych',
-      description: 'Zmienia albo tworzy tabelę danych (po id; nowa, jeśli nie ma – wtedy podaj nazwa i kolumny) – bez usuwania danych: nazwa, kolumny (pełna lista; mogą dojść nowe i zmienić się kolejność, ale każda dotychczasowa musi zostać), ustaw komórki [{ wiersz (od 0), kolumna (nazwa), wartosc }], dodaj_wiersze (listy wartości w kolejności kolumn; wiersz „[pomiń]” w pierwszej komórce zajmuje miejsce w bloku serii, ale strona nie powstaje), listy ({ kolumna: [dozwolone wartości] }). Usuwanie wierszy i kolumn albo zastąpienie wszystkich wierszy: usun_z_tabeli.',
+      description: 'Zmienia albo tworzy tabelę danych (po id; nowa, jeśli nie ma – wtedy podaj nazwa i kolumny) – bez usuwania danych: nazwa, kolumny (pełna lista; mogą dojść nowe i zmienić się kolejność, ale każda dotychczasowa musi zostać), ustaw komórki [{ wiersz (od 0), kolumna (nazwa), wartosc }], dodaj_wiersze (listy wartości w kolejności kolumn; wiersz „[pomiń]” w pierwszej komórce zajmuje miejsce w bloku serii, ale strona nie powstaje), listy ({ kolumna: [dozwolone wartości] }).',
       inputSchema: S('', {
         id: tekst('id tabeli'), nazwa: tekst('nazwa tabeli'), kolumny: { type: 'array', items: { type: 'string' } },
         ustaw: { type: 'array', items: S('', { wiersz: { type: 'integer' }, kolumna: { type: 'string' }, wartosc: { type: 'string' } }, ['wiersz', 'kolumna', 'wartosc']) },
@@ -2737,7 +2740,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'usun_z_tabeli',
       title: 'Usuń wiersze albo kolumny tabeli',
-      description: 'Usuwa dane z tabeli (po id): usun_wiersze (numery od 0), usun_kolumny (nazwy – razem z wartościami), albo wiersze – zastępuje WSZYSTKIE wiersze podanymi. Zwykłe zmiany i dopisywanie: zmien_tabele.',
+      description: 'Usuwa dane z tabeli (po id): usun_wiersze (numery od 0), usun_kolumny (nazwy – razem z wartościami), albo wiersze – zastępuje WSZYSTKIE wiersze podanymi.',
       inputSchema: S('', {
         id: tekst('id tabeli'),
         usun_wiersze: { type: 'array', items: { type: 'integer' } },
@@ -2763,7 +2766,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'zmien_czesc',
       title: 'Zmień sekcję, wzorzec, styl, tabelę albo serię',
-      description: 'Ogólna zmiana jednej części projektu po id: czesc = sekcje | wzorce | style | tabele | serie. pola – zmieniane pola (null usuwa pole); nowa część, jeśli id nie istnieje (podaj komplet pól, np. sekcja: nazwa, wydruk, uklad; okładka z grzbietem: pole okladka – opis w opis_formatu; seria: nazwa, tabela, tryb). Zmiana stylu przepisuje jego wartości do wszystkich tekstów z tym stylem (jak w aplikacji). Usunięcie całej części: usun_czesc.',
+      description: 'Ogólna zmiana jednej części projektu po id: czesc = sekcje | wzorce | style | tabele | serie. pola – zmieniane pola (null usuwa pole); nowa część, jeśli id nie istnieje (podaj komplet pól, np. sekcja: nazwa, wydruk, uklad; okładka z grzbietem: pole okladka; seria: nazwa, tabela, tryb). Zmiana stylu przepisuje jego wartości do wszystkich tekstów z tym stylem (jak w aplikacji).',
       inputSchema: S('', { czesc: { type: 'string', enum: Object.keys(CZESCI) }, id: tekst('id'), pola: obiekt('Pola') }, ['czesc', 'id']),
       dzialaj: ({ czesc, id, pola = {}, usun = false }) => zmien((p) => {
         p[czesc] = p[czesc] || [];
@@ -2802,7 +2805,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'zmien_projekt',
       title: 'Zmień projekt (ogólnie)',
-      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony?, kolejnosc_stron?, kolory_dodatkowe? (kolory spot, np. Pantone: [{ id, nazwa, cmyk: [c, m, y, k] }]), tryb_kolorow? (pelny | szarosc | czb1), kolor_trybu?, ksiazka? (nagłówki spisu treści i liczenie przypisów: { naglowki: [{ styl, poziom }], przypisy: sekcja | strona | ciagle }) }. Kolor dodatkowy w elemencie i uszlachetnienia (pole elementu uszlachetnienie) – opis w opis_formatu. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Obrazy wgrywa wgraj_obraz, a wstawia wstaw_obraz; czcionek nie da się tu dodać.',
+      description: 'Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony? (id stron), kolejnosc_stron? (id stron), kolory_dodatkowe? (kolory spot, np. Pantone: [{ id, nazwa, cmyk: [c, m, y, k] }]), tryb_kolorow? (pelny | szarosc | czb1), kolor_trybu?, ksiazka? (nagłówki spisu treści i liczenie przypisów: { naglowki: [{ styl, poziom }], przypisy: sekcja | strona | ciagle }) }. Kolor dodatkowy w elemencie i uszlachetnienia – pole elementu uszlachetnienie. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Nie wgrywa obrazów ani czcionek.',
       inputSchema: S('', { zmiany: obiekt('Części projektu do zapisu') }, ['zmiany']),
       dzialaj: ({ zmiany }) => zmien(() => ({ zmiany, opis: `Zapisano części: ${Object.keys(zmiany).join(', ')}.` })),
     },
@@ -2847,7 +2850,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
       name: 'skomentuj',
       title: 'Dodaj komentarz na stronie',
       description: 'Nowy wątek komentarza przypięty do strony: do elementu (element = id) albo do miejsca (x, y w mm od lewego górnego rogu strony). Osoby w projekcie zobaczą pinezkę z numerem; @nazwa wspomina osobę z projektu (dostanie powiadomienie). Komentarz nie zmienia projektu – działa też z kluczem tylko do czytania. Podpisany opisem klucza.',
-      inputSchema: S('', { strona: tekst('id strony (przeglad_projektu)'), element: tekst('id elementu na tej stronie (opcjonalnie)'), x: { type: 'number', description: 'mm od lewej krawędzi strony' }, y: { type: 'number', description: 'mm od górnej krawędzi strony' }, tresc: tekst('Treść komentarza') }, ['strona', 'tresc']),
+      inputSchema: S('', { strona: tekst('id strony'), element: tekst('id elementu na tej stronie (opcjonalnie)'), x: { type: 'number', description: 'mm od lewej krawędzi strony' }, y: { type: 'number', description: 'mm od górnej krawędzi strony' }, tresc: tekst('Treść komentarza') }, ['strona', 'tresc']),
       dzialaj: async ({ strona, element = null, x = null, y = null, tresc }) => {
         if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
         const w = await rpc('ai_skomentuj', { p_klucz: KLUCZ, p_strona: strona, p_element: element, p_x: x, p_y: y, p_tresc: tresc, p_watek: null });
@@ -2858,7 +2861,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'odpowiedz',
       title: 'Odpowiedz na komentarz',
-      description: 'Odpowiedź w wątku komentarza (komentarz = id wątku albo odpowiedzi z narzędzia komentarze). Opcjonalnie rozwiaz=true zamyka wątek po odpowiedzi (np. gdy poprawka już jest w projekcie).',
+      description: 'Odpowiedź w wątku komentarza (komentarz = id wątku albo odpowiedzi). Opcjonalnie rozwiaz=true zamyka wątek po odpowiedzi (np. gdy poprawka już jest w projekcie).',
       inputSchema: S('', { komentarz: tekst('id komentarza (wątku)'), tresc: tekst('Treść odpowiedzi'), rozwiaz: { type: 'boolean', description: 'true – oznacz wątek jako rozwiązany' } }, ['komentarz', 'tresc']),
       dzialaj: async ({ komentarz, tresc, rozwiaz = false }) => {
         if (!KLUCZ) throw new BladBazy(BRAK_KLUCZA);
@@ -2886,7 +2889,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'eksport_pdf',
       title: 'Eksportuj projekt do PDF',
-      description: 'Plik PDF projektu (do drukarni albo do czytania na ekranie). PDF rysuje aplikacja Makietki w przeglądarce użytkownika: narzędzie składa zlecenie, otwarta aplikacja konta klucza robi plik i wgrywa go na konto, a narzędzie czeka do ok. 45 s i zwraca link do pobrania (bez logowania, ważny 7 dni) z uwagami z kontroli przed drukiem. Gdy aplikacja nie jest otwarta – zwraca link do aplikacji dla użytkownika (po jego otwarciu plik zrobi się sam) i numer zlecenia do stan_eksportu. Działa też z kluczem tylko do czytania.',
+      description: 'Plik PDF projektu (do drukarni albo do czytania na ekranie). PDF rysuje aplikacja Makietki w przeglądarce użytkownika: narzędzie składa zlecenie, otwarta aplikacja konta klucza robi plik i wgrywa go na konto, a narzędzie czeka do ok. 45 s i zwraca link do pobrania (bez logowania, ważny 7 dni) z uwagami z kontroli przed drukiem. Gdy aplikacja nie jest otwarta – zwraca link do aplikacji dla użytkownika (po jego otwarciu plik zrobi się sam) i numer zlecenia. Działa też z kluczem tylko do czytania.',
       inputSchema: S('', {
         zakres: { type: 'string', enum: ['wszystko', 'sekcja', 'sekcje', 'strony'], description: 'wszystko (domyślnie), jedna sekcja, kilka sekcji (sekcje) albo wybrane strony (strony – tekst jak w Wordzie albo od–do; numery w całym wydruku, z powieleniami serii)' },
         sekcja: tekst('id albo nazwa sekcji (zakres: sekcja)'),
@@ -2902,7 +2905,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         uklad: { type: 'string', enum: ['zwykly', 'broszura', 'skladki', 'dwie', 'cztery'], description: 'zwykly (domyślnie) – strona po stronie; broszura – arkusze do złożenia i zszycia; skladki – broszura w składkach; dwie / cztery – strony na arkuszu' },
         format_arkusza: { type: 'string', enum: ['auto', 'A4', 'A3'], description: 'arkusz przy układzie innym niż zwykly' },
         skladka: { type: 'integer', enum: [4, 8, 16, 32], description: 'stron w składce (uklad: skladki)' },
-        czekaj: { type: 'boolean', description: 'false – tylko złóż zlecenie i od razu wróć (stan sprawdzisz narzędziem stan_eksportu)' },
+        czekaj: { type: 'boolean', description: 'false – tylko złóż zlecenie i od razu wróć z numerem zlecenia' },
       }),
       readOnly: true,
       dzialaj: async ({ czekaj = true, format_arkusza: formatArkusza, ...reszta } = {}) => {
@@ -2913,9 +2916,9 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'eksport_png',
       title: 'Pobierz stronę jako PNG',
-      description: 'Obraz PNG jednej strony (ze spadem), np. do pokazania w czacie albo w internecie. Jak eksport_pdf: obraz rysuje otwarta aplikacja Makietki, narzędzie czeka do ok. 45 s i zwraca link do pobrania (ważny 7 dni) albo link do aplikacji, gdy żadna nie jest otwarta.',
+      description: 'Obraz PNG jednej strony (ze spadem), np. do pokazania w czacie albo w internecie. Obraz rysuje otwarta aplikacja Makietki, narzędzie czeka do ok. 45 s i zwraca link do pobrania (ważny 7 dni) albo link do aplikacji, gdy żadna nie jest otwarta.',
       inputSchema: S('', {
-        strona: tekst('id strony (przeglad_projektu)'),
+        strona: tekst('id strony'),
         egzemplarz: { type: 'integer', minimum: 1, description: 'który egzemplarz strony z serii (domyślnie 1)' },
         dpi: { type: 'integer', minimum: 72, maximum: 600, description: 'rozdzielczość (domyślnie 150)' },
         czekaj: { type: 'boolean', description: 'false – tylko złóż zlecenie' },
@@ -2926,8 +2929,8 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'stan_eksportu',
       title: 'Stan zleconego eksportu',
-      description: 'Stan zlecenia z eksport_pdf / eksport_png: czeka na aplikację, w toku, gotowe (z linkiem do pobrania) albo błąd.',
-      inputSchema: S('', { zlecenie: tekst('numer zlecenia (z odpowiedzi eksport_pdf / eksport_png)') }, ['zlecenie']),
+      description: 'Stan zlecenia eksportu (PDF albo PNG) i innych zleceń dla aplikacji: czeka na aplikację, w toku, gotowe (z linkiem do pobrania) albo błąd.',
+      inputSchema: S('', { zlecenie: tekst('numer zlecenia') }, ['zlecenie']),
       readOnly: true,
       dzialaj: async ({ zlecenie }) => {
         if (!KLUCZ_KONTA) throw new BladBazy(BRAK_KLUCZA);
@@ -2939,7 +2942,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'udostepnij_link',
       title: 'Udostępnij link do podglądu',
-      description: 'Tworzy link do podglądu projektu (jak Podgląd → Udostępnij w aplikacji): każdy, kto ma link, obejrzy strony bez logowania i bez możliwości zmian. To publikacja treści – ZAWSZE najpierw zapytaj użytkownika, czy chce link, i zaproponuj hasło albo datę ważności; wywołaj dopiero po jego wyraźnej zgodzie (zgoda_uzytkownika: true). Gdy projekt ma już link – zwraca ten sam adres (i ustawia podaną ochronę). Link robi otwarta aplikacja Makietki; gdy nie jest otwarta, dostaniesz link do aplikacji dla użytkownika.',
+      description: 'Tworzy link do podglądu projektu (jak Podgląd → Udostępnij w aplikacji): każdy, kto ma link, obejrzy strony bez logowania i bez możliwości zmian. To publikacja treści: wymaga zgoda_uzytkownika: true; opcjonalnie hasło albo data ważności. Gdy projekt ma już link – zwraca ten sam adres (i ustawia podaną ochronę). Link robi otwarta aplikacja Makietki; gdy nie jest otwarta, wynik podaje link do aplikacji.',
       inputSchema: S('', {
         zgoda_uzytkownika: { type: 'boolean', description: 'true – użytkownik wyraźnie zgodził się na link w tej rozmowie' },
         haslo: tekst('hasło do linku (co najmniej 4 znaki; opcjonalnie)'),
@@ -2963,14 +2966,14 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         jakosc: JAKOSC_OBRAZU,
         proporcja: tekst('kształt obrazu, np. 3:4 (pion), 4:3 (poziom), 1:1 – zgodny z ramką'),
         popraw: { type: 'boolean', description: 'true – popraw obraz, który już jest w elemencie (element wymagany): opis to TYLKO zmiana, np. „dodaj kapelusz”' },
-        czekaj: { type: 'boolean', description: 'false – tylko zleć i od razu wróć (stan: stan_eksportu)' },
+        czekaj: { type: 'boolean', description: 'false – tylko zleć i od razu wróć z numerem zlecenia' },
       }, ['opis', 'gdzie']),
       dzialaj: async ({ czekaj = true, ...a }) => zlecZadanie('obraz', Object.fromEntries(Object.entries(a).filter(([, v]) => v != null)), czekaj !== false, 2 * czekanieEksportu),
     },
     {
       name: 'rysuj_kadry',
       title: 'Narysuj kadry komiksu',
-      description: 'Komiks: rysuje obrazy do kadrów strony komiksu ze scenariusza (opis sceny, kto mówi) i kart postaci/miejsc, w stylu projektu – kluczem Gemini użytkownika, w otwartej aplikacji Makietki (otworzy w niej projekt). strona – numer strony komiksu (1 = pierwsza strona sekcji Komiks). Domyślnie tylko kadry bez obrazu. Kosztuje (ok. 0,14 zł za kadr w szkicu) – powiedz użytkownikowi, ile kadrów rysujesz. Cała strona trwa kilka minut – sprawdzaj stan_eksportu.',
+      description: 'Komiks: rysuje obrazy do kadrów strony komiksu ze scenariusza (opis sceny, kto mówi) i kart postaci/miejsc, w stylu projektu – kluczem Gemini użytkownika, w otwartej aplikacji Makietki (otworzy w niej projekt). strona – numer strony komiksu (1 = pierwsza strona sekcji Komiks). Domyślnie tylko kadry bez obrazu. Kosztuje (ok. 0,14 zł za kadr w szkicu) – powiedz użytkownikowi, ile kadrów rysujesz. Cała strona trwa kilka minut.',
       inputSchema: S('', {
         strona: { type: 'integer', minimum: 1, description: 'numer strony komiksu' },
         kadry: { type: 'array', items: { type: 'integer' }, description: 'numery kadrów (opcjonalnie; domyślnie puste kadry)' },
@@ -2989,7 +2992,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'biblioteka',
       title: 'Biblioteka elementów',
-      description: 'Katalog Biblioteki Makietki: gotowe kształty, ramki, ikony, ilustracje, ozdobniki, linie, kalendarze, wykresy, tabele, tła i wzory, nagłówki, infografiki, elementy komiksu i in. Bez parametrów – lista kategorii; szukaj – elementy pasujące do słów (np. „ramka zaokrąglona”, „serce”, „kalendarz”); kategoria – elementy jednej kategorii. Wstawiasz je narzędziem wstaw_z_biblioteki (kategoria + element).',
+      description: 'Katalog Biblioteki Makietki: gotowe kształty, ramki, ikony, ilustracje, ozdobniki, linie, kalendarze, wykresy, tabele, tła i wzory, nagłówki, infografiki, elementy komiksu i in. Bez parametrów – lista kategorii; szukaj – elementy pasujące do słów (np. „ramka zaokrąglona”, „serce”, „kalendarz”); kategoria – elementy jednej kategorii.',
       inputSchema: S('', { szukaj: tekst('słowa do wyszukania (bez polskich znaków też działa)'), kategoria: tekst('id kategorii z listy') }),
       readOnly: true,
       dzialaj: async ({ szukaj, kategoria } = {}) => {
@@ -3006,10 +3009,10 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'wstaw_z_biblioteki',
       title: 'Wstaw element z Biblioteki',
-      description: 'Wstawia gotowy element z Biblioteki (narzędzie biblioteka podaje kategorię i element) na stronę – tak jak kliknięcie w oknie Biblioteki. x, y – środek elementu w mm od lewego górnego rogu strony (bez nich – domyślne miejsce elementu). Wstawia otwarta aplikacja Makietki (otworzy w niej projekt); wynik podaje id nowego elementu i jego położenie – rozmiar, kolory i teksty zmienisz potem narzędziem zmien_elementy. Nic nie kosztuje.',
+      description: 'Wstawia gotowy element z Biblioteki Makietki (kategoria i element z katalogu Biblioteki) na stronę – tak jak kliknięcie w oknie Biblioteki. x, y – środek elementu w mm od lewego górnego rogu strony (bez nich – domyślne miejsce elementu). Wstawia otwarta aplikacja Makietki (otworzy w niej projekt); wynik podaje id nowego elementu i jego położenie. Nic nie kosztuje.',
       inputSchema: S('', {
-        kategoria: tekst('id kategorii (biblioteka)'),
-        element: tekst('id elementu (biblioteka)'),
+        kategoria: tekst('id kategorii z katalogu Biblioteki'),
+        element: tekst('id elementu z katalogu Biblioteki'),
         gdzie: tekst('„strona:<id strony>”'),
         x: { type: 'number', description: 'środek elementu w poziomie, mm od lewej krawędzi strony' },
         y: { type: 'number', description: 'środek elementu w pionie, mm od górnej krawędzi strony' },
@@ -3027,7 +3030,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'cofnij_zmiany_ai',
       title: 'Cofnij zmiany AI',
-      description: 'Przywraca projekt do stanu sprzed ostatniej serii zmian zrobionych przez AI (zapisy AI w odstępach do 15 minut; strony usunięte przez AI wracają, dodane – znikają). Zmiany zrobione później, także przez ludzi, też się cofną. NAJPIERW wywołaj z sprawdz=true i powiedz użytkownikowi, co zostanie cofnięte (od–do, ile zapisów, ile późniejszych zmian); cofaj (sprawdz=false) tylko na jego wyraźną prośbę. Kolejne wywołanie sięga do wcześniejszej serii.',
+      description: 'Przywraca projekt do stanu sprzed ostatniej serii zmian zrobionych przez AI (zapisy AI w odstępach do 15 minut; strony usunięte przez AI wracają, dodane – znikają). Zmiany zrobione później, także przez ludzi, też się cofną. sprawdz=true tylko opisuje, co zostanie cofnięte (od–do, ile zapisów, ile późniejszych zmian), bez zmian w projekcie. Kolejne wywołanie sięga do wcześniejszej serii.',
       inputSchema: S('', { sprawdz: { type: 'boolean', description: 'true – tylko informacja, co zostałoby cofnięte (nic nie zmienia)' } }),
       dzialaj: async ({ sprawdz }) => {
         const w = await rpc('ai_cofnij_zmiany', { p_klucz: KLUCZ, p_tylko_sprawdz: Boolean(sprawdz) });
@@ -3060,7 +3063,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'opis_formatu',
       title: 'Opis formatu projektu',
-      description: 'Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm). Przeczytaj przed większymi zmianami.',
+      description: 'Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm).',
       inputSchema: S('', {}),
       readOnly: true,
       dzialaj: async () => {
@@ -3077,7 +3080,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
 
 
   function listaNarzedzi() {
-    return NARZEDZIA.map(({ name, title, description, inputSchema, readOnly, meta }) => ({
+    return NARZEDZIA.filter((n) => rysowanie || !RYSUJACE.has(n.name)).map(({ name, title, description, inputSchema, readOnly, meta }) => ({
       name, title, description, ...(meta ? { _meta: meta } : {}),
       inputSchema: {
         type: 'object',
@@ -3099,7 +3102,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
   // wgraj_obraz pobiera adres z internetu, generuj_obraz i rysuj_kadry wołają Google Gemini, link publikuje podgląd.
   const SWIAT = new Set(['wgraj_obraz', 'podmien_obraz', 'generuj_obraz', 'rysuj_kadry', 'udostepnij_link']);
   const BEZ_PROJEKTU = new Set(['projekty', 'nowy_projekt', 'kopiuj_projekt', 'usun_projekt', 'opis_formatu', 'stan_eksportu', 'biblioteka']);
-  const PARAMETR_PROJEKTU = tekst('id albo nazwa projektu (lista: narzędzie projekty); można pominąć, gdy klucz obejmuje jeden projekt.');
+  const PARAMETR_PROJEKTU = tekst('id albo nazwa projektu; można pominąć, gdy klucz obejmuje jeden projekt.');
 
   async function obsluz(w, stanSesji = {}) {
     if (!w || w.jsonrpc !== '2.0' || typeof w.method !== 'string') {
@@ -3137,20 +3140,20 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         const chce = params.protocolVersion;
         stanSesji.zainicjowany = true;
         stanSesji.wersja = WERSJE_STARE.includes(chce) ? chce : WERSJE_STARE[0];
-        return wynik({ protocolVersion: stanSesji.wersja, capabilities: { tools: { listChanged: false } }, serverInfo: info, instructions: INSTRUKCJE });
+        return wynik({ protocolVersion: stanSesji.wersja, capabilities: { tools: { listChanged: false } }, serverInfo: info, instructions: rysowanie ? INSTRUKCJE_PELNE : INSTRUKCJE_BEZ_RYSOWANIA });
       }
       case 'server/discover':
         stanSesji.odkryty = true;
         return wynik({
           resultType: 'complete', ...PAMIEC, supportedVersions: obslugiwane, capabilities: { tools: {} },
-          _meta: { 'io.modelcontextprotocol/serverInfo': info }, instructions: INSTRUKCJE,
+          _meta: { 'io.modelcontextprotocol/serverInfo': info }, instructions: rysowanie ? INSTRUKCJE_PELNE : INSTRUKCJE_BEZ_RYSOWANIA,
         });
       case 'ping':
         return wynik(zakonczony({}));
       case 'tools/list':
         return wynik(doPamieci({ tools: listaNarzedzi() }));
       case 'tools/call': {
-        const n = NARZEDZIA.find((x) => x.name === params.name);
+        const n = NARZEDZIA.find((x) => x.name === params.name && (rysowanie || !RYSUJACE.has(x.name)));
         if (!n) return blad(BLEDY.PARAMETRY, `Nieznane narzędzie: ${params.name}`);
         try {
           const argumenty = { ...(params.arguments || {}) };
