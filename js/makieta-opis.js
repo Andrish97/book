@@ -9,6 +9,7 @@ import { MODELE, jestSpecjalnyModel } from './makieta-3d.js';
 import { normalizujOpcje, normalizujUjecie, DOMYSLNE_OPCJE } from './makieta-ustawienia.js';
 import { typSekcji, rolaTypu } from './typ-sekcji.js';
 import { geometriaSpecjalna, normalizujSpecjalna } from './sekcje-specjalne.js';
+import { t } from './jezyk.js';
 
 // Domyślny model: z okładką – książka (twarda, gdy taka oprawa), kalendarz z nazwy albo z 12–14 kart,
 // jedna strona – kartka, reszta – książka w miękkiej oprawie.
@@ -80,13 +81,13 @@ export function powodNiepasowania(model, projekt) {
   const oprawa = okladka ? normalizujOkladke(okladka.okladka).oprawa : null;
   const opisy = {
     ksiazka_twarda: okladka
-      ? `Projekt ma oprawę ${oprawa === 'zeszytowa' ? 'zeszytową' : 'miękką'}. Żeby to była twarda oprawa, zmień oprawę w ustawieniach sekcji okładki – makieta doda wtedy białe wyklejki, jeśli ich nie ma.`
+      ? t('kod.makieta.oprawaNieTwarda', { oprawa: t(oprawa === 'zeszytowa' ? 'zeszytową' : 'miękką') })
       : 'Projekt nie ma okładki – makieta pokaże pustą, ciemną okleinę. Dodaj sekcję typu „Okładka” z twardą oprawą albo zacznij od szablonu projektu „Książka w twardej oprawie”.',
     ksiazka_miekka: okladka
       ? 'Projekt ma twardą oprawę – miękka okładka byłaby inną książką. Zmień oprawę w ustawieniach sekcji okładki.'
       : 'Projekt nie ma okładki – makieta pokaże białą okładkę. Dodaj sekcję typu „Okładka” albo zacznij od szablonu projektu.',
     ksiazka_zeszytowa: okladka && oprawa !== 'zeszytowa'
-      ? `Projekt ma oprawę ${oprawa === 'twarda' ? 'twardą' : 'miękką klejoną'} – broszura zeszytowa to arkusze złożone na pół i zszyte w zgięciu. Zmień oprawę w ustawieniach sekcji okładki na zeszytową.`
+      ? t('kod.makieta.oprawaNieZeszytowa', { oprawa: t(oprawa === 'twarda' ? 'twardą' : 'miękką klejoną') })
       : 'Broszura zeszytowa – arkusze złożone na pół i zszyte w zgięciu (liczba stron podzielna przez 4).',
     notes: okladka && oprawa === 'twarda' ? 'Twarda oprawa nie jest szyta na spiralę – notes pokaże strony bez okładki.' : 'Notes na spirali – strony projektu zepnie spirala; okładka (jeśli jest) będzie pierwszą kartą.',
     kalendarz_scienny: 'Kalendarz ścienny ma zwykle 13 kart (okładka i 12 miesięcy) – projekt ich nie ma. Brakujące karty będą białe; zacznij od szablonu „Kalendarz ścienny z plecami”.',

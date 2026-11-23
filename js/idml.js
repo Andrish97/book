@@ -10,6 +10,7 @@ import { rozwin } from './serie.js';
 import { plytaUszlachetnienia } from './kolory-druku.js';
 import { powodObrazu, uwagiProjektu, uwagiTekstu } from './raport-przeniesienia.js';
 import { PT, hex, ramka, sciezkaKsztaltu, TYPY_KSZTALTOW, zwyklyKolor, bezEfektow, obrazElementu, czcionkaElementu, zapasRamki } from './scribus.js';
+import { t } from './jezyk.js';
 
 const NS = 'http://ns.adobe.com/AdobeInDesign/idml/1.0/packaging';
 const DOM = '8.0';
@@ -260,7 +261,7 @@ ${rozkladowki.map((r) => `<idPkg:Spread src="Spreads/Spread_${r.id}.xml"/>`).joi
 <idPkg:BackingStory src="XML/BackingStory.xml"/>
 ${historie.map((h) => `<idPkg:Story src="Stories/Story_${h}.xml"/>`).join('\n')}
 </Document>`);
-  if (raport && czcionki.size) raport.dodaj('uwaga', `zainstaluj w systemie czcionki: ${[...new Set([...czcionki].map((k) => k.split('\u0000')[0]))].join(', ')} (pliki: Czcionki projektu w menu ⋯)`);
+  if (raport && czcionki.size) raport.dodaj('uwaga', t('kod.idml.zainstalujCzcionki', { czcionki: [...new Set([...czcionki].map((k) => k.split('\u0000')[0]))].join(', ') }));
   if (raport) raport.dodaj('uwaga', 'każda strona to osobna rozkładówka z jedną stroną – rozkładówki książki ułóż w programie (Strony → Rozkładówki)');
   const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.adobe.indesign-idml-package', compression: 'DEFLATE' });
   return { blob, ile, stron: egz.length, czcionki: [...czcionki].map((k) => k.replace('\u0000', ' ')) };

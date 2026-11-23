@@ -26,7 +26,7 @@ export async function wczytajWarunki(pdfx, profilWlasny = null) {
     ({ identyfikator, opis } = w); zRejestru = true;
   }
   let profil;
-  try { profil = czytajProfil(bajty); } catch (e) { throw new Error(`Tego pliku nie da się użyć jako profilu drukarni: ${e.message}.`); }
+  try { profil = czytajProfil(bajty); } catch (e) { throw new Error(tt('kod.pdfx.zlyProfil', { blad: tt(e.message) })); }
   if (profil.przestrzen !== 'CMYK') throw new Error('Ten profil nie opisuje druku w CMYK. Poproś drukarnię o profil wyjściowy CMYK (np. ISO Coated v2, PSO Coated v3).');
   if (!identyfikator) { identyfikator = 'Custom'; opis = profil.opis || profilWlasny.nazwa || 'Profil drukarni'; }
   let silnik = null;
@@ -35,7 +35,7 @@ export async function wczytajWarunki(pdfx, profilWlasny = null) {
     // Silnik przeliczania powstaje dopiero, gdy jest potrzebny (kolory albo zdjęcia w CMYK).
     silnik() {
       if (!silnik) {
-        try { silnik = new SilnikCmyk(profil); } catch (e) { throw new Error(`Tym profilem nie umiem przeliczać kolorów (${e.message}). Plik PDF/X-4 z tym profilem powstanie, jeśli wyłączysz przeliczanie na CMYK.`); }
+        try { silnik = new SilnikCmyk(profil); } catch (e) { throw new Error(tt('kod.pdfx.nieUmiem', { blad: tt(e.message) })); }
       }
       return silnik;
     },

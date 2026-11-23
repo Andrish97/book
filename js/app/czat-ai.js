@@ -32,7 +32,7 @@ let zawszePozwalaj = false; // „Zawsze pozwalaj w tej rozmowie” (#255) – d
 function zapytajOZgode(opis) {
   if (zawszePozwalaj) return Promise.resolve(true);
   return new Promise((gotowe) => {
-    const li = dopisz('zgoda', `AI chce ${opis}. Pozwolić?`);
+    const li = dopisz('zgoda', tt('kod.czatAi.aiChce', { opis }));
     const rzad = Object.assign(document.createElement('div'), { className: 'rzad-przyciskow' });
     const koniec = (wolno, zawsze = false) => {
       if (zawsze) zawszePozwalaj = true;
@@ -323,7 +323,7 @@ async function wyslijPrzezSchowek(tekst) {
     const wywolania = wywolaniaZOdpowiedzi(tekst);
     if (wywolania.length) {
       // Odpowiedź czatu wklejona: wykonujemy jego narzędzia i oddajemy wyniki do skopiowania.
-      dopisz('ja', `Odpowiedź AI wklejona – ${wywolania.length} ${wywolania.length === 1 ? 'polecenie' : 'polecenia'}.`);
+      dopisz('ja', tt('kod.czatAi.wklejona', { n: wywolania.length }));
       const wyniki = [];
       let zmiany = false;
       for (const w of wywolania) {

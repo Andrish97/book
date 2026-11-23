@@ -34,3 +34,24 @@ test('po angielsku: daty, liczba projektów i komunikaty logowania bez polskich 
   assert.doesNotMatch(JSON.stringify(w), /[ąćęłńóśźż]|dziś|temu|projekty/);
   assert.deepEqual(bledy, []);
 });
+
+// #409 cd.: stałe napisy z kodu (komunikaty, treść przykładowa Biblioteki i szablonów) i napisy składane – po angielsku.
+test('po angielsku: komunikaty, treść przykładowa i zgoda AI', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.evaluate(() => localStorage.setItem('makietka-jezyk', 'en'));
+  await strona.reload();
+  await strona.waitForFunction(() => document.documentElement.lang === 'en');
+  const w = await strona.evaluate(async () => {
+    const { t } = await import('./js/jezyk.js');
+    const { T } = await import('./js/biblioteka-sklad.js');
+    const { wymagaZgody } = await import('./js/zgoda-ai.js');
+    return {
+      komunikat: t('Nic nie pasuje – spróbuj innego słowa.'),
+      tresc: T('Tytuł artykułu', 0, 0, 10).text,
+      zgoda: wymagaZgody('usun_strony', { id: ['a', 'b', 'c'] }),
+      zestaw: t('kod.marka.usunacZestaw', { nazwa: 'X' }),
+    };
+  });
+  assert.deepEqual(w, { komunikat: 'Nothing matches – try another word.', tresc: 'Article title', zgoda: 'delete 3 pages', zestaw: 'Delete the kit “X”?' });
+  assert.deepEqual(bledy, []);
+});

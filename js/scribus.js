@@ -12,6 +12,7 @@ import { rozwin } from './serie.js';
 import { sekcjaStrony } from './projekt.js';
 import { plytaUszlachetnienia } from './kolory-druku.js';
 import { powodObrazu, uwagiProjektu, uwagiTekstu } from './raport-przeniesienia.js';
+import { t } from './jezyk.js';
 
 export const PT = 72 / 25.4; // mm → pt
 const ODSTEP_STRON = 40; // pt między stronami w widoku Scribusa
@@ -376,6 +377,6 @@ ${obiekty.join('\n')}
  </DOCUMENT>
 </SCRIBUSUTF8NEW>
 `;
-  if (raport && czcionki.size) raport.dodaj('uwaga', `zainstaluj w systemie czcionki: ${[...czcionki].join(', ')} (pliki: Czcionki projektu w menu ⋯)`);
+  if (raport && czcionki.size) raport.dodaj('uwaga', t('kod.idml.zainstalujCzcionki', { czcionki: [...czcionki].join(', ') }));
   return { sla, ile, czcionki: [...czcionki], stron: egz.length };
 }

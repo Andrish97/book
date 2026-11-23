@@ -122,7 +122,7 @@ $('#marka-gotowe-style').addEventListener('click', () => {
   rysujStyle();
 });
 $('#marka-dodaj-styl').addEventListener('click', () => {
-  const s = normalizujStylMarki({ id: `sm${Date.now().toString(36)}`, nazwa: `Mój styl ${robocza.style.filter((x) => !x.rola).length + 1}`, czcionka: robocza.czcionki.tekst || 'Inter', rozmiar: 11, interlinia: 1.35 });
+  const s = normalizujStylMarki({ id: `sm${Date.now().toString(36)}`, nazwa: tt('kod.marka.mojStyl', { n: robocza.style.filter((x) => !x.rola).length + 1 }), czcionka: robocza.czcionki.tekst || 'Inter', rozmiar: 11, interlinia: 1.35 });
   robocza.style.push(s);
   rysujStyle(s.id);
   $('#marka-style li:last-child [data-pole="nazwa"]')?.select();
@@ -211,7 +211,7 @@ $('#marka-zestaw-nazwa').addEventListener('click', async () => {
 $('#marka-zestaw-usun').addEventListener('click', async () => {
   const ui = await import('./ui.js');
   const nazwa = biezacaMarka().nazwa || 'zestaw';
-  if (!await ui.potwierdz(`Usunąć zestaw „${nazwa}”?`, 'Kolory, czcionki, style i logo tego zestawu znikną z konta. Projekty, które go używały, przejdą na zestaw w użyciu; to, co już jest na ich stronach, zostaje.', 'Usuń zestaw', true)) return;
+  if (!await ui.potwierdz(tt('kod.marka.usunacZestaw', { nazwa }), tt('Kolory, czcionki, style i logo tego zestawu znikną z konta. Projekty, które go używały, przejdą na zestaw w użyciu; to, co już jest na ich stronach, zostaje.'), tt('Usuń zestaw'), true)) return;
   try {
     await usunZestaw(idZestawuMarki());
     document.dispatchEvent(new CustomEvent('zestaw-marki-wybrany', { detail: null }));
@@ -254,7 +254,7 @@ dlg.addEventListener('close', async () => {
     const ui = await import('./ui.js');
     ui.powiadom('Zapisano zestaw marki.');
   } catch (blad) {
-    (await import('./ui.js')).powiadom(`Nie udało się zapisać zestawu marki: ${blad.message}`, true);
+    (await import('./ui.js')).powiadom(tt('kod.marka.nieZapisano', { blad: blad.message }), true);
   }
 });
 
@@ -269,7 +269,7 @@ export async function pokazPodsumowanieMarki() {
   if (!el) return;
   const naglowek = zestawy.length > 1
     ? `<p class="ciche">W użyciu: <b>${esc(m.nazwa || '')}</b>. Zestawy: ${zestawy.map((z) => esc(z.nazwa)).join(', ')}.</p>` : '';
-  if (markaPusta(m)) { el.innerHTML = `${naglowek}<p class="ciche">Zestaw jest pusty. Dodaj kolory, czcionki i logo – zobaczysz je potem w każdym projekcie.</p>`; return; }
+  if (markaPusta(m)) { el.innerHTML = `${naglowek}<p class="ciche">${tt('kod.marka.pusty')}</p>`; return; }
   el.innerHTML = `${naglowek}<div class="probki-marki">${m.kolory.map((k) => `<span class="probka" style="background:${esc(k.kolor)}" title="${esc(k.nazwa || k.kolor)}"></span>`).join('')}</div>
     <p class="ciche">${[m.czcionki.naglowek && `Nagłówki: ${esc(m.czcionki.naglowek)}`, m.czcionki.tekst && `Tekst: ${esc(m.czcionki.tekst)}`, m.style.length && `Style tekstu: ${m.style.length}`, m.loga.length && `Logo: ${m.loga.length}`].filter(Boolean).join(' · ')}</p>`;
 }

@@ -148,29 +148,29 @@ export function szablonSerii(projekt, seria) {
   const coWpisac = (k) => {
     const r = role.get(k) || { warunki: new Set() };
     return [
-      r.tekst ? `Tekst, który pojawi się w miejscu {${k}}.` : '',
+      r.tekst ? tt('kod.kontrola.tekstWMiejscu', { pole: `{${k}}` }) : '',
       r.obraz ? 'Nazwę pliku obrazu wgranego do projektu, np. zdjecie.jpg.' : '',
       r.kadr ? 'Którą część zdjęcia pokazać: góra, dół, lewa, prawa, środek – albo punkt zdjęcia w procentach od lewej i od góry, np. 30% 20%. Pusta komórka zostawia ustawienie wzoru.' : '',
       r.kolor ? 'Kolor: zapis #d1495b albo nazwę po angielsku, np. navy. Pusta komórka zostawia kolor wzoru.' : '',
       r.liczba ? 'Liczbę (przesunięcie, rozmiar albo kąt – według ustawień elementu „Z danych”).' : '',
-      r.warunek ? `Od tej kolumny zależy, czy element jest na stronie${r.warunki.size ? ` (sprawdzana wartość: ${[...r.warunki].join(', ')})` : ''}.` : '',
+      r.warunek ? tt('kod.kontrola.warunek', { wartosci: r.warunki.size ? tt('kod.kontrola.sprawdzana', { lista: [...r.warunki].join(', ') }) : '' }) : '',
     ].filter(Boolean).join(' ');
   };
   // Wiersz pomijany: jak go wpisać w arkuszu i co robi.
   const pomijanie = seria.tryb === 'tabela'
-    ? ` Wiersz pomijany: wpisz ${znacznikPomijania()} w pierwszej komórce wiersza (kolumna „${kolumny[0]}”), a ${seria.uklad === 'dlugi' ? 'strona dla tego wiersza nie powstanie, choć wiersz zajmie swoje miejsce w bloku' : 'całe powielenie bloku dla tego wiersza nie powstanie'} – tak wyrównuje się dane z blokiem, np. gdy rok zaczyna się w środku tygodnia.`
+    ? tt('kod.kontrola.wierszPomijany', { znacznik: znacznikPomijania(), kolumna: kolumny[0], skutek: tt(seria.uklad === 'dlugi' ? 'strona dla tego wiersza nie powstanie, choć wiersz zajmie swoje miejsce w bloku' : 'całe powielenie bloku dla tego wiersza nie powstanie') })
     : '';
   const instrukcja = [
     ['Seria', seria.nazwa],
-    ['Jak wypełniać', `${coWiersz} Pierwszy wiersz arkusza to nazwy kolumn – nie zmieniaj ich. Gotowy plik zaimportuj w oknie „Dane”.${pomijanie}${listy.length ? ' Komórki niektórych kolumn mają listę rozwijaną z wartościami do wyboru.' : ''}`],
+    [tt('kod.kontrola.jakWypelniacTytul'), tt('kod.kontrola.jakWypelniac', { coWiersz, pomijanie, listy: listy.length ? tt('kod.kontrola.listyRozwijane') : '' })],
     [],
     ['Kolumna', 'Gdzie jest użyta', 'Co wpisać'],
     ...kolumny.map((k, i) => {
       const p = potrzebne.find((x) => x.nazwa === k);
       const lista = listy.find((l) => l.kolumna === i);
       const uwagi = [
-        !p ? 'Kolumna nie jest użyta na stronach serii.' : (coWpisac(k) || `Tekst, który pojawi się w miejscu {${k}}.`),
-        lista?.scisla ? `Tylko wartości z listy: ${lista.wartosci.join(', ')}.` : (lista ? 'W komórce jest lista rozwijana z podpowiedziami.' : ''),
+        !p ? tt('kod.kontrola.kolumnaNieUzyta') : (coWpisac(k) || tt('kod.kontrola.tekstWMiejscu', { pole: `{${k}}` })),
+        lista?.scisla ? tt('kod.kontrola.tylkoZListy', { lista: lista.wartosci.join(', ') }) : (lista ? tt('kod.kontrola.listaPodpowiedzi') : ''),
         tabela?.unikalne?.includes(k) ? 'Wartości nie mogą się powtarzać.' : '',
       ].filter(Boolean).join(' ');
       return [k, p ? p.strony.join(', ') : '', uwagi];

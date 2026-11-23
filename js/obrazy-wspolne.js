@@ -1,3 +1,4 @@
+import { t } from './jezyk.js';
 // Obrazy: zasady wspólne dla aplikacji i łącznika AI.
 //
 // Kod między znacznikami WSPOLNE-POCZATEK i WSPOLNE-KONIEC jest dosłownie taki sam jak w rdzeniu łącznika
@@ -111,7 +112,7 @@ export async function rozpakujZip(bajty, { maksPlikow = 100, maksPlik = 15 * 102
     if (/(^|\/)__MACOSX\//.test(sciezka) || nazwa.startsWith('._') || nazwa.startsWith('.') || /^(thumbs\.db|desktop\.ini)$/i.test(nazwa)) continue;
     if (!NAZWA_OBRAZU.test(nazwa)) { pominiete.push(nazwa); continue; }
     if (flagi & 1) { pominiete.push(`${nazwa} (zaszyfrowany)`); continue; }
-    if (pliki.length >= maksPlikow) throw new Error(`W archiwum jest więcej niż ${maksPlikow} obrazów – podziel je na mniejsze archiwa.`);
+    if (pliki.length >= maksPlikow) throw new Error(t('kod.obrazy.zaDuzoWArchiwum', { n: maksPlikow }));
     if (u32(lokalny) !== 0x04034b50) throw new Error('Archiwum ZIP jest uszkodzone.');
     const start = lokalny + 30 + u16(lokalny + 26) + u16(lokalny + 28);
     const dane = b.subarray(start, start + rozmiarSpakowany);
@@ -128,7 +129,7 @@ export async function rozpakujZip(bajty, { maksPlikow = 100, maksPlik = 15 * 102
         dlugosc += value.length;
         if (dlugosc > maksPlik || razem + dlugosc > maksRazem) {
           await czytnik.cancel().catch(() => {});
-          throw new Error(dlugosc > maksPlik ? `„${nazwa}” po wypakowaniu ma ponad ${Math.round(maksPlik / 1048576)} MB.` : `Obrazy w archiwum po wypakowaniu mają razem ponad ${Math.round(maksRazem / 1048576)} MB.`);
+          throw new Error(dlugosc > maksPlik ? t('kod.obrazy.plikZaDuzy', { nazwa, mb: Math.round(maksPlik / 1048576) }) : t('kod.obrazy.archiwumZaDuze', { mb: Math.round(maksRazem / 1048576) }));
         }
         czesci.push(value);
       }
@@ -138,7 +139,7 @@ export async function rozpakujZip(bajty, { maksPlikow = 100, maksPlik = 15 * 102
     } else { pominiete.push(`${nazwa} (nieznany sposób pakowania)`); continue; }
     if (wynik.length > maksPlik) throw new Error(`„${nazwa}” ma ponad ${Math.round(maksPlik / 1048576)} MB.`);
     razem += wynik.length;
-    if (razem > maksRazem) throw new Error(`Obrazy w archiwum po wypakowaniu mają razem ponad ${Math.round(maksRazem / 1048576)} MB.`);
+    if (razem > maksRazem) throw new Error(t('kod.obrazy.archiwumZaDuze', { mb: Math.round(maksRazem / 1048576) }));
     pliki.push({ nazwa, bajty: wynik });
   }
   return { pliki, pominiete };

@@ -111,7 +111,7 @@ form.addEventListener('submit', async (e) => {
       })(),
     });
     const w = await odp.json().catch(() => ({}));
-    if (!odp.ok) throw new Error(w.blad || `Nie udało się wysłać (${odp.status}).`);
+    if (!odp.ok) throw new Error(w.blad || tt('kod.kontakt.nieWyslano', { status: odp.status }));
     form.temat.value = '';
     form.tresc.value = '';
     pliki = [];

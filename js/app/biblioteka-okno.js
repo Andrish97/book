@@ -9,6 +9,7 @@ import { ikona } from '../ikony.js';
 import { kategorieBiblioteki, szukajWBibliotece, elementBiblioteki } from '../biblioteka.js';
 import { ustawDomyslneDaneWykresu } from '../biblioteka-elementy.js';
 import { edytor, stan } from './kontekst.js';
+import { t } from '../jezyk.js';
 
 export const TYP_PRZECIAGANIA = 'application/x-makietka-biblioteka';
 
@@ -89,7 +90,7 @@ export function wstawZBiblioteki(idKategorii, idElementu, punkt = null) {
   const wzor = idKategorii === 'tla' && /^wzor-/.test(idElementu) ? idElementu.slice(5) : null;
   if (wzor && !punkt && moznaWzor(akt)) {
     return (async () => {
-      const wybor = await zapytajOWybor('Wzór', `„${e.nazwa.replace(/^Wzór: /, '')}” – wypełnić nim zaznaczony kształt czy wstawić tło na całą stronę?`, 'Wypełnij zaznaczony kształt', 'Wstaw na stronę');
+      const wybor = await zapytajOWybor(t('kod.bibliotekaOkno.wzor'), t('kod.bibliotekaOkno.wzorPytanie', { nazwa: e.nazwa.replace(/^Wzór: /, '') }), t('Wypełnij zaznaczony kształt'), t('Wstaw na stronę'));
       if (!wybor) return null;
       if (!naKomputerze()) dlg.close();
       if (wybor === 'nie') return e.wstaw(edytor, punkt);

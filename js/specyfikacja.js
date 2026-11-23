@@ -53,7 +53,7 @@ export function specyfikacjaTekst(spec) {
     if (s.oprawa) {
       l.push(`  Oprawa: ${s.oprawa}${s.grzbiet_mm ? `, grzbiet ${mm(s.grzbiet_mm)} mm` : ''}${s.stron_srodka ? `, środek ${s.stron_srodka} stron` : ''}`);
       l.push(tt('specyfikacja.papierSrodka', { papier_srodka: s.papier_srodka }));
-      l.push(`  Okładka: ${s.wykonczenie}`);
+      l.push(tt('kod.spec.okladka', { w: s.wykonczenie }));
       if (s.tektura_mm) l.push(tt('specyfikacja.tekturaMmZawiniecieMm', { mm: mm(s.tektura_mm), mm2: mm(s.zawiniecie_mm) }));
       if (s.tasiemka) l.push(tt('specyfikacja.tasiemkaZakladka', { tasiemka: s.tasiemka }));
     }

@@ -260,7 +260,7 @@ function uzgodnijWatki(l, moj, konto, wybor, hm, hk, konflikty) {
       // Ramka, której w planie nie ma (usunięta po jednej stronie): wraca, jeśli wybrana wersja ją ma.
       for (const eid of ramki) if (!jest.has(eid)) c.elementy.push({ id: eid, zrodlo: 'moje', konflikt: klucz });
     }
-    konflikty.push({ klucz, watek: T, lista: l, nazwa: `Tekst w połączonych ramkach „${skrot(poczatek) || '…'}”`, moje: 'zmieniony tutaj', konto: 'zmieniony na koncie' });
+    konflikty.push({ klucz, watek: T, lista: l, nazwa: tt('kod.laczenie.tekstWRamkach', { poczatek: skrot(poczatek) || '…' }), moje: tt('kod.laczenie.zmienionyTutaj'), konto: tt('kod.laczenie.zmienionyNaKoncie') });
   }
 }
 

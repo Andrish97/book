@@ -9,6 +9,7 @@
 // wyboru (np. tekst_en) – ten sam układ, inny tekst.
 
 import { domyslnyDymek, RODZAJE_DYMKA } from './dymek.js';
+import { t } from './jezyk.js';
 
 const bezOgonkow = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l').replace(/Ł/g, 'L').toLowerCase().trim();
 const KOLUMNY = {
@@ -92,7 +93,7 @@ export function dymkiZTabeli(projekt, tabela, { kolumnaTekstu = null, wymiaryStr
   };
   for (const w of wiersze) {
     const strona = strony[w.strona - 1];
-    if (!strona) { wynik.pominiete.push(`wiersz ${w.nr + 1}: nie ma strony ${w.strona}`); continue; }
+    if (!strona) { wynik.pominiete.push(t('kod.dialogi.brakStrony', { nr: w.nr + 1, strona: w.strona })); continue; }
     strona.obiekty = strona.obiekty || [];
     const istniejacy = strona.obiekty.find((o) => o.z_dialogu?.tabela === tabela.id && o.z_dialogu?.klucz === w.klucz);
     const nazwa = w.postac ? `Dymek – ${w.postac}` : 'Dymek';

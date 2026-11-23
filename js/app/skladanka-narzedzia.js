@@ -232,7 +232,7 @@ export function oknoModelu3D() {
         const m = await import('../rozkladanie-3d.js');
         const siatka = /\.obj$/i.test(plik.name) ? m.wczytajOBJ(await plik.text(), mtl ? await mtl.text() : null) : m.wczytajSTL(new Uint8Array(await plik.arrayBuffer()));
         if (!siatka.sciany.length) throw new Error('W pliku nie ma ścian – czy to na pewno model OBJ albo STL?');
-        if (siatka.sciany.length > 3000) throw new Error(`Model ma ${siatka.sciany.length} ścian – za dużo do sklejenia. Uprość go w programie 3D (np. Blender → Decimate) do kilkuset ścian.`);
+        if (siatka.sciany.length > 3000) throw new Error(tt('kod.skladanka.zaDuzoScian', { n: siatka.sciany.length }));
         const w = m.rozlozSiatke(siatka, { rozmiar: Math.max(10, Number(String(f.elements.rozmiar.value).replace(',', '.')) || 120), nazwa: plik.name.replace(/\.[^.]+$/, '') });
         const obrazy = new Map(pliki.filter((x) => x.type.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(x.name)).map((x) => [x.name.toLowerCase(), x]));
         const brakObrazow = new Set();
@@ -673,7 +673,7 @@ export function panelCzesci(panel, g0) {
       z.append(panel.liczba(tt('skladankaNarzedzia.katPoZlozeniu'), () => c().zgiecia[i].kat, (v) => zmien((d) => { d.zgiecia[i].kat = v; }), { jednostka: '°', krok: 5, min: 0 }));
       // #299: grzbiet kartki pop-up – wokół niego kartka otwiera się suwakiem w makiecie, reszta rusza się mechanizmem.
       z.append(panel.przelacznik(tt('skladankaNarzedzia.grzbietKartkiPopUp'), () => Boolean(c().zgiecia[i].grzbiet), (v) => zmien((d) => { if (v) d.zgiecia[i].grzbiet = true; else delete d.zgiecia[i].grzbiet; })));
-      z.append(panel.akcje([['kosz', `Usuń zgięcie ${i + 1}`, () => zmien((d) => { d.zgiecia.splice(i, 1); })]]));
+      z.append(panel.akcje([['kosz', tt('kod.skladanka.usunZgiecie', { n: i + 1 }), () => zmien((d) => { d.zgiecia.splice(i, 1); })]]));
     });
   }
   const linie = c().linie;
@@ -681,11 +681,11 @@ export function panelCzesci(panel, g0) {
     const ls = panel.sekcja(tt('skladankaNarzedzia.linieKlejenia'));
     linie.forEach((l, i) => {
       const dg = liniaDoGrzbietu(c(), l);
-      const doGrzbietu = dg ? ` Kąt do grzbietu ${String(dg.kat).replace('.', ',')}°, ${String(dg.odl).replace('.', ',')} mm od grzbietu${dg.kat < 89 && dg.kat > 1 ? ' – ze skośną linią po drugiej stronie grzbietu doklejona część stanie pod kątem jak zgięcie V' : ''}.` : '';
+      const doGrzbietu = dg ? tt('kod.skladanka.doGrzbietu', { kat: String(dg.kat).replace('.', ','), odl: String(dg.odl).replace('.', ','), v: dg.kat < 89 && dg.kat > 1 ? tt(' – ze skośną linią po drugiej stronie grzbietu doklejona część stanie pod kątem jak zgięcie V') : '' }) : '';
       ls.append(panel.wskazowka(tt('skladankaNarzedzia.liniaMm', { x: i + 1, replace: String(Math.round(dlugoscLinii(l) * 10) / 10).replace('.', ','), x2: liniaProsta(l) ? tt('skladankaNarzedzia.prostaDoklejonaCzescStanie') : tt('skladankaNarzedzia.krzywaDoklejonaCzescWygnie'), doGrzbietu })));
       ls.append(panel.tekst(tt('skladankaNarzedzia.liniaNumerPary', { x: i + 1 }), () => c().linie[i].para || '', (v) => zmien((d) => { d.linie[i].para = v || null; })));
       ls.append(panel.przelacznik(tt('skladankaNarzedzia.naSpodzieBezDruku'), () => c().linie[i].spod, (v) => zmien((d) => { d.linie[i].spod = v || undefined; })));
-      ls.append(panel.akcje([['kosz', `Usuń linię ${i + 1}`, () => zmien((d) => { d.linie.splice(i, 1); })]]));
+      ls.append(panel.akcje([['kosz', tt('kod.skladanka.usunLinie', { n: i + 1 }), () => zmien((d) => { d.linie.splice(i, 1); })]]));
     });
   }
   const pola = c().pola;
@@ -696,7 +696,7 @@ export function panelCzesci(panel, g0) {
       p.append(panel.liczba(tt('skladankaNarzedzia.szerokosc'), () => c().pola[i].w, (v) => zmien((d) => { d.pola[i].w = v; }), { jednostka: 'mm', krok: 1, min: 2 }));
       p.append(panel.liczba(tt('skladankaNarzedzia.wysokosc'), () => c().pola[i].h, (v) => zmien((d) => { d.pola[i].h = v; }), { jednostka: 'mm', krok: 1, min: 2 }));
       p.append(panel.przelacznik(tt('skladankaNarzedzia.naSpodzieBezDruku'), () => c().pola[i].spod, (v) => zmien((d) => { d.pola[i].spod = v; })));
-      p.append(panel.akcje([['kosz', `Usuń miejsce ${i + 1}`, () => zmien((d) => { d.pola.splice(i, 1); })]]));
+      p.append(panel.akcje([['kosz', tt('kod.skladanka.usunMiejsce', { n: i + 1 }), () => zmien((d) => { d.pola.splice(i, 1); })]]));
     });
   }
   // Nacięcia (#297): ciąg odcinków z jednego kształtu – jedna pozycja.
@@ -713,7 +713,7 @@ export function panelCzesci(panel, g0) {
     const ns = panel.sekcja(tt('skladankaNarzedzia.naciecia'));
     nac.forEach((w, j) => {
       ns.append(panel.wskazowka(tt('skladankaNarzedzia.naciecieMm', { x: j + 1, replace: String(Math.round(w.dl * 10) / 10).replace('.', ','), x2: w.idx.length > 1 ? tt('skladankaNarzedzia.odcinkow', { idxIle: w.idx.length }) : '' })));
-      ns.append(panel.akcje([['kosz', `Usuń nacięcie ${j + 1}`, () => zmien((d) => { d.szczeliny = d.szczeliny.filter((_, i) => !w.idx.includes(i)); })]]));
+      ns.append(panel.akcje([['kosz', tt('kod.skladanka.usunNaciecie', { n: j + 1 }), () => zmien((d) => { d.szczeliny = d.szczeliny.filter((_, i) => !w.idx.includes(i)); })]]));
     });
   }
   const sz = c().szczeliny;
@@ -723,7 +723,7 @@ export function panelCzesci(panel, g0) {
       if (z0.naciecie) return;
       p.append(panel.tekst(tt('skladankaNarzedzia.szczelinaNumerPary', { x: i + 1 }), () => c().szczeliny[i].para || '', (v) => zmien((d) => { d.szczeliny[i].para = v || null; })));
       p.append(panel.liczba(tt('skladankaNarzedzia.szerokosc'), () => c().szczeliny[i].szer, (v) => zmien((d) => { d.szczeliny[i].szer = v; }), { jednostka: 'mm', krok: 0.05, min: 0.2 }));
-      p.append(panel.akcje([['kosz', `Usuń szczelinę ${i + 1}`, () => zmien((d) => { d.szczeliny.splice(i, 1); })]]));
+      p.append(panel.akcje([['kosz', tt('kod.skladanka.usunSzczeline', { n: i + 1 }), () => zmien((d) => { d.szczeliny.splice(i, 1); })]]));
     });
   }
 }

@@ -6,12 +6,6 @@ import { t } from './jezyk.js';
 export const PROG_ELEMENTOW = 3; // tyle i więcej usuwanych elementów naraz wymaga zgody
 export const PROG_STRON = 3; // tyle i więcej stron zmienianych jednym zapisem wymaga zgody
 
-const liczba = (n, jeden, kilka, wiele) => {
-  if (n === 1) return `1 ${jeden}`;
-  const d = n % 10;
-  const s = n % 100;
-  return `${n} ${d >= 2 && d <= 4 && (s < 12 || s > 14) ? kilka : wiele}`;
-};
 
 export function wymagaZgody(nazwa, argumenty = {}) {
   const a = argumenty && typeof argumenty === 'object' ? argumenty : {};
@@ -21,13 +15,13 @@ export function wymagaZgody(nazwa, argumenty = {}) {
   if (nazwa === 'udostepnij_link') return t('zgodaAi.udostepnicLink'); // plan H4 – publikacja treści
   if (nazwa === 'usun_czesc') return t('zgodaAi.usunacCzesc', { czesc: a.czesc || '', id: a.id || '' }); // podział zmien_czesc (23.11)
   if (nazwa === 'usun_z_tabeli') return t('zgodaAi.usunacZTabeli', { id: a.id || '' }); // podział zmien_tabele (23.11)
-  if (nazwa === 'usun_strony') return `usunąć ${liczba(ile(a.id), 'stronę', 'strony', 'stron')}`;
-  if (nazwa === 'usun_elementy' && ile(a.id) >= PROG_ELEMENTOW) return `usunąć ${liczba(ile(a.id), 'element', 'elementy', 'elementów')}`;
-  if (nazwa === 'usun_obrazy') return a.nieuzywane ? 'usunąć wszystkie nieużywane obrazy projektu' : t('zgodaAi.usunacZProjektu', { liczba: liczba(ile(a.obrazy), 'obraz', 'obrazy', 'obrazów') });
+  if (nazwa === 'usun_strony') return t('kod.zgoda.usunacStrony', { n: ile(a.id) });
+  if (nazwa === 'usun_elementy' && ile(a.id) >= PROG_ELEMENTOW) return t('kod.zgoda.usunacElementy', { n: ile(a.id) });
+  if (nazwa === 'usun_obrazy') return a.nieuzywane ? t('usunąć wszystkie nieużywane obrazy projektu') : t('kod.zgoda.usunacObrazy', { n: ile(a.obrazy) });
   if (nazwa === 'zmien_projekt') {
     const z = a.zmiany && typeof a.zmiany === 'object' ? a.zmiany : {};
-    if (ile(z.usun_strony)) return `usunąć ${liczba(ile(z.usun_strony), 'stronę', 'strony', 'stron')}`;
-    if (ile(z.strony) >= PROG_STRON) return t('zgodaAi.zmienicNaraz', { liczba: liczba(ile(z.strony), 'stronę', 'strony', 'stron') });
+    if (ile(z.usun_strony)) return t('kod.zgoda.usunacStrony', { n: ile(z.usun_strony) });
+    if (ile(z.strony) >= PROG_STRON) return t('kod.zgoda.zmienicStrony', { n: ile(z.strony) });
     const calosc = ['sekcje', 'wzorce', 'style', 'tabele', 'serie'].filter((k) => k in z);
     if (calosc.length) return t('zgodaAi.zastapicWCalosci', { join: calosc.join(', ') });
   }

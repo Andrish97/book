@@ -82,7 +82,7 @@ window.makietkaRysuj.eksportuj = async ({ projekt, rodzaj = 'pdf', ustawienia = 
   if (rodzaj === 'png') {
     const egz = ciag.egzemplarze.filter((e) => e.strona?.id === u.strona);
     const e = egz[Math.max(0, Math.min(egz.length - 1, (Number(u.egzemplarz) || 1) - 1))];
-    if (!e) throw new Error(`Projekt nie ma strony „${u.strona ?? ''}”.`);
+    if (!e) throw new Error(tt('kod.brakStrony', { strona: u.strona ?? '' }));
     etap('obraz PNG');
     const { renderujCel } = await import('./zlozenie.js');
     const dpi = Math.min(600, Math.max(72, Number(u.dpi) || 150));

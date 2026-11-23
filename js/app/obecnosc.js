@@ -7,6 +7,7 @@ import { dolaczDoProjektu, kolorOsoby } from '../wspolpraca-chmura.js';
 import { nazwaUzytkownika } from '../chmura.js';
 import { $ } from '../ui.js';
 import { stan, edytor, biezacyCel } from './kontekst.js';
+import { t } from '../jezyk.js';
 
 let polaczenie = null; // { projekt, zglos(), zamknij() }
 let obecni = [];
@@ -28,7 +29,7 @@ function gdzieJestem() {
 function opisMiejsca(o) {
   if (o.oglada) return 'ogląda podgląd';
   const i = stan.projekt?.strony.findIndex((s) => s.id === o.strona) ?? -1;
-  if (i >= 0) return `strona ${i + 1}`;
+  if (i >= 0) return t('kod.obecnosc.strona', { n: i + 1 });
   if (stan.projekt?.wzorce?.some((w) => w.id === o.strona)) return 'edytuje wzorzec';
   return 'w projekcie';
 }

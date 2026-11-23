@@ -131,11 +131,11 @@ export class OknoPdf {
     const tryb = trybKolorow(this.zrodlo.projekt());
     $('#pdf-pole-uszl').hidden = !druk.uszlachetnienia.length;
     const opisKolorow = [
-      druk.spoty.length ? `Kolory dodatkowe na osobnych płytach: ${druk.spoty.map((x) => x.nazwa).join(', ')}.` : '',
+      druk.spoty.length ? tt('kod.pdf.spoty', { lista: druk.spoty.map((x) => x.nazwa).join(', ') }) : '',
       druk.uszlachetnienia.length ? `Uszlachetnienia: ${druk.uszlachetnienia.map((x) => tt('oknoPdf.plyta', { etykieta: x.etykieta, plyta: x.plyta })).join(', ')} – z nadrukiem, bez wybijania farby pod spodem.` : '',
       tryb === 'szarosc' ? 'Projekt w skali szarości: wszystko jedną czarną farbą, zdjęcia w odcieniach szarości.' : '',
       tryb === 'czb1' ? 'Projekt czarno-biały + 1 kolor: czerń i jedna płyta koloru dodatkowego, zdjęcia w odcieniach szarości.' : '',
-      trybyWSekcjach(this.zrodlo.projekt()) ? `Sekcje z własnym trybem kolorów: ${this.zrodlo.projekt().sekcje.filter((s) => s.tryb_kolorow).map((s) => `„${s.nazwa}” – ${TRYBY_KOLOROW.find((t) => t.id === s.tryb_kolorow).nazwa.toLowerCase()}`).join(', ')}.` : '',
+      trybyWSekcjach(this.zrodlo.projekt()) ? tt('kod.pdf.sekcjeTryby', { lista: this.zrodlo.projekt().sekcje.filter((s) => s.tryb_kolorow).map((s) => `„${s.nazwa}” – ${tt(TRYBY_KOLOROW.find((x) => x.id === s.tryb_kolorow).nazwa).toLowerCase()}`).join(', ') }) : '',
     ].filter(Boolean).join(' ');
     $('#pdf-opis-kolorow').hidden = !opisKolorow;
     $('#pdf-opis-kolorow').textContent = opisKolorow;

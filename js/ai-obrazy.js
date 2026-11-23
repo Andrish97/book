@@ -1,3 +1,4 @@
+import { t } from './jezyk.js';
 // Generowanie obrazów (#372, plan AI B3): opis po polsku → obraz z modelu obrazkowego Gemini, prosto z przeglądarki
 // kluczem użytkownika z sejfu (jak czat AI, #241 – klucz nie przechodzi przez serwery Makietki). Proporcje z ramki
 // (najbliższe obsługiwane), obrazy wzorcowe (np. karta postaci) jako odniesienie, rozdzielczość 1K (szkic) albo 2K.
@@ -35,7 +36,7 @@ export function obrazZOdpowiedzi(odp) {
   const tekst = czesci.filter((c) => c.text).map((c) => c.text).join('\n').trim();
   if (!obraz) {
     const powod = odp?.promptFeedback?.blockReason || kandydat?.finishReason || '';
-    const b = new Error(powod && powod !== 'STOP' ? `Model nie wygenerował obrazu (${powod}). Zmień opis i spróbuj jeszcze raz.` : `Model nie wygenerował obrazu.${tekst ? ` Odpowiedź: ${tekst.slice(0, 200)}` : ''}`);
+    const b = new Error(powod && powod !== 'STOP' ? t('kod.aiObrazy.brakObrazuPowod', { powod }) : `${t('kod.aiObrazy.brakObrazu')}${tekst ? t('kod.aiObrazy.odpowiedz', { tekst: tekst.slice(0, 200) }) : ''}`);
     b.uzycie = odp?.usageMetadata || null;
     throw b;
   }

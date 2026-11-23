@@ -35,7 +35,7 @@ function wierszProjektu(p, najwiekszy, { cudzy = false } = {}) {
   li.className = 'uzycie-projekt';
   li.dataset.id = p.id;
   const meta = [
-    cudzy ? `właściciel: ${p.wlasciciel || '—'} · ${p.rola === 'odczyt' ? 'oglądasz' : 'edytujesz'}` : rozmiar(p.bajty),
+    cudzy ? t('kod.uzycie.wlasciciel', { kto: p.wlasciciel || '—', rola: t(p.rola === 'odczyt' ? 'kod.uzycie.ogladasz' : 'kod.uzycie.edytujesz') }) : rozmiar(p.bajty),
     t('uzycieKonta.tekst', { obrazy: p.obrazy }),
     t('uzycieKonta.tekst2', { strony: p.strony }),
     `zmieniono ${data(p.zmieniono)}`,

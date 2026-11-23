@@ -1029,7 +1029,7 @@ function biezaceUjecie(nazwa) {
 // Zapis ujęcia w projekcie (projekt.makieta.ujecia) – zapisuje się z projektem i ma krok cofania.
 export async function zapiszUjecieMakiety(nazwa) {
   if (!st) return null;
-  const uj = biezaceUjecie(String(nazwa || '').trim() || `Ujęcie ${(st.projekt.makieta?.ujecia?.length || 0) + 1}`);
+  const uj = biezaceUjecie(String(nazwa || '').trim() || tt('kod.ujecie', { n: (st.projekt.makieta?.ujecia?.length || 0) + 1 }));
   st.projekt.makieta = { ...(st.projekt.makieta || {}), ujecia: [...(st.projekt.makieta?.ujecia || []), uj].slice(-40) };
   await zapiszProjekt();
   pokazZapisane();

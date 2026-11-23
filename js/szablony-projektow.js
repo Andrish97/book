@@ -21,10 +21,10 @@ export const FORMATY_KSIAZKI = [
   ['210x297', 'A4 – 210 × 297 mm'],
   ['210x210', 'Kwadrat – 210 × 210 mm'],
 ];
-const STRONY = (od, krok, ile) => Array.from({ length: ile }, (_, i) => [String(od + i * krok), `${od + i * krok} stron`]);
+const STRONY = (od, krok, ile) => Array.from({ length: ile }, (_, i) => [String(od + i * krok), t('kod.szablony.stron', { n: od + i * krok })]);
 const pytanieFormatu = (domyslny = '148x210', formaty = FORMATY_KSIAZKI) => ({ klucz: 'format', etykieta: t('szablonyProjektow.format'), typ: 'wybor', opcje: formaty, domyslna: domyslny });
 const pytanieKrotnosci = (domyslna = '16', opcje = ['16', '8', '32', '4']) => ({
-  klucz: 'skladka', etykieta: t('szablonyProjektow.krotnoscStronSkladka'), typ: 'wybor', opcje: opcje.map((k) => [k, `po ${k} stron`]), domyslna,
+  klucz: 'skladka', etykieta: t('szablonyProjektow.krotnoscStronSkladka'), typ: 'wybor', opcje: opcje.map((k) => [k, t('kod.szablony.poStron', { n: k })]), domyslna,
 });
 const pytanieStron = (domyslna = '64', opcje = STRONY(16, 16, 30)) => ({ klucz: 'stron', etykieta: t('szablonyProjektow.stronBloku'), typ: 'wybor', opcje, domyslna });
 
@@ -119,7 +119,7 @@ export function sekcjeSzablonu(szablon0, odpowiedzi = domyslneOpcjeProjektu(szab
   const o = { ...domyslneOpcjeProjektu(szablon0), ...odpowiedzi };
   const szablon = wedlugFormy(szablon0, o);
   if (szablon.komiks && (o.forma === 'kartki' || o.forma === 'ekran')) return [t(o.forma === 'ekran' ? 'szablonyProjektow.komiksNaEkran' : 'szablonyProjektow.komiksKartki', { stron: o.stron })];
-  const blok = szablon.blok ? 'blok z szablonu' : `blok ${o.stron} stron (krotność ${o.skladka})`;
+  const blok = szablon.blok ? t('kod.szablony.blokZSzablonu') : t('kod.szablony.blok', { n: o.stron, k: o.skladka });
   return [
     szablon.oprawa && OPRAWY[szablon.oprawa],
     szablon.obwoluta && 'obwoluta',
@@ -180,7 +180,7 @@ export function komiksWBloku(p, blok, { przyklad = true } = {}) {
 // Buduje cały projekt z szablonu. opcje: { nazwa, odpowiedzi, paleta (obiekt albo klucz), czcionki }.
 export async function zbudujProjekt(id, opcje = {}) {
   const sz0 = szablonProjektu(id);
-  if (!sz0) throw new Error(`Nie ma szablonu projektu „${id}”.`);
+  if (!sz0) throw new Error(t('kod.szablony.brak', { id }));
   const o = { ...domyslneOpcjeProjektu(sz0), ...(opcje.odpowiedzi || {}) };
   const sz = wedlugFormy(sz0, o);
   const ekran = sz.komiks && o.forma === 'ekran'; // komiks na ekran: poziomo 16:9, bez spadu i znaków cięcia

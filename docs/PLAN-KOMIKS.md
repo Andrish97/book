@@ -252,6 +252,17 @@ Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty
 - Właściciel: „Jest bardzo dużo problemów z tłumaczeniami szczególnie te które są w js. Np. Changed godzinę temu XD”.
 - M1 ✅ daty, lista projektów, konto, logowanie, współpraca, zapis (#409).
 - M2 ⏳ pozostałe okna i panele – ✅ właściwości, dane i serie, sekcje, lista stron, komentarze, ostrzeżenia, dostęp dla AI; dalej: eksport, druk, AI, komiks, makieta, kontrola…
-- M3 ⏳ przykładowa treść szablonów (gotowe sekcje, kompozycje, planery) – tekst wstawiany do projektu.
+- M2/M3 ✅ większość (#409 cd.): stałe napisy w słownikach, napisy składane na kluczach, treść przykładowa Biblioteki i gotowych sekcji. Zostało: nazwy miesięcy w danych kalendarzy, szablony składanek i planerów z napisami składanymi, polecenia dla AI (czat w aplikacji odpowiada po polsku), panel administratora (tylko właściciel).
 - M4 ⏳ komunikaty z bazy danych (limity, błędy) – po polsku z serwera.
 - „wkurza mnie też to, że na przykład nazwy narzędzi są po polsku… w Familiadzie nie ma takich problemów” → wybór: narzędzia łącznika AI – ✅ łącznik po angielsku (#410). Zgłoszenie do katalogu trzeba wypełnić od nowa (formularz pobierze nowe nazwy).
+
+## Część N – czat AI i menu (23.11, popołudnie)
+Właściciel: „Czat z AI jest okropny, w ustawieniach wybieramy jakiego AI używamy a na czacie tylko rozmawiamy, nic więcej.
+Zapisywanie czy import może być w jednym menu a nie zawracać menu… Prawe menu szczególnie na telefonie jest zbyt zagracone.
+Jest problem że model się wybiera niepoprawnie dla dostawców szczególnie w tych ustawieniach w samym czacie.
+I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to poprawić. W ogóle okno czatu działa źle i ucieka na telefonie na pewno.”
+- N1 czat tylko do rozmowy – wybór dostawcy i modelu wyłącznie w ustawieniach.
+- N2 wybór modelu poprawny dla dostawcy.
+- N3 asystent w jednym miejscu; przegląd powtórzonych funkcji.
+- N4 zapis/import/eksport w jednym menu; mniej pozycji w prawym menu (telefon).
+- N5 okno czatu na telefonie nie ucieka.

@@ -174,7 +174,7 @@ async function wykonaj(z) {
     if (z.rodzaj === 'png') {
       const egz = ciag.egzemplarze.filter((e) => e.strona?.id === u.strona);
       const e = egz[Math.max(0, Math.min(egz.length - 1, (Number(u.egzemplarz) || 1) - 1))];
-      if (!e) throw new Error(`Projekt nie ma strony „${u.strona ?? ''}”.`);
+      if (!e) throw new Error(t('kod.brakStrony', { strona: u.strona ?? '' }));
       const { renderujCel } = await import('../zlozenie.js');
       const dpi = Math.min(600, Math.max(72, Number(u.dpi) || 150));
       const w = e.sekcja.wydruk;

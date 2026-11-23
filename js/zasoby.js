@@ -1,3 +1,4 @@
+import { t } from './jezyk.js';
 /* global IDBKeyRange */
 // Oryginały obrazów projektu poza pamięcią karty.
 //
@@ -100,14 +101,14 @@ async function wlozPlik(projekt, id, blob, zasob) {
       return { typ: blob.type || 'application/octet-stream', rozmiar: blob.size };
     }
   }
-  throw new Error(`Nie udało się zapisać obrazu „${zasob?.nazwa || id}” w pamięci przeglądarki.`);
+  throw new Error(t('kod.zasoby.nieZapisano', { nazwa: zasob?.nazwa || id }));
 }
 
 // Plik z konta musi się zgadzać z opisem obrazu w projekcie (#184): niepełny albo inny plik (np. przerwana wysyłka
 // albo odpowiedź, która nie jest obrazem) nie trafia do magazynu jako oryginał – obraz liczy się jako brakujący
 // i pobierze się przy następnym otwarciu. Bez typu w odpowiedzi plik dostaje typ z opisu.
 function sprawdzPobrany(blob, z) {
-  if (!blob || (z.rozmiar && blob.size !== z.rozmiar)) throw new Error(`Obraz „${z.nazwa || ''}” przyszedł niepełny.`);
+  if (!blob || (z.rozmiar && blob.size !== z.rozmiar)) throw new Error(t('kod.zasoby.niepelny', { nazwa: z.nazwa || '' }));
   return z.typ && !blob.type ? new Blob([blob], { type: z.typ }) : blob;
 }
 

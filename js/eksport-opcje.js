@@ -1,3 +1,4 @@
+import { t } from './jezyk.js';
 // Opcje eksportu PDF ze zlecenia AI (narzędzie eksport_pdf łącznika) – wspólne dla aplikacji (js/app/eksport-ai.js)
 // i eksportu na serwerze (rysuj.html, #337).
 
@@ -9,9 +10,9 @@ export function opcjePdf(projekt, u = {}) {
   const pdfx = ['fogra39', 'fogra47'].includes(u.pdfx) ? u.pdfx : '';
   const znajdz = (x) => { const sz = String(x ?? '').trim().toLowerCase(); return sz ? projekt.sekcje.find((s) => s.id === x || String(s.nazwa || '').trim().toLowerCase() === sz) : null; };
   const sekcja = znajdz(u.sekcja);
-  if (u.zakres === 'sekcja' && !sekcja) throw new Error(`Projekt nie ma sekcji „${u.sekcja ?? ''}”.`);
+  if (u.zakres === 'sekcja' && !sekcja) throw new Error(t('kod.brakSekcji', { sekcja: u.sekcja ?? '' }));
   // #312: kilka sekcji naraz (lista id albo nazw) i strony jak w Wordzie („1-5, 8, 11-”).
-  const sekcje = (Array.isArray(u.sekcje) ? u.sekcje : []).map((x) => { const s = znajdz(x); if (!s) throw new Error(`Projekt nie ma sekcji „${x}”.`); return s.id; });
+  const sekcje = (Array.isArray(u.sekcje) ? u.sekcje : []).map((x) => { const s = znajdz(x); if (!s) throw new Error(t('kod.brakSekcji', { sekcja: x })); return s.id; });
   if (u.zakres === 'sekcje' && !sekcje.length) throw new Error('Podaj sekcje (lista id albo nazw).');
   return {
     zakres: ['sekcja', 'sekcje', 'strony'].includes(u.zakres) ? u.zakres : 'wszystko',

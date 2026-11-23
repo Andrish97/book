@@ -1,3 +1,4 @@
+import { t } from './jezyk.js';
 // Rozkładanie modelu 3D na siatkę do wycięcia i sklejenia (#264, plan składanek krok 9 – jak Pepakura).
 // Wejście: OBJ (tekst) albo STL (binarny albo tekstowy). Ściany dzielimy na trójkąty, łączymy wspólne wierzchołki,
 // budujemy drzewo rozpinające ścian (najpierw krawędzie najbardziej płaskie – mniej zgięć i cięć w widocznych
@@ -370,7 +371,7 @@ export function rozlozSiatke(siatka, { rozmiar = 100, nazwa = 'Model', progZgiec
       plik,
       trojkaty: w.trojkaty.filter((ti) => teksT[ti] === plik).map((ti) => ({ p: pozycja[ti].map((q) => ({ x: q.x - minX, y: q.y - minY })), uv: uvT[ti] })),
     } : null;
-    return { nazwa: wyspy.length > 1 ? `${nazwa} – część ${iw + 1}` : nazwa, punkty, krawedzie, zgiecia, ...(kolor ? { kolor } : {}), ...(tekstura ? { tekstura } : {}) };
+    return { nazwa: wyspy.length > 1 ? t('kod.rozklad.czesc', { nazwa, n: iw + 1 }) : nazwa, punkty, krawedzie, zgiecia, ...(kolor ? { kolor } : {}), ...(tekstura ? { tekstura } : {}) };
   });
   return { czesci, trojkatow: T.length, czesciIle: czesci.length };
 }

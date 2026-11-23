@@ -66,10 +66,10 @@ async function wstawElement(u) {
   await import('./biblioteka-okno.js');
   const { elementBiblioteki } = await import('../biblioteka.js');
   const el = elementBiblioteki(u.kategoria, u.element);
-  if (!el) throw new Error(`W Bibliotece nie ma elementu ${u.kategoria}/${u.element}.`);
+  if (!el) throw new Error(t('kod.zadaniaAi.brakElementu', { kategoria: u.kategoria, element: u.element }));
   const idStrony = String(u.gdzie || '').replace(/^strona:/, '');
   const nr = stan.projekt.strony.findIndex((s) => s.id === idStrony);
-  if (nr < 0) throw new Error(`Projekt nie ma strony „${idStrony}”.`);
+  if (nr < 0) throw new Error(t('kod.brakStrony', { strona: idStrony }));
   await ed.przejdzDoStrony(nr);
   const e = window.seriodruk.edytor;
   e.odznacz?.();

@@ -12,6 +12,7 @@
 import { nowyProjekt, nowaSekcja, nowaStrona, nowyWzorzec, uid, normalizuj } from './projekt.js';
 import { czytajPub } from './pub-czytnik.js';
 import { Raport } from './raport-przeniesienia.js';
+import { t } from './jezyk.js';
 
 const MM = 25.4 / 72; // pt → mm
 const r2 = (v) => Math.round(v * 100) / 100;
@@ -208,7 +209,7 @@ function obrazWRamce(zasob, px, ramkaObrazu, ramka) {
   };
 }
 function brakObrazu(ramka, nazwa) {
-  return { z_importu: `brak obrazu ${nazwa} – w jego miejscu szare pole`, type: 'rect', id: uid('o'), left: r2(ramka.x), top: r2(ramka.y), width: r2(ramka.w), height: r2(ramka.h), fill: '#e8e6e1', stroke: '#c9c6bf', strokeWidth: 0.2, strokeUniform: true, nazwa: `Brak obrazu: ${nazwa}` };
+  return { z_importu: t('kod.import.brakObrazu', { nazwa }), type: 'rect', id: uid('o'), left: r2(ramka.x), top: r2(ramka.y), width: r2(ramka.w), height: r2(ramka.h), fill: '#e8e6e1', stroke: '#c9c6bf', strokeWidth: 0.2, strokeUniform: true, nazwa: t('kod.import.brakObrazuNazwa', { nazwa }) };
 }
 
 // ---------- Projekt ----------
@@ -739,7 +740,7 @@ async function czytajPubDoStron(bufor, { przyjmij, raport, oznacz }) {
         const ramka = { x: k.x * CAL, y: k.y * CAL, w, h };
         const blob = k.obraz.bajty ? new Blob([k.obraz.bajty], { type: k.obraz.typ }) : null;
         const px = blob && await wymiaryObrazu(blob);
-        if (!px) { const zast = brakObrazu(ramka, `obraz ${k.obraz.typ.replace('image/', '').toUpperCase()}`); zast.z_importu = `obraz ${k.obraz.typ.replace('image/', '').toUpperCase()} (format, którego przeglądarka nie odczyta) – szare pole w jego miejscu`; strona.obiekty.push(zast); const f = k.obraz.typ.replace('image/', '').toUpperCase(); raport.nieobslugiwane.set(f, (raport.nieobslugiwane.get(f) || 0) + 1); continue; }
+        if (!px) { const zast = brakObrazu(ramka, t('kod.import.obraz', { format: k.obraz.typ.replace('image/', '').toUpperCase() })); zast.z_importu = t('kod.import.obrazFormat', { format: k.obraz.typ.replace('image/', '').toUpperCase() }); strona.obiekty.push(zast); const f = k.obraz.typ.replace('image/', '').toUpperCase(); raport.nieobslugiwane.set(f, (raport.nieobslugiwane.get(f) || 0) + 1); continue; }
         const id = await przyjmij(blob, `publisher-${nrStrony + 1}-${strona.obiekty.length + 1}.${{ 'image/jpeg': 'jpg', 'image/bmp': 'bmp', 'image/gif': 'gif' }[k.obraz.typ] || 'png'}`);
         const o = obrazWRamce(id, px, ramka, ramka);
         if (o) { if (k.kat) Object.assign(o, { left: r2(x), top: r2(y), angle: r2(k.kat) }); strona.obiekty.push(o); raport.obrazy += 1; }
@@ -813,7 +814,7 @@ function raportImportu(projekt, r, rodzaj) {
   });
   if (r.teksty) raport.dodaj('uproszczone', 'style akapitu i znaku zapisane jako zwykłe formatowanie (bez nazwanych stylów)');
   if (r.teksty) raport.dodaj('uwaga', 'łamanie wierszy może wyjść trochę inaczej (inny silnik tekstu, dzielenie wyrazów, odstępy między znakami) – przejrzyj teksty');
-  if (r.pola.size) raport.dodaj('uwaga', `pola korespondencji seryjnej (${[...r.pola].slice(0, 6).join(', ')}${r.pola.size > 6 ? '…' : ''}) zamienione na pola Makietki – wczytaj tabelę danych i zrób z niej serię`);
+  if (r.pola.size) raport.dodaj('uwaga', t('kod.import.polaSeryjne', { pola: `${[...r.pola].slice(0, 6).join(', ')}${r.pola.size > 6 ? '…' : ''}` }));
   if (rodzaj === 'pub') raport.dodaj('uproszczone', 'Publisher: kolory i kursywa ze stylów dokumentu, obrazy WMF/EMF i efekty WordArt nie są odczytywane');
   return raport;
 }

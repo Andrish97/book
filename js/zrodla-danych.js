@@ -104,7 +104,7 @@ export async function plikZLinku(url) {
   try { odp = await fetch(linkDoPobrania(url), { cache: 'no-store', credentials: 'omit' }); } catch {
     throw new Error('Nie udało się pobrać danych z linku – serwis nie pozwala na pobieranie z przeglądarki albo nie ma sieci. Arkusz Google: Plik → Udostępnij → Opublikuj w internecie → CSV.');
   }
-  if (!odp.ok) throw new Error(`Serwer odpowiedział błędem ${odp.status} – sprawdź, czy link jest publiczny.`);
+  if (!odp.ok) throw new Error(tt('kod.zrodla.blad', { status: odp.status }));
   const typ = odp.headers.get('content-type') || '';
   const blob = await odp.blob();
   let nazwa = nazwaZLinku(url);

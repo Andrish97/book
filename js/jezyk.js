@@ -284,7 +284,7 @@ export function odswiezPrzyciskiJezyka() {
   for (const b of document.querySelectorAll('.przycisk-ikona[data-akcja="jezyk"]')) {
     const j = JEZYKI[jezyk];
     b.innerHTML = `<img src="${j.flaga}" alt="" width="20" height="20" class="flaga-jezyka">`;
-    b.title = `Język: ${j.nazwa}`;
+    b.title = t('kod.jezyk.jezyk', { nazwa: j.nazwa });
     b.setAttribute('aria-label', `Język: ${j.nazwa}`);
   }
 }

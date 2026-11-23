@@ -5,6 +5,7 @@
 // Tła wstawiają się na całą stronę ze spadem, pod treść; plamy – jak zwykły element na środek strony.
 
 import { R, P, f, okrag } from './biblioteka-sklad.js';
+import { t } from './jezyk.js';
 
 // Kolor rozjaśniony w stronę bieli (t = 0 – kolor, 1 – biel).
 export function rozjasnij(hex, t) {
@@ -158,7 +159,7 @@ const tloStrony = (c) => ({ W: c.w + 2 * c.spad, H: c.h + 2 * c.spad });
 
 export const TLA = [
   ...WZORY.map(([id, nazwa, slowa, gen]) => ({
-    id: `wzor-${id}`, nazwa: `Wzór: ${nazwa.toLowerCase()}`, slowa: `wzor tlo ${slowa}`, grupa: 'Wzory na całą stronę',
+    id: `wzor-${id}`, nazwa: t('kod.wzory.wzor', { nazwa: t(nazwa).toLowerCase() }), slowa: `wzor tlo ${slowa}`, grupa: 'Wzory na całą stronę',
     buduj: (c) => {
       const { W, H } = tloStrony(c);
       const w = gen(W, H);
@@ -182,7 +183,7 @@ export const TLA = [
     },
   })),
   ...PRZEJSCIA.map(([id, nazwa, slowa, gen]) => ({
-    id, nazwa: `Tło: ${nazwa.toLowerCase()}`, slowa: `tlo ${slowa}`, grupa: 'Przejścia kolorów',
+    id, nazwa: t('kod.wzory.tlo', { nazwa: t(nazwa).toLowerCase() }), slowa: `tlo ${slowa}`, grupa: 'Przejścia kolorów',
     buduj: (c) => { const { W, H } = tloStrony(c); return { szer: W, wys: H, tlo: true, obiekty: [R(0, 0, W, H, { fill: gen(c, W, H), nazwa: 'Tło' })] }; },
   })),
   ...PLAMY.map(([id, nazwa, slowa, gen]) => ({

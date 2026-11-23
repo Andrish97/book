@@ -98,5 +98,5 @@ export async function wklejSekcjeZeSchowka(id) {
   }
   zapiszBiezacyCel();
   const { sekcja, strony } = await wklejSekcje(stan.projekt, wpis, id);
-  await poWklejeniu(strony[0], `Wklejono sekcję „${sekcja.nazwa}”${skad(wpis)}.`);
+  await poWklejeniu(strony[0], t('kod.schowek.wklejonoSekcje', { nazwa: sekcja.nazwa, skad: skad(wpis) }));
 }

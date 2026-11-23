@@ -624,7 +624,7 @@ export function zbudujCzesc(def, { grupa = null, left = 0, top = 0, tresc = unde
     el.splice(i, 0, ...naScianach);
   }
   for (const o of el) { o.set({ left: o.left + left, top: o.top + top }); o.setCoords(); }
-  const g = new fabric.Group(el, { nazwa: `Część ${c.nr}${c.opis ? ` – ${c.opis}` : ''}`, subTargetCheck: false, interactive: false, objectCaching: false });
+  const g = new fabric.Group(el, { nazwa: `${tt('kod.skladanka.czescNr', { nr: c.nr })}${c.opis ? ` – ${tt(c.opis)}` : ''}`, subTargetCheck: false, interactive: false, objectCaching: false });
   const srodek = g.getCenterPoint();
   c.uklad = { x: zaokr(srodek.x - left), y: zaokr(srodek.y - top) };
   g.czesc = c;
@@ -968,7 +968,7 @@ export function instrukcjaMontazu(strony, sp = {}) {
     for (const y of zgiecia) kroki.push(tt('skladanka.czesc', { nazwa: nazwa(y.x), join: [y.g ? `${y.g} ${y.g === 1 ? tt('skladanka.zgiecieOdSiebie') : tt('skladanka.zgieciaOdSiebie')}` : '', y.d ? tt('skladanka.doSiebie', { d: y.d }) : '', y.z ? `${y.z} ${y.z === 1 ? tt('skladanka.zakladka') : tt('skladanka.zakladki')}` : ''].filter(Boolean).join(', ') }));
   }
   const pary = paryWSekcji(strony);
-  const opis = (w) => `${w.opis} części ${w.czesc}`;
+  const opis = (w) => tt('kod.skladanka.opisCzesci', { opis: tt(w.opis), czesc: w.czesc });
   for (const [para, w] of pary) {
     if (w.length !== 2) continue;
     const zak = w.find((x) => x.rodzaj === 'zakladka');
@@ -978,7 +978,7 @@ export function instrukcjaMontazu(strony, sp = {}) {
     const doLin = lin && w.find((x) => x !== lin);
     if (wyp && szcz) kroki.push(tt('skladanka.wsunWypustkeCzescW', { para, czesc: wyp.czesc, czesc2: szcz.czesc }));
     else if (lin && doLin && doLin.rodzaj !== 'linia') {
-      const co = doLin.rodzaj === 'zakladka' ? `zakładkę ${para} (część ${doLin.czesc})` : `${opis(doLin)}`;
+      const co = doLin.rodzaj === 'zakladka' ? tt('kod.skladanka.zakladka', { para, czesc: doLin.czesc }) : `${opis(doLin)}`;
       kroki.push(lin.prosta
         ? tt('skladanka.posmarujKlejemIPrzyklej', { para, co, czesc: lin.czesc })
         : tt('skladanka.posmarujKlejemIPrzyklej2', { para, co, czesc: lin.czesc }));

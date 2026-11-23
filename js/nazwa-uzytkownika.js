@@ -58,8 +58,8 @@ export function podpowiedzNazwy(pole, el) {
     let w;
     try { w = await nazwaWolna(n); } catch { if (nr === licznik) pokaz(tt(ZASADY_NAZWY)); return true; }
     if (nr !== licznik) return Boolean(w?.wolna);
-    if (w?.wolna) { pokaz(`„${n}” jest wolna.`, 'ok'); return true; }
-    el.replaceChildren(`„${n}” jest już zajęta. `);
+    if (w?.wolna) { pokaz(tt('kod.nazwa.wolna', { n }), 'ok'); return true; }
+    el.replaceChildren(tt('kod.nazwa.zajeta', { n }));
     el.className = 'podpowiedz-nazwy blad';
     if (w?.propozycja) {
       const b = document.createElement('button');

@@ -37,7 +37,7 @@ const tekst4 = (d, od) => String.fromCharCode(d.getUint8(od), d.getUint8(od + 1)
 // Tablica przeliczeniowa profilu (mft1: 8 bitów, mft2: 16 bitów): krzywe wejściowe, siatka, krzywe wyjściowe.
 function czytajTablice(d, od) {
   const typ = tekst4(d, od);
-  if (typ !== 'mft1' && typ !== 'mft2') throw new Error(`nieobsługiwany zapis tablicy (${typ.trim() || '?'})`);
+  if (typ !== 'mft1' && typ !== 'mft2') throw new Error(tt('kod.icc.zapis', { typ: typ.trim() || '?' }));
   const wej = d.getUint8(od + 8); const wyj = d.getUint8(od + 9); const siatka = d.getUint8(od + 10);
   const szesnascie = typ === 'mft2';
   const ileWej = szesnascie ? d.getUint16(od + 48) : 256;

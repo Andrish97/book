@@ -86,7 +86,7 @@ async function zamienTrafienia(lista2) {
   zapiszBiezacyCel();
   const zaznaczony = edytor.aktywny?.id;
   let zm = null;
-  await przedDlugaCzynnoscia(`Zamiana ${lista2.length} wystąpień…`, lista2.length > 60, async () => {
+  await przedDlugaCzynnoscia(tt('kod.znajdz.zamiana', { n: lista2.length }), lista2.length > 60, async () => {
     zm = zamien(stan.projekt, lista2, zamiennik.value);
     if (!zm.liczba) return;
     stan.miniatury.clear();

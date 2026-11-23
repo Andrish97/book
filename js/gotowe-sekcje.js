@@ -76,7 +76,9 @@ export const domyslnyRok = (teraz = new Date()) => teraz.getFullYear() + (teraz.
 function narzedzia(c) {
   const { k, f } = c;
   const { nowyKalendarz, nowaTabelaElement, komorkiTabeli, ulozTabele, ustawLinieZakresu, ustawKrawedzKomorki } = Z;
-  const tekst = (text, x, y, w, o = {}) => {
+  // Treść przykładowa w języku interfejsu (#409) – polski napis ze słownika → tłumaczenie.
+  const tekst = (tekstPl, x, y, w, o = {}) => {
+    const text = tt(String(tekstPl));
     const {
       pt = 10, font = f.tekst, bold = false, italic = false, kolor = k.tekst, align = 'left', lh = 1.25, cs = 0, nazwa, ...reszta
     } = o;
@@ -89,7 +91,7 @@ function narzedzia(c) {
     return {
       type: 'textbox', version: '5.3.0', id: c.uid('o'), text, styles: [], left: x, top: y, width: Math.max(4, w),
       fontFamily: font, fontSize: rozmiar, fontWeight: bold ? 'bold' : 'normal', fontStyle: italic ? 'italic' : 'normal',
-      fill: kolor, textAlign: align, lineHeight: lh, charSpacing: cs, strokeWidth: 0, spojniki: true, zasady_pl: true, lamanie_akapitu: true, ...(nazwa ? { nazwa } : {}), ...reszta,
+      fill: kolor, textAlign: align, lineHeight: lh, charSpacing: cs, strokeWidth: 0, spojniki: true, zasady_pl: true, lamanie_akapitu: true, ...(nazwa ? { nazwa: tt(nazwa) } : {}), ...reszta,
     };
   };
   const prost = (x, y, w, h, o = {}) => {

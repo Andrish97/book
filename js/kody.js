@@ -367,7 +367,7 @@ export function cyfryEAN(tekst) {
   if (surowe.length === 12) return { cyfry: surowe + cyfraKontrolnaEAN(surowe), blad: null };
   if (surowe.length !== 13) return { cyfry: null, blad: `Kod EAN-13 ma 13 cyfr (12 + cyfra kontrolna) – wpisano ${surowe.length}.` };
   const k = cyfraKontrolnaEAN(surowe.slice(0, 12));
-  if (k !== Number(surowe[12])) return { cyfry: null, blad: `Zła cyfra kontrolna – powinna być ${k}.` };
+  if (k !== Number(surowe[12])) return { cyfry: null, blad: tt('kod.kody.cyfraKontrolna', { k }) };
   return { cyfry: surowe, blad: null };
 }
 

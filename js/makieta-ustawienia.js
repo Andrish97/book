@@ -1,3 +1,4 @@
+import { t } from './jezyk.js';
 // Ustawienia makiety 3D (#181): światło, tło, materiały i zapisane ujęcia w projekcie (pole `projekt.makieta`).
 // Moduł bez zależności – używają go js/makieta-3d.js (rysowanie), js/app/makieta-okno.js (okno) i js/projekt.js
 // (normalizacja wczytanego projektu). Opis pola dla AI: ai/format-makietka.md.
@@ -64,7 +65,7 @@ export function normalizujUjecie(x, i = 0) {
   const k = x.kamera || {};
   return {
     id: typeof x.id === 'string' && x.id ? x.id.slice(0, 40) : `uj${i + 1}`,
-    nazwa: String(x.nazwa || `Ujęcie ${i + 1}`).slice(0, 80),
+    nazwa: String(x.nazwa || t('kod.ujecie', { n: i + 1 })).slice(0, 80),
     model: MODELE_MAKIETY.includes(x.model) ? x.model : null,
     u: liczba(x.u, 0, 10000, 0),
     ulozenie: x.ulozenie === 'stoi' ? 'stoi' : 'lezy',

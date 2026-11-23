@@ -14,6 +14,7 @@
 import { blobZasobu } from './zasoby.js';
 import { NAZWA, ROZSZERZENIE, TYP_MIME, FORMAT_PLIKU } from './marka.js';
 import { biblioteka } from './biblioteki.js';
+import { t } from './jezyk.js';
 
 export { ROZSZERZENIE, TYP_MIME };
 export const WERSJA_FORMATU = 1;
@@ -83,16 +84,16 @@ export async function wczytajPlikProjektu(plik) {
     try {
       return JSON.parse(await plik.text());
     } catch {
-      throw new Error(`To nie jest plik projektu ${NAZWA}.`);
+      throw new Error(t('kod.plik.nieProjekt', { nazwa: NAZWA }));
     }
   }
 
   const JSZip = await jszip();
   const zip = await JSZip.loadAsync(plik);
   const plikManifestu = zip.file('manifest.json');
-  if (!plikManifestu) throw new Error(`W pliku brakuje manifestu – to nie jest projekt ${NAZWA}.`);
+  if (!plikManifestu) throw new Error(t('kod.plik.brakManifestu', { nazwa: NAZWA }));
   const manifest = JSON.parse(await plikManifestu.async('string'));
-  if (manifest.format !== FORMAT_PLIKU) throw new Error(`To nie jest plik projektu ${NAZWA}.`);
+  if (manifest.format !== FORMAT_PLIKU) throw new Error(t('kod.plik.nieProjekt', { nazwa: NAZWA }));
   if (manifest.wersja_formatu > WERSJA_FORMATU) {
     throw new Error('Plik zapisano w nowszej wersji aplikacji. Odśwież stronę, aby wczytać najnowszą wersję.');
   }

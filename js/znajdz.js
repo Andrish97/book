@@ -1,3 +1,4 @@
+import { t as tt } from './jezyk.js';
 // Znajdź i zamień (#131C): szukanie w tekstach wszystkich stron i wzorców projektu (także w grupach,
 // tabelach i ramkach połączonego tekstu), opcjonalnie w tabelach danych i nazwach stylów.
 // Moduł nie zna edytora: pracuje na zapisie projektu (JSON). Okno: js/app/znajdz-okno.js.
@@ -89,7 +90,7 @@ export function szukaj(projekt, fraza, opcje = {}) {
   if (opcje.dane) {
     for (const t of projekt.tabele || []) {
       (t.wiersze || []).forEach((w, r) => (w || []).forEach((k, c) => {
-        if (typeof k === 'string' && k) dodaj(k, { gdzie: 'dane', cel: t.id, nazwaCelu: `Dane „${t.nazwa || ''}” · ${t.kolumny?.[c] || `kolumna ${c + 1}`}, wiersz ${r + 1}`, wiersz: r, kolumna: c });
+        if (typeof k === 'string' && k) dodaj(k, { gdzie: 'dane', cel: t.id, nazwaCelu: tt('kod.znajdz.dane', { tabela: t.nazwa || '', kolumna: t.kolumny?.[c] || tt('kod.znajdz.kolumna', { n: c + 1 }), wiersz: r + 1 }), wiersz: r, kolumna: c });
       }));
     }
   }

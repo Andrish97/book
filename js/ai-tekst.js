@@ -1,3 +1,4 @@
+import { t as tt } from './jezyk.js';
 // Tekst z AI (#373, plan AI B4): skróć, wydłuż, prościej, uroczyściej, popraw błędy, przetłumacz (pl/en/uk) – na
 // zaznaczonej ramce tekstu; wypełnianie kolumny tabeli. Tani model tekstowy Gemini kluczem z sejfu, prosto
 // z przeglądarki (jak obraz AI, #372). Moduł bez zależności od edytora.
@@ -27,7 +28,7 @@ export function zapytanieTekstu({ czynnosc, tekst, polecenie = '' }) {
 
 export function tekstZOdpowiedzi(odp) {
   const t = (odp?.candidates?.[0]?.content?.parts || []).filter((c) => c.text && !c.thought).map((c) => c.text).join('').trim();
-  if (!t) throw new Error(`Model nie zwrócił tekstu${odp?.promptFeedback?.blockReason ? ` (${odp.promptFeedback.blockReason})` : ''}.`);
+  if (!t) throw new Error(tt('kod.aiTekst.brakTekstu', { powod: odp?.promptFeedback?.blockReason ? ` (${odp.promptFeedback.blockReason})` : '' }));
   return { tekst: t.replace(/^```[a-z]*\n?|\n?```$/g, '').trim(), uzycie: odp.usageMetadata || null };
 }
 

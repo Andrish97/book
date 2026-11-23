@@ -91,8 +91,8 @@ export function paneleUlotki(p) {
 
 function nazwyPaneli(p) {
   const n = p.panele;
-  const zew = Array.from({ length: n }, (_, i) => `Zewnątrz ${i + 1}`);
-  const wew = Array.from({ length: n }, (_, i) => `Środek ${i + 1}`);
+  const zew = Array.from({ length: n }, (_, i) => tt('kod.specjalne.zewnatrz', { n: i + 1 }));
+  const wew = Array.from({ length: n }, (_, i) => tt('kod.specjalne.srodek', { n: i + 1 }));
   zew[n - 1] = 'Okładka';
   if (n === 2) zew[0] = 'Tył';
   else if (p.zlozenie === 'z') zew[0] = 'Tył';
@@ -273,7 +273,7 @@ function odwrocArkusz(w) {
   return {
     ...w,
     odwrotna: true,
-    strefy: w.strefy.map((z) => ({ ...z, x1: zaokr(W - z.x2), x2: zaokr(W - z.x1), nazwa: `${z.nazwa} – wnętrze` })),
+    strefy: w.strefy.map((z) => ({ ...z, x1: zaokr(W - z.x2), x2: zaokr(W - z.x1), nazwa: tt('kod.specjalne.wnetrze', { nazwa: z.nazwa }) })),
     bigi: (w.bigi || []).map(odc),
     perforacje: (w.perforacje || []).map(odc),
     naciecia: (w.naciecia || []).map(odc),

@@ -1,3 +1,4 @@
+import { t as tt } from './jezyk.js';
 // Elementy złożone Biblioteki (#162): nagłówki, bloki treści, infografiki, formularze, okolicznościowe, układy
 // stron, ilustracje, ikony, tła i wzory. Każdy element to lista zwykłych obiektów projektu (prostokąt, elipsa,
 // ścieżka, tekst) w milimetrach, liczona dla bieżącej strony (szerokość treści, kolory i czcionki marki).
@@ -19,7 +20,7 @@ const PT = 25.4 / 72;
 const wspolne = (o) => ({
   fill: o.fill ?? '', stroke: o.stroke ?? '', strokeWidth: o.sw ?? (o.stroke ? 0.3 : 0), strokeUniform: o.jednolity ?? true,
   strokeDashArray: o.kreski || null, strokeLineCap: o.cap || 'round', strokeLineJoin: 'round', opacity: o.krycie ?? 1,
-  ...(o.nazwa ? { nazwa: o.nazwa } : {}),
+  ...(o.nazwa ? { nazwa: tt(o.nazwa) } : {}),
 });
 export const R = (x, y, w, h, o = {}) => ({ type: 'rect', left: x, top: y, width: w, height: h, rx: o.rx || 0, ry: o.rx || 0, ...wspolne(o) });
 export const E = (cx, cy, rx, ry = rx, o = {}) => ({ type: 'ellipse', left: cx - rx, top: cy - ry, rx, ry, width: 2 * rx, height: 2 * ry, ...wspolne(o) });
@@ -29,8 +30,9 @@ export const P = (d, o = {}) => {
   return { type: 'path', path: d, ...polozenieSciezki(b, o.sw ?? (o.stroke ? 0.3 : 0)), ...wspolne(o), fillRule: o.evenodd ? 'evenodd' : 'nonzero', _ob: b };
 };
 export const L = (x1, y1, x2, y2, o = {}) => P(`M ${x1} ${y1} L ${x2} ${y2}`, { stroke: TUSZ, sw: 0.3, ...o });
+// Treść przykładowa w języku interfejsu (#409): polski tekst ze słownika → tłumaczenie (t z polskim napisem).
 export const T = (tekst, x, y, w, o = {}) => ({
-  type: 'textbox', text: o.wielkie ? String(tekst).toUpperCase() : String(tekst), left: x, top: y, width: w,
+  type: 'textbox', text: o.wielkie ? String(tt(String(tekst))).toUpperCase() : String(tt(String(tekst))), left: x, top: y, width: w,
   fontSize: (o.pt || 10) * PT, fontFamily: o.font || 'Inter', fontWeight: o.gruby ? 'bold' : 'normal', fontStyle: o.kursywa ? 'italic' : 'normal',
   fill: o.fill || TUSZ, textAlign: o.align || 'left', lineHeight: o.lh || 1.2, charSpacing: o.cs || 0, strokeWidth: 0,
   ...(o.nazwa ? { nazwa: o.nazwa } : {}),

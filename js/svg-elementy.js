@@ -554,7 +554,7 @@ export async function rozlozRysunek(projekt, obj) {
     zamknijNapis();
     if (o.type === 'image') {
       const fragment = el?.getAttribute?.('data-fragment');
-      const img = await naObraz(projekt, o, fragment ? `${bezRozszerzenia} – fragment z efektem ${fragment}` : `${bezRozszerzenia} – zdjęcie ${zdjecia.filter(([, e]) => !e?.getAttribute?.('data-fragment')).findIndex(([z]) => z === o) + 1}`);
+      const img = await naObraz(projekt, o, fragment ? tt('kod.svg.fragment', { nazwa: bezRozszerzenia, f: fragment }) : tt('kod.svg.zdjecie', { nazwa: bezRozszerzenia, n: zdjecia.filter(([, e]) => !e?.getAttribute?.('data-fragment')).findIndex(([z]) => z === o) + 1 }));
       if (img) obiekty.push(naStrone(img, m)); else pominiete += 1;
       continue;
     }

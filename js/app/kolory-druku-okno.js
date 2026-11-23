@@ -83,7 +83,7 @@ function rysujTryb() {
   $('#kolory-tryb-dziedzicz').hidden = !sek;
   const zaznaczony = sek && !wlasny ? 'dziedzicz' : tryb;
   for (const r of dlg.querySelectorAll('input[name="tryb-kolorow"]')) r.checked = r.value === zaznaczony;
-  const dziedziczony = sek && !wlasny ? ` Teraz jak w całym projekcie: ${TRYBY_KOLOROW.find((t) => t.id === trybKolorow(p)).nazwa.toLowerCase()}.` : '';
+  const dziedziczony = sek && !wlasny ? tt('kod.koloryDruku.jakWProjekcie', { tryb: tt(TRYBY_KOLOROW.find((x) => x.id === trybKolorow(p)).nazwa).toLowerCase() }) : '';
   $('#kolory-tryb-opis').textContent = OPISY[tryb] + dziedziczony;
   const spoty = koloryDodatkowe(p);
   const pole = $('#kolory-tryb-spot-pole');
