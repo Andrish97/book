@@ -31,12 +31,12 @@ Pola poniżej są po angielsku – do wklejenia.
 - Na koncie są gotowe projekty po angielsku (przygotowane przez łącznik „Makietka recenzja”):
   **„Spring Fair – Poster”** (plakat z obrazem, kodem QR, wstęgą z Biblioteki i komentarzem z odpowiedzią),
   **„Wall Calendar 2027”** (styczeń i luty z obrazem i kalendarzem miesiąca), **„Comic – The Parcel”** (kadry i dymki).
-  Przed wysłaniem usuń w aplikacji „Spring Fair – Poster (copy)” (kopia z testu).
+  Plakat ma też tabelę danych „Stalls”, komiks – tabelę „Script”.
 
 **Test instructions (dla recenzentów, po angielsku):**
 > Test account: the email and password given in this form. The account already has sample projects: "Spring Fair – Poster", "Wall Calendar 2027" and "Comic – The Parcel".
 > 1. Add the connector in Claude (Settings → Connectors → Add custom connector → `https://api.makietka.app/mcp`) and sign in with the test account. On the Makietka consent screen choose "All (also creating and deleting)" and "read and change", then "Allow".
-> 2. Try: "List my Makietka projects", "Show an overview of Spring Fair – Poster", "Change the poster title to 'Spring Fair 2028'", "Reply to the comment on the poster and resolve it", "Add a March page to Wall Calendar 2027", "Add a speech bubble to the last panel of the comic", "Find a rounded frame in the Makietka Library and put it on the poster", "Export the poster as a PDF for screen".
+> 2. Try: "List my Makietka projects", "Show an overview of Spring Fair – Poster", "Change the poster title to 'Spring Fair 2028'", "Add a row to the Stalls table", "Reply to the comment on the poster and resolve it", "Add a March page to Wall Calendar 2027", "Add a speech bubble to the last panel of the comic", "Find a rounded frame in the Makietka Library and put it on the poster", "Export the poster as a PDF for screen".
 > 3. Keep https://makietka.app open in a browser tab signed in to the test account – PDF/PNG export also works without it, but drawing pictures, comic panels, speech bubbles, Library elements and preview links are done by the open app (pictures need the user's own Google Gemini key, so in the test account they are expected to report a missing key).
 > 4. "Undo AI changes" (Claude asks first) restores the project to its state before Claude's latest series of edits.
 
@@ -67,5 +67,5 @@ Pola poniżej są po angielsku – do wklejenia.
 | Ikona | ✅ także `favicon.ico` pod api.makietka.app (Claude może trzymać starą ikonę – wtedy usunąć i dodać łącznik jeszcze raz) |
 | Konto testowe | ✅ `test+recenzja@makietka.app` (założone przez właściciela) |
 | Materiały testowe na koncie | ✅ plakat, kalendarz, komiks (po angielsku) |
-| Test każdego narzędzia w Claude jako konektor niestandardowy | ✅ przez łącznik „Makietka recenzja” (plan I9); narzędzia usuwające i zastępujące dane warto kliknąć ręcznie raz – w tej sesji blokował je tryb uprawnień |
+| Test każdego narzędzia w Claude jako konektor niestandardowy | ✅ przez łącznik „Makietka recenzja” (plan I9), także narzędzia usuwające; nowe usun_z_tabeli i usun_czesc – testy automatyczne (widoczne w nowej rozmowie) |
 | Płatny plan Claude i wysłanie formularza | ⏳ właściciel |
