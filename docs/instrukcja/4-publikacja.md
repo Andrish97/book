@@ -183,6 +183,13 @@ Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
 | **Brak pliku obrazu** | W tabeli jest nazwa obrazu, którego nie wgrano. |
 | **Powtórzenia** | Ta sama wartość w kolumnie z **≠**, z numerami stron. |
 | **Wartości spoza listy** | Wartości spoza listy kolumny z **☰**, z numerami wierszy. |
+| **Niska rozdzielczość zdjęcia** | Zdjęcie ma w druku mniej niż 200 dpi (najlepiej 300) – może wyjść nieostre. Zmniejsz je na stronie albo wgraj większy plik. |
+| **Za mały tekst** | Tekst mniejszy niż 6 pt – w druku trudny do czytania, cienkie kreski liter mogą zniknąć. |
+| **Za cienka linia** | Obrys cieńszy niż 0,1 mm może się nie wydrukować. |
+| **Brak czcionki** | Tekst używa czcionki, której nie ma w projekcie ani w Makietce – w PDF zastąpi ją inna; wgraj ją w Czcionkach projektu. |
+| **Tekst przy krawędzi cięcia** | Tekst bliżej niż 3 mm od krawędzi strony – przy przycinaniu może zostać ucięty. |
+| **Bez spadu** | Element (tło, pasek, zdjęcie) dochodzi do krawędzi strony, ale nie do spadu – po przycięciu może zostać biały pasek; przeciągnij go za krawędź. |
+| **Poza stroną** | Element leży całkiem poza stroną – nie będzie go w druku. |
 | **Skład niezgodny z polskimi zasadami** | Spójnik na końcu wiersza, podwójne spacje, cudzysłów prosty, spacja przed przecinkiem itp. — w każdej ramce tekstu (także rosnącej z tekstem) i na każdej powielonej stronie, z danymi wstawionymi z tabeli. Te same uwagi co w panelu **Ostrzeżenia** edytora; **Wycisz** przy elemencie je pomija. |
 | **Brak danych** | Tabeli dodatkowej zabrakło wierszy przed końcem serii. |
 | **Strony serii w rozkładówkach** | Gdzie stoją puste strony albo od której strony blok wychodzi po przeciwnej stronie. |

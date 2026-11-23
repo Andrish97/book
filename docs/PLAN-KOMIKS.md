@@ -268,3 +268,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - N5 ✅ okno czatu na telefonie nie ucieka. (#411)
 - „Pasek narzędzi jest nad oknami a czat dalej wygląda brzydko”, „Mogę czasem potrzebować OpenRouter” – ✅ N6 czat modalny na telefonie, nowy wygląd, logowanie OpenRouter w ustawieniach (#412).
 - „problemy z polskimi zasadami nie pokazują się przy problemach przed drukiem” – ✅ (#413).
+- „Coś jeszcze przydałoby się, żeby kontrola przed drukiem widziała” – ✅ rozdzielczość, mały tekst, cienkie linie, czcionki, krawędź cięcia, spad, poza stroną (#414).

@@ -183,6 +183,13 @@ A list of things to check before you send the file to the print shop.
 | **Missing image file** | The table contains the name of an image that hasn't been uploaded. |
 | **Duplicates** | The same value in a column marked **≠**, with page numbers. |
 | **Values outside the list** | Values outside the list of a column marked **☰**, with row numbers. |
+| **Low image resolution** | The image has less than 200 dpi in print (ideally 300) – it may come out blurry. Make it smaller on the page or upload a larger file. |
+| **Text too small** | Text smaller than 6 pt – hard to read in print, thin letter strokes may disappear. |
+| **Line too thin** | A stroke thinner than 0.1 mm may not print. |
+| **Missing font** | The text uses a font that isn't in the project or in Makietka – another one replaces it in the PDF; upload it in Project fonts. |
+| **Text near the trim edge** | Text closer than 3 mm to the page edge – it may be cut off when trimmed. |
+| **No bleed** | An element (background, bar, photo) reaches the page edge but not the bleed – a white strip may remain after trimming; drag it past the edge. |
+| **Outside the page** | The element lies completely outside the page – it won't be printed. |
 | **Typesetting against Polish rules** | A conjunction at the end of a line, double spaces, a straight quote, a space before a comma, etc. — in every text frame (also ones that grow with the text) and on every repeated page, with the data from the table filled in. The same notes as in the editor's **Warnings** panel; **Mute** on an element skips them. |
 | **Missing data** | An additional table ran out of rows before the end of the series. |
 | **Series pages in spreads** | Where blank pages are, or from which page the block lands on the opposite side. |

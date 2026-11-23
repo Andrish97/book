@@ -19,7 +19,7 @@ oczywiste, proste i dobrze opisane w instrukcji.
   ```
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
-  ostatni użyty: **#413**), commit i push.
+  ostatni użyty: **#414**), commit i push.
 - **Testy punktowo** (właściciel 23.11: „test ma być bardziej punktowy, a nie całości”): test sprawdza tylko zmienioną
   rzecz – kilka linijek w istniejącym pliku albo mały nowy plik; uruchamiać tylko pliki testów dotyczące zmiany,
   potem wysyłka na main. Pełnego przebiegu nie puszczać po każdej zmianie (całość sprawdza się automatycznie na main).

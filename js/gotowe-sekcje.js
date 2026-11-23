@@ -87,7 +87,7 @@ function narzedzia(c) {
     const wielkie = slowo && slowo === slowo.toUpperCase() && /\p{L}/u.test(slowo);
     const naZnak = (bold ? 0.62 : 0.56) * (wielkie ? 1.22 : 1) + (cs / 1000);
     let rozmiar = c.pt(pt);
-    if (slowo.length * rozmiar * naZnak > w) rozmiar = Math.max(c.pt(5), w / (slowo.length * naZnak));
+    if (slowo.length * rozmiar * naZnak > w) rozmiar = Math.max(c.pt(6), w / (slowo.length * naZnak)); // nie mniej niż 6 pt – czytelne w druku (#414)
     return {
       type: 'textbox', version: '5.3.0', id: c.uid('o'), text, styles: [], left: x, top: y, width: Math.max(4, w),
       fontFamily: font, fontSize: rozmiar, fontWeight: bold ? 'bold' : 'normal', fontStyle: italic ? 'italic' : 'normal',
@@ -967,8 +967,8 @@ export const SZABLONY_SEKCJI = [
       const o = [
         n.prost(p.x, p.y, p.w, p.h, { fill: c.k.jasny, stroke: c.k.akcent, sw: 0.4, rx: Math.min(p.w, p.h) * 0.15, nazwa: 'Tło etykiety' }),
         n.tekst('{nazwa}', p.x + 2, p.y + p.h * 0.2, p.w - 4, { pt: 13, font: c.f.tytul, bold: true, align: 'center', kolor: c.k.akcent, nazwa: 'Nazwa' }),
-        n.tekst('{opis}', p.x + 2, p.y + p.h * 0.2 + c.pt(13) * 1.4, p.w - 4, { pt: 7.5, align: 'center', kolor: c.k.akcent2, nazwa: 'Opis' }),
-        n.tekst('{data}', p.x + 2, p.y + p.h - c.pt(6.5) * 1.9, p.w - 4, { pt: 6.5, align: 'center', kolor: c.k.akcent2, nazwa: 'Data' }),
+        n.tekst('{opis}', p.x + 2, p.y + p.h * 0.2 + c.pt(13) * 1.4, p.w - 4, { pt: 8.5, align: 'center', kolor: c.k.akcent2, nazwa: 'Opis' }),
+        n.tekst('{data}', p.x + 2, p.y + p.h - c.pt(8.5) * 1.9, p.w - 4, { pt: 8.5, align: 'center', kolor: c.k.akcent2, nazwa: 'Data' }),
       ];
       return {
         strony: [{ nazwa: 'Etykieta', obiekty: o, seria: 'etykiety', wzorce: [] }],

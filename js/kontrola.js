@@ -16,6 +16,7 @@ import { tacKoloru, silnikTac, LIMIT_TAC } from './separacje.js';
 import { indeksKsiazki, uzywaKsiazki } from './ksiazka.js';
 import { uwagiKomiksu } from './komiks-kontrola.js';
 import { typSekcji } from './typ-sekcji.js';
+import { uwagiElementow } from './kontrola-elementow.js';
 import { t as tt } from './jezyk.js';
 
 const DOKUMENTU = WSZYSTKIE_POLA_DOKUMENTU;
@@ -475,6 +476,8 @@ export function sprawdzProjekt(projekt, ciag = rozwin(projekt)) {
       uwagi.push({ rodzaj: 'za_malo_wartosci', strony: [], opis: tt('kontrola.seriaPowielaSieRazy', { nazwa: seria.nazwa, ile: seria.ile, zDanymi, x: zDanymi < wierszy ? tt('kontrola.zDanymi') : '' }) });
     }
   }
+  // Elementy stron i wzorców (#414): rozdzielczość zdjęć, mały tekst, cienkie linie, czcionki, krawędź cięcia, spad.
+  uwagi.push(...uwagiElementow(projekt, ciag));
   return uwagi;
 }
 

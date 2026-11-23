@@ -1,0 +1,34 @@
+// #414: kontrola przed drukiem widzi też to, co zwykle sprawdza drukarnia: rozdzielczość zdjęć, mały tekst, cienkie
+// linie, brakujące czcionki, tekst przy krawędzi cięcia, element do krawędzi bez spadu, element poza stroną.
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { otworz, nowyProjekt } = require('./pomoc.cjs');
+
+test('kontrola elementów: rozdzielczość, mały tekst, cienka linia, czcionka, krawędź cięcia, spad, poza stroną', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Do drukarni');
+  const uwagi = await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.zasoby.zdj = { nazwa: 'zdjecie.jpg', szer: 600, wys: 400 };
+    p.strony[0].obiekty = [
+      { type: 'image', id: 'o1', zasob: 'zdj', nazwa: 'zdjecie.jpg', left: 20, top: 20, width: 600, height: 400, scaleX: 0.25, scaleY: 0.25 }, // 150 × 100 mm → ok. 102 dpi
+      { type: 'image', id: 'o1b', zasob: 'zdj', nazwa: 'małe', left: 20, top: 150, width: 600, height: 400, scaleX: 0.05, scaleY: 0.05 }, // 30 × 20 mm → 508 dpi – dobrze
+      { type: 'textbox', id: 'o2', text: 'Drobny dopisek', left: 20, top: 140, width: 60, height: 2, fontSize: 1.5, fontFamily: 'Inter' }, // ok. 4,3 pt
+      { type: 'textbox', id: 'o3', text: 'Tytuł', left: 20, top: 120, width: 60, height: 8, fontSize: 6, fontFamily: 'Czcionka Spoza' },
+      { type: 'textbox', id: 'o4', text: 'Numer strony', left: 1, top: 200, width: 30, height: 4, fontSize: 4, fontFamily: 'Inter' }, // 1 mm od krawędzi
+      { type: 'rect', id: 'o5', left: 20, top: 60, width: 30, height: 20, fill: '', stroke: '#000000', strokeWidth: 0.05 },
+      { type: 'rect', id: 'o6', nazwa: 'Pasek', left: 0, top: 0, width: 148, height: 12, fill: '#d1495b' }, // do krawędzi, bez spadu
+      { type: 'rect', id: 'o7', nazwa: 'Tło', left: -3, top: -3, width: 154, height: 216, fill: '#eeeeee' }, // ze spadem – dobrze
+      { type: 'rect', id: 'o8', nazwa: 'Zgubiony', left: 400, top: 50, width: 10, height: 10, fill: '#000000' },
+    ];
+    const { sprawdzProjekt } = await import('./js/kontrola.js');
+    return sprawdzProjekt(p).filter((u) => u.idObiektu).map((u) => [u.rodzaj, u.idObiektu]);
+  });
+  assert.deepEqual(uwagi.sort(), [
+    ['bez_spadu', 'o6'], ['brak_czcionki', 'o3'], ['cienka_linia', 'o5'], ['maly_tekst', 'o2'], ['obraz_dpi', 'o1'], ['poza_strona', 'o8'], ['przy_krawedzi', 'o4'],
+  ].sort());
+  // Opis po ludzku, z miejscem.
+  const opis = await strona.evaluate(async () => (await import('./js/kontrola.js')).sprawdzProjekt(window.seriodruk.stan.projekt).find((u) => u.rodzaj === 'obraz_dpi').opis);
+  assert.match(opis, /ok\. 102 dpi.*strona 1\.$/);
+  assert.deepEqual(bledy, []);
+});
