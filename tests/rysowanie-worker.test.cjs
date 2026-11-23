@@ -54,6 +54,8 @@ const pomoc = (dostepTak = true) => ({
 test('rysowanie na serwerze: zabezpieczenia zlecenia i kolejka', async () => {
   const R = await import(MODUL);
   // Pomocnicze zasady.
+  assert.ok(R.dozwolonyAdres('https://makietka.app/rysuj'), 'hosting przekierowuje /rysuj.html na /rysuj (307) – bez tego pliki na serwerze się nie robiły');
+  assert.ok(!R.dozwolonyAdres('https://makietka.app/rysujx'));
   assert.ok(R.dozwolonyAdres('https://makietka.app/js/rysuj.js'));
   assert.ok(R.dozwolonyAdres('https://makietka.app/css/czcionki/inter.woff2'));
   assert.ok(R.dozwolonyAdres('data:image/png;base64,AAA'));

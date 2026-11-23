@@ -31,7 +31,9 @@ export function dozwolonyAdres(adres, aplikacja = APLIKACJA) {
   let u;
   try { u = new URL(adres); } catch { return false; }
   if (u.origin !== new URL(aplikacja).origin) return false;
-  return u.pathname === '/rysuj.html' || /^\/(js|css)\//.test(u.pathname) || u.pathname === '/favicon.ico';
+  // /rysuj – hosting Cloudflare (pliki strony) przekierowuje /rysuj.html na adres bez „.html” (307); bez tego
+  // przekierowanie było blokowane i pliki PDF/PNG robione na serwerze kończyły się net::ERR_FAILED.
+  return ['/rysuj.html', '/rysuj'].includes(u.pathname) || /^\/(js|css)\//.test(u.pathname) || u.pathname === '/favicon.ico';
 }
 
 // Folder linku ze zlecenia: „<uid>/<projekt>/<kod>” albo „<uid>/<projekt>/<kod>.<sekret>” (link z ochroną).
