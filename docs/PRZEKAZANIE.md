@@ -19,14 +19,15 @@ oczywiste, proste i dobrze opisane w instrukcji.
   ```
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
-  ostatni użyty: **#409**), commit i push.
+  ostatni użyty: **#410**), commit i push.
 - **Testy punktowo** (właściciel 23.11: „test ma być bardziej punktowy, a nie całości”): test sprawdza tylko zmienioną
   rzecz – kilka linijek w istniejącym pliku albo mały nowy plik; uruchamiać tylko pliki testów dotyczące zmiany,
   potem wysyłka na main. Pełnego przebiegu nie puszczać po każdej zmianie (całość sprawdza się automatycznie na main).
   Pełny przebieg: `node --test --test-concurrency=3 tests/*.test.cjs` (~45 min; tylko na wyraźną prośbę).
   Lint: `npx eslint js` (albo `/opt/node-tools/node_modules/.bin/eslint --no-config-lookup -c eslint.config.mjs <pliki>`).
   Po zmianie listy modułów: `node scripts/moduly-buduj.cjs`; po zmianie rdzenia łącznika AI
-  (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs): `node scripts/mcp-buduj.cjs`.
+  (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs): `node scripts/mcp-buduj.cjs`; po zmianie opisu narzędzia – tłumaczenie w
+  supabase/functions/_shared/mcp-teksty-en.json i `node scripts/mcp-angielski.cjs` (łącznik jest po angielsku, #410).
 - Chwiejne pod obciążeniem (osobno przechodzą): eksport-uklad (DOCX), idml, makiety-wszystkie, zasoby (obrazy poza pamięcią); miniatury-stron-pamiec zawodzi ok. 2 na 3 razy także na starszych wersjach (czas zapisu miniatur w tle).
 - **Napisy interfejsu tylko przez klucze**: `t('obszar.klucz', { zmienne })`, słowniki js/jezyki/klucze/{pl,en,uk}.js
   (wszystkie trzy języki, test tests/i18n-klucze-kodu.test.cjs). Odmiana: `{n|jak 1|jak 2–4|jak 5}` (en: `{n|1|reszta}`).

@@ -80,3 +80,8 @@ ani wydawać poleceń AI. Dlatego:
 - opisy narzędzi mówią tylko, co narzędzie robi; wskazówki dla AI są w ogólnym opisie łącznika (instructions).
 
 Formularz – Compliance: Company name `Makietka`, website `https://makietka.app`; wszystkie oświadczenia można zaznaczyć.
+
+## Nazwy narzędzi po angielsku (#410)
+
+Narzędzia łącznika mają nazwy, parametry i opisy po angielsku (np. list_projects, get_project_overview, update_elements,
+export_pdf). Formularz po połączeniu pokaże nowe nazwy – zgłoszenie wypełnić od nowa (48 narzędzi, 14 tylko do czytania).

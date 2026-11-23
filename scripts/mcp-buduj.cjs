@@ -95,6 +95,7 @@ export async function czytajPliki(sciezki) {
 
 const serwer = utworzSerwer({
   czytajPliki,
+  angielski: true, // nazwy i opisy narzędzi po angielsku (#410)
   adres: process.env.MAKIETKA_ADRES || 'https://pganajmivwtstapnwsgv.supabase.co',
   kluczPubliczny: process.env.MAKIETKA_KLUCZ_PUBLICZNY || 'sb_publishable_gt_GEmBz6SfJZ0o9rAhLQA_HKH0V_cq',
   klucz: process.env.MAKIETKA_KLUCZ || '',

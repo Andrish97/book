@@ -199,6 +199,9 @@ all of them), reading only or changes too, and the validity – [Allow] returns 
 The connection is an ordinary access key "Connector: app name" – you can see it in the Artificial intelligence settings and
 revoke it. The AI app doesn't get your password.
 
+**Tool names.** In the AI app, Makietka’s tools have English names (e.g. `get_project_overview`, `update_elements`,
+`export_pdf`) – like other connectors. The AI assistant inside Makietka works as before.
+
 **Drawing pictures.** The connector at `https://api.makietka.app/mcp` (also the one from the Claude connector directory)
 doesn't draw pictures or comic panels – the directory rules require that. For the AI to draw (with your Gemini key), add
 the connector at **`https://api.makietka.app/mcp/full`** – sign-in and everything else work the same. The address with a key

@@ -273,3 +273,60 @@ Treść: `{"p_klucz": "sdk_…", "p_kopie": {"z_nowe": {"z": "z_ab12", "nazwa": 
 ### Funkcje właściciela (zalogowany użytkownik aplikacji)
 
 `utworz_dostep_ai(p_opis, p_rola, p_dni, p_zakres, p_projekty)` → `{id, klucz, wazny_do}` (`p_dni` null – bez terminu; `p_zakres` `wybrane` z listą `p_projekty` albo `pelny`), `dostepy_ai()` → klucze konta bez ich treści (z zakresem i nazwami projektów), `zmien_dostep_ai(p_id, p_zakres, p_projekty)` – nowy zakres bez zmiany klucza, `zmien_waznosc_ai(p_id, p_dni)` – nowy czas ważności od teraz, `ustaw_uprawnienia_ai(p_id, p_uprawnienia)` – podzbiór `strony`, `wzorce`, `tabele`, `obrazy`, `eksport` (null – wszystko), `oznacz_dostep_ai(p_id, p_sposob)` – sekcja w ustawieniach (`lacznik`, `zwykly`, `czat`), `odwolaj_dostep_ai(p_id)`. Obrazy od AI: `pobierz_obraz_ai(p_id)` → `{typ, nazwa, dane}` (base64) albo – dla pliku w kawałkach – `{typ, nazwa, rozmiar, skrot, czesci}` i wtedy `pobierz_czesc_obrazu_ai(p_id, p_nr)` → base64 kawałka; `usun_obraz_ai(p_id)`; pliki do usunięcia z folderu konta: `pliki_do_usuniecia(p_projekt)` → lista ścieżek, `pliki_usuniete(p_projekt, p_sciezki)`.
+
+## Nazwy narzędzi w łączniku (po angielsku, #410)
+
+Łącznik MCP (Claude, ChatGPT, katalog łączników, serwer stdio) pokazuje narzędzia, parametry i opisy po angielsku. Stare polskie nazwy narzędzi i parametrów dalej działają. Asystent AI w aplikacji Makietki używa nazw polskich. Dane projektu (pola elementów, JSON stron i tabel) mają nazwy polskie – opisuje je `opis_formatu` / `get_format_spec`.
+
+| Po polsku | W łączniku |
+|---|---|
+| `projekty` | `list_projects` |
+| `nowy_projekt` | `create_project` |
+| `kopiuj_projekt` | `copy_project` |
+| `usun_projekt` | `delete_project` |
+| `przeglad_projektu` | `get_project_overview` |
+| `czytaj` | `read_part` |
+| `zmien_elementy` | `update_elements` |
+| `dodaj_elementy` | `add_elements` |
+| `obrazy_projektu` | `list_images` |
+| `wgraj_obraz` | `upload_image` |
+| `link_do_wgrywania` | `get_upload_link` |
+| `wstaw_obraz` | `place_image` |
+| `zmien_nazwe_obrazu` | `rename_image` |
+| `podmien_obraz` | `replace_image` |
+| `wgraj_czesciami` | `upload_image_chunks` |
+| `adres_do_wysylki` | `get_upload_url` |
+| `usun_obrazy` | `delete_images` |
+| `uporzadkuj_obrazy` | `tidy_images` |
+| `usun_elementy` | `delete_elements` |
+| `wyrownaj_elementy` | `align_elements` |
+| `rozmiesc_elementy` | `distribute_elements` |
+| `kolejnosc_elementow` | `reorder_elements` |
+| `dodaj_strone` | `add_page` |
+| `kopiuj_strone` | `duplicate_page` |
+| `zmien_strone` | `update_page` |
+| `usun_strony` | `delete_pages` |
+| `kolejnosc_stron` | `reorder_pages` |
+| `zmien_tabele` | `update_table` |
+| `usun_z_tabeli` | `delete_table_data` |
+| `zmien_czesc` | `update_part` |
+| `usun_czesc` | `delete_part` |
+| `zmien_projekt` | `update_project` |
+| `nazwa_projektu` | `rename_project` |
+| `kontrola` | `check_project` |
+| `komentarze` | `list_comments` |
+| `skomentuj` | `add_comment` |
+| `odpowiedz` | `reply_to_comment` |
+| `rozwiaz_komentarz` | `resolve_comment` |
+| `eksport_pdf` | `export_pdf` |
+| `eksport_png` | `export_png` |
+| `stan_eksportu` | `get_job_status` |
+| `udostepnij_link` | `share_preview_link` |
+| `generuj_obraz` | `generate_image` |
+| `rysuj_kadry` | `draw_comic_panels` |
+| `ustaw_dymki` | `place_speech_bubbles` |
+| `biblioteka` | `search_library` |
+| `wstaw_z_biblioteki` | `insert_library_element` |
+| `cofnij_zmiany_ai` | `undo_ai_changes` |
+| `czcionki` | `list_fonts` |
+| `opis_formatu` | `get_format_spec` |

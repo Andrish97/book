@@ -317,6 +317,8 @@ export async function obsluzHttp(request, env = {}) {
     // Rysowanie obrazów modelem AI (generuj_obraz, rysuj_kadry) – pełny adres /mcp/full albo adres z kluczem w ścieżce
     // lub ?klucz=; zwykły /mcp z logowaniem (katalog Claude) – bez rysowania (#408).
     rysowanie: pelnyLacznik(url.pathname) || url.pathname.includes('/sdk_') || url.searchParams.has('klucz'),
+    // Nazwy, parametry i opisy narzędzi po angielsku (#410) – polskie nazwy też działają.
+    angielski: true,
     // Pliki z rozmowy (pole pliki_z_czatu z _meta „openai/fileParams”) tylko dla ChatGPT – Claude odrzucał listę
     // narzędzi z tym dopiskiem („Couldn't reload tools from the server”).
     plikiZCzatu: /openai|chatgpt/i.test(request.headers.get('user-agent') || ''),

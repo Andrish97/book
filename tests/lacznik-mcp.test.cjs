@@ -90,7 +90,7 @@ test('łącznik MCP przez HTTP: starsza wersja (initialize) i 2026-07-28, lista 
   assert.equal(pow.tresc, null);
   const lista = await s.wyslij({ cialo: { jsonrpc: '2.0', id: 2, method: 'tools/list' } });
   const nazwy = lista.tresc.result.tools.map((x) => x.name);
-  for (const n of ['przeglad_projektu', 'czytaj', 'zmien_elementy', 'zmien_czesc', 'zmien_projekt', 'kontrola', 'opis_formatu']) assert.ok(nazwy.includes(n), n);
+  for (const n of ['get_project_overview', 'read_part', 'update_elements', 'update_part', 'update_project', 'check_project', 'get_format_spec']) assert.ok(nazwy.includes(n), n);
   const stara = await s.wyslij({ cialo: { jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'przeglad_projektu', arguments: {} } } });
   assert.match(stara.tresc.result.content[0].text, /Projekt „Kalendarz” \(id p-1\) – wersja 1/);
 

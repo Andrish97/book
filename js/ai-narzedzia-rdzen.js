@@ -1798,9 +1798,297 @@ const INSTRUKCJE_PELNE = 'Narzędzia czytają i zmieniają projekty Makietki (ed
 export const RYSUJACE = new Set(['generuj_obraz', 'rysuj_kadry']);
 const INSTRUKCJE_BEZ_RYSOWANIA = INSTRUKCJE_PELNE.replace('Obraz z opisu rysuje generuj_obraz, kadry komiksu rysuj_kadry, dymki ustaw_dymki (robi to otwarta aplikacja kluczem Gemini użytkownika; kosztuje – mów użytkownikowi, co rysujesz). ', 'Dymki komiksu ustawia ustaw_dymki. ');
 
+// ---------- Łącznik po angielsku (#410) ----------
+// Łącznik MCP (Claude, ChatGPT, katalog łączników) pokazuje narzędzia, parametry, opisy i wartości po angielsku; w środku
+// narzędzia działają na polskich nazwach (asystent AI w aplikacji dalej je widzi). Wywołanie przyjmuje obie wersje nazw.
+export const NAZWY_EN = {
+  projekty: 'list_projects', nowy_projekt: 'create_project', kopiuj_projekt: 'copy_project', usun_projekt: 'delete_project',
+  przeglad_projektu: 'get_project_overview', czytaj: 'read_part', zmien_elementy: 'update_elements', dodaj_elementy: 'add_elements',
+  obrazy_projektu: 'list_images', wgraj_obraz: 'upload_image', link_do_wgrywania: 'get_upload_link', wstaw_obraz: 'place_image',
+  zmien_nazwe_obrazu: 'rename_image', podmien_obraz: 'replace_image', wgraj_czesciami: 'upload_image_chunks', adres_do_wysylki: 'get_upload_url',
+  usun_obrazy: 'delete_images', uporzadkuj_obrazy: 'tidy_images', usun_elementy: 'delete_elements', wyrownaj_elementy: 'align_elements',
+  rozmiesc_elementy: 'distribute_elements', kolejnosc_elementow: 'reorder_elements', dodaj_strone: 'add_page', kopiuj_strone: 'duplicate_page',
+  zmien_strone: 'update_page', usun_strony: 'delete_pages', kolejnosc_stron: 'reorder_pages', zmien_tabele: 'update_table',
+  usun_z_tabeli: 'delete_table_data', zmien_czesc: 'update_part', usun_czesc: 'delete_part', zmien_projekt: 'update_project',
+  nazwa_projektu: 'rename_project', kontrola: 'check_project', komentarze: 'list_comments', skomentuj: 'add_comment',
+  odpowiedz: 'reply_to_comment', rozwiaz_komentarz: 'resolve_comment', eksport_pdf: 'export_pdf', eksport_png: 'export_png',
+  stan_eksportu: 'get_job_status', udostepnij_link: 'share_preview_link', generuj_obraz: 'generate_image', rysuj_kadry: 'draw_comic_panels',
+  ustaw_dymki: 'place_speech_bubbles', biblioteka: 'search_library', wstaw_z_biblioteki: 'insert_library_element',
+  cofnij_zmiany_ai: 'undo_ai_changes', czcionki: 'list_fonts', opis_formatu: 'get_format_spec',
+};
+const PARAMETRY_EN = {
+  nazwa: 'name', szerokosc: 'width', wysokosc: 'height', orientacja: 'orientation', uklad: 'layout', spad: 'bleed', marginesy: 'margins',
+  projekt: 'project', potwierdz: 'confirm', co: 'part', gdzie: 'target', zmiany: 'changes', pola: 'fields', elementy: 'elements',
+  przed: 'before', adres: 'url', dane_base64: 'data_base64', zastap: 'replace', wstaw: 'place', obraz: 'image', dopasowanie: 'fit',
+  krok: 'step', rozmiar: 'size', kawalek: 'chunk_size', szer: 'width_px', wys: 'height_px', wgranie: 'upload_id', nr: 'index',
+  obrazy: 'images', nieuzywane: 'unused', do: 'align', wzgledem: 'relative_to', kierunek: 'direction', odstep_mm: 'gap_mm',
+  strona: 'page', po: 'after', ile: 'count', kolumny: 'columns', ustaw: 'set', wiersz: 'row', kolumna: 'column', wartosc: 'value',
+  dodaj_wiersze: 'add_rows', listy: 'value_lists', usun_wiersze: 'delete_rows', usun_kolumny: 'delete_columns', wiersze: 'rows',
+  czesc: 'part', wszystkie: 'include_resolved', tresc: 'text', komentarz: 'comment', rozwiaz: 'resolve', rozwiazany: 'resolved',
+  zakres: 'scope', sekcja: 'section', sekcje: 'sections', strony: 'pages', od: 'from', przeznaczenie: 'purpose', rodzaj: 'kind',
+  format_arkusza: 'sheet_format', skladka: 'signature_pages', czekaj: 'wait', egzemplarz: 'copy', zlecenie: 'job',
+  zgoda_uzytkownika: 'user_consent', haslo: 'password', wazny_do: 'expires_on', opis: 'prompt', jakosc: 'quality',
+  proporcja: 'aspect_ratio', popraw: 'edit', kadry: 'panels', szukaj: 'search', kategoria: 'category', sprawdz: 'check_only',
+};
+const PARAMETRY_NARZEDZI_EN = { 'eksport_pdf.do': 'to' };
+const WARTOSCI_EN = {
+  Kwadrat: 'Square', wlasny: 'custom', pion: 'portrait', poziom: 'landscape', pojedyncze: 'single', rozkladowki: 'spreads',
+  strona: 'page', wzorzec: 'master', sekcja: 'section', styl: 'style', tabela: 'table', seria: 'series', widok: 'view', projekt: 'project',
+  zmiesc: 'contain', wypelnij: 'cover', czesc: 'part', koniec: 'finish', lewo: 'left', srodek: 'center', prawo: 'right', gora: 'top',
+  srodek_pionowo: 'middle', dol: 'bottom', elementy: 'elements', poziomo: 'horizontal', pionowo: 'vertical', sekcje: 'sections',
+  wzorce: 'masters', style: 'styles', tabele: 'tables', serie: 'series', wszystko: 'all', strony: 'pages', drukarnia: 'print',
+  ekran: 'screen', wektor: 'vector', obraz: 'image', zwykly: 'normal', broszura: 'booklet', skladki: 'signatures', dwie: 'two_up',
+  cztery: 'four_up', szkic: 'draft', dokladny: 'fine',
+};
+// <TEKSTY_EN>
+const TEKSTY_EN = {
+ "Projekty": "Projects",
+ "Lista projektów, do których prowadzi klucz: id, nazwa, właściciel (Twoje albo udostępnione przez kogoś), czy możesz je zmieniać, ostatnia zmiana. Zacznij od tego – id albo nazwę podajesz potem jako „projekt” w innych narzędziach.": "Lists the projects the key gives access to: id, name, owner (yours or shared by someone), whether you can change them, last change. The id or name is then passed as “project” to the other tools.",
+ "Nowy projekt": "New project",
+ "Tworzy nowy, pusty projekt na koncie – jak „Nowy projekt” w aplikacji: jedna sekcja z formatem, marginesami i spadem, jedna pusta strona, standardowe style tekstu. Tylko klucz z pełnym dostępem, który czyta i zmienia. Projekt pojawia się od razu na liście projektów właściciela. Dalej pracuj na nim, podając projekt (id z wyniku).": "Creates a new, empty project in the account – like “New project” in the app: one section with a format, margins and bleed, one blank page, standard text styles. Only with a full-access key that reads and changes. The project appears in the owner’s project list right away. The result contains its id.",
+ "Nazwa projektu": "Project name",
+ "Format strony (domyślnie A5); „wlasny” – podaj szerokosc i wysokosc w mm.": "Page format (default A5); “custom” – give width and height in mm.",
+ "mm – tylko dla formatu „wlasny”": "mm – only for the “custom” format",
+ "Pojedyncze strony albo rozkładówki (marginesy lustrzane).": "Single pages or spreads (mirrored margins).",
+ "Spad w mm (domyślnie 3)": "Bleed in mm (default 3)",
+ "Marginesy w mm (domyślnie 10)": "Margins in mm (default 10)",
+ "Kopiuj projekt": "Copy project",
+ "Tworzy kopię całego projektu na koncie – jak „Duplikuj” w aplikacji: wszystkie strony, sekcje, wzorce, style, tabele i obrazy. Tylko klucz z pełnym dostępem, który czyta i zmienia, i tylko własny projekt konta. nazwa – opcjonalnie (domyślnie „<nazwa> (kopia)”). Kopia pojawia się od razu na liście projektów; obrazy z folderu konta kopia dostaje na własność przy pierwszym otwarciu w aplikacji. Dalej pracuj na kopii, podając projekt (id z wyniku).": "Copies the whole project in the account – like “Duplicate” in the app: all pages, sections, masters, styles, tables and images. Only with a full-access key that reads and changes, and only the account’s own project. name – optional (default “<name> (copy)”). The copy appears in the project list right away; it takes ownership of the account’s image files when first opened in the app. The result contains its id.",
+ "id albo nazwa projektu do skopiowania": "id or name of the project to copy",
+ "Nazwa kopii (opcjonalnie)": "Name of the copy (optional)",
+ "Usuń projekt": "Delete project",
+ "Usuwa cały projekt z konta – nieodwracalnie. Tylko klucz z pełnym dostępem i tylko projekt właściciela klucza (nie udostępniony przez kogoś). Wymaga potwierdzenia: „potwierdz” to dokładna nazwa projektu.": "Deletes the whole project from the account – permanently. Only with a full-access key and only a project owned by the key’s owner (not one shared by someone). Requires confirmation: “confirm” is the exact project name.",
+ "id albo nazwa projektu": "project id or name",
+ "Dokładna nazwa projektu – potwierdzenie": "Exact project name – confirmation",
+ "Przegląd projektu": "Project overview",
+ "Krótki opis projektu: sekcje, strony z elementami (id, rodzaj, początek tekstu), wzorce, style, tabele, serie, obrazy. Zacznij od tego – stąd są identyfikatory do pozostałych narzędzi.": "Short description of the project: sections, pages with elements (id, kind, start of text), masters, styles, tables, series, images. Contains the identifiers used by the other tools.",
+ "id albo nazwa projektu; można pominąć, gdy klucz obejmuje jeden projekt.": "project id or name; can be omitted when the key covers one project.",
+ "Czytaj część projektu": "Read project part",
+ "Pełny JSON jednej części projektu: strony, wzorca, sekcji, stylu, tabeli albo serii (po id), albo całego projektu (co=\"projekt\"; może być duży).": "Full JSON of one project part: a page, master, section, style, table or series (by id), or the whole project (part=\"project\"; can be large).",
+ "Identyfikator (nie dotyczy „widok” i „projekt”).": "Identifier (not for “view” and “project”).",
+ "Zmień elementy": "Update elements",
+ "Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole.": "Changes element fields (by id) on a page or master – e.g. text, colour (fill), position (left, top in mm), font size (fontSize in mm), z_danych, pole, ksztalt_tekstu (text along an arc, circle, path or warped), link (clickable address in a PDF for screen reading). Give only the changed fields; null removes a field.",
+ "„strona:<id strony>” albo „wzorzec:<id wzorca>”.": "“page:<page id>” or “master:<master id>”.",
+ "id elementu": "element id",
+ "Pola do zmiany": "Fields to change",
+ "Dodaj elementy": "Add elements",
+ "Dodaje elementy (JSON elementów jak w opisie formatu: textbox, rect, ellipse, line, path, polygon, image z istniejącym zasobem, group/tabela, kod – kod QR albo EAN-13/ISBN: { type: \"kod\", rodzaj: \"qr\"|\"ean\", tresc, szerokosc, left, top }; skrótem także kalendarz miesiąca { type: \"kalendarz\", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, wykres { type: \"wykres\", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } } kolaż { type: \"kolaz\", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } }, dymek { type: \"dymek\", tekst, left, top, ogonek: { x, y } (punkt na stronie, w który celuje), rodzaj: \"mowa\"|\"mysl\"|\"krzyk\"|\"szept\"|\"narracja\" } – dymek rośnie z tekstem, spis treści { type: \"spis\", left, top, width, poziomy } i skorowidz { type: \"skorowidz\", left, top, width }) na stronę albo do wzorca. Bez id – nadam. Nowe elementy trafiają na wierzch, chyba że podasz „przed” (id elementu).": "Adds elements (element JSON as in the format description: textbox, rect, ellipse, line, path, polygon, image with an existing asset, group/table, kod – QR code or EAN-13/ISBN: { type: \"kod\", rodzaj: \"qr\"|\"ean\", tresc, szerokosc, left, top }; shortcuts also for a month calendar { type: \"kalendarz\", left, top, width, kalendarz: { rok, miesiac, pole_daty } }, chart { type: \"wykres\", left, top, wykres: { rodzaj, tabela, etykiety, wartosci } }, collage { type: \"kolaz\", left, top, kolaz: { uklad, odstep, szerokosc, wysokosc } }, speech bubble { type: \"dymek\", tekst, left, top, ogonek: { x, y } (the point on the page it aims at), rodzaj: \"mowa\"|\"mysl\"|\"krzyk\"|\"szept\"|\"narracja\" } – the bubble grows with the text, table of contents { type: \"spis\", left, top, width, poziomy } and index { type: \"skorowidz\", left, top, width }) to a page or master. Without an id – one is assigned. New elements go on top unless “before” (element id) is given.",
+ "id elementu, przed którym wstawić (niżej w warstwach)": "id of the element to insert before (lower in the layers)",
+ "Obrazy projektu": "Project images",
+ "Lista obrazów projektu (to samo co okno „Obrazy projektu” w aplikacji): id, nazwa z rozszerzeniem, wymiary w pikselach i gdzie obraz jest użyty (strony, wzorce, dane w tabelach, albo „nieużywany”), do tego powtórzenia (kopie tego samego pliku, powtórzone nazwy). Nazwy wpisuje się w kolumny tabel danych.": "Lists the project’s images (the same as the “Project images” window in the app): id, name with extension, size in pixels and where the image is used (pages, masters, data in tables, or “unused”), plus duplicates (copies of the same file, repeated names). Names are what goes into data table columns.",
+ "Wgraj obrazy do projektu": "Upload images to project",
+ "Wgrywa obraz albo archiwum ZIP z obrazami do projektu (trafiają do okna „Obrazy projektu” u właściciela, na żywo). Podaj dokładnie jedno źródło:\n- adres – plik w internecie (https). Działa też link udostępniania z Dysku Google („każdy, kto ma link”, pojedynczy plik albo ZIP) i z Dropboxa (plik albo folder – Dropbox odda folder jako ZIP).\n- svg – rysunek, który sam piszesz (ozdobniki, ikony, ramki); potrzebny viewBox albo width/height; bez skryptów.\n- dane_base64 – tylko małe pliki (do ok. 200 kB); większe są za drogie do przepisania.\nObsługiwane: PNG, JPEG, WebP, GIF, SVG; obraz do 25 MB, pobierany plik do 50 MB, ZIP do 100 obrazów. Ten sam plik drugi raz nie wchodzi (wynik wskaże obraz, który już jest); zajęta nazwa dostaje dopisek „(2)”. zastap (id albo nazwa) – podmienia ten obraz projektu na nowy plik. wstaw – od razu wstawia obraz jako pojedynczy element (tylko dla jednego obrazu).": "Uploads an image or a ZIP archive of images to the project (they appear in the owner’s “Project images” window, live). Give exactly one source:\n- url – a file on the internet (https). A Google Drive share link (“anyone with the link”, a single file or ZIP) and Dropbox (file or folder – Dropbox returns a folder as ZIP) also work.\n- svg – a drawing you write yourself (ornaments, icons, frames); needs viewBox or width/height; no scripts.\n- data_base64 – only small files (up to about 200 kB); larger ones are too expensive to transcribe.\nSupported: PNG, JPEG, WebP, GIF, SVG; image up to 25 MB, downloaded file up to 50 MB, ZIP up to 100 images. The same file isn’t added twice (the result points to the existing image); a taken name gets the suffix “(2)”. replace (id or name) – replaces that project image with the new file. place – places the image right away as a single element (only for one image).",
+ "Nazwa pliku z rozszerzeniem, np. „choinka.svg” (domyślnie z adresu albo pliku).": "File name with extension, e.g. “tree.svg” (default from the url or file).",
+ "Adres https pliku (obraz albo ZIP), także link z Dysku Google albo Dropboxa.": "https address of the file (image or ZIP), also a Google Drive or Dropbox link.",
+ "Kod rysunku SVG.": "SVG drawing code.",
+ "Treść małego pliku w base64 (z nagłówkiem data: albo bez).": "Content of a small file in base64 (with or without a data: header).",
+ "id albo nazwa obrazu, który ten plik zastępuje.": "id or name of the image this file replaces.",
+ "Opcjonalnie: { gdzie (id strony albo wzorca), x?, y?, szerokosc?, wysokosc? (mm), dopasowanie? (zmiesc | wypelnij) }.": "Optional: { target (page or master id), x?, y?, width?, height? (mm), fit? (contain | cover) }.",
+ "Link do wgrania obrazów": "Image upload link",
+ "Link do aplikacji, który otwiera ten projekt od razu z oknem „Obrazy projektu”. Użytkownik wgrywa tam przyciskiem „Wgraj obrazy…” zdjęcia, które ma u siebie (z komputera, z telefonu, z załącznika rozmowy, archiwum ZIP, dowolnej wielkości); trafiają do obrazów projektu. Link wymaga zalogowania na konto właściciela.": "A link to the app that opens this project with the “Project images” window. There the user uploads photos they have (from a computer, phone, chat attachment, ZIP archive, any size) with the “Upload images…” button; they go to the project images. The link requires signing in to the owner’s account.",
+ "Wstaw obraz na stronę": "Place image on page",
+ "Wstawia obraz z projektu (id albo nazwa obrazu) jako pojedynczy element na stronę albo do wzorca – jak „Obraz → Wybierz z obrazów projektu” w aplikacji. Wymiary w mm. Bez rozmiaru: 60% strony, na środku. Sama szerokosc albo sama wysokosc: proporcje obrazu zachowane. szerokosc i wysokosc razem to ramka: dopasowanie „zmiesc” (cały obraz w ramce, domyślnie) albo „wypelnij” (wypełnia ramkę, brzegi przycięte wokół środka). x, y – lewy górny róg (ramki); bez nich – na środku strony.": "Places a project image (id or image name) as a single element on a page or master – like “Image → Choose from project images” in the app. Sizes in mm. Without a size: 60% of the page, centred. Only width or only height: the image proportions are kept. width and height together make a frame: fit “contain” (whole image in the frame, default) or “cover” (fills the frame, edges cropped around the centre). x, y – top-left corner (of the frame); without them – centred on the page.",
+ "id albo nazwa obrazu projektu": "id or name of a project image",
+ "mm od lewej krawędzi strony": "mm from the left edge of the page",
+ "mm od górnej krawędzi strony": "mm from the top edge of the page",
+ "mm": "mm",
+ "Zmień nazwę obrazu": "Rename image",
+ "Zmienia nazwę obrazu projektu – jak w oknie „Obrazy projektu”. Nazwa musi być wolna (wielkość liter bez znaczenia); bez rozszerzenia dostaje dotychczasowe. Elementy na stronach dalej pokazują ten obraz, a komórki tabel danych, które wskazywały go starą nazwą, dostają nową.": "Renames a project image – as in the “Project images” window. The name must be free (case-insensitive); without an extension it keeps the current one. Elements on pages keep showing this image, and data table cells that pointed to it by the old name get the new one.",
+ "id albo nazwa obrazu": "image id or name",
+ "Nowa nazwa, np. „styczen.jpg”": "New name, e.g. “january.jpg”",
+ "Podmień plik obrazu": "Replace image file",
+ "Podmienia plik obrazu projektu na nowy – jak „Podmień plik” w oknie „Obrazy projektu”: elementy na stronach i dane w tabelach pokazują od teraz nowy plik, nazwa zostaje, stary plik znika. Źródło: adres (https), svg albo dane_base64; jeden obraz.": "Replaces a project image file with a new one – like “Replace file” in the “Project images” window: elements on pages and data in tables show the new file from now on, the name stays, the old file is removed. Source: url (https), svg or data_base64; one image.",
+ "id albo nazwa obrazu, który podmieniasz": "id or name of the image you are replacing",
+ "Adres https nowego pliku (także Dysk Google, Dropbox).": "https address of the new file (also Google Drive, Dropbox).",
+ "Treść małego pliku w base64.": "Content of a small file in base64.",
+ "Wgraj plik kawałkami (base64)": "Upload file in chunks (base64)",
+ "Wgrywa obraz, który masz u siebie (plik w miejscu roboczym, załącznik w piaskownicy), gdy nie możesz go podać inaczej: nie ma adresu w internecie, a Twoje środowisko nie łączy się z bazą. Plik idzie w kawałkach base64 w kolejnych wywołaniach tego narzędzia, a łącznik składa je po swojej stronie. Każdy bajt przechodzi przez rozmowę, więc to droga dla grafik do kilkuset KB.\nKroki:\n1. krok=\"start\": nazwa (z rozszerzeniem), rozmiar (bajty), sha256 (skrót SHA-256 treści, 64 znaki hex), kawalek (bajty, od 16384 do 524288; zalecane 49152), opcjonalnie szer, wys (px), zastap (id albo nazwa obrazu do podmiany – strony pokazują od razu nowy plik). Wynik: id wgrania i liczba kawałków. Ten sam plik już w projekcie – wynik od razu to powie.\n2. krok=\"czesc\": wgranie, nr (od 0), dane_base64 – bajty od nr×kawalek, długości kawalek (ostatni krótszy). Kolejność dowolna, powtórzenie zastępuje.\n3. krok=\"koniec\": wgranie – sprawdzam komplet i rozmiar; obraz trafia do obrazów projektu. Brakujące kawałki wymienię.\nZIP rozpakuj u siebie i wgraj obrazy po kolei. Wgranie niedokończone przez dobę znika.": "Uploads an image you have locally (a file in your workspace, a sandbox attachment) when it can’t be provided otherwise: it has no internet address and your environment can’t connect to the database. The file goes in base64 chunks in consecutive calls of this tool, and the connector assembles it on its side. Every byte passes through the conversation, so this is a way for graphics up to a few hundred KB.\nSteps:\n1. step=\"start\": name (with extension), size (bytes), sha256 (SHA-256 of the content, 64 hex characters), chunk_size (bytes, 16384 to 524288; recommended 49152), optionally width_px, height_px, replace (id or name of the image to replace – pages show the new file right away). Result: upload id and number of chunks. If the same file is already in the project, the result says so right away.\n2. step=\"part\": upload_id, index (from 0), data_base64 – the bytes from index×chunk_size, of length chunk_size (the last one shorter). Any order; a repeat replaces.\n3. step=\"finish\": upload_id – checks completeness and size; the image goes to the project images. Missing chunks are listed.\nUnpack a ZIP locally and upload the images one by one. An upload not finished within a day is removed.",
+ "start: nazwa pliku z rozszerzeniem (png, jpg, webp, gif, svg).": "start: file name with extension (png, jpg, webp, gif, svg).",
+ "start: rozmiar pliku w bajtach": "start: file size in bytes",
+ "start: SHA-256 treści pliku, 64 znaki szesnastkowe.": "start: SHA-256 of the file content, 64 hexadecimal characters.",
+ "start: wielkość kawałka w bajtach (16384–524288, domyślnie 49152)": "start: chunk size in bytes (16384–524288, default 49152)",
+ "start: szerokość w px (opcjonalnie)": "start: width in px (optional)",
+ "start: wysokość w px (opcjonalnie)": "start: height in px (optional)",
+ "start: id albo nazwa obrazu, który ten plik zastępuje (opcjonalnie).": "start: id or name of the image this file replaces (optional).",
+ "czesc, koniec: id wgrania z kroku start.": "part, finish: upload id from the start step.",
+ "czesc: numer kawałka od 0": "part: chunk number from 0",
+ "czesc: kawałek pliku w base64.": "part: file chunk in base64.",
+ "Adres do wysyłki plików": "File upload address",
+ "Adres, pod który wysyłasz plik obrazu albo ZIP wprost z własnego środowiska (wykonywanie kodu, miejsce robocze z plikami): POST z treścią pliku na <adres>?nazwa=plik.jpg (opcjonalnie &zastap=<id albo nazwa> – podmiana użytego obrazu). Dowolna wielkość do limitów (obraz 25 MB, plik 50 MB), plik nie przechodzi przez rozmowę. Działa tylko, gdy środowisko łączy się z hostem adresu (np. własny skrypt użytkownika). Adres zawiera klucz dostępu.": "An address to send an image file or ZIP to directly from your own environment (code execution, a workspace with files): POST with the file content to <address>?nazwa=file.jpg (optionally &zastap=<id or name> – replaces a used image). Any size up to the limits (image 25 MB, file 50 MB), the file doesn’t pass through the conversation. Works only when the environment can connect to the address host (e.g. the user’s own script). The address contains an access key.",
+ "Usuń obrazy z projektu": "Delete images from project",
+ "Usuwa obrazy z projektu (id albo nazwy) – jak „Usuń” w oknie „Obrazy projektu”. Usuwa tylko obrazy nieużywane: obraz, który jest na stronie, we wzorcu albo w danych tabeli, zostaje, a wynik mówi, gdzie jest użyty. nieuzywane: true – usuwa wszystkie nieużywane obrazy. Plik znika też z konta właściciela.": "Deletes images from the project (ids or names) – like “Delete” in the “Project images” window. Only unused images are deleted: an image that is on a page, in a master or in table data stays, and the result says where it is used. unused: true – deletes all unused images. The file is also removed from the owner’s account.",
+ "id albo nazwy obrazów": "image ids or names",
+ "Uporządkuj obrazy": "Tidy up images",
+ "Porządkuje obrazy projektu jak „Uporządkuj” w oknie „Obrazy projektu”: kopie tego samego pliku stają się jednym obrazem (elementy zostają na miejscu, komórki tabel dostają nazwę obrazu, który zostaje), a obrazy o tej samej nazwie i innej treści dostają dopisek „(2)” (dane pokazują ten sam obraz co dotąd).": "Tidies up the project images like “Tidy up” in the “Project images” window: copies of the same file become one image (elements stay in place, table cells get the name of the image that stays), and images with the same name and different content get the suffix “(2)” (data shows the same image as before).",
+ "Usuń elementy": "Delete elements",
+ "Usuwa elementy (po id) ze strony albo ze wzorca.": "Deletes elements (by id) from a page or master.",
+ "Wyrównaj elementy": "Align elements",
+ "Wyrównuje elementy (po id) na stronie albo we wzorcu – jak przyciski wyrównania w edytorze. do: lewo | srodek | prawo | gora | srodek_pionowo | dol. wzgledem: elementy (do skrajnego z zaznaczonych, domyślnie; przy jednym elemencie – do strony) albo strona. Liczy prostokąt elementu bez obrotu.": "Aligns elements (by id) on a page or master – like the align buttons in the editor. align: left | center | right | top | middle | bottom. relative_to: elements (to the outermost of the selected ones, default; with one element – to the page) or page. Uses the element’s rectangle without rotation.",
+ "Rozmieść elementy równo": "Distribute elements evenly",
+ "Rozmieszcza co najmniej 3 elementy (po id) z równymi odstępami – poziomo albo pionowo; skrajne zostają na miejscu (jak „Rozmieść” w edytorze). odstep_mm – zamiast tego stały odstęp od pierwszego elementu.": "Distributes at least 3 elements (by id) with equal gaps – horizontally or vertically; the outermost ones stay in place (like “Distribute” in the editor). gap_mm – a fixed gap from the first element instead.",
+ "Kolejność elementów": "Element order",
+ "Ustawia kolejność warstw elementów na stronie albo we wzorcu: lista id od spodu do wierzchu (wszystkie elementy).": "Sets the layer order of elements on a page or master: a list of ids from bottom to top (all elements).",
+ "Dodaj stronę": "Add page",
+ "Dodaje stronę: { nazwa, sekcja (id), wzorce (\"z_sekcji\" albo lista id), seria?, tlo?, obiekty? }. Domyślnie na końcu swojej sekcji; „po” – id strony, za którą wstawić.": "Adds a page: { nazwa, sekcja (id), wzorce (\"z_sekcji\" or a list of ids), seria?, tlo?, obiekty? }. By default at the end of its section; “after” – id of the page to insert after.",
+ "Strona": "Page",
+ "id strony, za którą wstawić": "id of the page to insert after",
+ "Kopiuj stronę": "Duplicate page",
+ "Kopiuje stronę razem z elementami (nowe id strony i elementów) – ile kopii (1–50), domyślnie za kopiowaną stroną; „po” – id strony, za którą wstawić. Strony powtarzane z danymi lepiej robić serią z tabeli.": "Copies a page with its elements (new page and element ids) – count copies (1–50), by default after the copied page; “after” – id of the page to insert after. Pages repeated with data are better done as a series from a table.",
+ "id strony do skopiowania": "id of the page to copy",
+ "Zmień stronę": "Update page",
+ "Zmienia ustawienia strony (nie elementy): nazwa, sekcja, wzorce (\"z_sekcji\" albo lista id), seria (id albo null), tlo, prowadnice. null usuwa pole.": "Changes page settings (not elements): nazwa, sekcja, wzorce (\"z_sekcji\" or a list of ids), seria (id or null), tlo, prowadnice. null removes a field.",
+ "id strony": "page id",
+ "Usuń strony": "Delete pages",
+ "Usuwa strony (po id).": "Deletes pages (by id).",
+ "Kolejność stron": "Page order",
+ "Nowa kolejność stron: wszystkie id stron. (Aplikacja i tak trzyma strony pogrupowane według kolejności sekcji.)": "New page order: all page ids. (The app keeps pages grouped by section order anyway.)",
+ "Zmień tabelę danych": "Update data table",
+ "Zmienia albo tworzy tabelę danych (po id; nowa, jeśli nie ma – wtedy podaj nazwa i kolumny) – bez usuwania danych: nazwa, kolumny (pełna lista; mogą dojść nowe i zmienić się kolejność, ale każda dotychczasowa musi zostać), ustaw komórki [{ wiersz (od 0), kolumna (nazwa), wartosc }], dodaj_wiersze (listy wartości w kolejności kolumn; wiersz „[pomiń]” w pierwszej komórce zajmuje miejsce w bloku serii, ale strona nie powstaje), listy ({ kolumna: [dozwolone wartości] }).": "Changes or creates a data table (by id; a new one if it doesn’t exist – then give name and columns) – without deleting data: name, columns (full list; new ones can be added and the order can change, but every existing one must stay), set cells [{ row (from 0), column (name), value }], add_rows (lists of values in column order; a row with “[pomiń]” in the first cell takes a place in the series block, but no page is created), value_lists ({ column: [allowed values] }).",
+ "id tabeli": "table id",
+ "nazwa tabeli": "table name",
+ "Listy dozwolonych wartości kolumn": "Lists of allowed column values",
+ "Usuń wiersze albo kolumny tabeli": "Delete table rows or columns",
+ "Usuwa dane z tabeli (po id): usun_wiersze (numery od 0), usun_kolumny (nazwy – razem z wartościami), albo wiersze – zastępuje WSZYSTKIE wiersze podanymi.": "Deletes data from a table (by id): delete_rows (numbers from 0), delete_columns (names – together with their values), or rows – replaces ALL rows with the given ones.",
+ "Zmień sekcję, wzorzec, styl, tabelę albo serię": "Update section, master, style, table or series",
+ "Ogólna zmiana jednej części projektu po id: czesc = sekcje | wzorce | style | tabele | serie. pola – zmieniane pola (null usuwa pole); nowa część, jeśli id nie istnieje (podaj komplet pól, np. sekcja: nazwa, wydruk, uklad; okładka z grzbietem: pole okladka; seria: nazwa, tabela, tryb). Zmiana stylu przepisuje jego wartości do wszystkich tekstów z tym stylem (jak w aplikacji).": "General change of one project part by id: part = sections | masters | styles | tables | series. fields – the changed fields (null removes a field); a new part if the id doesn’t exist (give all fields, e.g. section: nazwa, wydruk, uklad; cover with spine: the okladka field; series: nazwa, tabela, tryb). Changing a style rewrites its values to all texts with that style (as in the app).",
+ "id": "id",
+ "Pola": "Fields",
+ "Usuń sekcję, wzorzec, styl, tabelę albo serię": "Delete section, master, style, table or series",
+ "Usuwa jedną część projektu po id: czesc = sekcje | wzorce | style | tabele | serie. Usunięcie stylu odpina go od tekstów (teksty zostają, jak w aplikacji). Baza odrzuci usunięcie, które zostawiłoby projekt niespójny (np. sekcję ze stronami albo tabelę używaną przez serię).": "Deletes one project part by id: part = sections | masters | styles | tables | series. Deleting a style detaches it from texts (the texts stay, as in the app). The database rejects a deletion that would leave the project inconsistent (e.g. a section with pages or a table used by a series).",
+ "Zmień projekt (ogólnie)": "Update project (general)",
+ "Ogólny zapis części projektu w jednym kroku, dla zmian, których nie obejmują inne narzędzia. zmiany: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (pełne listy – zastępują dotychczasowe), widok?, strony? (pełne obiekty stron nowych albo zmienionych), usun_strony? (id stron), kolejnosc_stron? (id stron), kolory_dodatkowe? (kolory spot, np. Pantone: [{ id, nazwa, cmyk: [c, m, y, k] }]), tryb_kolorow? (pelny | szarosc | czb1), kolor_trybu?, ksiazka? (nagłówki spisu treści i liczenie przypisów: { naglowki: [{ styl, poziom }], przypisy: sekcja | strona | ciagle }) }. Kolor dodatkowy w elemencie i uszlachetnienia – pole elementu uszlachetnienie. Baza sprawdza spójność (sekcje, wzorce, serie, tabele, obrazy) i odrzuca niespójne zmiany z opisem. Nie wgrywa obrazów ani czcionek.": "General save of project parts in one step, for changes the other tools don’t cover. changes: { nazwa?, sekcje?, wzorce?, style?, tabele?, serie? (full lists – replace the current ones), widok?, strony? (full objects of new or changed pages), usun_strony? (page ids), kolejnosc_stron? (page ids), kolory_dodatkowe? (spot colours, e.g. Pantone: [{ id, nazwa, cmyk: [c, m, y, k] }]), tryb_kolorow? (pelny | szarosc | czb1), kolor_trybu?, ksiazka? (table of contents headings and footnote numbering: { naglowki: [{ styl, poziom }], przypisy: sekcja | strona | ciagle }) }. A spot colour in an element and finishes – the element field uszlachetnienie. The database checks consistency (sections, masters, series, tables, images) and rejects inconsistent changes with a description. Doesn’t upload images or fonts.",
+ "Części projektu do zapisu": "Project parts to save",
+ "Zmień nazwę projektu": "Rename project",
+ "Zmienia nazwę projektu.": "Changes the project name (as shown in the project list).",
+ "Nowa nazwa": "New name",
+ "Kontrola projektu": "Check project",
+ "Szybka kontrola bez rysowania: nieznane pola {…} w tekstach, brakujące pliki obrazów z danych, elementy poza stroną. Pełne „Sprawdź przed drukiem” jest w aplikacji.": "Quick check without rendering: unknown {…} fields in texts, missing image files from data, elements outside the page. The full “Check before printing” is in the app.",
+ "Komentarze projektu": "Project comments",
+ "Komentarze na stronach (osobno od projektu, nie zmieniają jego wersji): wątki z numerem pinezki, stroną, elementem albo miejscem (mm od lewego górnego rogu strony), autorem, treścią, stanem (otwarty/rozwiązany) i odpowiedziami. Domyślnie tylko nierozwiązane.": "Comments on pages (separate from the project, they don’t change its version): threads with a pin number, page, element or position (mm from the top-left corner of the page), author, text, state (open/resolved) and replies. By default only unresolved ones.",
+ "true – także rozwiązane wątki": "true – also resolved threads",
+ "Dodaj komentarz na stronie": "Add comment on page",
+ "Nowy wątek komentarza przypięty do strony: do elementu (element = id) albo do miejsca (x, y w mm od lewego górnego rogu strony). Osoby w projekcie zobaczą pinezkę z numerem; @nazwa wspomina osobę z projektu (dostanie powiadomienie). Komentarz nie zmienia projektu – działa też z kluczem tylko do czytania. Podpisany opisem klucza.": "A new comment thread pinned to a page: to an element (element = id) or to a position (x, y in mm from the top-left corner of the page). People in the project see a numbered pin; @name mentions a person in the project (they get a notification). A comment doesn’t change the project – it also works with a read-only key. Signed with the key description.",
+ "id elementu na tej stronie (opcjonalnie)": "id of an element on this page (optional)",
+ "Treść komentarza": "Comment text",
+ "Odpowiedz na komentarz": "Reply to comment",
+ "Odpowiedź w wątku komentarza (komentarz = id wątku albo odpowiedzi). Opcjonalnie rozwiaz=true zamyka wątek po odpowiedzi (np. gdy poprawka już jest w projekcie).": "Reply in a comment thread (comment = id of the thread or of a reply). Optionally resolve=true closes the thread after replying (e.g. when the fix is already in the project).",
+ "id komentarza (wątku)": "comment (thread) id",
+ "Treść odpowiedzi": "Reply text",
+ "true – oznacz wątek jako rozwiązany": "true – mark the thread as resolved",
+ "Rozwiąż albo otwórz wątek komentarza": "Resolve or reopen comment thread",
+ "Oznacza wątek komentarza jako rozwiązany (rozwiazany=true, domyślnie) albo otwiera go ponownie (false).": "Marks a comment thread as resolved (resolved=true, default) or reopens it (false).",
+ "id wątku": "thread id",
+ "Eksportuj projekt do PDF": "Export project to PDF",
+ "Plik PDF projektu (do drukarni albo do czytania na ekranie). PDF rysuje aplikacja Makietki w przeglądarce użytkownika: narzędzie składa zlecenie, otwarta aplikacja konta klucza robi plik i wgrywa go na konto, a narzędzie czeka do ok. 45 s i zwraca link do pobrania (bez logowania, ważny 7 dni) z uwagami z kontroli przed drukiem. Gdy aplikacja nie jest otwarta – zwraca link do aplikacji dla użytkownika (po jego otwarciu plik zrobi się sam) i numer zlecenia. Działa też z kluczem tylko do czytania.": "A PDF file of the project (for print or for reading on screen). The PDF is rendered by the Makietka app in the user’s browser: the tool places a job, the open app of the key’s account makes the file and uploads it to the account, and the tool waits up to about 45 s and returns a download link (no sign-in, valid 7 days) with notes from the pre-print check. When the app isn’t open – returns a link to the app for the user (once opened, the file is made automatically) and the job number. Also works with a read-only key.",
+ "wszystko (domyślnie), jedna sekcja, kilka sekcji (sekcje) albo wybrane strony (strony – tekst jak w Wordzie albo od–do; numery w całym wydruku, z powieleniami serii)": "all (default), one section, several sections (sections) or selected pages (pages – text as in Word or from–to; numbers in the whole output, including series repetitions)",
+ "id albo nazwa sekcji (zakres: sekcja)": "section id or name (scope: section)",
+ "id albo nazwy sekcji (zakres: sekcje)": "section ids or names (scope: sections)",
+ "numery stron jak w Wordzie, np. „1-5, 8, 11-” (11- = od 11 do końca); zakres: strony – zamiast od/do": "page numbers as in Word, e.g. “1-5, 8, 11-” (11- = from 11 to the end); scope: pages – instead of from/to",
+ "pierwsza strona (zakres: strony)": "first page (scope: pages)",
+ "ostatnia strona (zakres: strony)": "last page (scope: pages)",
+ "drukarnia (domyślnie) – ze spadem i znakami cięcia; ekran – sam format strony, z zakładkami i linkami": "print (default) – with bleed and crop marks; screen – just the page format, with bookmarks and links",
+ "wektor (domyślnie) – tekst i kształty wektorowo, czcionki osadzone; obraz – każda strona jako obraz": "vector (default) – text and shapes as vectors, fonts embedded; image – each page as an image",
+ "rozdzielczość obrazów (domyślnie 300)": "image resolution (default 300)",
+ "tekst i kształty w CMYK (plik wektorowy)": "text and shapes in CMYK (vector file)",
+ "PDF/X-4 z profilem: fogra39 – papier powlekany, fogra47 – niepowlekany; pusty – zwykły PDF": "PDF/X-4 with a profile: fogra39 – coated paper, fogra47 – uncoated; empty – regular PDF",
+ "zwykly (domyślnie) – strona po stronie; broszura – arkusze do złożenia i zszycia; skladki – broszura w składkach; dwie / cztery – strony na arkuszu": "normal (default) – page by page; booklet – sheets to fold and staple; signatures – booklet in signatures; two_up / four_up – pages per sheet",
+ "arkusz przy układzie innym niż zwykly": "sheet for a layout other than normal",
+ "stron w składce (uklad: skladki)": "pages per signature (layout: signatures)",
+ "false – tylko złóż zlecenie i od razu wróć z numerem zlecenia": "false – just place the job and return the job number right away",
+ "Pobierz stronę jako PNG": "Export page as PNG",
+ "Obraz PNG jednej strony (ze spadem), np. do pokazania w czacie albo w internecie. Obraz rysuje otwarta aplikacja Makietki, narzędzie czeka do ok. 45 s i zwraca link do pobrania (ważny 7 dni) albo link do aplikacji, gdy żadna nie jest otwarta.": "A PNG image of one page (with bleed), e.g. to show in a chat or online. The image is rendered by the open Makietka app; the tool waits up to about 45 s and returns a download link (valid 7 days), or a link to the app when none is open.",
+ "który egzemplarz strony z serii (domyślnie 1)": "which copy of the page in the series (default 1)",
+ "rozdzielczość (domyślnie 150)": "resolution (default 150)",
+ "false – tylko złóż zlecenie": "false – just place the job",
+ "Stan zleconego eksportu": "Export job status",
+ "Stan zlecenia eksportu (PDF albo PNG) i innych zleceń dla aplikacji: czeka na aplikację, w toku, gotowe (z linkiem do pobrania) albo błąd.": "Status of an export job (PDF or PNG) and other jobs for the app: waiting for the app, in progress, done (with a download link) or error.",
+ "numer zlecenia": "job number",
+ "Udostępnij link do podglądu": "Share preview link",
+ "Tworzy link do podglądu projektu (jak Podgląd → Udostępnij w aplikacji): każdy, kto ma link, obejrzy strony bez logowania i bez możliwości zmian. To publikacja treści: wymaga zgoda_uzytkownika: true; opcjonalnie hasło albo data ważności. Gdy projekt ma już link – zwraca ten sam adres (i ustawia podaną ochronę). Link robi otwarta aplikacja Makietki; gdy nie jest otwarta, wynik podaje link do aplikacji.": "Creates a preview link for the project (like Preview → Share in the app): anyone with the link can view the pages without signing in and without being able to change them. This publishes content: requires user_consent: true; optionally a password or expiry date. If the project already has a link – returns the same address (and applies the given protection). The link is made by the open Makietka app; when it isn’t open, the result gives a link to the app.",
+ "true – użytkownik wyraźnie zgodził się na link w tej rozmowie": "true – the user explicitly agreed to the link in this conversation",
+ "hasło do linku (co najmniej 4 znaki; opcjonalnie)": "link password (at least 4 characters; optional)",
+ "ostatni dzień ważności RRRR-MM-DD (opcjonalnie)": "last day of validity YYYY-MM-DD (optional)",
+ "Narysuj obraz (Gemini)": "Draw image (Gemini)",
+ "Rysuje obraz z opisu kluczem Google Gemini użytkownika i wstawia go do ramki (element – id kształtu, kadru albo prostokąta na stronie gdzie; obraz ją wypełnia) albo na środek strony. Rysuje otwarta aplikacja Makietki (klucz Gemini jest tylko w przeglądarce użytkownika); narzędzie czeka do ok. 1,5 minuty. Kosztuje (szkic ok. 0,14 zł; pilnuje tego miesięczny limit z ustawień konta) – powiedz użytkownikowi, co rysujesz. Nie umieszczaj tekstu w obrazie; napisy dodaje się w Makietce.": "Draws an image from a description with the user’s Google Gemini key and puts it into a frame (element – id of a shape, panel or rectangle on the target page; the image fills it) or in the centre of the page. Drawn by the open Makietka app (the Gemini key is only in the user’s browser); the tool waits up to about 1.5 minutes. Costs money (a draft about 0.14 PLN; limited by the monthly limit in the account settings). Text isn’t drawn into the image; captions are added in Makietka.",
+ "Co ma być na obrazie – w języku użytkownika": "What the image should show – in the user’s language",
+ "„strona:<id strony>” – strona z ramką albo strona, na którą wstawić obraz": "“page:<page id>” – the page with the frame, or the page to put the image on",
+ "id ramki na tej stronie (opcjonalnie)": "frame id on this page (optional)",
+ "szkic – najtaniej (domyślnie), dokladny – do druku, pro – najlepszy; lepszą jakość tylko, gdy użytkownik o nią prosi": "draft – cheapest (default), fine – for print, pro – best; higher quality only when the user asks for it",
+ "kształt obrazu, np. 3:4 (pion), 4:3 (poziom), 1:1 – zgodny z ramką": "image shape, e.g. 3:4 (portrait), 4:3 (landscape), 1:1 – matching the frame",
+ "true – popraw obraz, który już jest w elemencie (element wymagany): opis to TYLKO zmiana, np. „dodaj kapelusz”": "true – edit the image already in the element (element required): the prompt is ONLY the change, e.g. “add a hat”",
+ "false – tylko zleć i od razu wróć z numerem zlecenia": "false – just place the job and return the job number right away",
+ "Narysuj kadry komiksu": "Draw comic panels",
+ "Komiks: rysuje obrazy do kadrów strony komiksu ze scenariusza (opis sceny, kto mówi) i kart postaci/miejsc, w stylu projektu – kluczem Gemini użytkownika, w otwartej aplikacji Makietki (otworzy w niej projekt). strona – numer strony komiksu (1 = pierwsza strona sekcji Komiks). Domyślnie tylko kadry bez obrazu. Kosztuje (ok. 0,14 zł za kadr w szkicu) – powiedz użytkownikowi, ile kadrów rysujesz. Cała strona trwa kilka minut.": "Comic: draws images for the panels of a comic page from the script (scene description, who speaks) and the character/location cards, in the project’s style – with the user’s Gemini key, in the open Makietka app (it opens the project there). page – comic page number (1 = first page of the Comic section). By default only panels without an image. Costs money (about 0.14 PLN per panel as a draft). A whole page takes a few minutes.",
+ "numer strony komiksu": "comic page number",
+ "numery kadrów (opcjonalnie; domyślnie puste kadry)": "panel numbers (optional; default: empty panels)",
+ "false – tylko zleć i od razu wróć": "false – just place the job and return",
+ "Ustaw dymki komiksu": "Place comic speech bubbles",
+ "Komiks: stawia dymki z tabeli scenariusza na stronach komiksu (ponownie – zmienia tylko tekst, przesunięte dymki zostają), w otwartej aplikacji Makietki. kolumna – kolumna tekstu dla innej wersji językowej (np. tekst_en). Nic nie kosztuje.": "Comic: places speech bubbles from the script table on the comic pages (again – changes only the text, moved bubbles stay), in the open Makietka app. column – text column for another language version (e.g. tekst_en). Free of charge.",
+ "kolumna tekstu (opcjonalnie)": "text column (optional)",
+ "false – tylko zleć": "false – just place the job",
+ "Biblioteka elementów": "Element library",
+ "Katalog Biblioteki Makietki: gotowe kształty, ramki, ikony, ilustracje, ozdobniki, linie, kalendarze, wykresy, tabele, tła i wzory, nagłówki, infografiki, elementy komiksu i in. Bez parametrów – lista kategorii; szukaj – elementy pasujące do słów (np. „ramka zaokrąglona”, „serce”, „kalendarz”); kategoria – elementy jednej kategorii.": "Catalogue of the Makietka Library: ready-made shapes, frames, icons, illustrations, ornaments, lines, calendars, charts, tables, backgrounds and patterns, headings, infographics, comic elements and more. Without parameters – list of categories; search – elements matching the words (e.g. “rounded frame”, “heart”, “calendar”); category – elements of one category.",
+ "słowa do wyszukania (bez polskich znaków też działa)": "words to search for (Polish words also work without diacritics)",
+ "id kategorii z listy": "category id from the list",
+ "Wstaw element z Biblioteki": "Insert Library element",
+ "Wstawia gotowy element z Biblioteki Makietki (kategoria i element z katalogu Biblioteki) na stronę – tak jak kliknięcie w oknie Biblioteki. x, y – środek elementu w mm od lewego górnego rogu strony (bez nich – domyślne miejsce elementu). Wstawia otwarta aplikacja Makietki (otworzy w niej projekt); wynik podaje id nowego elementu i jego położenie. Nic nie kosztuje.": "Inserts a ready-made element from the Makietka Library (category and element from the Library catalogue) on a page – just like clicking in the Library window. x, y – the element centre in mm from the top-left corner of the page (without them – the element’s default place). Inserted by the open Makietka app (it opens the project there); the result gives the new element’s id and position. Free of charge.",
+ "id kategorii z katalogu Biblioteki": "category id from the Library catalogue",
+ "id elementu z katalogu Biblioteki": "element id from the Library catalogue",
+ "„strona:<id strony>”": "“page:<page id>”",
+ "środek elementu w poziomie, mm od lewej krawędzi strony": "element centre horizontally, mm from the left edge of the page",
+ "środek elementu w pionie, mm od górnej krawędzi strony": "element centre vertically, mm from the top edge of the page",
+ "Cofnij zmiany AI": "Undo AI changes",
+ "Przywraca projekt do stanu sprzed ostatniej serii zmian zrobionych przez AI (zapisy AI w odstępach do 15 minut; strony usunięte przez AI wracają, dodane – znikają). Zmiany zrobione później, także przez ludzi, też się cofną. sprawdz=true tylko opisuje, co zostanie cofnięte (od–do, ile zapisów, ile późniejszych zmian), bez zmian w projekcie. Kolejne wywołanie sięga do wcześniejszej serii.": "Restores the project to the state before the latest series of changes made by AI (AI saves less than 15 minutes apart; pages deleted by AI come back, added ones disappear). Changes made later, also by people, are undone too. check_only=true only describes what would be undone (from–to, how many saves, how many later changes), without changing the project. Each next call reaches an earlier series.",
+ "true – tylko informacja, co zostałoby cofnięte (nic nie zmienia)": "true – only information on what would be undone (changes nothing)",
+ "Czcionki": "Fonts",
+ "Lista czcionek, których można użyć w projekcie (pole fontFamily): wbudowane w Makietkę, pogrupowane według rodzaju, z informacją o pogrubieniu i kursywie, oraz czcionki wgrane do tego projektu. Używaj tylko tych nazw – inna czcionka nie wyświetli się i nie trafi do PDF. Własną czcionkę (plik TTF/OTF) użytkownik wgrywa sam w aplikacji: Czcionki projektu → Wgraj.": "Lists fonts that can be used in the project (the fontFamily field): built into Makietka, grouped by kind, with information on bold and italic, plus fonts uploaded to this project. Only these names work – another font won’t display or get into the PDF. The user uploads their own font (TTF/OTF file) in the app: Project fonts → Upload.",
+ "Opis formatu projektu": "Project format description",
+ "Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm).": "Full description of the Makietka project model: sections, pages, elements and their fields, tables, series, fields in text, units (mm)."
+};
+// </TEKSTY_EN>
+const INSTRUKCJE_EN_PELNE = 'The tools read and change Makietka projects (an editor for calendars and data-driven print publications) in the key owner’s account – alongside them when they have the project open in the editor. Start with list_projects: the projects the key gives access to (and whether you can create and delete projects). Pass the project (id or name from the list) to every project tool; it can be omitted when the key covers one project. Then get_project_overview. Sizes are in millimetres (font size too: pt × 25.4 / 72). Project data (element fields, page and table JSON) uses Polish field names – get_format_spec describes them; read it before larger changes. Change things in small steps (update_elements, update_table, update_part; deleting: delete_table_data, delete_part); a Library element is changed afterwards with update_elements; use update_project only for changes the other tools don’t cover. Repeated pages are made as a series from a table, not as page copies. Comments on pages: list_comments; reply with reply_to_comment (resolve=true when the fix is already in the project), add new ones with add_comment. Comic panels are drawn by draw_comic_panels and pictures from a description by generate_image (done by the open app with the user’s Gemini key; it costs money – tell the user what you are drawing); speech bubbles are placed by place_speech_bubbles. Ready-made elements (frames, icons, calendars, charts, ornaments…): search_library and insert_library_element. Preview link: share_preview_link – only with the user’s explicit consent (suggest a password or expiry date). Delete a project (delete_project) only after asking directly. AI changes are undone by undo_ai_changes: first check_only=true, tell the user what will be undone, and undo only at their explicit request. Final file: export_pdf (whole project, a section or pages, for print or screen) and export_png (one page) return a download link – the file is made by the open Makietka app; when it isn’t open, give the user the app link from the result and check get_job_status. Images: upload_image (https url, SVG code, base64) adds a file to the project (an image from the web – give the source and respect copyright); replace_image swaps a used image for a new file (pages show the new one right away), place_image puts it on a page as a single element, list_images lists them. Files in your own environment (workspace, sandbox attachment) you upload yourself with upload_image_chunks – base64 chunks through the connector, no network access needed (unpack a ZIP locally). That’s a good way for graphics up to a few hundred KB; don’t lower file quality without the user’s consent. get_upload_url gives an address with a key – don’t show it. Large photos or files you can’t reach: call get_upload_link and give the user the link – they upload them themselves; then check list_images and carry on. Never answer that it’s impossible or that you have no access to their files. Don’t connect to the database from your own sandbox – use the Makietka connector tools and don’t ask the user to unblock domains or change network settings.';
+const INSTRUKCJE_EN_BEZ_RYSOWANIA = INSTRUKCJE_EN_PELNE.replace('Comic panels are drawn by draw_comic_panels and pictures from a description by generate_image (done by the open app with the user’s Gemini key; it costs money – tell the user what you are drawing); speech bubbles are placed by place_speech_bubbles.', 'Comic speech bubbles are placed by place_speech_bubbles.');
+const ZE_STARYCH_EN = Object.fromEntries(Object.entries(NAZWY_EN).map(([pl, en]) => [en, pl]));
+export const nazwaWewnetrzna = (n) => ZE_STARYCH_EN[n] || n;
+const parametrEn = (narzedzie, k) => PARAMETRY_NARZEDZI_EN[`${narzedzie}.${k}`] || PARAMETRY_EN[k] || k;
+const tekstEn = (t) => (typeof t === 'string' ? TEKSTY_EN[t] ?? t : t);
+// Schemat parametrów po angielsku: nazwy pól, opisy i wartości wyliczeń (rekurencyjnie: pola obiektów i elementy list).
+function schematEn(s, narzedzie) {
+  if (!s || typeof s !== 'object') return s;
+  const w = { ...s };
+  if (w.description) w.description = tekstEn(w.description);
+  if (w.title) w.title = tekstEn(w.title);
+  if (Array.isArray(w.enum)) w.enum = w.enum.map((v) => (typeof v === 'string' ? WARTOSCI_EN[v] ?? v : v));
+  if (w.items) w.items = schematEn(w.items, narzedzie);
+  if (w.properties) w.properties = Object.fromEntries(Object.entries(w.properties).map(([k, v]) => [parametrEn(narzedzie, k), schematEn(v, narzedzie)]));
+  if (Array.isArray(w.required)) w.required = w.required.map((k) => parametrEn(narzedzie, k));
+  for (const k of ['anyOf', 'oneOf']) if (Array.isArray(w[k])) w[k] = w[k].map((x) => schematEn(x, narzedzie));
+  return w;
+}
+// Argumenty z angielskich nazw z powrotem na polskie (według polskiego schematu narzędzia); polskie zostają bez zmian.
+function argumentyZEn(a, s, narzedzie) {
+  if (a === null || typeof a !== 'object' || !s) return a;
+  if (Array.isArray(a)) return s.items ? a.map((x) => argumentyZEn(x, s.items, narzedzie)) : a;
+  if (!s.properties) return a;
+  const w = {};
+  const zEn = Object.fromEntries(Object.keys(s.properties).map((k) => [parametrEn(narzedzie, k), k]));
+  for (const [k, v] of Object.entries(a)) {
+    const pl = s.properties[k] ? k : (zEn[k] ?? k);
+    const ps = s.properties[pl];
+    let x = v;
+    if (ps && Array.isArray(ps.enum) && typeof v === 'string') x = ps.enum.find((e) => e === v || WARTOSCI_EN[e] === v) ?? v;
+    else if (ps && Array.isArray(ps.items?.enum) && Array.isArray(v)) x = v.map((y) => ps.items.enum.find((e) => e === y || WARTOSCI_EN[e] === y) ?? y);
+    else if (ps) x = argumentyZEn(v, ps, narzedzie);
+    // „page:<id>” / „master:<id>” – po polsku „strona:” / „wzorzec:”.
+    if (pl === 'gdzie' && typeof x === 'string') x = x.replace(/^page:/, 'strona:').replace(/^master:/, 'wzorzec:');
+    w[pl] = x;
+  }
+  return w;
+}
+
 // czekanieEksportu, krokEksportu (ms): jak długo i jak często łącznik czeka na plik zlecony aplikacji (#175).
-export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Sztuczna inteligencja).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, rysowanie = true, projekt: wybranyProjekt = null, czekanieEksportu = 45000, krokEksportu = 1500, adresPobierania = ADRES_POBIERANIA }) {
-  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu, rysowanie, czekanieEksportu, krokEksportu, adresPobierania };
+export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Sztuczna inteligencja).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, rysowanie = true, angielski = false, projekt: wybranyProjekt = null, czekanieEksportu = 45000, krokEksportu = 1500, adresPobierania = ADRES_POBIERANIA }) {
+  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu, rysowanie, angielski, czekanieEksportu, krokEksportu, adresPobierania };
   const ADRES = String(adres || '').replace(/\/+$/, '');
   const KLUCZ_PUBLICZNY = kluczPubliczny;
   // Klucz konta (ustawienia konta → Sztuczna inteligencja) i – dla narzędzi projektu – wybrany projekt: funkcje bazy ai_*
@@ -3083,19 +3371,28 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
 
   function listaNarzedzi() {
     return NARZEDZIA.filter((n) => rysowanie || !RYSUJACE.has(n.name)).map(({ name, title, description, inputSchema, readOnly, meta }) => ({
-      name, title, description, ...(meta ? { _meta: meta } : {}),
-      inputSchema: {
-        type: 'object',
-        properties: BEZ_PROJEKTU.has(name) ? inputSchema.properties : { projekt: PARAMETR_PROJEKTU, ...inputSchema.properties },
-        required: inputSchema.required,
-        additionalProperties: false,
-      },
+      name: angielski ? NAZWY_EN[name] || name : name,
+      title: angielski ? tekstEn(title) : title,
+      description: angielski ? tekstEn(description) : description,
+      ...(meta ? { _meta: meta } : {}),
+      inputSchema: angielski ? schematEn(pelnySchemat(name), name) : pelnySchemat(name),
       // Adnotacje dla katalogu łączników Claude: każde narzędzie ma readOnlyHint i (przy zmianach) destructiveHint.
       // Niszczące – usuwają albo zastępują dane bez kroku cofania w narzędziu; openWorld – sięgają poza Makietkę.
       annotations: readOnly
         ? { readOnlyHint: true, openWorldHint: false }
         : { readOnlyHint: false, destructiveHint: name.startsWith('usun') || NISZCZACE.has(name), idempotentHint: IDEMPOTENTNE.has(name), openWorldHint: SWIAT.has(name) },
     }));
+  }
+
+  // Schemat parametrów z parametrem „projekt” (narzędzia projektu).
+  function pelnySchemat(name) {
+    const { inputSchema } = NARZEDZIA.find((n) => n.name === name);
+    return {
+      type: 'object',
+      properties: BEZ_PROJEKTU.has(name) ? inputSchema.properties : { projekt: PARAMETR_PROJEKTU, ...inputSchema.properties },
+      required: inputSchema.required,
+      additionalProperties: false,
+    };
   }
 
   // Narzędzia konta (bez parametru „projekt” albo z własnym, jak usun_projekt) – reszta działa na wskazanym projekcie.
@@ -3142,23 +3439,25 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         const chce = params.protocolVersion;
         stanSesji.zainicjowany = true;
         stanSesji.wersja = WERSJE_STARE.includes(chce) ? chce : WERSJE_STARE[0];
-        return wynik({ protocolVersion: stanSesji.wersja, capabilities: { tools: { listChanged: false } }, serverInfo: info, instructions: rysowanie ? INSTRUKCJE_PELNE : INSTRUKCJE_BEZ_RYSOWANIA });
+        return wynik({ protocolVersion: stanSesji.wersja, capabilities: { tools: { listChanged: false } }, serverInfo: info, instructions: angielski ? (rysowanie ? INSTRUKCJE_EN_PELNE : INSTRUKCJE_EN_BEZ_RYSOWANIA) : (rysowanie ? INSTRUKCJE_PELNE : INSTRUKCJE_BEZ_RYSOWANIA) });
       }
       case 'server/discover':
         stanSesji.odkryty = true;
         return wynik({
           resultType: 'complete', ...PAMIEC, supportedVersions: obslugiwane, capabilities: { tools: {} },
-          _meta: { 'io.modelcontextprotocol/serverInfo': info }, instructions: rysowanie ? INSTRUKCJE_PELNE : INSTRUKCJE_BEZ_RYSOWANIA,
+          _meta: { 'io.modelcontextprotocol/serverInfo': info }, instructions: angielski ? (rysowanie ? INSTRUKCJE_EN_PELNE : INSTRUKCJE_EN_BEZ_RYSOWANIA) : (rysowanie ? INSTRUKCJE_PELNE : INSTRUKCJE_BEZ_RYSOWANIA),
         });
       case 'ping':
         return wynik(zakonczony({}));
       case 'tools/list':
         return wynik(doPamieci({ tools: listaNarzedzi() }));
       case 'tools/call': {
-        const n = NARZEDZIA.find((x) => x.name === params.name && (rysowanie || !RYSUJACE.has(x.name)));
-        if (!n) return blad(BLEDY.PARAMETRY, `Nieznane narzędzie: ${params.name}`);
+        // Angielska albo polska nazwa (#410) – w środku polska.
+        const nazwa = nazwaWewnetrzna(params.name);
+        const n = NARZEDZIA.find((x) => x.name === nazwa && (rysowanie || !RYSUJACE.has(x.name)));
+        if (!n) return blad(BLEDY.PARAMETRY, angielski ? `Unknown tool: ${params.name}` : `Nieznane narzędzie: ${params.name}`);
         try {
-          const argumenty = { ...(params.arguments || {}) };
+          const argumenty = { ...argumentyZEn(params.arguments || {}, pelnySchemat(n.name), n.name) };
           let wykonawca = n;
           if (!BEZ_PROJEKTU.has(n.name)) {
             const pod = await dlaProjektu(argumenty.projekt);

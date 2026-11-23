@@ -254,3 +254,4 @@ Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty
 - M2 ⏳ pozostałe okna i panele – ✅ właściwości, dane i serie, sekcje, lista stron, komentarze, ostrzeżenia, dostęp dla AI; dalej: eksport, druk, AI, komiks, makieta, kontrola…
 - M3 ⏳ przykładowa treść szablonów (gotowe sekcje, kompozycje, planery) – tekst wstawiany do projektu.
 - M4 ⏳ komunikaty z bazy danych (limity, błędy) – po polsku z serwera.
+- „wkurza mnie też to, że na przykład nazwy narzędzi są po polsku… w Familiadzie nie ma takich problemów” → wybór: narzędzia łącznika AI – ✅ łącznik po angielsku (#410). Zgłoszenie do katalogu trzeba wypełnić od nowa (formularz pobierze nowe nazwy).

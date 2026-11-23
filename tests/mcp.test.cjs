@@ -101,7 +101,7 @@ test('MCP: rozpoczęcie (stara i nowa wersja protokołu), lista narzędzi, odmow
   mcp.proc.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n');
   const lista = await mcp.wyslij('tools/list');
   const nazwy = lista.result.tools.map((x) => x.name);
-  for (const n of ['przeglad_projektu', 'czytaj', 'zmien_elementy', 'dodaj_elementy', 'usun_elementy', 'dodaj_strone', 'usun_strony', 'kolejnosc_stron', 'zmien_tabele', 'zmien_czesc', 'zmien_projekt', 'kontrola', 'opis_formatu']) assert.ok(nazwy.includes(n), n);
+  for (const n of ['get_project_overview', 'read_part', 'update_elements', 'add_elements', 'delete_elements', 'add_page', 'delete_pages', 'reorder_pages', 'update_table', 'update_part', 'update_project', 'check_project', 'get_format_spec']) assert.ok(nazwy.includes(n), n);
   for (const x of lista.result.tools) {
     assert.equal(x.inputSchema.type, 'object');
     assert.ok(x.description.length > 20, x.name);
@@ -422,7 +422,7 @@ test('MCP: eksport_pdf i eksport_png zlecane aplikacji – link do pobrania albo
 
   const { narzedzie, wyslij, meta } = s.uruchom(s.odczyt, CZEKANIE);
   const nazwy = (await wyslij('tools/list', meta)).result.tools.map((x) => x.name);
-  for (const n of ['eksport_pdf', 'eksport_png', 'stan_eksportu']) assert.ok(nazwy.includes(n), n);
+  for (const n of ['export_pdf', 'export_png', 'get_job_status']) assert.ok(nazwy.includes(n), n);
 
   // Aplikacja otwarta: link do pobrania z sekretem, rozmiar, strony i uwagi z kontroli. Klucz tylko do czytania wystarcza.
   const pdf = await narzedzie('eksport_pdf', { przeznaczenie: 'drukarnia', pdfx: 'fogra39', uklad: 'broszura', format_arkusza: 'A4' });

@@ -37,12 +37,12 @@ test('łącznik z katalogu: bez rysowania obrazów, /mcp/full – pełny; opisy 
   const nazwy = async (url) => (await wolaj(url, 'tools/list')).result.tools.map((t) => t.name);
   const katalog = await nazwy('https://api.makietka.app/mcp');
   assert.equal(katalog.length, 48);
-  assert.ok(!katalog.includes('generuj_obraz') && !katalog.includes('rysuj_kadry') && katalog.includes('ustaw_dymki'));
-  assert.equal((await wolaj('https://api.makietka.app/mcp', 'tools/call', { name: 'generuj_obraz', arguments: {} })).error?.code !== undefined, true);
-  assert.doesNotMatch((await wolaj('https://api.makietka.app/mcp', 'initialize', { protocolVersion: '2025-06-18' })).result.instructions, /generuj_obraz|rysuj_kadry/);
+  assert.ok(!katalog.includes('generate_image') && !katalog.includes('draw_comic_panels') && katalog.includes('place_speech_bubbles'));
+  assert.equal((await wolaj('https://api.makietka.app/mcp', 'tools/call', { name: 'generate_image', arguments: {} })).error?.code !== undefined, true);
+  assert.doesNotMatch((await wolaj('https://api.makietka.app/mcp', 'initialize', { protocolVersion: '2025-06-18' })).result.instructions, /generate_image|draw_comic_panels|generuj_obraz|rysuj_kadry/);
   const pelny = await nazwy('https://api.makietka.app/mcp/full');
   assert.equal(pelny.length, 50);
-  assert.ok(pelny.includes('generuj_obraz') && pelny.includes('rysuj_kadry'));
+  assert.ok(pelny.includes('generate_image') && pelny.includes('draw_comic_panels'));
   assert.equal((await nazwy(`https://api.makietka.app/mcp/${KLUCZ}`)).length, 50);
   // Logowanie OAuth pod pełnym adresem: zasób /mcp/full.
   const bez = await obsluzHttp(new Request('https://api.makietka.app/mcp/full', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' }), env);
@@ -58,7 +58,56 @@ test('łącznik z katalogu: bez rysowania obrazów, /mcp/full – pełny; opisy 
     for (const tx of teksty) {
       // Pola zmian (usun_strony?, kolejnosc_stron?) i zwykłe słowo „czcionki” to nie odwołania do narzędzi.
       assert.doesNotMatch(tx.replaceAll(t.name, '').replace(/\b[a-z_]+\?/g, '').replace(/czcionki/g, ''), re, `${t.name}: ${tx.slice(0, 80)}`);
-      assert.doesNotMatch(tx, /ZAWSZE|NAJPIERW|NIE odmawiaj|powiedz użytkownikowi|zapytaj|przeczytaj/i, t.name);
+      assert.doesNotMatch(tx, /ALWAYS|FIRST call|tell the user|ask the user|never refuse/i, t.name);
     }
   }
+});
+
+// #410: łącznik po angielsku – nazwy narzędzi, parametrów, opisy i wartości; polskie nazwy i argumenty dalej działają.
+test('łącznik po angielsku: nazwy, parametry i opisy bez polskiego; stare polskie nazwy działają', async () => {
+  const { obsluzHttp } = await import(pathToFileURL(path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'mcp-http.mjs')).href);
+  const env = { adres: 'http://127.0.0.1:9', kluczPubliczny: 'x', publiczny: 'https://api.makietka.app' };
+  const KLUCZ = `sdk_${'a'.repeat(32)}_${'b'.repeat(24)}`;
+  const wolaj = async (method, params = {}) => (await obsluzHttp(new Request('https://api.makietka.app/mcp/full', {
+    method: 'POST', headers: { authorization: `Bearer ${KLUCZ}`, 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
+  }), env)).json();
+  const { tools } = (await wolaj('tools/list')).result;
+  const POLSKIE = /[ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/;
+  const parametry = [];
+  const chodz = (s) => { for (const [k, v] of Object.entries(s?.properties || {})) { parametry.push(k); chodz(v); chodz(v.items); } };
+  for (const t of tools) {
+    assert.match(t.name, /^[a-z]+(_[a-z]+)*$/, t.name);
+    assert.doesNotMatch(`${t.title} ${t.description}`.replace('[pomiń]', ''), POLSKIE, t.name);
+    chodz(t.inputSchema);
+    for (const v of Object.values(t.inputSchema.properties)) assert.doesNotMatch(`${v.description || ''} ${(v.enum || []).join(' ')}`, POLSKIE, `${t.name}: ${v.description}`);
+  }
+  for (const n of ['list_projects', 'get_project_overview', 'update_elements', 'export_pdf', 'undo_ai_changes']) assert.ok(tools.some((t) => t.name === n), n);
+  for (const p of ['gdzie', 'zmiany', 'projekt', 'nazwa', 'strona', 'tresc']) assert.ok(!parametry.includes(p), p);
+  const init = (await wolaj('initialize', { protocolVersion: '2025-06-18' })).result.instructions;
+  assert.match(init, /^The tools read and change Makietka projects/);
+  assert.doesNotMatch(init, POLSKIE);
+  // Argumenty po angielsku wracają do polskich nazw i wartości (bez bazy: odmowa klucza przychodzi po przekładzie).
+  const r = await import(pathToFileURL(path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'seriodruk-mcp-rdzen.mjs')).href);
+  let widziane = null;
+  const s = r.utworzSerwer({ adres: 'http://127.0.0.1:9', kluczPubliczny: 'x', klucz: 'sdk_x', angielski: true });
+  const n = s.narzedzia.find((x) => x.name === 'wyrownaj_elementy');
+  const stare = n.dzialaj;
+  n.dzialaj = async (a) => { widziane = a; return 'ok'; };
+  await s.obsluz({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'align_elements', arguments: { target: 'page:s1', id: ['a', 'b'], align: 'center', relative_to: 'page' } } });
+  assert.deepEqual(widziane, { gdzie: 'strona:s1', id: ['a', 'b'], do: 'srodek', wzgledem: 'strona' });
+  await s.obsluz({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'wyrownaj_elementy', arguments: { gdzie: 'strona:s1', id: ['a'], do: 'lewo' } } });
+  assert.deepEqual(widziane, { gdzie: 'strona:s1', id: ['a'], do: 'lewo' });
+  n.dzialaj = stare;
+  // Asystent w aplikacji (bez angielski) – dalej polskie nazwy.
+  const pl = r.utworzSerwer({ adres: 'http://127.0.0.1:9', kluczPubliczny: 'x', klucz: 'sdk_x' });
+  assert.ok((await pl.obsluz({ jsonrpc: '2.0', id: 4, method: 'tools/list' })).result.tools.some((t) => t.name === 'przeglad_projektu'));
+  // Każdy opis ma tłumaczenie (po zmianie opisu: scripts/mcp-angielski.cjs).
+  const teksty = require('../supabase/functions/_shared/mcp-teksty-en.json');
+  const plLista = (await pl.obsluz({ jsonrpc: '2.0', id: 5, method: 'tools/list' })).result.tools;
+  const brak = [];
+  const sprawdz = (x) => { if (x && !(x in teksty)) brak.push(x.slice(0, 60)); };
+  const opisy = (sch) => { for (const v of Object.values(sch?.properties || {})) { sprawdz(v.description); opisy(v); opisy(v.items); } };
+  for (const t of plLista) { sprawdz(t.title); sprawdz(t.description); opisy(t.inputSchema); }
+  assert.deepEqual(brak, []);
 });

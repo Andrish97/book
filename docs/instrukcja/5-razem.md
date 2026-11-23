@@ -198,6 +198,9 @@ wszystkie), czytanie albo też zmiany i ważność – [Zezwól] wraca do aplika
 Połączenie to zwykły klucz dostępu „Łącznik: nazwa aplikacji” – widać go w ustawieniach Sztuczna inteligencja i można go
 odebrać. Aplikacja AI nie dostaje Twojego hasła.
 
+**Nazwy narzędzi.** W aplikacji AI narzędzia Makietki mają nazwy angielskie (np. `get_project_overview`, `update_elements`,
+`export_pdf`) – tak jak inne łączniki. Asystent AI w samej Makietce działa jak dotąd.
+
 **Rysowanie obrazów.** Łącznik pod adresem `https://api.makietka.app/mcp` (także ten z katalogu łączników Claude)
 nie rysuje obrazów ani kadrów komiksu – tak wymagają zasady katalogu. Żeby AI rysowało (Twoim kluczem Gemini), dodaj
 łącznik pod adresem **`https://api.makietka.app/mcp/full`** – logowanie i wszystko inne działa tak samo. Adres z kluczem
