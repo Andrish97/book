@@ -15,7 +15,11 @@ test('łącznik: title i adnotacje każdego narzędzia', async () => {
     if (!t.annotations.readOnlyHint) assert.equal(typeof t.annotations.destructiveHint, 'boolean', `${t.name}: destructiveHint`);
   }
   const niszczace = tools.filter((t) => t.annotations.destructiveHint).map((t) => t.name).sort();
-  for (const n of ['usun_projekt', 'usun_strony', 'usun_elementy', 'usun_obrazy', 'zmien_projekt', 'podmien_obraz', 'cofnij_zmiany_ai']) assert.ok(niszczace.includes(n), n);
+  for (const n of ['usun_projekt', 'usun_strony', 'usun_elementy', 'usun_obrazy', 'usun_z_tabeli', 'usun_czesc', 'zmien_projekt', 'podmien_obraz', 'cofnij_zmiany_ai']) assert.ok(niszczace.includes(n), n);
+  // Zwykła edycja bez oznaczenia (podział 23.11: usuwanie wierszy, kolumn i części – osobnymi narzędziami).
+  for (const n of ['zmien_tabele', 'zmien_czesc', 'zmien_elementy', 'dodaj_elementy']) assert.equal(tools.find((t) => t.name === n).annotations.destructiveHint, false, n);
+  assert.ok(!('usun' in tools.find((t) => t.name === 'zmien_czesc').inputSchema.properties));
+  assert.ok(!('usun_wiersze' in tools.find((t) => t.name === 'zmien_tabele').inputSchema.properties));
   for (const n of ['projekty', 'czytaj', 'przeglad_projektu', 'biblioteka']) assert.equal(tools.find((t) => t.name === n).annotations.readOnlyHint, true, n);
   assert.equal(tools.find((t) => t.name === 'generuj_obraz').annotations.openWorldHint, true);
 });

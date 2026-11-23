@@ -130,8 +130,10 @@ Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekt
 | `wstaw_z_biblioteki` | element Biblioteki (`kategoria`, `element`) na stronę `gdzie`, opcjonalnie `x`, `y` – środek w mm strony; robi otwarta aplikacja, wynik: id nowego elementu, położenie i rozmiar |
 | `cofnij_zmiany_ai` | cofa ostatnią serię zmian AI (zapisy w odstępach do 15 minut): strony usunięte wracają, dodane znikają; `sprawdz: true` – tylko informacja, co zostanie cofnięte (od–do, liczba zapisów, liczba późniejszych zmian); cofać tylko na prośbę użytkownika |
 | `czcionki` | czcionki do użycia w projekcie (pole fontFamily): wbudowane, pogrupowane, z informacją o pogrubieniu i kursywie, oraz wgrane do projektu |
-| `zmien_tabele` | tabela danych: komórki, kolumny, wiersze (także `[pomiń]`), listy dozwolonych wartości; nowa tabela |
-| `zmien_czesc` | ogólna zmiana jednej sekcji, wzorca, stylu, tabeli albo serii (nowa, zmiana, usunięcie). Zmiana stylu przepisuje go do tekstów, które go używają – jak w aplikacji; usunięty styl odpina się od tekstów |
+| `zmien_tabele` | tabela danych bez usuwania: komórki, nowe kolumny i kolejność, dopisane wiersze (także `[pomiń]`), listy dozwolonych wartości; nowa tabela |
+| `usun_z_tabeli` | usuwa wiersze (`usun_wiersze`), kolumny z wartościami (`usun_kolumny`) albo zastępuje wszystkie wiersze (`wiersze`) – narzędzie niszczące |
+| `zmien_czesc` | ogólna zmiana jednej sekcji, wzorca, stylu, tabeli albo serii (nowa albo zmiana). Zmiana stylu przepisuje go do tekstów, które go używają – jak w aplikacji |
+| `usun_czesc` | usuwa jedną sekcję, wzorzec, styl, tabelę albo serię; usunięty styl odpina się od tekstów – narzędzie niszczące |
 | `zmien_projekt` | ogólny zapis kilku części naraz (dla zmian, których inne narzędzia nie obejmują) |
 | `nazwa_projektu` | nowa nazwa |
 | `komentarze` | komentarze osób na stronach: wątki z numerem pinezki, stroną, elementem albo miejscem (mm), autorem, stanem i odpowiedziami; domyślnie nierozwiązane (`wszystkie: true` – wszystkie) |

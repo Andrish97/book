@@ -2702,13 +2702,11 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'zmien_tabele',
       title: 'Zmień tabelę danych',
-      description: 'Zmienia tabelę danych (po id; nowa, jeśli nie ma – wtedy podaj nazwa i kolumny): nazwa, kolumny (pełna lista), ustaw komórki [{ wiersz (od 0), kolumna (nazwa), wartosc }], dodaj_wiersze (listy wartości w kolejności kolumn; wiersz „[pomiń]” w pierwszej komórce zajmuje miejsce w bloku serii, ale strona nie powstaje), usun_wiersze (numery od 0), wiersze (zastępuje wszystkie), listy ({ kolumna: [dozwolone wartości] }).',
+      description: 'Zmienia albo tworzy tabelę danych (po id; nowa, jeśli nie ma – wtedy podaj nazwa i kolumny) – bez usuwania danych: nazwa, kolumny (pełna lista; mogą dojść nowe i zmienić się kolejność, ale każda dotychczasowa musi zostać), ustaw komórki [{ wiersz (od 0), kolumna (nazwa), wartosc }], dodaj_wiersze (listy wartości w kolejności kolumn; wiersz „[pomiń]” w pierwszej komórce zajmuje miejsce w bloku serii, ale strona nie powstaje), listy ({ kolumna: [dozwolone wartości] }). Usuwanie wierszy i kolumn albo zastąpienie wszystkich wierszy: usun_z_tabeli.',
       inputSchema: S('', {
         id: tekst('id tabeli'), nazwa: tekst('nazwa tabeli'), kolumny: { type: 'array', items: { type: 'string' } },
         ustaw: { type: 'array', items: S('', { wiersz: { type: 'integer' }, kolumna: { type: 'string' }, wartosc: { type: 'string' } }, ['wiersz', 'kolumna', 'wartosc']) },
         dodaj_wiersze: { type: 'array', items: { type: 'array', items: { type: 'string' } } },
-        usun_wiersze: { type: 'array', items: { type: 'integer' } },
-        wiersze: { type: 'array', items: { type: 'array', items: { type: 'string' } } },
         listy: obiekt('Listy dozwolonych wartości kolumn'),
       }, ['id']),
       dzialaj: (a) => zmien((p) => {
@@ -2721,28 +2719,54 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         }
         if (a.nazwa) t.nazwa = a.nazwa;
         if (a.kolumny) {
+          const brak = t.kolumny.filter((k) => !a.kolumny.includes(k));
+          if (brak.length) throw new BladBazy(`Kolumny ${brak.map((k) => `„${k}”`).join(', ')} zniknęłyby razem z danymi – usuwa je narzędzie usun_z_tabeli (usun_kolumny).`);
           const stare = t.kolumny;
           t.wiersze = t.wiersze.map((w) => a.kolumny.map((k) => { const i = stare.indexOf(k); return i >= 0 ? (w[i] ?? '') : ''; }));
           t.kolumny = a.kolumny;
         }
-        if (a.wiersze) t.wiersze = a.wiersze;
         for (const u of a.ustaw || []) {
           const k = t.kolumny.indexOf(u.kolumna);
           if (k < 0) throw new BladBazy(`Tabela „${t.nazwa}” nie ma kolumny „${u.kolumna}”.`);
           while (t.wiersze.length <= u.wiersz) t.wiersze.push(t.kolumny.map(() => ''));
           t.wiersze[u.wiersz][k] = u.wartosc;
         }
-        if (a.usun_wiersze) t.wiersze = t.wiersze.filter((_, i) => !a.usun_wiersze.includes(i));
         for (const w of a.dodaj_wiersze || []) t.wiersze.push(t.kolumny.map((_, i) => String(w[i] ?? '')));
         if (a.listy) t.listy = { ...(t.listy || {}), ...a.listy };
         return { zmiany: { tabele: p.tabele }, opis: `Tabela „${t.nazwa}”: ${t.kolumny.length} kolumn, ${t.wiersze.length} wierszy.` };
       }),
     },
     {
+      name: 'usun_z_tabeli',
+      title: 'Usuń wiersze albo kolumny tabeli',
+      description: 'Usuwa dane z tabeli (po id): usun_wiersze (numery od 0), usun_kolumny (nazwy – razem z wartościami), albo wiersze – zastępuje WSZYSTKIE wiersze podanymi. Zwykłe zmiany i dopisywanie: zmien_tabele.',
+      inputSchema: S('', {
+        id: tekst('id tabeli'),
+        usun_wiersze: { type: 'array', items: { type: 'integer' } },
+        usun_kolumny: { type: 'array', items: { type: 'string' } },
+        wiersze: { type: 'array', items: { type: 'array', items: { type: 'string' } } },
+      }, ['id']),
+      dzialaj: (a) => zmien((p) => {
+        const t = (p.tabele || []).find((x) => x.id === a.id);
+        if (!t) throw new BladBazy(`Nie ma tabeli „${a.id}”.`);
+        if (a.usun_kolumny) {
+          const nie = a.usun_kolumny.filter((k) => !t.kolumny.includes(k));
+          if (nie.length) throw new BladBazy(`Tabela „${t.nazwa}” nie ma kolumn: ${nie.join(', ')}.`);
+          const zostaja = t.kolumny.map((k, i) => [k, i]).filter(([k]) => !a.usun_kolumny.includes(k));
+          t.wiersze = t.wiersze.map((w) => zostaja.map(([, i]) => w[i] ?? ''));
+          t.kolumny = zostaja.map(([k]) => k);
+          if (t.listy) for (const k of a.usun_kolumny) delete t.listy[k];
+        }
+        if (a.wiersze) t.wiersze = a.wiersze.map((w) => t.kolumny.map((_, i) => String(w[i] ?? '')));
+        if (a.usun_wiersze) t.wiersze = t.wiersze.filter((_, i) => !a.usun_wiersze.includes(i));
+        return { zmiany: { tabele: p.tabele }, opis: `Tabela „${t.nazwa}”: ${t.kolumny.length} kolumn, ${t.wiersze.length} wierszy.` };
+      }),
+    },
+    {
       name: 'zmien_czesc',
       title: 'Zmień sekcję, wzorzec, styl, tabelę albo serię',
-      description: 'Ogólna zmiana jednej części projektu po id: czesc = sekcje | wzorce | style | tabele | serie. pola – zmieniane pola (null usuwa); nowa część, jeśli id nie istnieje (podaj komplet pól, np. sekcja: nazwa, wydruk, uklad; okładka z grzbietem: pole okladka – opis w opis_formatu; seria: nazwa, tabela, tryb). usun: true – usuwa część. Zmiana stylu przepisuje jego wartości do wszystkich tekstów z tym stylem (jak w aplikacji); usunięcie stylu odpina go od tekstów.',
-      inputSchema: S('', { czesc: { type: 'string', enum: Object.keys(CZESCI) }, id: tekst('id'), pola: obiekt('Pola'), usun: { type: 'boolean' } }, ['czesc', 'id']),
+      description: 'Ogólna zmiana jednej części projektu po id: czesc = sekcje | wzorce | style | tabele | serie. pola – zmieniane pola (null usuwa pole); nowa część, jeśli id nie istnieje (podaj komplet pól, np. sekcja: nazwa, wydruk, uklad; okładka z grzbietem: pole okladka – opis w opis_formatu; seria: nazwa, tabela, tryb). Zmiana stylu przepisuje jego wartości do wszystkich tekstów z tym stylem (jak w aplikacji). Usunięcie całej części: usun_czesc.',
+      inputSchema: S('', { czesc: { type: 'string', enum: Object.keys(CZESCI) }, id: tekst('id'), pola: obiekt('Pola') }, ['czesc', 'id']),
       dzialaj: ({ czesc, id, pola = {}, usun = false }) => zmien((p) => {
         p[czesc] = p[czesc] || [];
         const lista = p[czesc];
@@ -2769,6 +2793,13 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         // Lista wzorców mogła już trafić do zmian (przepisanie stylu) – to ten sam obiekt.
         return { zmiany: { ...zmiany, [czesc]: lista }, opis };
       }),
+    },
+    {
+      name: 'usun_czesc',
+      title: 'Usuń sekcję, wzorzec, styl, tabelę albo serię',
+      description: 'Usuwa jedną część projektu po id: czesc = sekcje | wzorce | style | tabele | serie. Usunięcie stylu odpina go od tekstów (teksty zostają, jak w aplikacji). Baza odrzuci usunięcie, które zostawiłoby projekt niespójny (np. sekcję ze stronami albo tabelę używaną przez serię).',
+      inputSchema: S('', { czesc: { type: 'string', enum: Object.keys(CZESCI) }, id: tekst('id') }, ['czesc', 'id']),
+      dzialaj: ({ czesc, id }) => NARZEDZIA.find((n) => n.name === 'zmien_czesc').dzialaj({ czesc, id, usun: true }),
     },
     {
       name: 'zmien_projekt',
@@ -3065,7 +3096,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
   }
 
   // Narzędzia konta (bez parametru „projekt” albo z własnym, jak usun_projekt) – reszta działa na wskazanym projekcie.
-  const NISZCZACE = new Set(['zmien_projekt', 'zmien_czesc', 'zmien_tabele', 'podmien_obraz', 'uporzadkuj_obrazy', 'cofnij_zmiany_ai']);
+  const NISZCZACE = new Set(['zmien_projekt', 'podmien_obraz', 'uporzadkuj_obrazy', 'cofnij_zmiany_ai']);
   const IDEMPOTENTNE = new Set(['nazwa_projektu', 'zmien_strone', 'kolejnosc_stron', 'zmien_nazwe_obrazu', 'rozwiaz_komentarz', 'ustaw_dymki', 'udostepnij_link']);
   // wgraj_obraz pobiera adres z internetu, generuj_obraz i rysuj_kadry wołają Google Gemini, link publikuje podgląd.
   const SWIAT = new Set(['wgraj_obraz', 'podmien_obraz', 'generuj_obraz', 'rysuj_kadry', 'udostepnij_link']);

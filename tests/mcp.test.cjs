@@ -211,7 +211,7 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   assert.equal(tyt.fontSize, 5);
   assert.deepEqual(tyt.styles[0][0], {});
   assert.equal(p.wzorce[0].obiekty[0].fill, '#003366');
-  await narzedzie('zmien_czesc', { czesc: 'style', id: 'st1', usun: true });
+  await narzedzie('usun_czesc', { czesc: 'style', id: 'st1' });
   p = s.projekt().projekt;
   assert.equal(p.style.length, 0);
   assert.equal(p.strony[0].obiekty.find((o) => o.id === 'tyt').styl, undefined);
@@ -226,6 +226,14 @@ test('MCP: odczyt i zmiany strony, wzorca, stylu, tabeli, serii i sekcji; odmowa
   const t1 = s.projekt().projekt.tabele[0];
   assert.deepEqual(t1.wiersze, [['Styczeń', 'czerwony', 'las.jpg'], ['Luty', '', 'morze.jpg'], ['Marzec', 'zielony', 'las.jpg'], ['[pomiń]', '', '']]);
   assert.deepEqual(t1.listy, { kolor: ['czerwony', 'zielony'] });
+  // Zwykła zmiana nie usuwa danych: kolumna znikłaby – odmowa; usuwanie – usun_z_tabeli (niszczące).
+  const bezKolumny = await narzedzie('zmien_tabele', { id: 't1', kolumny: ['miesiac', 'kolor'] });
+  assert.equal(bezKolumny.blad, true);
+  assert.match(bezKolumny.tekst, /„zdjecie” zniknęłyby .*usun_z_tabeli/);
+  assert.equal((await narzedzie('zmien_tabele', { id: 't1', kolumny: ['miesiac', 'kolor', 'zdjecie', 'tymczasowa'] })).blad, false);
+  assert.equal((await narzedzie('usun_z_tabeli', { id: 't1', usun_kolumny: ['tymczasowa'], usun_wiersze: [3] })).blad, false);
+  assert.deepEqual(s.projekt().projekt.tabele[0].kolumny, ['miesiac', 'kolor', 'zdjecie']);
+  assert.deepEqual(s.projekt().projekt.tabele[0].wiersze, [['Styczeń', 'czerwony', 'las.jpg'], ['Luty', '', 'morze.jpg'], ['Marzec', 'zielony', 'las.jpg']]);
 
   // Seria i sekcja.
   await narzedzie('zmien_czesc', { czesc: 'serie', id: 'ser1', pola: { pilnuj_stron: true, dodatkowe: [] } });
