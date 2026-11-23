@@ -7,7 +7,7 @@ CEL="${1:-_site}"
 WERSJA="${2:-${WORKERS_CI_COMMIT_SHA:-${GITHUB_SHA:-$(git rev-parse HEAD 2>/dev/null || echo lokalna)}}}"
 rm -rf "$CEL"
 mkdir -p "$CEL"
-cp -r index.html rysuj.html prywatnosc.html privacy.html manifest.webmanifest sw.js css js img ai llms.txt "$CEL/"
+cp -r index.html rysuj.html prywatnosc.html privacy.html favicon.ico manifest.webmanifest sw.js css js img ai llms.txt "$CEL/"
 touch "$CEL/.nojekyll"
 # Numer wersji i lista plików kodu dla service workera (pamięć jednej wersji naraz).
 python3 scripts/wersja-sw.py "$CEL" "${WERSJA:0:12}"

@@ -456,9 +456,19 @@ export default {
     if (u.hostname === 'makietka.app' && env.ASSETS) return env.ASSETS.fetch(zapytanie);
     // Formularz kontaktowy (decyzja #95, cloudflare/poczta.js).
     if (u.pathname === '/kontakt') return obsluzKontakt(zapytanie, env || {}, ctx);
+    // Ikona adresu api.makietka.app (adres łącznika AI): aplikacje AI i katalog łączników Claude biorą ikonę
+    // z /favicon.ico albo z <link rel="icon"> strony głównej domeny – bez nich pokazywały zastępczą literę „M”.
+    if (u.pathname === '/favicon.ico' && env.ASSETS) {
+      const ikona = await env.ASSETS.fetch(new Request('https://makietka.app/favicon.ico'));
+      return new Response(ikona.body, { status: ikona.status, headers: { 'content-type': 'image/x-icon', 'cache-control': 'public, max-age=86400' } });
+    }
     if (u.pathname === '/' && zapytanie.method === 'GET') {
-      return new Response('Makietka – API (przekaźnik do bazy i pliki). Aplikacja: https://makietka.app/\n', {
-        headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
+      return new Response('<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Makietka – API</title>'
+        + '<link rel="icon" href="https://makietka.app/img/ikony/ikona.svg" type="image/svg+xml">'
+        + '<link rel="icon" href="https://makietka.app/img/ikony/favicon-32.png" sizes="32x32" type="image/png">'
+        + '<link rel="apple-touch-icon" href="https://makietka.app/img/ikony/apple-touch-icon.png"></head>'
+        + '<body><p>Makietka – API (przekaźnik do bazy i pliki). Aplikacja: <a href="https://makietka.app/">makietka.app</a></p></body></html>\n', {
+        headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' },
       });
     }
     if (u.pathname.startsWith('/eksport/')) {

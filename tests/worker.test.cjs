@@ -59,3 +59,18 @@ test('przekaźnik api.makietka.app: /mcp → /functions/v1/mcp, reszta bez zmian
   assert.equal(konf.main, 'api-worker.js');
   assert.deepEqual(konf.routes, [{ pattern: 'api.makietka.app', custom_domain: true }, { pattern: 'makietka.app/*', zone_name: 'makietka.app' }, { pattern: 'www.makietka.app/*', zone_name: 'makietka.app' }]); // #352: ten sam worker podaje aplikację
 });
+
+test('ikona api.makietka.app (adres łącznika AI): /favicon.ico z plików strony, strona główna z <link rel="icon">', async () => {
+  const { default: worker } = await import(pathToFileURL(WORKER).href);
+  const ico = fs.readFileSync(path.join(__dirname, '..', 'favicon.ico'));
+  const env = { ASSETS: { fetch: async (r) => (new URL(r.url).pathname === '/favicon.ico' ? new Response(ico) : new Response('nie', { status: 404 })) } };
+  let odp = await worker.fetch(new Request('https://api.makietka.app/favicon.ico'), env);
+  assert.equal(odp.status, 200);
+  assert.equal(odp.headers.get('content-type'), 'image/x-icon');
+  assert.deepEqual(Buffer.from(await odp.arrayBuffer()), ico);
+  odp = await worker.fetch(new Request('https://api.makietka.app/'), env);
+  const html = await odp.text();
+  assert.match(odp.headers.get('content-type'), /text\/html/);
+  assert.match(html, /<link rel="icon" href="https:\/\/makietka\.app\/img\/ikony\/ikona\.svg"/);
+  assert.ok(fs.readFileSync(path.join(__dirname, '..', 'scripts', 'buduj-strone.sh'), 'utf8').includes('favicon.ico'), 'favicon.ico w plikach strony');
+});

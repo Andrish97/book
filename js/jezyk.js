@@ -51,12 +51,21 @@ function kluczNapisu(tekst) {
 }
 // Czy tekst elementu to wciąż napis klucza w którymś języku (a nie treść wstawiona przez kod) – wtedy wolno go podmienić.
 const napisKlucza = (k, tekst) => Object.values(slownikiKluczy).some((sl) => sl[k] !== undefined && norm(sl[k]) === tekst);
+// Nowy napis elementu bez kasowania jego dzieci: przycisk z ikoną (data-ikona → <svg> w środku) traci przy
+// textContent ikonę – po angielsku i ukraińsku przyciski były bez ikon (zgłoszenie 23.11).
+function ustawTekst(e, tekst) {
+  if (!e.firstElementChild) { e.textContent = tekst; return; }
+  const teksty = [...e.childNodes].filter((n) => n.nodeType === 3 && n.data.trim());
+  if (!teksty.length) { e.append(tekst); return; }
+  teksty[0].data = tekst;
+  for (const n of teksty.slice(1)) n.data = '';
+}
 function zastosujKlucze(korzen) {
   if (!klucze || !korzen?.querySelectorAll) return;
   const el = korzen.nodeType === 1 ? [korzen] : [];
   for (const e of [...el, ...korzen.querySelectorAll('[data-i18n],[data-i18n-title],[data-i18n-placeholder],[data-i18n-aria-label]')]) {
     const k = e.getAttribute('data-i18n');
-    if (k && klucze[k] !== undefined && napisKlucza(k, norm(e.textContent)) && e.textContent !== klucze[k]) e.textContent = klucze[k];
+    if (k && klucze[k] !== undefined && napisKlucza(k, norm(e.textContent)) && e.textContent !== klucze[k]) ustawTekst(e, klucze[k]);
     for (const a of ATRYBUTY) {
       const ka = e.getAttribute(`data-i18n-${a}`);
       if (!ka || klucze[ka] === undefined || !e.hasAttribute(a)) continue;

@@ -214,3 +214,11 @@ sprawdzać”): przez łącznik „makietka test” przygotować na koncie test+
 recenzentów (po angielsku): kalendarz, komiks ze scenariuszem i kartami, broszura (jak ai/przyklady/recenzja) –
 z obrazami, tabelą danych i komentarzem do odpowiedzi, tak żeby każde narzędzie dało się od razu sprawdzić;
 nazwy projektów opisać w instrukcji dla recenzentów w docs/ZGLOSZENIE-KATALOG-CLAUDE.md.
+
+
+## Część K – uwagi 23.11 (noc)
+
+| # | Słowa właściciela | Stan |
+|---|---|---|
+| K1 | „Zapisz też, że trzeba zmienić na łączniku ikonkę ze starej z literką M na nową.” | zrobione (#397) – api.makietka.app i makietka.app nie miały /favicon.ico (404), więc Claude pokazywał zastępczą literę; teraz favicon.ico z nowym logo i strona główna API z &lt;link rel="icon"&gt;. Claude może trzymać starą ikonę w pamięci – wtedy usunąć i dodać łącznik jeszcze raz. |
+| K2 | „W tłumaczeniach nie ma ikon i trzeba to poprawić.” | zrobione (#397) – tłumaczenie napisu (textContent) kasowało ikonę w przycisku; po angielsku 0 ze 113 przycisków miało ikonę, po ukraińsku 2. Teraz zmienia się sam tekst. Test jezyki-ikony. |
