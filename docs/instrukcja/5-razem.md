@@ -339,7 +339,7 @@ a gdy właściciel odbierze Ci dostęp, klucz traci go od razu.
 > Uwaga: Adres łącznika zawiera klucz — kto go ma, ma dostęp do wybranych projektów. Nie publikuj
 > go, dawaj najkrótszą ważność, jaka wystarczy, i odbieraj klucz po skończonej pracy.
 
-Jakie dane przetwarza Makietka i łącznik, opisuje polityka prywatności: makietka.app/prywatnosc.html (link jest też pod logowaniem).
+Jakie dane przetwarza Makietka i łącznik, opisuje polityka prywatności: makietka.app/prywatnosc (link jest też pod logowaniem).
 
 ## 25.9 Cofnięcie zmian AI
 

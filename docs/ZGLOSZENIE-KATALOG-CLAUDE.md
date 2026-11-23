@@ -11,7 +11,7 @@ Pola poniżej są po angielsku – do wklejenia.
 | Server URL | `https://api.makietka.app/mcp` |
 | Authentication | OAuth 2.1 (dynamic client registration, PKCE) – discovery: `https://api.makietka.app/.well-known/oauth-protected-resource` |
 | Documentation | `https://makietka.app/#/instrukcja/25` (rozdział „Working with AI” – otwiera się w języku przeglądarki) oraz `https://makietka.app/ai/api.md` (opis narzędzi) |
-| Privacy policy | `https://makietka.app/privacy.html` (po polsku: `https://makietka.app/prywatnosc.html`) |
+| Privacy policy | `https://makietka.app/privacy` (po polsku: `https://makietka.app/prywatnosc`) |
 | Support contact | `https://makietka.app/#/kontakt` (formularz kontaktowy, bez logowania) albo kontakt@makietka.app |
 | Icon | `img/ikony/ikona-512.png` (512 × 512) albo `img/ikony/ikona.svg` z repozytorium |
 | Website | `https://makietka.app` |
@@ -62,7 +62,7 @@ Pola poniżej są po angielsku – do wklejenia.
 | OAuth 2.0 | ✅ OAuth 2.1 |
 | `title` + `readOnlyHint`/`destructiveHint` dla każdego narzędzia | ✅ (test `katalog-lacznikow`) |
 | Dokumentacja | ✅ instrukcja (pl/en/uk) + `ai/api.md` |
-| Polityka prywatności | ✅ `privacy.html` / `prywatnosc.html` (administrator: operator serwisu Makietka, kontakt@makietka.app) |
+| Polityka prywatności | ✅ `makietka.app/privacy` / `makietka.app/prywatnosc` (administrator: operator serwisu Makietka, kontakt@makietka.app) |
 | Kontakt | ✅ kontakt@makietka.app |
 | Ikona | ✅ także `favicon.ico` pod api.makietka.app (Claude może trzymać starą ikonę – wtedy usunąć i dodać łącznik jeszcze raz) |
 | Konto testowe | ✅ `test+recenzja@makietka.app` (założone przez właściciela) |

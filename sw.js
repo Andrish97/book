@@ -113,6 +113,8 @@ self.addEventListener('fetch', (e) => {
     // Dokumenty obok aplikacji (polityka prywatności, ai/api.md…) – adres z rozszerzeniem innym niż index.html idzie
     // prosto do sieci; aplikację dostaje tylko „/”, „/index.html” i adresy bez rozszerzenia (krótkie linki, #/…).
     if (nawigacja && /\.[a-z0-9]+$/i.test(url.pathname) && !/\/index\.html$/i.test(url.pathname)) return;
+    // Polityka prywatności pod krótkim adresem (#407): /privacy i /prywatnosc to dokumenty, nie krótkie linki podglądu.
+    if (nawigacja && /\/(privacy|prywatnosc)\/?$/i.test(url.pathname)) return;
     if (ROZWOJ) {
       // Bez wdrożenia: najpierw sieć, przy braku sieci kopia.
       e.respondWith(zSieci(req, KOD).catch(async () => (await caches.match(req, { ignoreSearch: true }))

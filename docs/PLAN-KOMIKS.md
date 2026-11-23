@@ -244,3 +244,4 @@ Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty
 - „Ikonę widzi stara dalej” – serwer podaje nową, starą trzyma pamięć ikon Google (odświeży się sama); w polu Icon wgrać img/ikony/ikona-512.png.
 - „A czy formularz kontaktowy ma url? Może lepiej go dodać jako kontakt?” – ✅ adres makietka.app/#/kontakt (#406), link wsparcia w zgłoszeniu.
 - Właściciel: okienka zgody przy łączniku i komendach w tej rozmowie – zezwolenia ustawia właściciel („Zawsze zezwalaj” albo .claude/settings.json).
+- „Dlaczego adres się kończy HTML? Polityki prywatności. Chciałbym, żeby nie było takich rzeczy.” – ✅ makietka.app/privacy i /prywatnosc (#407).

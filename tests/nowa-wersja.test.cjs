@@ -19,6 +19,8 @@ test('nowa wersja: od razu na liście i w otwartym projekcie, numer w ustawienia
     const sc = decodeURIComponent(new URL(req.url, 'http://x').pathname);
     if (sc === '/sw.js') { res.writeHead(200, { 'Content-Type': 'text/javascript', 'Cache-Control': 'no-store' }); res.end(sw()); return; }
     let plik = path.join(KORZEN, sc === '/' ? 'index.html' : sc);
+    // Jak Cloudflare (html_handling): /privacy podaje privacy.html.
+    if (/^\/(privacy|prywatnosc)$/.test(sc)) plik += '.html';
     fs.readFile(plik, (b, d) => {
       if (b) { res.writeHead(404).end(); return; }
       res.writeHead(200, { 'Content-Type': TYPY[path.extname(plik)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
@@ -68,8 +70,12 @@ test('nowa wersja: od razu na liście i w otwartym projekcie, numer w ustawienia
   const dok = await kontekst.newPage();
   await dok.goto(`${adres}privacy.html`);
   assert.equal(await dok.textContent('h1'), 'Privacy Policy');
-  await dok.goto(`${adres}prywatnosc.html`);
+  // Krótki adres bez .html (#407) – też dokument, nie aplikacja (serwer testowy podaje plik .html jak Cloudflare).
+  await dok.goto(`${adres}privacy`);
+  assert.equal(await dok.textContent('h1'), 'Privacy Policy');
+  await dok.goto(`${adres}prywatnosc`);
   assert.equal(await dok.textContent('h1'), 'Polityka prywatności');
+  assert.equal(await dok.getAttribute('.jezyk a', 'href'), '/privacy');
   await dok.close();
   assert.deepEqual(bledy, []);
 });

@@ -341,7 +341,7 @@ and when the owner revokes your access, the key loses it immediately.
 > Note: The connector address contains the key — whoever has it has access to the selected projects. Don't publish
 > it, give the shortest validity that's enough, and revoke the key once the work is done.
 
-What data Makietka and the connector process is described in the privacy policy: makietka.app/privacy.html (also linked under the sign-in form).
+What data Makietka and the connector process is described in the privacy policy: makietka.app/privacy (also linked under the sign-in form).
 
 ## 25.9 Undoing AI changes
 
