@@ -69,7 +69,7 @@ const ZNAKI = [
   ['po_otwarciu', /[(„] /g, 'spacja po nawiasie albo cudzysłowie otwierającym'],
 ];
 export function uwagiZnakow(tekst) {
-  const t = String(tekst || '').replace(/\{[^}]*\}/g, ''); // pola z danymi pomijamy
+  const t = String(tekst || '').replace(/\{[^}]*\}/g, 'X'); // pole z danymi – jak wyraz (puste usunięcie dawało fałszywe „podwójne spacje”, #417)
   const wynik = [];
   for (const [kod, re, opis] of ZNAKI) {
     const ile = (t.match(re) || []).length;

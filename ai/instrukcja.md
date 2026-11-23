@@ -2073,6 +2073,8 @@ Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
 
 ![Sprawdź przed drukiem w menu ⋯](https://makietka.app/img/instrukcja/k-menu-kontrola.png)
 
+Lista ma wszystko, co ostrzeżenia przy stronie (z całego projektu naraz, z danymi każdej powielonej strony), i więcej. Elementy wyciszone przyciskiem **Wycisz** pomija.
+
 | Uwaga | Co znaczy |
 |---|---|
 | **Tekst nie mieści się w ramce** | Na podanych stronach tekst wystaje z ramki o stałej wysokości — np. przy dłuższej wartości z tabeli. |
@@ -2087,6 +2089,8 @@ Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
 | **Tekst przy krawędzi cięcia** | Tekst bliżej niż 3 mm od krawędzi strony – przy przycinaniu może zostać ucięty. |
 | **Bez spadu** | Element (tło, pasek, zdjęcie) dochodzi do krawędzi strony, ale nie do spadu – po przycięciu może zostać biały pasek; przeciągnij go za krawędź. |
 | **Poza stroną** | Element leży całkiem poza stroną – nie będzie go w druku. |
+| **Poza spadem** | Element wychodzi poza spad – ta część zostanie ucięta. |
+| **Wchodzi w margines** | Element sięga w margines strony (na lewej albo prawej stronie rozkładówki) – może zostać przycięty albo zbyt blisko grzbietu. Element puszczony na spad (tło, zdjęcie na całą stronę) przechodzi przez margines świadomie – bez uwagi. |
 | **Skład niezgodny z polskimi zasadami** | Spójnik na końcu wiersza, podwójne spacje, cudzysłów prosty, spacja przed przecinkiem itp. — w każdej ramce tekstu (także rosnącej z tekstem) i na każdej powielonej stronie, z danymi wstawionymi z tabeli. Te same uwagi co w panelu **Ostrzeżenia** edytora; **Wycisz** przy elemencie je pomija. |
 | **Brak danych** | Tabeli dodatkowej zabrakło wierszy przed końcem serii. |
 | **Strony serii w rozkładówkach** | Gdzie stoją puste strony albo od której strony blok wychodzi po przeciwnej stronie. |

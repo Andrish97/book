@@ -636,14 +636,13 @@ test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszys
     await strona.click('#przycisk-wiecej');
     await strona.click('[data-akcja="kontrola"]');
     await strona.waitForSelector('#dlg-kontrola[open]');
-    // #413: druga uwaga – podwójne spacje po wstawieniu danych (polskie zasady składu); #416: trzecia – „na | pewno”
-    // (dwuliterowy przyimek na końcu wiersza).
-    await strona.waitForFunction(() => /3 uwagi do sprawdzenia/.test(document.querySelector('#kontrola-stan').textContent));
+    // #416: druga uwaga – „na | pewno” (dwuliterowy przyimek na końcu wiersza). #417: „podwójne spacje” w tekście
+    // „Wzór: f(x) = {x + 1} i {opis}” były fałszywe (po wycięciu pól zostawały dwie spacje) – już ich nie ma.
+    await strona.waitForFunction(() => /2 uwagi do sprawdzenia/.test(document.querySelector('#kontrola-stan').textContent));
   };
   await otworzKontrole();
   assert.equal(await strona.textContent('#kontrola-lista li span'), 'Tekst „Bardzo długi opis, który na pe…” nie mieści się w ramce – strona 2.');
-  assert.match(await strona.locator('#kontrola-lista li').nth(1).textContent(), /skład niezgodny z polskimi zasadami: podwójne spacje/);
-  assert.match(await strona.locator('#kontrola-lista li').nth(2).textContent(), /dwuliterowy spójnik albo przyimek na końcu wiersza.*„na \| pewno”/);
+  assert.match(await strona.locator('#kontrola-lista li').nth(1).textContent(), /dwuliterowy spójnik albo przyimek na końcu wiersza.*„na \| pewno”/);
   assert.deepEqual(await strona.locator('#kontrola-lista li').first().locator('button').allTextContents(), ['Pokaż', 'Otwórz wzór']);
   await strona.locator('#kontrola-lista li').first().locator('button:has-text("Pokaż")').click();
   await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad' && document.querySelector('.podglad-strona.wskazana'));
@@ -661,7 +660,7 @@ test('zwykłe klamry, obraz wypełniający ramkę, sprawdzenie tekstów na wszys
   // Okno PDF dopisuje tę uwagę po chwili.
   await strona.click('#przycisk-wiecej');
   await strona.click('[data-akcja="pdf"]');
-  await strona.waitForFunction(() => /3 uwagi/.test(document.querySelector('#pdf-uwagi summary').textContent));
+  await strona.waitForFunction(() => /2 uwagi/.test(document.querySelector('#pdf-uwagi summary').textContent));
   await strona.click('#pdf-anuluj');
 
   // Długa tabela: wiersze dorysowują się przy przewijaniu, a przejście do dalekiej komórki ją pokazuje.

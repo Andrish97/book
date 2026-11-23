@@ -271,3 +271,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „problemy z polskimi zasadami nie pokazują się przy problemach przed drukiem” – ✅ (#413).
 - „Coś jeszcze przydałoby się, żeby kontrola przed drukiem widziała” – ✅ rozdzielczość, mały tekst, cienkie linie, czcionki, krawędź cięcia, spad, poza stroną (#414).
 - „Dalej widzę jedną uwagę, a wiem, że jest więcej, np. o krótkich rzeczach w nowej linijce” – ✅ dwuliterowe spójniki i przyimki na końcu wiersza, krótki ostatni wiersz do 5 liter (#416).
+- „W uwagach przy stronie takie rzeczy są, a w podsumowaniu nie, a powinno być prawie wszystko w podsumowaniu” – ✅ margines i spad w podsumowaniu, bez fałszywych podwójnych spacji przy polach, wyciszone pomijane (#417).

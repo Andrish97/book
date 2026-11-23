@@ -3548,7 +3548,8 @@ export class Edytor extends EventTarget {
         typ = 'poza_strona';
       } else if (x1 < -b - tolE || y1 < -b - tolE || x2 > w + b + tolE || y2 > h + b + tolE) {
         typ = 'poza_spadem';
-      } else if (!naSpadK && (x1 < m.lewy - tolE || y1 < m.gora - tolE || x2 > w - m.prawy + tolE || y2 > h - m.dol + tolE)) {
+      } else if (!naSpadK && !(b > 0 && (x1 <= -b + tolE || y1 <= -b + tolE || x2 >= w + b - tolE || y2 >= h + b - tolE)) // na spad – świadomie przez margines (#417)
+        && (x1 < m.lewy - tolE || y1 < m.gora - tolE || x2 > w - m.prawy + tolE || y2 > h - m.dol + tolE)) {
         typ = 'w_marginesie';
       }
       if (typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });

@@ -176,6 +176,8 @@ A list of things to check before you send the file to the print shop.
 
 ![Preflight check in the ⋯ menu](k-menu-kontrola.png)
 
+The list has everything the warnings next to the page show (for the whole project at once, with the data of every repeated page), and more. Elements silenced with **Mute** are skipped.
+
 | Issue | What it means |
 |---|---|
 | **Text doesn't fit in the frame** | On the listed pages the text sticks out of a fixed-height frame — e.g. with a longer value from the table. |
@@ -190,6 +192,8 @@ A list of things to check before you send the file to the print shop.
 | **Text near the trim edge** | Text closer than 3 mm to the page edge – it may be cut off when trimmed. |
 | **No bleed** | An element (background, bar, photo) reaches the page edge but not the bleed – a white strip may remain after trimming; drag it past the edge. |
 | **Outside the page** | The element lies completely outside the page – it won't be printed. |
+| **Beyond the bleed** | The element extends beyond the bleed – that part will be cut off. |
+| **Into the margin** | The element reaches into the page margin (on the left or right page of a spread) – it may be trimmed or too close to the spine. An element running into the bleed (a background, a full-page photo) crosses the margin on purpose – no remark. |
 | **Typesetting against Polish rules** | A conjunction at the end of a line, double spaces, a straight quote, a space before a comma, etc. — in every text frame (also ones that grow with the text) and on every repeated page, with the data from the table filled in. The same notes as in the editor's **Warnings** panel; **Mute** on an element skips them. |
 | **Missing data** | An additional table ran out of rows before the end of the series. |
 | **Series pages in spreads** | Where blank pages are, or from which page the block lands on the opposite side. |

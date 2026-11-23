@@ -373,7 +373,7 @@ function rysujOkladke() {
   const liczone = $('#ok-liczone');
   liczone.hidden = g.tryb === 'auto';
   if (g.tryb !== 'auto') {
-    liczone.textContent = tt('sekcje.zPapieruWychodzi', { grzbiet: zeszyt ? tt('sekcje.bezGrzbietu') : tt('sekcje.grzbietMm2', { liczba: liczba(g.liczone.grzbiet) }), sz: liczba(g.liczone.szerokosc), wy: liczba(g.liczone.wysokosc) })
+    liczone.textContent = tt('sekcje.zPapieruWychodzi', { grzbiet: zeszyt ? tt('sekcje.bezGrzbietuWZdaniu') : tt('sekcje.grzbietMmWZdaniu', { liczba: liczba(g.liczone.grzbiet) }), sz: liczba(g.liczone.szerokosc), wy: liczba(g.liczone.wysokosc) })
       + (g.tryb === 'rozmiar' ? tt('sekcje.tylIPrzod') : '');
   }
 }

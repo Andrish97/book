@@ -194,8 +194,9 @@ test('ostrzeżenia: linia od spadu do spadu nie „wychodzi poza spad”; na ok�
     edytor.przeliczOstrzezenia();
     return Object.fromEntries(['l1', 'l2', 'l3'].map((id) => [id, edytor.ostrzezenia.filter((o) => o.id === id).map((o) => o.typ).join(',')]));
   });
-  assert.equal(typy.l1, 'w_marginesie');
-  assert.equal(typy.l2, 'w_marginesie');
+  // #417: element puszczony na spad przechodzi przez margines świadomie – bez „wchodzi w margines”.
+  assert.equal(typy.l1, '');
+  assert.equal(typy.l2, '');
   assert.equal(typy.l3, 'poza_spadem');
 
   // Okładka miękka (A5, 1 strona środka → grzbiet 0,1 mm): tekst na przodzie w jego obszarze bezpiecznym – bez uwag;
