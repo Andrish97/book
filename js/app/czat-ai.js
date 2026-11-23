@@ -265,6 +265,7 @@ async function wyslijPrzezSchowek(tekst) {
   trwa = true;
   $('#czat-ai-wyslij').disabled = true;
   pole.value = '';
+  dopasujPole();
   try {
     await zapiszTeraz();
     await synchronizuj({ wymus: true }).catch(() => {});
@@ -341,7 +342,8 @@ async function wyslij(tekst) {
   $('#czat-ai-przerwij').hidden = false;
   dopisz('ja', tekst);
   pole.value = '';
-  const czeka = dopisz('narzedzie', 'Myślę…');
+  dopasujPole();
+  const czeka = dopisz('narzedzie', tt('czatAi.mysle'));
   try {
     await zapiszTeraz(); // AI ma widzieć to, co teraz na ekranie – także projekt, którego jeszcze nie ma na koncie
     await synchronizuj({ wymus: true }).catch(() => {});
@@ -403,6 +405,9 @@ async function wyslij(tekst) {
 }
 
 $('#czat-ai-pisz').addEventListener('submit', (e) => { e.preventDefault(); wyslij(pole.value); });
+// Pole pisania rośnie z tekstem (do max-height z CSS) i wraca do jednej linijki po wysłaniu.
+const dopasujPole = () => { pole.style.height = 'auto'; pole.style.height = `${pole.scrollHeight}px`; };
+pole.addEventListener('input', dopasujPole);
 pole.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); wyslij(pole.value); } });
 $('#czat-ai-przerwij').addEventListener('click', () => { przerwano = true; });
 $('#czat-ai-zamknij').addEventListener('click', () => dlg.close());
@@ -414,7 +419,10 @@ export async function otworzCzatAi({ dostawca = null } = {}) {
   if (stan.uzytkownik) await otwartySejf({ pytaj: maKluczeDoPrzeniesienia() }).catch(() => null);
   pokazKto();
   dlg.classList.toggle('obok-strony', window.matchMedia('(min-width: 901px)').matches);
-  if (!dlg.open) dlg.show();
+  // Na komputerze panel obok strony (można pracować w edytorze); na telefonie i tablecie – okno na wierzchu wszystkiego
+  // (N5: pasek narzędzi, zoom i dolne zakładki edytora nie zasłaniają rozmowy ani pola pisania).
+  if (dlg.open && dlg.classList.contains('obok-strony') === dlg.matches(':modal')) dlg.close(); // zmiana szerokości okna – inny tryb
+  if (!dlg.open) { if (dlg.classList.contains('obok-strony')) dlg.show(); else dlg.showModal(); }
   if (!lista.childElementCount) dopisz('ai', tt('czatAi.powitanie'));
   pole.focus();
 }

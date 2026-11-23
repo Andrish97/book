@@ -51,10 +51,33 @@ test('telefon: czat zajmuje widoczny ekran i nie ucieka przy przewijaniu', async
   assert.ok(a.gora < 60 && Math.abs(a.dol - a.vh) <= 2, `prawie cały ekran: ${JSON.stringify(a)}`);
   assert.ok(a.pole <= a.vh, 'pole pisania widoczne');
   assert.equal(a.font, '16px', 'bez powiększania strony przy pisaniu');
+  // Okno na wierzchu (modalne): pasek narzędzi, zoom i dolne zakładki edytora go nie zasłaniają.
+  assert.equal(await strona.evaluate(() => document.querySelector('#dlg-czat-ai').matches(':modal')), true);
+  const naWierzchu = await strona.evaluate(() => { const r = document.querySelector('#czat-ai-tekst').getBoundingClientRect(); return document.elementFromPoint(r.left + 20, r.top + r.height / 2)?.id; });
+  assert.equal(naWierzchu, 'czat-ai-tekst', 'pole pisania nie jest niczym zasłonięte');
   // Dużo wiadomości: przewija się lista, pole pisania zostaje na miejscu.
   await strona.evaluate(async () => { const l = document.querySelector('#czat-ai-wiadomosci'); for (let i = 0; i < 40; i += 1) l.append(Object.assign(document.createElement('li'), { className: 'ai', textContent: `Wiadomość ${i}` })); l.scrollTop = l.scrollHeight; });
   await strona.evaluate(() => window.scrollBy(0, 400));
   const b = await zmierz();
   assert.deepEqual([b.gora, b.pole], [a.gora, a.pole], 'okno i pole na miejscu');
+  assert.deepEqual(bledy, []);
+});
+
+test('ustawienia AI: OpenRouter – przycisk logowania w okienku klucza', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.evaluate(() => { location.hash = '#/konto/ai'; });
+  await strona.waitForSelector('[data-dodaj-klucz-ai="czat"]');
+  await strona.click('[data-dodaj-klucz-ai="czat"]');
+  await strona.waitForSelector('#dlg-klucz-ai[open]');
+  assert.equal(await strona.isVisible('#ai-nowy-openrouter'), false);
+  await strona.selectOption('#ai-nowy-dostawca', 'openrouter');
+  assert.equal(await strona.isVisible('#ai-nowy-openrouter'), true, 'Zaloguj przez OpenRouter');
+  // Powrót z OpenRouter: kod z adresu przejęty, klucz do sejfu (podstawiona odpowiedź OpenRouter).
+  await strona.route('https://openrouter.ai/api/v1/auth/keys', (r) => r.fulfill({ contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ key: 'sk-or-test' }) }));
+  await strona.evaluate(async () => {
+    const { sejfKonta } = await import('./js/app/sejf-ai.js'); await sejfKonta().zaloz('haslo-do-kluczy-1');
+    await (await import('./js/app/czat-ai-logowanie.js')).dokonczLogowanieOpenRouter({ kod: 'k1', weryfikator: 'w1' });
+  });
+  assert.deepEqual(await strona.evaluate(async () => [(await import('./js/app/sejf-ai.js')).sejfKonta().klucz('openrouter'), JSON.parse(localStorage.getItem('makietka-czat-ai')).dostawca]), ['sk-or-test', 'openrouter']);
   assert.deepEqual(bledy, []);
 });

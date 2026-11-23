@@ -255,8 +255,8 @@ albo do czytania na ekranie, broszurę do złożenia albo PNG jednej strony.
 
 ## 25.6 Asystent AI w Makietce (własny klucz)
 
-Bez osobnej aplikacji AI: w edytorze [AI ▾] → **Asystent AI** otwiera czat obok strony (na telefonie — okno na prawie
-cały ekran; przewija się tylko rozmowa, a pole pisania stoi nad klawiaturą). Asystent jest tylko w menu [AI ▾].
+Bez osobnej aplikacji AI: w edytorze [AI ▾] → **Asystent AI** otwiera czat obok strony (na telefonie — okno na wierzchu,
+na prawie cały ekran; przewija się tylko rozmowa, a pole pisania stoi nad klawiaturą). Asystent jest tylko w menu [AI ▾].
 Napisz, co zrobić, np. „ułóż tę stronę na dwie kolumny” albo „dodaj tytuł i ramkę na zdjęcie”.
 
 W czacie tylko rozmawiasz. **Czym rozmawia asystent**, ustawiasz w [Ustawienia konta] → **Sztuczna inteligencja**
@@ -265,7 +265,8 @@ W czacie tylko rozmawiasz. **Czym rozmawia asystent**, ustawiasz w [Ustawienia k
 1. **Asystent AI w edytorze używa** — jeden z dostawców, do których dodałeś klucz API: Anthropic (Claude), OpenAI
    (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok), OpenRouter (setki modeli z jednego konta) albo **Inny – API
    zgodne z OpenAI** (z własnym adresem) — albo **Dowolny czat bez klucza – kopiuj i wklej**. Klucz dodajesz
-   przyciskiem [Dodaj klucz] ([Gdzie wziąć klucz?] prowadzi do strony dostawcy).
+   przyciskiem [Dodaj klucz] ([Gdzie wziąć klucz?] prowadzi do strony dostawcy). Przy OpenRouter zamiast wklejać
+   klucz wystarczy [Zaloguj przez OpenRouter] — zalogujesz się u nich, a klucz trafi do Twoich zaszyfrowanych kluczy.
 2. **Model** — przy kluczu dostawcy ([Edytuj] → **Model domyślny**). Zostaw puste: Makietka sama wybierze zalecany
    model dostawcy (szybki i rozsądny). Lista podpowiada też **Najtańszy** i **Najlepszy – droższy**.
 3. **Asystent może w otwartym projekcie** — **czytać i zmieniać** albo **tylko czytać**.

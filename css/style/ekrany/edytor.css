@@ -1407,10 +1407,11 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 :root[data-zaslonka] dialog.dialog-czatu:not(.obok-strony) { height: calc(var(--widok-h, 100dvh) - 10px - var(--bezp-gora)); }
 :root[data-zaslonka] dialog.dialog-czatu:not(.obok-strony) > .czat-ai { height: auto; overflow: hidden; padding: 0 12px 10px; }
 :root[data-zaslonka] .czat-ai-pisz textarea { font-size: 16px; }
-.czat-ai-pasek { display: flex; align-items: center; gap: 8px; flex: none; font-size: 12.5px; min-width: 0; }
-.czat-ai-pasek #czat-ai-kto { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .czat-ai .naglowek-dialogu { margin: 0; gap: 4px; }
-.czat-ai .naglowek-dialogu h2 { flex: 1; }
+.czat-ai .naglowek-dialogu { align-items: center; }
+.czat-ai-tytul { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.czat-ai-tytul h2 { margin: 0; }
+.czat-ai-tytul #czat-ai-kto { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .czat-ai-wiadomosci { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1 1 auto; min-height: 80px; }
 .czat-ai-wiadomosci li { padding: 8px 10px; border-radius: var(--r-m); font-size: 13.5px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
 .czat-ai-wiadomosci li.ja { align-self: flex-end; background: var(--akcent-tlo); max-width: 85%; }
@@ -1473,3 +1474,19 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .menu-przycisku button:disabled { opacity: .45; cursor: not-allowed; } .menu-przycisku .uwaga-menu { background: var(--akcent-tlo); color: var(--akcent); }
 .uwaga-ai { margin: 0 0 8px; padding: 8px 10px; border-radius: var(--r-s); background: var(--akcent-tlo); color: var(--akcent); font-size: 13px; }
 .chipy-rekwizytow { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* Czat – wygląd komunikatora (23.11): dymki, wiersze narzędzi jako małe etykiety, pole pisania w zaokrąglonej ramce
+   z przyciskami w środku i okrągłe „Wyślij”. */
+.czat-ai-wiadomosci li { border-radius: 16px; padding: 9px 13px; }
+.czat-ai-wiadomosci li.ja { border-bottom-right-radius: 6px; }
+.czat-ai-wiadomosci li.ai { align-self: flex-start; max-width: 92%; border-bottom-left-radius: 6px; }
+.czat-ai-wiadomosci li.narzedzie { align-self: flex-start; padding: 3px 10px; border-radius: 999px; background: var(--wypelnienie); font-size: 11.5px; }
+.czat-ai-pisz { align-items: flex-end; gap: 6px; padding: 5px 5px 5px 4px; border: 1px solid var(--linia-mocna); border-radius: 24px; background: var(--tlo-pola); }
+.czat-ai-pisz:focus-within { border-color: var(--akcent); }
+.czat-ai-pisz textarea { border: 0; background: transparent; box-shadow: none; outline: none; min-height: 36px; padding: 7px 4px; }
+.czat-ai-pisz textarea:focus, .czat-ai-pisz textarea:focus-visible { outline: none; box-shadow: none; }
+.czat-ai-pisz #czat-ai-zalacz { flex: none; }
+.czat-ai-pisz #czat-ai-wyslij { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--akcent); color: var(--akcent-tekst); }
+.czat-ai-pisz #czat-ai-wyslij:disabled { opacity: .5; }
+.czat-ai-pisz #czat-ai-przerwij { flex: none; border-radius: 999px; }
+.czat-ai-zalaczniki { padding: 2px 4px 0; }

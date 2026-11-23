@@ -1769,7 +1769,7 @@
         <label class="pole"><span data-i18n="aiNowyDostawcaPola.dostawca">Dostawca</span><select id="ai-nowy-dostawca"></select></label>
         <label class="pole"><span data-i18n="aiNowyDostawcaPola.kluczApi">Klucz API</span><input id="ai-nowy-klucz" type="password" autocomplete="off" spellcheck="false" placeholder="Wklej klucz API"></label>
         <p class="podpowiedz"><a id="ai-nowy-gdzie" target="_blank" rel="noopener" href="#" data-i18n="aiNowyGdzie.gdzieWziacKlucz">Gdzie wziąć klucz?</a> Przeglądarka szyfruje klucz Twoim hasłem do kluczy i dopiero wtedy zapisuje go na koncie: <b>bez hasła nie odczyta go nikt poza Tobą, nawet administratorzy Makietki</b>.</p>
-        <div class="rzad-przyciskow"><button type="button" class="przycisk glowny" data-akcja="ai-zapisz-klucz-dostawcy" data-ikona="plus" data-i18n="aiNowyDostawcaPola.zapiszKlucz">Zapisz klucz</button></div>
+        <div class="rzad-przyciskow"><button type="button" class="przycisk" id="ai-nowy-openrouter" data-akcja="ai-zaloguj-openrouter" data-ikona="klucz" hidden data-i18n="czatAiOpenrouter.zalogujPrzezOpenrouter">Zaloguj przez OpenRouter</button><button type="button" class="przycisk glowny" data-akcja="ai-zapisz-klucz-dostawcy" data-ikona="plus" data-i18n="aiNowyDostawcaPola.zapiszKlucz">Zapisz klucz</button></div>
       </fieldset>
       <div class="grupa-pol polacz-oauth" data-dla="lacznik">
         <p><b>Najprościej – z logowaniem:</b> w aplikacji AI dodaj łącznik pod adresem <code>https://api.makietka.app/mcp</code> (bez klucza) i wybierz logowanie (OAuth). Aplikacja otworzy Makietkę – logujesz się swoim hasłem, wybierasz projekty i zakres. Nie kopiujesz żadnego klucza; połączenie widać niżej, w kluczach dostępu.</p>
@@ -2537,18 +2537,18 @@
   <dialog id="dlg-czat-ai" class="dialog-czatu obok-strony" aria-labelledby="czat-ai-tytul">
     <div class="czat-ai">
       <div class="naglowek-dialogu">
-        <h2 id="czat-ai-tytul" data-i18n="czatAiTytul.asystentAi">Asystent AI</h2>
+        <div class="czat-ai-tytul"><h2 id="czat-ai-tytul" data-i18n="czatAiTytul.asystentAi">Asystent AI</h2><span class="ciche" id="czat-ai-kto"></span></div>
+        <button type="button" class="przycisk-ikona" id="czat-ai-ustawienia" data-ikona="suwaki" title="Ustawienia AI" aria-label="Ustawienia AI" data-i18n-title="czatAi.ustawieniaAi" data-i18n-aria-label="czatAi.ustawieniaAi"></button>
         <button type="button" class="przycisk-ikona x-okna" id="czat-ai-zamknij" data-ikona="zamknij" aria-label="Zamknij" data-i18n-aria-label="czatAiZamknij.zamknij"></button>
       </div>
       <!-- N1 (23.11): w czacie tylko rozmowa – dostawca, model i uprawnienia są w Ustawieniach → Sztuczna inteligencja. -->
-      <div class="czat-ai-pasek" id="czat-ai-pasek"><span class="ciche" id="czat-ai-kto"></span><button type="button" class="przycisk przezroczysty maly" id="czat-ai-ustawienia" data-ikona="suwaki" data-i18n="czatAi.ustawieniaAi">Ustawienia AI</button></div>
       <ol class="czat-ai-wiadomosci" id="czat-ai-wiadomosci" aria-live="polite"></ol>
       <form class="czat-ai-pisz" id="czat-ai-pisz">
         <ul class="czat-ai-zalaczniki" id="czat-ai-zalaczniki" hidden></ul>
         <button type="button" class="przycisk-ikona" id="czat-ai-zalacz" data-ikona="spinacz" title="Dołącz zdjęcia – AI je zobaczy, a Makietka wgra je do projektu" aria-label="Dołącz zdjęcia" data-i18n-aria-label="czatAiZalacz.dolaczZdjecia"></button>
         <input type="file" id="czat-ai-plik" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
-        <textarea id="czat-ai-tekst" rows="2" placeholder="Napisz, co zrobić w projekcie… (Enter – wyślij)" aria-label="Wiadomość do asystenta" data-i18n-placeholder="czatAiTekst.napiszCoZrobicW" data-i18n-aria-label="czatAiTekst.wiadomoscDoAsystenta"></textarea>
-        <button type="submit" class="przycisk glowny" id="czat-ai-wyslij" data-ikona="wyslij" data-i18n="czatAiWyslij.wyslij">Wyślij</button>
+        <textarea id="czat-ai-tekst" rows="1" placeholder="Napisz, co zrobić w projekcie…" aria-label="Wiadomość do asystenta" data-i18n-placeholder="czatAiTekst.napiszCoZrobicW" data-i18n-aria-label="czatAiTekst.wiadomoscDoAsystenta"></textarea>
+        <button type="submit" class="przycisk-ikona glowny" id="czat-ai-wyslij" data-ikona="wyslij" title="Wyślij" aria-label="Wyślij" data-i18n-title="czatAiWyslij.wyslij" data-i18n-aria-label="czatAiWyslij.wyslij"></button>
         <button type="button" class="przycisk" id="czat-ai-przerwij" hidden data-i18n="czatAiPrzerwij.przerwij">Przerwij</button>
       </form>
     </div>

@@ -501,6 +501,8 @@ function gdzieWziac() {
   polaczenieNowego = polaPolaczenia(id, () => $('#ai-nowy-klucz').value.trim());
   polaczenieNowego.pole.id = 'ai-nowy-polaczenie';
   $('#ai-nowy-dostawca-pola .rzad-przyciskow').before(polaczenieNowego.pole);
+  // OpenRouter (N6): zamiast wklejać klucz – logowanie u nich; klucz wraca do sejfu po powrocie.
+  $('#ai-nowy-openrouter').hidden = !d?.logowanie;
   const a = $('#ai-nowy-gdzie');
   a.hidden = !d?.kluczUrl;
   if (d?.kluczUrl) a.href = d.kluczUrl;

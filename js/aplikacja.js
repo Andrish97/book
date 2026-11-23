@@ -78,6 +78,7 @@ const dostepAi = () => import('./app/dostep-ai.js');
 const akcje = {
   'dostep-ai-utworz': async () => (await dostepAi()).utworzKluczAi(),
   'ai-zapisz-klucz-dostawcy': async () => (await dostepAi()).zapiszKluczDostawcy(),
+  'ai-zaloguj-openrouter': async () => (await import('./app/czat-ai-logowanie.js')).zalogujPrzezOpenRouter(), // N6
   'dostep-ai-kopiuj': async () => (await dostepAi()).kopiujKluczAi(),
   'dostep-ai-kopiuj-adres': async () => (await dostepAi()).kopiujAdresAi(),
   'dostep-ai-kopiuj-polecenie': async () => (await dostepAi()).kopiujPolecenieAi(),
@@ -130,6 +131,17 @@ const akcjePodgladuZLinku = {
   'makieta-przod': async () => (await import('./app/makieta-okno.js')).widokZPrzodu(),
   'makieta-pobierz': async () => (await import('./app/makieta-okno.js')).pobierzObrazMakiety(),
 };
+
+// Powrót z logowania OpenRouter (N6): kod z adresu przejęty od razu, klucz zapisany po zalogowaniu do Makietki.
+const kodOpenRouter = (() => {
+  if (!new URLSearchParams(location.search).has('code')) return null;
+  try { if (!sessionStorage.getItem('makietka-openrouter')) return null; } catch { return null; }
+  let dane = null;
+  const kod = new URLSearchParams(location.search).get('code');
+  try { dane = { kod, weryfikator: JSON.parse(sessionStorage.getItem('makietka-openrouter')).weryfikator }; sessionStorage.removeItem('makietka-openrouter'); } catch { return null; }
+  history.replaceState(null, '', `${location.pathname}#/konto/ai`);
+  return dane;
+})();
 
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-akcja]');
@@ -241,6 +253,7 @@ async function start() {
       }
     });
     const uzytkownik = await chmura.biezacyUzytkownik();
+    if (kodOpenRouter && uzytkownik) setTimeout(() => import('./app/czat-ai-logowanie.js').then((m) => m.dokonczLogowanieOpenRouter(kodOpenRouter)), 0);
     if (powrot.blad) {
       pokazEkran('logowanie');
       konto.komunikat(powrot.blad);

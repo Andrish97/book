@@ -266,7 +266,8 @@ In the chat you only talk. **What the assistant uses** is set in [Account settin
 1. **The AI assistant in the editor uses** — one of the providers you added an API key for: Anthropic (Claude), OpenAI
    (ChatGPT), Google Gemini, DeepSeek, Mistral, xAI (Grok), OpenRouter (hundreds of models from one account) or **Other –
    OpenAI-compatible API** (with its own address) — or **Any chat without a key – copy and paste**. You add a key with
-   [Add key] ([Where do I get a key?] leads to the provider's page).
+   [Add key] ([Where do I get a key?] leads to the provider's page). With OpenRouter, instead of pasting a key,
+   [Sign in with OpenRouter] is enough — you sign in with them and the key goes into your encrypted keys.
 2. **Model** — at the provider key ([Edit] → **Default model**). Leave it empty: Makietka picks the provider's
    recommended model by itself (fast and sensible). The list also suggests **Cheapest** and **Best – more expensive**.
 3. **In the open project the assistant can** — **read and edit** or **read only**.
