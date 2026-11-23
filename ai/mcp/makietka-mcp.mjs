@@ -1872,7 +1872,8 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   // PDF i PNG rysuje przeglądarka (czcionki, profile barwne) – łącznik składa zlecenie (ai_zlec_eksport), otwarta
   // aplikacja konta klucza robi plik i wgrywa go na konto, a łącznik czeka chwilę i podaje link do pobrania.
   // Bez otwartej aplikacji – link, po którego otwarciu aplikacja zrobi plik sama.
-  const MB = (b) => `${(Number(b || 0) / 1048576).toFixed(Number(b || 0) < 10485760 ? 1 : 0).replace('.', ',')} MB`;
+  // Rozmiar pliku: małe w kB (było „0,0 MB” dla PDF-a 40 kB), większe w MB.
+  const MB = (b) => (Number(b || 0) < 1048576 ? `${Math.max(1, Math.round(Number(b || 0) / 1024))} kB` : `${(Number(b || 0) / 1048576).toFixed(Number(b || 0) < 10485760 ? 1 : 0).replace('.', ',')} MB`);
   // Zadania dla otwartej aplikacji (plan H1, H2, H4): link do podglądu, obraz z opisu, kadry komiksu, dymki.
   const NAZWY_ZADAN = { link: 'link do podglądu', obraz: 'obraz', kadry: 'kadry komiksu', dymki: 'dymki', biblioteka: 'element z Biblioteki' };
   function opisZadania(z) {
