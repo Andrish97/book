@@ -300,7 +300,7 @@ export class PanelWlasciwosci {
       const obl = this.wybor(tt('wlasciwosci.oblewanieTekstem'), [
         ['', tt('wlasciwosci.brakTekstMozeNa')],
         ['prostokat', tt('wlasciwosci.tekstOplywaRamkeElementu')],
-        ...(ksztalt ? [['ksztalt', 'tekst opływa kształt']] : []),
+        ...(ksztalt ? [['ksztalt', tt('wlasciwosci.tekstOplywaKsztalt')]] : []),
         ['skok', tt('wlasciwosci.tekstPrzeskakujePodElement')],
       ], () => obj.oblewanie || '', (v) => { obj.oblewanie = v || undefined; this.edytor.ulozSkladStrony?.(); setTimeout(() => this.zbuduj()); });
       obl.classList.add('szeroki');
@@ -330,7 +330,7 @@ export class PanelWlasciwosci {
     legenda.innerHTML = `<li><i class="ciecie"></i>${tt('wlasciwosci.liniaCieciaKrawedzStrony')}</li>`
       + `<li><i class="spad"></i>${tt('wlasciwosci.spadZostanieOdciety')}</li>`
       + `<li><i class="margines"></i>${tt('wlasciwosci.marginesTrzymajWNim')}</li>`
-      + (grzbiet ? '<li><i class="grzbiet"></i>Grzbiet – tu strony są zszyte</li>' : '');
+      + (grzbiet ? `<li><i class="grzbiet"></i>${tt('wlasciwosci.grzbietZszyte')}</li>` : '');
     l.append(legenda);
     l.append(this.wskazowka(tt('wlasciwosci.kliknijElementNaStronie')));
     this.zbudujProwadnice();
@@ -343,7 +343,7 @@ export class PanelWlasciwosci {
     const s = this.sekcja(tt('wlasciwosci.prowadnice'));
     e.prowadnice.forEach((p, i) => {
       const od = p.os === 'x' ? e.strony[p.strona].x : 0;
-      const pole = this.liczba(`${p.os === 'x' ? 'Pionowa' : 'Pozioma'}${e.strony.length > 1 ? (p.strona ? ', prawa strona' : ', lewa strona') : ''}`, () => zaokr(p.poz - od, 2), (v) => e.ustawProwadnice(i, v), { jednostka: 'mm', krok: 0.5 });
+      const pole = this.liczba(`${tt(p.os === 'x' ? 'wlasciwosci.prowadnicaPionowa' : 'wlasciwosci.prowadnicaPozioma')}${e.strony.length > 1 ? tt(p.strona ? 'wlasciwosci.prowadnicaPrawa' : 'wlasciwosci.prowadnicaLewa') : ''}`, () => zaokr(p.poz - od, 2), (v) => e.ustawProwadnice(i, v), { jednostka: 'mm', krok: 0.5 });
       const usun = document.createElement('button');
       usun.type = 'button';
       usun.className = 'przycisk-ikona usun-prowadnice';
@@ -424,7 +424,7 @@ export class PanelWlasciwosci {
         const dl = Math.hypot(obj.x2 - obj.x1, obj.y2 - obj.y1) || 1;
         obj.scaleX = Math.max(0.1, v) / r().sx / dl;
         obj.scaleY = obj.scaleX;
-      }, { jednostka: 'mm', min: 0.1, krotko: 'Dł.' }));
+      }, { jednostka: 'mm', min: 0.1, krotko: tt('wlasciwosci.dlugoscKrotko') }));
     } else {
       s.append(this.liczba(tt('wlasciwosci.szerokosc'), () => zaokr(obj.width * obj.scaleX * r().sx), (v) => {
         if (obj.type === 'textbox') obj.set('width', Math.max(1, v / r().sx));
@@ -520,7 +520,7 @@ export class PanelWlasciwosci {
     sek.append(this.kolor(tt('wlasciwosci.kolorKodu'), () => k().kolor, (v) => zmien({ kolor: v })));
     sek.append(this.kolor(tt('wlasciwosci.tlo'), () => k().tlo, (v) => zmien({ tlo: v || null }), { brak: true }));
     sek.append(this.przelacznik(tt('wlasciwosci.marginesCiszyPustyPas'), () => k().cisza, (v) => zmien({ cisza: v })));
-    sek.append(this.wskazowka('Pole z danych, np. {adres} albo {isbn}, w treści daje inny kod na każdej stronie serii.'));
+    sek.append(this.wskazowka(tt('wlasciwosci.poleKodu')));
     const uwagi = document.createElement('div');
     uwagi.className = 'uwagi-kodu';
     const odswiezUwagi = () => {
@@ -911,7 +911,7 @@ export class PanelWlasciwosci {
     s.append(this.wstawianiePola());
     // Klamry pokazują się tylko wtedy, gdy są w tekście – inaczej przełącznik tylko by zawadzał.
     if (obj.text.includes('{') || obj.bez_pol) {
-      s.append(this.przelacznik('Klamry { } to zwykły tekst, nie pola', () => Boolean(obj.bez_pol), (v) => { obj.bez_pol = v || undefined; obj.dirty = true; }));
+      s.append(this.przelacznik(tt('wlasciwosci.klamryTekst'), () => Boolean(obj.bez_pol), (v) => { obj.bez_pol = v || undefined; obj.dirty = true; }));
     }
 
     const fragment = this.wskazowka(tt('wlasciwosci.zmieniaszTylkoZaznaczonyFragment'));
@@ -929,7 +929,7 @@ export class PanelWlasciwosci {
     const uzyte = uzyteCzcionki(this.opcje.projekt?.()).filter((c) => rodziny.includes(c.nazwa)).slice(0, 6);
     // Marka (#131D): czcionki zestawu marki na samej górze (nagłówki, tekst).
     const { naglowek: mNag, tekst: mTekst } = biezacaMarka().czcionki;
-    const wMarce = [[mNag, 'nagłówki'], [mTekst, 'tekst']].filter(([n], i, t) => n && t.findIndex(([m]) => m === n) === i)
+    const wMarce = [[mNag, tt('wlasciwosci.marka.naglowki')], [mTekst, tt('wlasciwosci.marka.tekst')]].filter(([n], i, t) => n && t.findIndex(([m]) => m === n) === i)
       .map(([n, rola]) => (rodziny.includes(n) ? [n, `${n} · marka (${rola})`] : (this.opcje.mojeCzcionki?.() || []).includes(n) ? [`moja:${n}`, `${n} · marka (${rola})`] : null)).filter(Boolean);
     const grupy = [
       ...(wMarce.length ? [{ grupa: 'Marka', opcje: wMarce }] : []),
@@ -938,7 +938,7 @@ export class PanelWlasciwosci {
     const listaCzcionek = grupy.length
       ? [...grupy, { grupa: 'Wszystkie czcionki', opcje: [...rodziny.map((n) => [n, n]), ...moje] }]
       : [...rodziny.map((n) => [n, n]), ...moje];
-    const czcionka = this.wybor(tt('wlasciwosci.czcionka'), [...listaCzcionek, ...(this.opcje.wgrajCzcionke ? [['+', '+ Wgraj własną czcionkę…']] : [])], () => czytaj('fontFamily'), (v) => {
+    const czcionka = this.wybor(tt('wlasciwosci.czcionka'), [...listaCzcionek, ...(this.opcje.wgrajCzcionke ? [['+', tt('wlasciwosci.wgrajCzcionke')]] : [])], () => czytaj('fontFamily'), (v) => {
       if (v === '+') { this.opcje.wgrajCzcionke(); return; }
       if (v.startsWith('moja:')) { this.opcje.dodajMojaCzcionke(v.slice(5)); return; }
       // Czcionka bez pogrubienia albo kursywy: tekst wraca do odmiany, którą czcionka ma (bez „udawanej”).
@@ -1029,12 +1029,12 @@ export class PanelWlasciwosci {
     const naStronie = Boolean(this.opcje.naStronie?.() && this.opcje.ramkaNaNastepnejStronie);
     const dalejNaStronie = naStronie ? [['plus', 'Ciąg dalszy na następnej stronie', () => this.opcje.ramkaNaNastepnejStronie()]] : [];
     if (watek) {
-      const strony = watek.innychStron ? ` Część ramek leży na ${watek.innychStron === 1 ? 'innej stronie' : `innych stronach (${watek.innychStron})`}.` : '';
+      const strony = watek.innychStron ? (watek.innychStron === 1 ? tt('wlasciwosci.ramkiInnaStrona') : tt('wlasciwosci.ramkiInneStrony', { n: watek.innychStron })) : '';
       w.append(this.wskazowka(tt('wlasciwosci.ramkaZPolaczonychTekst', { nr: watek.nr, ile: watek.ile, strony })));
       // Sąsiednie ramki z innych stron: przejście jednym kliknięciem.
       const skoki = [];
-      if (watek.poprzednia) skoki.push(['wstecz', `Poprzednia ramka: strona ${this.opcje.nazwaStrony?.(watek.poprzednia.strona) || ''}`, () => this.opcje.przejdzDoRamki?.(watek.poprzednia.strona, watek.poprzednia.id)]);
-      if (watek.nastepna) skoki.push(['dalej', `Następna ramka: strona ${this.opcje.nazwaStrony?.(watek.nastepna.strona) || ''}`, () => this.opcje.przejdzDoRamki?.(watek.nastepna.strona, watek.nastepna.id)]);
+      if (watek.poprzednia) skoki.push(['wstecz', tt('wlasciwosci.poprzedniaRamka', { strona: this.opcje.nazwaStrony?.(watek.poprzednia.strona) || '' }), () => this.opcje.przejdzDoRamki?.(watek.poprzednia.strona, watek.poprzednia.id)]);
+      if (watek.nastepna) skoki.push(['dalej', tt('wlasciwosci.nastepnaRamka', { strona: this.opcje.nazwaStrony?.(watek.nastepna.strona) || '' }), () => this.opcje.przejdzDoRamki?.(watek.nastepna.strona, watek.nastepna.id)]);
       if (skoki.length) w.append(this.akcje(skoki));
       // Cały połączony tekst naraz: wygląd, kopia, usunięcie (zaznaczenia w tekście nie da się rozciągnąć przez ramki).
       if (this.edytor.calyTekstZaznaczony) {
@@ -1134,7 +1134,7 @@ export class PanelWlasciwosci {
       obj.z_danych = Object.keys(nowe).length ? nowe : undefined;
     };
     // Na liście: pola dostępne na tej stronie i to, które jest już ustawione (nawet nieznane).
-    const lista = (wybrane) => [['', '— nie zależy od danych —'], ...[...new Set([...pola, ...(wybrane ? [wybrane] : [])])].map((n) => [n, `{${n}}`])];
+    const lista = (wybrane) => [['', tt('wlasciwosci.nieZDanych')], ...[...new Set([...pola, ...(wybrane ? [wybrane] : [])])].map((n) => [n, `{${n}}`])];
     if (obj.type !== 'image') {
       // Wypełnienie przejściem kolorów: kolor z danych domyślnie zmienia pierwszy kolor, a przejście zostaje.
       const przejscie = maPrzejscie(obj);
@@ -1150,7 +1150,7 @@ export class PanelWlasciwosci {
         s.append(gdzie);
       }
     }
-    for (const [os, etykieta] of [['y', 'Przesunięcie w pionie z pola'], ['x', 'Przesunięcie w poziomie z pola']]) {
+    for (const [os, etykieta] of [['y', tt('wlasciwosci.przesunieciePion')], ['x', tt('wlasciwosci.przesunieciePoziom')]]) {
       const ust = () => z()[os] || {};
       const wybor = this.wybor(etykieta, lista(ust().pole), () => ust().pole || '', (v) => {
         zapisz({ [os]: v ? { tryb: 'pozycja', krok: 10, co: 0, ...ust(), pole: v } : undefined });
@@ -1188,8 +1188,8 @@ export class PanelWlasciwosci {
       kotwica.classList.add('szeroki');
       s.append(kotwica);
       const jak = obj.type === 'textbox'
-        ? (bezWysokosci ? 'W tekście zmienia się szerokość ramki – litery zostają, tekst układa się od nowa. Wysokość z danych działa przy włączonej stałej wysokości ramki.' : 'W tekście zmienia się ramka – litery zostają, tekst układa się od nowa.')
-        : (obj.type === 'image' ? 'W obrazie zmienia się ramka: obraz z pola wpisuje się w nią tak, jak ustawiono wyżej, a zwykły obraz wypełnia ją (nadmiar jest przycinany po równo).' : (toTabela(obj) ? 'W tabeli zmieniają się szerokości kolumn i najmniejsze wysokości wierszy.' : 'Element jest skalowany w wybranym kierunku.'));
+        ? tt(bezWysokosci ? 'wlasciwosci.skalaTekstSzer' : 'wlasciwosci.skalaTekst')
+        : tt(obj.type === 'image' ? 'wlasciwosci.skalaObraz' : (toTabela(obj) ? 'wlasciwosci.skalaTabela' : 'wlasciwosci.skalaElement'));
       s.append(this.wskazowka(tt('wlasciwosci.wartosc0ChowaElement', { jak })));
     }
     // Obrót: kąt w stopniach z pola, dodawany do obrotu wzoru (wokół środka elementu).
@@ -1213,7 +1213,7 @@ export class PanelWlasciwosci {
     const jest = z().kolor || z().x || z().y || z().obrot || z().widok || z().szer || z().wys;
     s.append(this.wskazowka(jest
       ? tt('wlasciwosci.wEdytorzeElementStoi')
-      : 'Kolor, położenie albo rozmiar mogą się zmieniać na powielonych stronach – według kolumny tabeli albo np. numeru powielenia {egzemplarz}. Przykłady: zakładka z nazwą miesiąca na brzegu strony, na każdej stronie niżej; słupek wykresu o wysokości z kolumny.'));
+      : tt('wlasciwosci.wygladZDanych')));
   }
 
   // Kształt tekstu (#131B): prosto, po łuku, okręgu, elipsie, po ścieżce (kształt ze strony) albo wygięty.
@@ -1373,7 +1373,7 @@ export class PanelWlasciwosci {
         this.liczba(tt('wlasciwosci.tabulator', { x: i + 1 }), () => zaokr(t.poz, 1), (v) => zmien('poz', Math.max(0, v)), { jednostka: 'mm', krok: 1, min: 0 }),
         this.wybor(tt('wlasciwosci.wyrownanie'), [['lewy', tt('wlasciwosci.doLewej2')], ['srodek', tt('wlasciwosci.doSrodka2')], ['prawy', tt('wlasciwosci.doPrawej2')], ['dziesietny', tt('wlasciwosci.doPrzecinka')]], () => t.rodzaj || 'lewy', (v) => zmien('rodzaj', v)),
         this.wybor(tt('wlasciwosci.wypelnienie'), [['', 'brak'], ['.', tt('wlasciwosci.kropki')], ['-', tt('wlasciwosci.kreski2')], ['_', tt('wlasciwosci.linia2')]], () => t.wypelniacz || '', (v) => zmien('wypelniacz', v)),
-        this.akcje([['kosz', `Usuń tabulator ${i + 1}`, () => zapiszTaby(tabs.filter((_, j) => j !== i))]]),
+        this.akcje([['kosz', tt('wlasciwosci.usunTabulator', { n: i + 1 }), () => zapiszTaby(tabs.filter((_, j) => j !== i))]]),
       );
       s.append(wiersz);
     });
@@ -1442,7 +1442,7 @@ export class PanelWlasciwosci {
     przypisy.forEach(([id, tresc], i) => {
       const pole = this.obszarTekstu(`Przypis ${i + 1}`, () => obj.przypisy?.[id] ?? tresc, (v) => this.edytor.zmienPrzypis(obj, id, v));
       pole.querySelector('textarea')?.addEventListener('change', poZmianie);
-      s.append(pole, this.akcje([['kosz', `Usuń przypis ${i + 1}`, () => { this.edytor.zmienPrzypis(obj, id, null); poZmianie(); przebuduj(); }]]));
+      s.append(pole, this.akcje([['kosz', tt('wlasciwosci.usunPrzypis', { n: i + 1 }), () => { this.edytor.zmienPrzypis(obj, id, null); poZmianie(); przebuduj(); }]]));
     });
     if (przypisy.length) {
       const liczenie = this.wybor(tt('wlasciwosci.numeracjaPrzypisow'), Object.entries(LICZENIE_PRZYPISOW), () => projekt.ksiazka?.przypisy || 'sekcja', (v) => {
@@ -1622,7 +1622,7 @@ export class PanelWlasciwosci {
         this.opcje.poZmianieStyliZnakowych?.(null);
         this.zbuduj();
       }],
-      ['olowek', 'Aktualizuj styl – wyglądem zaznaczenia; zmienią się wszystkie fragmenty z tym stylem', () => {
+      ['olowek', tt('wlasciwosci.aktualizujStylZZaznaczenia'), () => {
         const st = lista.find((x) => x.id === aktualny());
         if (!st) { powiadom(tt('wlasciwosci.zaznaczFragmentKtoryMa'), true); return; }
         const i = fragment() ? obj.selectionStart : 0;
@@ -2086,7 +2086,7 @@ export class PanelWlasciwosci {
       });
     };
     const pole = (etyk, klucz) => this.liczba(etyk, () => zaokr(kraw()[klucz] * 100, 1), (v) => ustaw({ [klucz]: v / 100 }), { jednostka: '%', krok: 1, min: 0 });
-    s.append(pole('Z lewej', 'l'), pole('Z prawej', 'r'), pole('Z góry', 't'), pole('Z dołu', 'b'));
+    s.append(pole(tt('wlasciwosci.zLewej'), 'l'), pole(tt('wlasciwosci.zPrawej'), 'r'), pole(tt('wlasciwosci.zGory'), 't'), pole(tt('wlasciwosci.zDolu'), 'b'));
 
     // Obraz z danych: kolumna tabeli podaje nazwę pliku wgranego do projektu.
     const kolumny = this.opcje.kolumnyObrazu?.() || [];

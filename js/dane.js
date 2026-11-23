@@ -81,7 +81,7 @@ export class Dane {
     this.rysujZrodlo(t);
     const serie = this.projekt().serie.filter((s) => s.tabela === t.id).map((s) => `„${s.nazwa}”`);
     $('#dane-opis').textContent = [
-      serie.length ? `Używana w ${serie.length === 1 ? 'serii' : 'seriach'}: ${serie.join(', ')}.` : 'Nie jest jeszcze używana w żadnej serii – serię ustawiasz we właściwościach strony.',
+      serie.length ? tt('dane.uzywanaWSeriach', { n: serie.length, serie: serie.join(', ') }) : tt('dane.nieUzywana'),
     ].filter(Boolean).join(' ');
 
     // Przełącznik wyglądu z arkusza jest tylko przy tabeli, która taki wygląd ma.
@@ -109,7 +109,7 @@ export class Dane {
     if (cel <= this._narysowane) return;
     const html = [];
     for (let w = this._narysowane; w < cel; w += 1) {
-      html.push(`<tr${wierszPomijany(t.wiersze[w]) ? ' class="pomijany" title="Wiersz pomijany: zajmuje miejsce w bloku serii, ale strona dla niego nie powstaje"' : ''}><th class="nr"><span>${w + 1}</span><button type="button" class="usun-wiersz" data-w="${w}" title="Usuń wiersz" aria-label="Usuń wiersz ${w + 1}">×</button></th>`);
+      html.push(`<tr${wierszPomijany(t.wiersze[w]) ? ` class="pomijany" title="${tt('dane.wierszPomijany')}"` : ''}><th class="nr"><span>${w + 1}</span><button type="button" class="usun-wiersz" data-w="${w}" title="${tt('dane.usunWiersz')}" aria-label="${tt('dane.usunWierszNr', { n: w + 1 })}">×</button></th>`);
       for (let k = 0; k < t.kolumny.length; k += 1) html.push(`<td contenteditable="plaintext-only" spellcheck="false" data-w="${w}" data-k="${k}"></td>`);
       html.push('</tr>');
     }
@@ -682,8 +682,8 @@ export class Dane {
   _opisZmian(stara, nowa) {
     const r = porownajTabele(stara, nowa, this._uzyteKolumny(stara));
     let t = ` Zmiany: ${opisPorownania(r)}.`;
-    if (r.brakujaceUzywane.length) t += ` Uwaga: w nowych danych nie ma kolumn używanych w polach: ${r.brakujaceUzywane.join(', ')} – te pola będą puste.`;
-    if (zmienionaWMakietce(stara)) t += ' Tabelę poprawiano w Makietce po wczytaniu – te poprawki zostaną zastąpione danymi z pliku.';
+    if (r.brakujaceUzywane.length) t += tt('dane.brakKolumnWPolach', { kolumny: r.brakujaceUzywane.join(', ') });
+    if (zmienionaWMakietce(stara)) t += tt('dane.poprawkiZastapione');
     return t;
   }
 
@@ -745,12 +745,12 @@ export class Dane {
   opisSerii(seria) {
     const p = this.projekt();
     const bloki = blokiSerii(p).filter((b) => b.seria === seria);
-    if (!bloki.length) return 'Żadna strona nie należy jeszcze do tej serii.';
+    if (!bloki.length) return tt('dane.zadnaStronaNieNalezy');
     return bilansSerii(p, seria).map((b) => {
       const { dlugosc: n, powielen: ile, stron } = b;
-      const koniec = (b.ostatniePelne ? '' : ' (seria kończy się na ostatnim wierszu danych – ostatnie powielenie jest niepełne)')
+      const koniec = (b.ostatniePelne ? '' : tt('dane.ostatnieNiepelneKrotko'))
         + (b.puste.length ? tt('dane.doTegoZebyLewe', { pusteIle: b.puste.length }) : '')
-        + (b.zamianaOd !== null ? `; uwaga: od strony ${b.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki` : '');
+        + (b.zamianaOd !== null ? tt('dane.zamianaStronKrotko', { od: b.zamianaOd }) : '');
       if (b.pominietych) return tt('dane.wBlokuWWydruku', { n, stron, pominietych: b.pominietych, koniec });
       return tt('dane.wWydruku', { n, ile, stron, koniec });
     }).join('; ');
@@ -797,7 +797,7 @@ export class Dane {
     if (wiersz.dataset.glowna !== klucz) {
       const obecna = wybrane ? (wybrane[0] ? `k:${wybrane[0]}` : '') : sel.value;
       wiersz.dataset.glowna = klucz;
-      sel.replaceChildren(new Option('co stałą liczbę stron', ''), ...kolumny.map((k) => new Option(tt('dane.gdyZmieniSieKolumna', { k }), `k:${k}`)));
+      sel.replaceChildren(new Option(tt('dane.coStalaLiczbe'), ''), ...kolumny.map((k) => new Option(tt('dane.gdyZmieniSieKolumna', { k }), `k:${k}`)));
       sel.value = [...sel.options].some((o) => o.value === obecna) ? obecna : '';
     }
     for (const pole of ['co', 'pierwszy']) wiersz.querySelector(`[data-pole="${pole}"]`).closest('label').hidden = Boolean(sel.value);
@@ -816,9 +816,9 @@ export class Dane {
     const nowe = uklad.map((wartosc) => {
       const pole = document.createElement('label');
       pole.className = 'pole';
-      pole.innerHTML = '<span>albo kolumna</span><select data-pole="kiedy-wiecej"></select>';
+      pole.innerHTML = `<span>${tt('dane.alboKolumna')}</span><select data-pole="kiedy-wiecej"></select>`;
       const lista = pole.querySelector('select');
-      lista.replaceChildren(new Option(wartosc ? '— usuń tę kolumnę —' : '— żadna więcej —', ''), ...[...(wartosc ? [wartosc] : []), ...wolne].map((k) => new Option(`„${k}”`, k)));
+      lista.replaceChildren(new Option(wartosc ? tt('dane.usunTeKolumne') : tt('dane.zadnaWiecej'), ''), ...[...(wartosc ? [wartosc] : []), ...wolne].map((k) => new Option(`„${k}”`, k)));
       lista.value = wartosc;
       po.after(pole);
       po = pole;
@@ -879,9 +879,9 @@ export class Dane {
         const opis = b.pominietych
           ? tt('dane.blokWWydrukuMiejsce', { dlugosc: b.dlugosc, stron: b.stron, pominietych: b.pominietych, ZNACZNIK_POMIJANIA: znacznikPomijania() })
           : tt('dane.blokWWydruku', { dlugosc: b.dlugosc, powielen: b.powielen, stron: b.stron });
-        const koniec = (b.ostatniePelne ? '' : ' Seria kończy się na ostatnim wierszu danych – ostatnie powielenie bloku jest niepełne.')
+        const koniec = (b.ostatniePelne ? '' : tt('dane.ostatnieNiepelne'))
           + (b.puste.length ? tt('dane.doTegoZebyLewe2', { pusteIle: b.puste.length, join: b.puste.join(', ') }) : '')
-          + (b.zamianaOd !== null ? ` Uwaga: od strony ${b.zamianaOd} strony bloku wychodzą po przeciwnej stronie rozkładówki – zaznacz „Pilnuj lewej i prawej strony”.` : '');
+          + (b.zamianaOd !== null ? tt('dane.zamianaStron', { od: b.zamianaOd }) : '');
         const dodatkowe = b.dodatkowe.map((d) => tt('dane.tabelaPotrzeba', { nazwa: d.tabela.nazwa, opisKroku: opisKroku(d), potrzeba: d.potrzeba, x: d.jest >= d.potrzeba ? tt('dane.jest', { jest: d.jest }) : tt('dane.aJestTylko', { jest: d.jest }) })).join('');
         return opis + koniec + dodatkowe;
       }).join(' ')
@@ -894,7 +894,7 @@ export class Dane {
     const brak = brakujaceKolumny(p, proba);
     $('#seria-pola-opis').textContent = potrzebne.length
       ? tt('dane.polaNaStronachSerii', { join: potrzebne.map((k) => `{${k.nazwa}}`).join(', '), x: brak.length ? tt('dane.wTabeliBrakuje', { brakIle: brak.length, join: brak.join(', ') }) : (maTabele ? tt('dane.tabelaMaWszystkiePotrzebne') : '') })
-      : 'Na stronach tej serii nie ma jeszcze pól z danymi. Pole wstawiasz w tekście jako nazwę kolumny w nawiasach klamrowych, np. {dzien}.';
+      : tt('dane.brakPolSerii');
     $('#seria-dodaj-kolumny').hidden = !brak.length;
     $('#seria-dodaj-kolumny').textContent = maTabele ? tt('dane.dodajBrakujaceKolumnyDo') : tt('dane.utworzTabeleZTych');
     $('#seria-szablon').hidden = !bloki.length;

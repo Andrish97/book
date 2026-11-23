@@ -251,6 +251,6 @@ Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty
 ## Część M – tłumaczenia napisów w kodzie (23.11)
 - Właściciel: „Jest bardzo dużo problemów z tłumaczeniami szczególnie te które są w js. Np. Changed godzinę temu XD”.
 - M1 ✅ daty, lista projektów, konto, logowanie, współpraca, zapis (#409).
-- M2 ⏳ pozostałe okna i panele (właściwości, dane, sekcje, strony, komentarze, AI, eksport, druk…) – skaner napisów spoza słownika.
+- M2 ⏳ pozostałe okna i panele – ✅ właściwości, dane i serie, sekcje, lista stron, komentarze, ostrzeżenia, dostęp dla AI; dalej: eksport, druk, AI, komiks, makieta, kontrola…
 - M3 ⏳ przykładowa treść szablonów (gotowe sekcje, kompozycje, planery) – tekst wstawiany do projektu.
 - M4 ⏳ komunikaty z bazy danych (limity, błędy) – po polsku z serwera.

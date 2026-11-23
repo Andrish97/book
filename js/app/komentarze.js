@@ -44,13 +44,13 @@ function wymiaryStrony(id) {
 function nazwaStrony(id) {
   const p = stan.projekt;
   const i = p ? p.strony.findIndex((s) => s.id === id) : -1;
-  return i < 0 ? 'strona usunięta' : `Strona ${i + 1}${p.strony[i].nazwa ? ` „${p.strony[i].nazwa}”` : ''}`;
+  return i < 0 ? tt('komentarze.stronaUsunieta') : `${tt('komentarze.stronaNr', { n: i + 1 })}${p.strony[i].nazwa ? ` „${p.strony[i].nazwa}”` : ''}`;
 }
 function opisElementu(st, id) {
   const o = st?.obiekty?.find((x) => x.id === id);
-  if (!o) return 'element';
+  if (!o) return tt('komentarze.typ.element');
   if (/text/i.test(o.type)) return tt('komentarze.tekst', { slice: String(o.text || '').replace(/\s+/g, ' ').slice(0, 30), x: String(o.text || '').length > 30 ? '…' : '' });
-  return ({ rect: 'prostokąt', ellipse: 'elipsa', image: 'obraz', group: 'grupa', line: 'linia', path: 'kształt', polygon: 'wielokąt' })[String(o.type).toLowerCase()] || 'element';
+  return tt(({ rect: 'komentarze.typ.rect', ellipse: 'komentarze.typ.ellipse', image: 'komentarze.typ.image', group: 'komentarze.typ.group', line: 'komentarze.typ.line', path: 'komentarze.typ.path', polygon: 'komentarze.typ.polygon' })[String(o.type).toLowerCase()] || 'komentarze.typ.element');
 }
 
 // Treść z wyróżnionymi wzmiankami.
@@ -179,7 +179,7 @@ function pokazListe() {
     li.innerHTML = `<button type="button" class="naglowek-watku" data-op="otworz">
         <span class="numer-pinezki">${nr.get(k.id)}</span>
         <span class="opis-watku"><strong>${esc(k.autor_nazwa)}${k.zrodlo === 'ai' ? ' <small class="plakietka-ai">AI</small>' : ''}</strong><small>${esc(gdzie)} · ${esc(kiedy(k.utworzono))}</small></span>
-        ${k.rozwiazany ? '<span class="stan-watku">rozwiązany</span>' : ''}${odp.length ? `<span class="licznik">${odp.length}</span>` : ''}
+        ${k.rozwiazany ? `<span class="stan-watku">${tt('komentarze.rozwiazany')}</span>` : ''}${odp.length ? `<span class="licznik">${odp.length}</span>` : ''}
       </button>
       ${tresc(k, true)}
       <div class="szczegoly-watku">
@@ -189,7 +189,7 @@ function pokazListe() {
           <div class="podpowiedzi-wzmianek" hidden></div>
         </div>
         <div class="akcje-watku">
-          <button type="button" class="przycisk maly" data-op="pokaz" data-ikona="oko"${stronaJest ? '' : ' disabled title="Tej strony nie ma już w projekcie"'}>${tt('komentarze.pokazNaStronie')}</button>
+          <button type="button" class="przycisk maly" data-op="pokaz" data-ikona="oko"${stronaJest ? '' : ` disabled title="${tt('komentarze.stronyNieMa')}"`}>${tt('komentarze.pokazNaStronie')}</button>
           <button type="button" class="przycisk maly" data-op="rozwiaz" data-ikona="${k.rozwiazany ? 'cofnij' : 'ok'}">${k.rozwiazany ? 'Otwórz ponownie' : 'Rozwiąż'}</button>
           ${k.moj && edytowany !== k.id ? `<button type="button" class="przycisk-ikona maly" data-op="zmien" data-ikona="olowek" aria-label="${tt('komentarze.poprawKomentarz')}" title="${tt('komentarze.poprawKomentarz')}"></button>` : ''}
           ${mozeUsunac ? `<button type="button" class="przycisk-ikona maly niebezpieczny-ikona" data-op="usun" data-ikona="kosz" aria-label="${tt('komentarze.usunWatek')}" title="${tt('komentarze.usunWatek')}"></button>` : ''}

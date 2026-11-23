@@ -125,9 +125,9 @@ function renderujOstrzezenia(lista) {
   }
   for (const o of lista) {
     const li = document.createElement('li');
-    li.innerHTML = '<span class="opis" role="button" tabindex="0" title="Zaznacz element"><strong></strong><span></span></span><button class="przycisk" title="To celowe – nie pokazuj ostrzeżenia dla tego elementu">Wycisz</button>';
+    li.innerHTML = `<span class="opis" role="button" tabindex="0" title="${t('edytorStart.zaznaczElement')}"><strong></strong><span></span></span><button class="przycisk" title="${t('edytorStart.wyciszTytul')}">${t('edytorStart.wycisz')}</button>`;
     $('strong', li).textContent = o.obiekt;
-    $('.opis span', li).textContent = o.opis || OPIS_OSTRZEZEN[o.typ];
+    $('.opis span', li).textContent = o.opis || t(OPIS_OSTRZEZEN[o.typ] || '');
     $('.opis', li).addEventListener('click', () => edytor.zaznacz(o.id));
     $('.przycisk', li).addEventListener('click', () => {
       const obj = edytor.canvas.getObjects().find((x) => x.id === o.id);
@@ -1046,7 +1046,7 @@ export function odswiezWiecejNarzedzi() {
     b.querySelector(':scope > svg.ikona')?.remove();
     b.insertAdjacentHTML('afterbegin', ikona(nazwa));
   }
-  const etykieta = akt ? `Zakończ: ${$(`#menu-narzedzi [data-akcja="${akt}"]`).textContent.trim()}` : 'Więcej narzędzi';
+  const etykieta = akt ? t('edytorStart.zakoncz', { narzedzie: $(`#menu-narzedzi [data-akcja="${akt}"]`).textContent.trim() }) : t('edytorStart.wiecejNarzedzi');
   // Tylko przy zmianie – obserwator paska reaguje na każdy zapis atrybutu.
   if (b.getAttribute('aria-pressed') !== String(Boolean(akt))) b.setAttribute('aria-pressed', String(Boolean(akt)));
   if (b.getAttribute('aria-label') !== etykieta) { b.setAttribute('aria-label', etykieta); b.title = etykieta; }
@@ -1072,8 +1072,8 @@ function otworzWyborWielokata() {
   const menu = $('#menu-wielokata');
   if (!menu.childElementCount) {
     menu.innerHTML = `<div class="siatka-wielokatow">${WIELOKATY.map(([n, g, nazwa]) => {
-      return `<button role="menuitem" data-boki="${n}" data-gwiazda="${g ? 1 : ''}" title="${nazwa}" aria-label="${nazwa}">${podgladWielokata(n, g)}<span>${nazwa}</span></button>`;
-    }).join('')}</div><p class="podpowiedz-menu">Liczbę boków i gwiazdę zmienisz potem we Właściwościach → Kształt.</p>`;
+      return `<button role="menuitem" data-boki="${n}" data-gwiazda="${g ? 1 : ''}" title="${t(nazwa)}" aria-label="${t(nazwa)}">${podgladWielokata(n, g)}<span>${t(nazwa)}</span></button>`;
+    }).join('')}</div><p class="podpowiedz-menu">${t('edytorStart.wielokatPodpowiedz')}</p>`;
     menu.addEventListener('click', (e) => {
       const b = e.target.closest('button[data-boki]');
       if (!b) return;

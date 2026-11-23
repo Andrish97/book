@@ -33,7 +33,7 @@ const UPRAWNIENIA = [
 ];
 const KROTKO = { strony: 'stron', wzorce: 'wzorców i stylów', tabele: 'tabel i serii', obrazy: 'obrazów', eksport: 'PDF/PNG' };
 const opisUprawnien = (d) => (Array.isArray(d.uprawnienia)
-  ? (() => { const bez = UPRAWNIENIA.filter(([k]) => !d.uprawnienia.includes(k)).map(([k]) => KROTKO[k]); return bez.length ? tt('dostepAi.bez', { join: bez.join(', ') }) : ''; })()
+  ? (() => { const bez = UPRAWNIENIA.filter(([k]) => !d.uprawnienia.includes(k)).map(([k]) => tt(KROTKO[k])); return bez.length ? tt('dostepAi.bez', { join: bez.join(', ') }) : ''; })()
   : '');
 // Pola wyboru zakresów w kontenerze; zwraca funkcję czytającą wybór (null, gdy zaznaczone wszystko).
 function poleUprawnien(kontener, wybrane) {
@@ -62,7 +62,7 @@ async function wczytajProjekty() {
   projekty = lista.map((p) => {
     const cudzy = p.owner_id && p.owner_id !== stan.uzytkownik?.id;
     const u = udzialy.get(p.id);
-    return { id: p.id, nazwa: p.nazwa, wlasciciel: cudzy ? (u?.wlasciciel || 'ktoś inny') : null, rola: cudzy ? (u?.rola || 'odczyt') : 'wlasciciel' };
+    return { id: p.id, nazwa: p.nazwa, wlasciciel: cudzy ? (u?.wlasciciel || tt('dostepAi.ktosInny')) : null, rola: cudzy ? (u?.rola || 'odczyt') : 'wlasciciel' };
   });
 }
 
@@ -165,9 +165,9 @@ export async function kopiujPolecenieZwykle() {
 }
 
 const opisZakresu = (d) => (d.zakres === 'pelny'
-  ? 'pełny dostęp – wszystkie projekty, tworzenie i usuwanie'
-  : (d.projekty?.length ? d.projekty.map((p) => `„${p.nazwa}”`).join(', ') : 'żadnego projektu (dodaj w „Zmień zakres”)'));
-const opisWaznosci = (d) => (d.wazny_do ? tt('dostepAi.waznyDo', { toLocaleDateString: new Date(d.wazny_do).toLocaleDateString(jezykDat()) }) : 'bez terminu');
+  ? tt('dostepAi.pelnyDostepOpis')
+  : (d.projekty?.length ? d.projekty.map((p) => `„${p.nazwa}”`).join(', ') : tt('dostepAi.zadnegoProjektu')));
+const opisWaznosci = (d) => (d.wazny_do ? tt('dostepAi.waznyDo', { toLocaleDateString: new Date(d.wazny_do).toLocaleDateString(jezykDat()) }) : tt('dostepAi.bezTerminu'));
 
 function przyciskiZakresu(nazwa, zakres) {
   const w = document.createElement('div');
@@ -257,13 +257,13 @@ async function kluczZSejfu(nazwa) {
 export function edytujKluczAi(d) {
   const { dlg, tresc } = oknoEdycji(`Klucz: ${d.opis || 'bez opisu'}`);
   const sposob = sposobKlucza(d);
-  tresc.append(el('p', { className: 'podpowiedz', textContent: `${ROLE[d.rola] || d.rola} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}` }));
+  tresc.append(el('p', { className: 'podpowiedz', textContent: `${ROLE[d.rola] ? tt(ROLE[d.rola]) : d.rola} · ${d.aktywny ? opisWaznosci(d) : tt('dostepAi.wygasl')} · ${d.ostatnie_uzycie ? tt('dostepAi.ostatnioUzyty', { kiedy: kiedy(d.ostatnie_uzycie) }) : tt('dostepAi.nieuzyty')}` }));
 
   // Klucz jeszcze raz.
   tresc.append(el('fieldset', { className: 'grupa-pol' }, el('legend', { textContent: sposob === 'zwykly' ? tt('dostepAi.polecenieDlaCzatu') : tt('dostepAi.adresLacznika') }), miejsceKlucza(async () => {
     const klucz = await kluczZSejfu(wSejfie(d.id));
     if (klucz === null) return null;
-    if (!klucz) return { brak: 'Tego klucza Makietka nie zapamiętała (utworzony wcześniej, przez logowanie w aplikacji AI albo bez hasła do kluczy). Jeśli go nie masz – odbierz go i dodaj nowy.' };
+    if (!klucz) return { brak: tt('dostepAi.kluczNieZapamietany') };
     const adres = adresLacznika(klucz);
     const tekst = sposob === 'zwykly' ? polecenieZwyklegoCzatu(adres) : adres;
     return { tekst, przyciski: [przyciskAi(sposob === 'zwykly' ? tt('dostepAi.kopiujPolecenie') : tt('dostepAi.kopiujAdres'), () => kopiujTekst(tekst, sposob === 'zwykly' ? 'Tekst' : 'Adres')), przyciskAi(tt('dostepAi.kopiujSamKlucz'), () => kopiujTekst(klucz, 'Klucz'))] };
@@ -403,7 +403,7 @@ function wierszKlucza(d) {
   const li = document.createElement('li');
   li.dataset.id = d.id;
   const zakres = el('span', { className: 'zakres-opis', textContent: opisZakresu(d) });
-  const szczegoly = el('span', { className: 'ciche', textContent: `${ROLE[d.rola] || d.rola}${d.rola === 'edycja' ? opisUprawnien(d) : ''} · ${d.aktywny ? opisWaznosci(d) : 'wygasł'} · ${d.ostatnie_uzycie ? `ostatnio użyty ${kiedy(d.ostatnie_uzycie)}` : 'jeszcze nieużyty'}` });
+  const szczegoly = el('span', { className: 'ciche', textContent: `${ROLE[d.rola] ? tt(ROLE[d.rola]) : d.rola}${d.rola === 'edycja' ? opisUprawnien(d) : ''} · ${d.aktywny ? opisWaznosci(d) : tt('dostepAi.wygasl')} · ${d.ostatnie_uzycie ? tt('dostepAi.ostatnioUzyty', { kiedy: kiedy(d.ostatnie_uzycie) }) : tt('dostepAi.nieuzyty')}` });
   li.append(el('div', {}, el('strong', { textContent: d.opis || tt('dostepAi.kluczBezOpisu') }), zakres, szczegoly),
     el('div', { className: 'klucz-akcje' }, przyciskAi(tt('dostepAi.edytuj'), () => edytujKluczAi(d))));
   return li;
@@ -441,7 +441,7 @@ async function rysujDostawcow() {
     el('div', {}, el('strong', { className: 'nazwa-dostawcy', textContent: tytul }), el('span', { className: 'stan-klucza', textContent: opis })),
     el('div', { className: 'klucz-akcje' }, przycisk));
   if (st === 'zamkniety') {
-    lista.replaceChildren(wiersz('Klucze API dostawców', 'zaszyfrowane – na tym urządzeniu podaj hasło do kluczy',
+    lista.replaceChildren(wiersz(tt('dostepAi.kluczeDostawcow'), tt('dostepAi.zaszyfrowane'),
       przyciskAi(tt('dostepAi.otworz'), async () => { if (await otwartySejf()) { rysujDostawcow(); odswiezListe(); } }, 'glowny')));
   } else {
     lista.replaceChildren(...Object.entries(DOSTAWCY).filter(([id, d]) => !d.bezKlucza && st === 'otwarty' && s.klucz(id))

@@ -48,7 +48,7 @@ function opiszPodloze(f) {
   const r = f.elements.podloze.value;
   $('#pole-podloze-kolor').hidden = r !== 'kolor';
   $('#opis-podloza').hidden = !OPISY_PODLOZA[r];
-  $('#opis-podloza').textContent = OPISY_PODLOZA[r] || '';
+  $('#opis-podloza').textContent = OPISY_PODLOZA[r] ? tt(OPISY_PODLOZA[r]) : '';
 }
 $('#dlg-sekcja form').addEventListener('change', (e) => { if (e.target.name === 'podloze') opiszPodloze(e.currentTarget); });
 
@@ -366,15 +366,15 @@ function rysujOkladke() {
   const b = document.createElement('strong');
   b.textContent = tt('sekcje.okladkaMm', { x: zeszyt ? tt('sekcje.bezGrzbietu') : tt('sekcje.grzbietMm2', { liczba: liczba(g.grzbiet) }), liczba: liczba(g.szerokosc), liczba2: liczba(g.wysokosc) });
   const m = document.createElement('small');
-  m.textContent = `Środek: ${g.stron} stron (${g.kartek} kartek × ${String(g.kartka_mm).replace('.', ',')} mm), strona ${liczba(g.strona.sz)} × ${liczba(g.strona.wy)} mm.`
-    + (zeszyt && g.stron % 4 ? ' Oprawa zeszytowa potrzebuje liczby stron podzielnej przez 4.' : '');
+  m.textContent = tt('sekcje.srodekOpis', { stron: g.stron, kartek: g.kartek, kartka: liczba(g.kartka_mm), sz: liczba(g.strona.sz), wy: liczba(g.strona.wy) })
+    + (zeszyt && g.stron % 4 ? tt('sekcje.zeszytowaPrzez4') : '');
   $('#wynik-okladki').replaceChildren(b, m);
   // Podpowiedź przy wpisanych wymiarach: co wychodzi z papieru i formatu środka.
   const liczone = $('#ok-liczone');
   liczone.hidden = g.tryb === 'auto';
   if (g.tryb !== 'auto') {
-    liczone.textContent = `Z papieru i formatu środka wychodzi: ${zeszyt ? 'bez grzbietu' : `grzbiet ${liczba(g.liczone.grzbiet)} mm`}, okładka ${liczba(g.liczone.szerokosc)} × ${liczba(g.liczone.wysokosc)} mm.`
-      + (g.tryb === 'rozmiar' ? ' Tył i przód dzielą resztę szerokości po równo wokół grzbietu.' : '');
+    liczone.textContent = tt('sekcje.zPapieruWychodzi', { grzbiet: zeszyt ? tt('sekcje.bezGrzbietu') : tt('sekcje.grzbietMm2', { liczba: liczba(g.liczone.grzbiet) }), sz: liczba(g.liczone.szerokosc), wy: liczba(g.liczone.wysokosc) })
+      + (g.tryb === 'rozmiar' ? tt('sekcje.tylIPrzod') : '');
   }
 }
 $('#sekcja-okladka').addEventListener('input', () => rysujOkladke());
@@ -472,11 +472,11 @@ function rysujSpecjalna() {
   const istniejaca = stan.projekt.sekcje.find((s) => s.id === id);
   const sekcja = { ...(istniejaca || { id: '__nowa__', wydruk: biezacaSekcja().wydruk }), specjalna: p };
   const g = geometriaSpecjalna(stan.projekt, sekcja);
-  $('#podpowiedz-specjalnej').textContent = PODPOWIEDZI_SPECJALNE[p.rodzaj] || '';
+  $('#podpowiedz-specjalnej').textContent = PODPOWIEDZI_SPECJALNE[p.rodzaj] ? tt(PODPOWIEDZI_SPECJALNE[p.rodzaj]) : '';
   if (!g) {
     el.hidden = true;
     $('#wynik-specjalnej').replaceChildren(Object.assign(document.createElement('strong'), { textContent: opisSpecjalnej(sekcja) }),
-      Object.assign(document.createElement('small'), { textContent: 'Pierwsza strona sekcji powiela się dla każdego wiersza danych. Wstaw na nią pola: {data}, {dzien}, {miesiac}, {dzien_tygodnia}, {tydzien}, {swieto}; „wolne” ma wartość „tak” w niedziele i święta (np. do koloru zależnego od danych).' }));
+      Object.assign(document.createElement('small'), { textContent: tt('sekcje.kalendarzPola') }));
     return;
   }
   el.hidden = false;
@@ -688,8 +688,7 @@ export async function dopelnijSkladke(id) {
   stan.miniatury.clear();
   await zaladujCel();
   zaplanujZapis();
-  const ile = b.brakuje === 1 ? 'pustą stronę' : (b.brakuje < 5 ? 'puste strony' : 'pustych stron');
-  powiadom(tt('sekcje.dodanoSekcjaMaStron', { brakuje: b.brakuje, ile, nazwa: sekcja.nazwa, doPelnej: b.doPelnej }), false, { etykieta: tt('sekcje.cofnij'), fn: () => cofnijKrok(-1) });
+  powiadom(tt('sekcje.dodanoPusteStrony', { brakuje: b.brakuje, nazwa: sekcja.nazwa, doPelnej: b.doPelnej }), false, { etykieta: tt('sekcje.cofnij'), fn: () => cofnijKrok(-1) });
   return b.brakuje;
 }
 

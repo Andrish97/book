@@ -87,11 +87,11 @@ function renderujListeStron() {
     nag.innerHTML = `<div class="opis-sekcji"><strong></strong><small></small></div>
       <button class="przycisk-ikona maly" aria-label="${t('listaStron.opcjeSekcji')}" aria-haspopup="menu" aria-expanded="false">${ikona('wiecej', { rozmiar: 18 })}</button>`;
     wpiszNazwe($('strong', nag), sekcja.nazwa);
-    const opis = [nazwaFormatu(sekcja.wydruk), `${strony.length} str.`];
-    if (rozkladowki) opis.push('rozkładówki');
+    const opis = [nazwaFormatu(sekcja.wydruk), t('listaStron.ileStr', { n: strony.length })];
+    if (rozkladowki) opis.push(t('listaStron.rozkladowki'));
     if (sekcja.wzorce.length) opis.push(nazwyWzorcow(sekcja.wzorce));
     // Okładka (#119): oprawa i grzbiet; składki (#120): ile stron brakuje do pełnej składki.
-    if (sekcja.okladka?.wynik) opis.splice(0, 2, sekcja.okladka.oprawa === 'zeszytowa' ? 'Okładka bez grzbietu' : `Okładka · grzbiet ${String(sekcja.okladka.wynik.grzbiet).replace('.', ',')} mm`, nazwaFormatu(sekcja.wydruk));
+    if (sekcja.okladka?.wynik) opis.splice(0, 2, sekcja.okladka.oprawa === 'zeszytowa' ? t('listaStron.okladkaBezGrzbietu') : t('listaStron.okladkaGrzbiet', { mm: String(sekcja.okladka.wynik.grzbiet).replace('.', ',') }), nazwaFormatu(sekcja.wydruk));
     $('small', nag).textContent = opis.join(' · ');
     $('small', nag).title = opis.join(' · ');
     const skladka = bilansSkladki(sekcja, ciag);
@@ -178,7 +178,7 @@ function kafelekDodawania(sekcja, pusta) {
   const opis = pusta ? t('listaStron.dodajPierwszaStroneSekcji', { nazwa: sekcja.nazwa }) : 'Dodaj stronę';
   b.title = opis;
   b.setAttribute('aria-label', opis);
-  b.innerHTML = `${ikona('plus', { rozmiar: 22 })}${pusta ? '<span>Dodaj pierwszą stronę</span>' : ''}`;
+  b.innerHTML = `${ikona('plus', { rozmiar: 22 })}${pusta ? `<span>${t('listaStron.dodajPierwsza')}</span>` : ''}`;
   b.style.aspectRatio = `${sekcja.wydruk.szerokosc_mm + 2 * sekcja.wydruk.spad_mm} / ${sekcja.wydruk.wysokosc_mm + 2 * sekcja.wydruk.spad_mm}`;
   const wBiezacej = stan.tryb === 'strona' && biezacaStrona()?.sekcja === sekcja.id;
   if (wBiezacej) { b.dataset.akcja = 'strona-dodaj'; b.id = 'przycisk-dodaj-strone'; } else b.addEventListener('click', () => dodajStrone(sekcja.id));
@@ -544,7 +544,7 @@ export async function piszNaInnejStronie({ strona, id, indeks, wPrzod }) {
     powiadom(tekst);
   };
   if (!jest || stan.tryb !== 'strona' || przejscieZaKursorem || $('dialog[open]')) {
-    if (wPrzod) podpowiedz(`Ramka jest pełna – dalszy ciąg tekstu płynie na stronę ${i >= 0 ? `${i + 1} („${stan.projekt.strony[i].nazwa}”)` : 'następną'}.`);
+    if (wPrzod) podpowiedz(t('listaStron.ramkaPelna', { strona: i >= 0 ? `${i + 1} („${stan.projekt.strony[i].nazwa}”)` : t('listaStron.nastepna') }));
     return false;
   }
   przejscieZaKursorem = true;
@@ -567,7 +567,7 @@ export async function piszNaInnejStronie({ strona, id, indeks, wPrzod }) {
     przejscieZaKursorem = false;
   }
   if (!edytor.piszWRamce(id, indeks, znaki.join(''))) return false;
-  podpowiedz(`Tekst płynie dalej na stronie ${i + 1} („${stan.projekt.strony[i].nazwa}”) – piszesz tam, gdzie stoi kursor.`);
+  podpowiedz(t('listaStron.tekstPlynie', { nr: i + 1, nazwa: stan.projekt.strony[i].nazwa }));
   return true;
 }
 
