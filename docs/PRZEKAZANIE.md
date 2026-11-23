@@ -20,7 +20,10 @@ oczywiste, proste i dobrze opisane w instrukcji.
 - Każdy punkt: **test**, **instrukcja** (docs/instrukcja/*.md po polsku + docs/instrukcja/en/ i uk/ – ta sama budowa;
   potem `node scripts/instrukcja-buduj.cjs`), wpis w **docs/DECYZJE.md i docs/ZGLOSZENIA.md** (kolejny numer #NNN,
   ostatni użyty: **#407**), commit i push.
-- Testy: `node --test --test-concurrency=3 tests/*.test.cjs` (pełny przebieg ~45 min; pojedyncze pliki szybko).
+- **Testy punktowo** (właściciel 23.11: „test ma być bardziej punktowy, a nie całości”): test sprawdza tylko zmienioną
+  rzecz – kilka linijek w istniejącym pliku albo mały nowy plik; uruchamiać tylko pliki testów dotyczące zmiany,
+  potem wysyłka na main. Pełnego przebiegu nie puszczać po każdej zmianie (całość sprawdza się automatycznie na main).
+  Pełny przebieg: `node --test --test-concurrency=3 tests/*.test.cjs` (~45 min; tylko na wyraźną prośbę).
   Lint: `npx eslint js` (albo `/opt/node-tools/node_modules/.bin/eslint --no-config-lookup -c eslint.config.mjs <pliki>`).
   Po zmianie listy modułów: `node scripts/moduly-buduj.cjs`; po zmianie rdzenia łącznika AI
   (supabase/functions/_shared/seriodruk-mcp-rdzen.mjs): `node scripts/mcp-buduj.cjs`.

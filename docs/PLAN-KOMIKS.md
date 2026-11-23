@@ -245,3 +245,4 @@ Materiały na koncie testowym (I12): „Spring Fair – Poster” (obraz, teksty
 - „A czy formularz kontaktowy ma url? Może lepiej go dodać jako kontakt?” – ✅ adres makietka.app/#/kontakt (#406), link wsparcia w zgłoszeniu.
 - Właściciel: okienka zgody przy łączniku i komendach w tej rozmowie – zezwolenia ustawia właściciel („Zawsze zezwalaj” albo .claude/settings.json).
 - „Dlaczego adres się kończy HTML? Polityki prywatności. Chciałbym, żeby nie było takich rzeczy.” – ✅ makietka.app/privacy i /prywatnosc (#407).
+- „ale potem piszesz testy i jak dodałeś tylko jedną rzecz” / „Nie, ale test ma być bardziej punktowy, a nie całości.” – ✅ zasada w docs/PRZEKAZANIE.md: test tylko zmienionej rzeczy, uruchamiane tylko testy tej zmiany, bez pełnego przebiegu.
