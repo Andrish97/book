@@ -534,7 +534,7 @@ You can save the same settings in a style (→ 5.4).
 
 ![Paragraph composition in the text properties](k-sklad-akapitu.png)
 
-**Typesetting warnings.** Text that breaks the Polish rules (a conjunction or abbreviation at the end of a line, a number separated from its unit, a dash at the start of a line, more than 3 hyphenated lines in a row, a hyphenated last word of a paragraph, a very short last line of a paragraph, a loose line, a straight quote, three dots, double spaces…) shows up in the editor warnings and in the preflight check (→ 20.1) with an example of the spot. To silence a warning for intentional text, use the **Mute** button.
+**Typesetting warnings.** Text that breaks the Polish rules (a one- or two-letter conjunction or preposition at the end of a line – “w”, “i”, “do”, “na”, an abbreviation at the end of a line, a number separated from its unit, a dash at the start of a line, more than 3 hyphenated lines in a row, a hyphenated last word of a paragraph, a very short last line of a paragraph – one word of up to 5 letters, e.g. “dzień.”, a loose line, a straight quote, three dots, double spaces…) shows up in the editor warnings and in the preflight check (→ 20.1) with an example of the spot. The text moves two-letter words to the next line by itself when you set **Conjunctions at line end: also do, na, że…** in the text panel. To silence a warning for intentional text, use the **Mute** button.
 
 ## 5.10 Drop cap
 

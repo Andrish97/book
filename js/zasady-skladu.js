@@ -3,8 +3,12 @@
 // pierwszy z nich przechodzi do następnego wiersza razem z drugim. Ta sama lista służy kontroli składu
 // (ostrzeżenia o miejscach niezgodnych z zasadami, gdy opcja jest wyłączona).
 
+import { t as tt } from './jezyk.js';
+
 // Jednoliterowe spójniki i przyimki – nie zostają na końcu wiersza.
 export const JEDNOLITEROWE = new Set(['a', 'i', 'o', 'u', 'w', 'z']);
+// Dwuliterowe – dobra praktyka: też nie na końcu wiersza (ustawienie tekstu „Spójniki: także do, na, ze…”).
+export const DWULITEROWE = new Set(['do', 'na', 'od', 'po', 'we', 'za', 'ze', 'że', 'iż', 'ku', 'bo', 'by', 'ni']);
 
 // Skróty, po których wiersz się nie łamie (skrót zostaje z następnym wyrazem albo liczbą).
 export const SKROTY = new Set([
@@ -42,6 +46,7 @@ export function powodWiazania(a, b, { jednoliterowe = true } = {}) {
 
 export const OPIS_POWODU = {
   spojnik: 'jednoliterowy spójnik albo przyimek na końcu wiersza',
+  dwuliterowy: 'dwuliterowy spójnik albo przyimek na końcu wiersza (ustaw „Spójniki na końcu wiersza: także do, na, że…”)',
   skrot: 'skrót oddzielony od następnego wyrazu',
   inicjal: 'inicjał oddzielony od nazwiska',
   liczba: 'liczba oddzielona od jednostki, daty albo dalszych cyfr',
@@ -68,7 +73,7 @@ export function uwagiZnakow(tekst) {
   const wynik = [];
   for (const [kod, re, opis] of ZNAKI) {
     const ile = (t.match(re) || []).length;
-    if (ile) wynik.push({ kod, opis, ile });
+    if (ile) wynik.push({ kod, opis: tt(opis), ile });
   }
   return wynik;
 }
@@ -79,17 +84,17 @@ export function uwagiLamania(o) {
   const linie = o?._textLines;
   if (!Array.isArray(linie) || linie.length < 2) return [];
   const wynik = new Map();
-  const dodaj = (powod, przyklad) => { const w = wynik.get(powod) || { kod: 'lamanie', powod, opis: OPIS_POWODU[powod], ile: 0, przyklad }; w.ile += 1; wynik.set(powod, w); };
+  const dodaj = (powod, przyklad) => { const w = wynik.get(powod) || { kod: 'lamanie', powod, opis: tt(OPIS_POWODU[powod]), ile: 0, przyklad }; w.ile += 1; wynik.set(powod, w); };
   const koniecAkapitu = (i) => typeof o.isEndOfWrapping === 'function' && o.isEndOfWrapping(i);
   let pod = 0;
   for (let i = 0; i < linie.length; i += 1) {
     pod = linie[i].lacznik ? pod + 1 : 0;
     if (linie[i].luzny) dodaj('luzny', linie[i].join('').trim().split(/\s+/).slice(0, 3).join(' ') + '…');
     if (pod === 4) dodaj('laczniki', '');
-    // zawieszka: ostatni wiersz wielowierszowego akapitu to jeden wyraz krótszy niż 4 litery
+    // zawieszka: ostatni wiersz wielowierszowego akapitu to jeden krótki wyraz (do 5 liter – „dzień.”, „domu”)
     if (koniecAkapitu(i) && i > 0 && !koniecAkapitu(i - 1)) {
       const sl = linie[i].join('').trim().split(/\s+/);
-      if (sl.length === 1 && sl[0].replace(/[^\p{L}\d]/gu, '').length > 0 && sl[0].replace(/[^\p{L}\d]/gu, '').length < 4) dodaj('krotki_wiersz', sl[0]);
+      if (sl.length === 1 && sl[0].replace(/[^\p{L}\d]/gu, '').length > 0 && sl[0].replace(/[^\p{L}\d]/gu, '').length < 6) dodaj('krotki_wiersz', sl[0]);
     }
     if (linie[i].lacznik && i + 1 < linie.length && koniecAkapitu(i + 1) && linie[i + 1].join('').trim().split(/\s+/).length === 1) dodaj('ostatni_dzielony', `${linie[i].join('').trim().split(/\s+/).at(-1)}-`);
   }
@@ -98,7 +103,8 @@ export function uwagiLamania(o) {
     if (linie[i].lacznik) continue; // wyraz dzielony – to nie granica wyrazów
     const a = linie[i].join('').trim().split(/\s+/);
     const b = linie[i + 1].join('').trim().split(/\s+/);
-    const powod = powodWiazania(a.at(-1), b[0], { jednoliterowe: true });
+    const powod = powodWiazania(a.at(-1), b[0], { jednoliterowe: true })
+      || (o.spojniki !== 'dwuliterowe' && DWULITEROWE.has(a.at(-1).toLocaleLowerCase('pl')) ? 'dwuliterowy' : null);
     if (!powod || a.length < 2) continue; // jeden wyraz w wierszu – złamania nie da się uniknąć
     dodaj(powod, `${a.at(-1)} | ${b[0]}`);
   }

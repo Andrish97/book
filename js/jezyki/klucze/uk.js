@@ -5898,6 +5898,7 @@ export default {
   "tresc.zakresEksportu.wpiszNumeryStronNp1": "Введіть номери сторінок, напр. 1-5, 8.",
   "tresc.zasadySkladu.bardzoKrotkiOstatniWierszAkapitu": "дуже короткий останній рядок абзацу (одне коротке слово)",
   "tresc.zasadySkladu.cudzyslowProstyZamiastPolskiego": "прямі лапки \" замість польських „…”",
+  "tresc.zasadySkladu.dwuliterowy": "двобуквений сполучник або прийменник у кінці рядка (встановіть «Сполучники в кінці рядка: також do, na, że…»)",
   "tresc.zasadySkladu.dywizMiedzySpacjamiZamiastPolpauzy": "дефіс між пробілами замість короткого тире (–)",
   "tresc.zasadySkladu.inicjalOddzielonyOdNazwiska": "ініціал відокремлений від прізвища",
   "tresc.zasadySkladu.jednoliterowySpojnikAlboPrzyimekNa": "однолітерний сполучник або прийменник у кінці рядка",

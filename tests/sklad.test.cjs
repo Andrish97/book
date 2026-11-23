@@ -500,3 +500,26 @@ test('polskie zasady: ramka rosnąca z tekstem – uwaga także przed drukiem', 
   assert.match(w[0][1], /podwójne spacje/);
   assert.deepEqual(bledy, []);
 });
+
+// #416: kontrola widzi więcej – dwuliterowe spójniki i przyimki na końcu wiersza (gdy tekst ich nie przenosi)
+// i krótki ostatni wiersz akapitu do 5 liter („dzień.”); powody po angielsku w angielskim interfejsie.
+test('polskie zasady: dwuliterowe na końcu wiersza i krótki ostatni wiersz – także przed drukiem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Krótkie wyrazy');
+  const w = await strona.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    const tx = 'Wczoraj poszedłem do sklepu i kupiłem chleb, masło oraz mleko. Potem wróciłem do domu i zrobiłem sobie śniadanie na tarasie w słońcu. To był dzień.';
+    const a = e.dodajTekst(tx); a.set({ id: 'dwa', width: 40, left: 10, top: 10 });
+    const b = e.dodajTekst(tx); b.set({ id: 'krotki', width: 50, left: 60, top: 10 });
+    const c = e.dodajTekst(tx); c.set({ id: 'przenosi', width: 40, left: 120, top: 10, spojniki: 'dwuliterowe' });
+    e.zatwierdz?.();
+    await window.seriodruk.zapiszTeraz?.();
+    const { sprawdzMieszczenie } = await import('./js/kontrola-skladu.js');
+    const k = await sprawdzMieszczenie(window.seriodruk.stan.projekt);
+    return Object.fromEntries(k.filter((x) => x.rodzaj === 'sklad_pl').map((x) => [x.idObiektu, x.opis]));
+  });
+  assert.match(w.dwa, /dwuliterowy spójnik albo przyimek na końcu wiersza.*„do \| sklepu”/);
+  assert.match(w.krotki, /krótki ostatni wiersz akapitu.*„dzień\.”/);
+  assert.doesNotMatch(w.przenosi || '', /dwuliterowy/, 'z ustawieniem „także do, na, że” tekst przenosi je sam – bez tej uwagi');
+  assert.deepEqual(bledy, []);
+});

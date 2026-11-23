@@ -270,3 +270,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „Pasek narzędzi jest nad oknami a czat dalej wygląda brzydko”, „Mogę czasem potrzebować OpenRouter” – ✅ N6 czat modalny na telefonie, nowy wygląd, logowanie OpenRouter w ustawieniach (#412).
 - „problemy z polskimi zasadami nie pokazują się przy problemach przed drukiem” – ✅ (#413).
 - „Coś jeszcze przydałoby się, żeby kontrola przed drukiem widziała” – ✅ rozdzielczość, mały tekst, cienkie linie, czcionki, krawędź cięcia, spad, poza stroną (#414).
+- „Dalej widzę jedną uwagę, a wiem, że jest więcej, np. o krótkich rzeczach w nowej linijce” – ✅ dwuliterowe spójniki i przyimki na końcu wiersza, krótki ostatni wiersz do 5 liter (#416).

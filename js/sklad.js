@@ -20,7 +20,7 @@
 // Właściwości każdego elementu: oblewanie: 'prostokat' | 'ksztalt' | 'skok', oblewanie_odstep (mm).
 
 import { miejscaPodzialu } from './dzielenie.js';
-import { powodWiazania } from './zasady-skladu.js';
+import { powodWiazania, DWULITEROWE } from './zasady-skladu.js';
 
 const PT = 25.4 / 72;
 
@@ -36,11 +36,10 @@ function wplywaNaUklad(k) {
 export const wciecieListy = (o) => (o.lista ? o.fontSize * (o.lista === 'numery' ? 1.9 : 1.2) : 0);
 
 const SPOJNIKI_1 = new Set(['a', 'i', 'o', 'u', 'w', 'z']);
-const SPOJNIKI_2 = new Set(['do', 'na', 'od', 'po', 'we', 'za', 'ze', 'że', 'iż', 'ku', 'bo', 'by', 'ni']);
 function spojnik(o, slowo) {
   if (!o.spojniki) return false;
   const s = slowo.toLocaleLowerCase('pl');
-  return SPOJNIKI_1.has(s) || (o.spojniki === 'dwuliterowe' && SPOJNIKI_2.has(s));
+  return SPOJNIKI_1.has(s) || (o.spojniki === 'dwuliterowe' && DWULITEROWE.has(s));
 }
 // Czy między wyrazami a i b nie wolno złamać wiersza: spójniki według ustawienia, a z polskimi zasadami składu
 // (#323) także skróty, inicjały, liczba z jednostką, datą albo dalszymi cyframi i myślnik na początku wiersza.

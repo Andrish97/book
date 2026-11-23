@@ -5898,6 +5898,7 @@ export default {
   "tresc.zakresEksportu.wpiszNumeryStronNp1": "Type page numbers, e.g. 1-5, 8.",
   "tresc.zasadySkladu.bardzoKrotkiOstatniWierszAkapitu": "very short last line of a paragraph (one short word)",
   "tresc.zasadySkladu.cudzyslowProstyZamiastPolskiego": "straight quote \" instead of Polish „…”",
+  "tresc.zasadySkladu.dwuliterowy": "two-letter conjunction or preposition at the end of a line (set “Conjunctions at line end: also do, na, że…”)",
   "tresc.zasadySkladu.dywizMiedzySpacjamiZamiastPolpauzy": "hyphen between spaces instead of an en dash (–)",
   "tresc.zasadySkladu.inicjalOddzielonyOdNazwiska": "initial separated from the surname",
   "tresc.zasadySkladu.jednoliterowySpojnikAlboPrzyimekNa": "single-letter conjunction or preposition at the end of a line",

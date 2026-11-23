@@ -5898,6 +5898,7 @@ export default {
   "tresc.zakresEksportu.wpiszNumeryStronNp1": "Wpisz numery stron, np. 1-5, 8.",
   "tresc.zasadySkladu.bardzoKrotkiOstatniWierszAkapitu": "bardzo krótki ostatni wiersz akapitu (jeden krótki wyraz)",
   "tresc.zasadySkladu.cudzyslowProstyZamiastPolskiego": "cudzysłów prosty \" zamiast polskiego „…”",
+  "tresc.zasadySkladu.dwuliterowy": "dwuliterowy spójnik albo przyimek na końcu wiersza (ustaw „Spójniki na końcu wiersza: także do, na, że…”)",
   "tresc.zasadySkladu.dywizMiedzySpacjamiZamiastPolpauzy": "dywiz między spacjami zamiast półpauzy (–)",
   "tresc.zasadySkladu.inicjalOddzielonyOdNazwiska": "inicjał oddzielony od nazwiska",
   "tresc.zasadySkladu.jednoliterowySpojnikAlboPrzyimekNa": "jednoliterowy spójnik albo przyimek na końcu wiersza",
