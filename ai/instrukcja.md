@@ -2677,7 +2677,7 @@ Niektóre rzeczy AI połączone łącznikiem zleca Makietce otwartej w Twojej pr
 | **Element z Biblioteki** | Makietka wstawia wybrany element Biblioteki (rozdział „4.8 Biblioteka”) na stronę, w miejscu podanym przez AI – jak Twoje kliknięcie w oknie Biblioteki. AI zna cały katalog i szuka w nim samo, także gdy Makietka jest zamknięta. |
 | **Link do podglądu** | Makietka tworzy link jak **Udostępnij** w podglądzie (rozdział „23 Udostępnianie linkiem”), z hasłem albo datą ważności, jeśli je podasz. |
 
-Na dole ekranu widać pasek z tym, co AI zleciło, a po chwili zmiana jest w projekcie. Obrazy, kadry, dymki i elementy Biblioteki robi karta z otwartym tym projektem; karta z listą projektów sama go otworzy. Gdy Makietka nie jest otwarta, AI poda Ci link – po jego otwarciu zadanie wykona się samo. Klucz z wyłączonymi obrazami nie zleci obrazów ani kadrów, a klucz bez plików PDF i PNG – linku (rozdział „25.2 Klucz dla AI”).
+Na górze ekranu widać pasek z tym, co AI zleciło, a po chwili zmiana jest w projekcie. Obrazy, kadry, dymki i elementy Biblioteki robi karta z otwartym tym projektem; karta z listą projektów sama go otworzy. Gdy Makietka nie jest otwarta, AI poda Ci link – po jego otwarciu zadanie wykona się samo. Klucz z wyłączonymi obrazami nie zleci obrazów ani kadrów, a klucz bez plików PDF i PNG – linku (rozdział „25.2 Klucz dla AI”).
 
 > **Uwaga:** Obrazy kosztują jak w Makietce (szkic ok. 0,14 zł) i liczą się do miesięcznego limitu (rozdział „25.2 Klucz dla AI”). Link do podglądu to publikacja – AI musi Cię najpierw zapytać. Link unieważnisz w podglądzie: **Udostępnij** → **Unieważnij link**.
 
@@ -2887,9 +2887,9 @@ Zainstalowana aplikacja na komputerze otwiera pliki `.makietka` dwuklikiem.
 
 ### 28.6 Dłuższe czynności
 
-Gdy coś trwa dłużej niż chwilę — np. otwieranie dużego projektu, eksport PDF, druk w domu, wgrywanie obrazów — u góry pojawia się karta z paskiem, a gdy wiadomo, ile zostało, z licznikiem, np. „17 z 48”. Eksport PDF przerwiesz przyciskiem **Anuluj**. Miniatury stron dużego projektu rysują się w tle (cienki pasek w panelu Strony) — możesz w tym czasie normalnie pracować.
+Gdy coś trwa dłużej niż chwilę — np. otwieranie dużego projektu, eksport PDF, druk w domu, wgrywanie obrazów — na samej górze ekranu pojawia się cienki pasek z opisem, a gdy wiadomo, ile zostało, z licznikiem, np. „17 z 48”. Cała aplikacja przesuwa się wtedy trochę w dół, więc pasek niczego nie zasłania; przy otwartym oknie na telefonie jest jego pierwszym wierszem. Eksport PDF przerwiesz przyciskiem **Anuluj**. Miniatury stron dużego projektu rysują się w tle (cienki pasek w panelu Strony) — możesz w tym czasie normalnie pracować.
 
-![Karta postępu przy eksporcie PDF](https://makietka.app/img/instrukcja/k-postep.png)
+![Pasek postępu przy eksporcie PDF](https://makietka.app/img/instrukcja/k-postep.png)
 
 ## 29. Skróty klawiszowe
 

@@ -1,6 +1,7 @@
 // Wskaźnik postępu dłuższych czynności (otwieranie projektu, wgrywanie obrazów, miniatury, porządkowanie,
 // wczytywanie pliku, wysyłka obrazów na konto). Jeden wspólny wygląd: karta u góry ekranu z opisem,
 // licznikiem („12 z 48”) albo samym ruchomym paskiem, gdy nie wiadomo, ile zostało; opcjonalnie „Anuluj”.
+// Od planu J: cienki pasek na samej górze ekranu, a aplikacja (górny pasek, okna) przesuwa się pod niego.
 //
 // Nie blokuje pracy – to nie okno. Pojawia się dopiero po chwili (domyślnie 0,4 s), więc szybkie czynności
 // nie mrugają. Gdy otwarte jest okno dialogowe (warstwa nad stroną), karta przechodzi do niego, żeby była
@@ -18,21 +19,42 @@ import { t as tt } from './jezyk.js';
 const OPOZNIENIE = 300;
 
 let host = null;
+// Plan J: pasek na samej górze ekranu; dopóki jest, aplikacja robi mu miejsce (--wys-postepu, :root[data-postep] –
+// css/style/components.css), więc niczego nie zasłania – ani górnego paska, ani okien.
+let obserwator = null;
+function miejsce() {
+  const root = document.documentElement;
+  if (!host?.isConnected || !host.children.length) {
+    delete root.dataset.postep;
+    root.style.removeProperty('--wys-postepu');
+    return;
+  }
+  // W zasłonce (telefon) pasek jest jej wierszem – ekran pod spodem nie musi robić miejsca.
+  if (getComputedStyle(host).position !== 'fixed') { root.style.setProperty('--wys-postepu', '0px'); root.dataset.postep = ''; return; }
+  const gora = parseFloat(getComputedStyle(host).paddingTop) || 0;
+  root.style.setProperty('--wys-postepu', `${Math.ceil(host.getBoundingClientRect().height - gora)}px`);
+  root.dataset.postep = '';
+}
 function dajHost() {
   if (!host) {
     host = document.createElement('div');
     host.className = 'postepy';
     host.setAttribute('aria-live', 'polite');
+    if (typeof ResizeObserver === 'function') { obserwator = new ResizeObserver(miejsce); obserwator.observe(host); }
   }
-  // Nad otwartym oknem modalnym widać tylko to, co jest w nim – karta idzie do najwyżej położonego okna.
+  // Nad otwartym oknem modalnym widać tylko to, co jest w nim – pasek idzie do najwyżej położonego okna
+  // (okna i tak zaczynają się pod nim – --bezp-gora).
   const okna = [...document.querySelectorAll('dialog[open]')];
   const rodzic = okna.at(-1) || document.body;
   if (host.parentElement !== rodzic) rodzic.append(host);
-  // Karta nie zasłania pływającego paska narzędzi edytora (telefon, #159) – stoi tuż pod nim.
-  const pasek = rodzic === document.body && document.body.dataset.ekran === 'edytor' ? document.querySelector('#pasek-narzedzi') : null;
-  const r = pasek?.offsetParent ? pasek.getBoundingClientRect() : null;
-  host.style.top = r && r.bottom > 0 && r.top < window.innerHeight / 2 ? `${Math.round(r.bottom + 8)}px` : '';
   return host;
+}
+
+// Okno otwarte w trakcie czynności – pasek przechodzi do niego (inaczej leżałby pod przyciemnieniem okna).
+if (typeof MutationObserver === 'function' && typeof document !== 'undefined') {
+  new MutationObserver((zmiany) => {
+    if (host?.children.length && zmiany.some((z) => z.target.tagName === 'DIALOG')) { dajHost(); miejsce(); }
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ['open'], subtree: true });
 }
 
 // Okno zamknięte w trakcie czynności (np. Udostępnij, gdy strony linku rysują się dalej w tle, #316) – karty
@@ -88,7 +110,7 @@ export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNI
   }
   ustawOpis(tekst);
   odswiez();
-  const pokaz = setTimeout(() => { if (!zakonczony) { dajHost().append(el); el.dataset.widoczny = ''; } }, opoznienie);
+  const pokaz = setTimeout(() => { if (!zakonczony) { dajHost().append(el); el.dataset.widoczny = ''; miejsce(); } }, opoznienie);
   return {
     krok(n = zrobione + 1, r = calosc) { zrobione = n; calosc = r; odswiez(); },
     razem(r) { calosc = r; odswiez(); },
@@ -98,6 +120,7 @@ export function postep(tekst, { razem = null, anuluj = null, opoznienie = OPOZNI
       clearTimeout(pokaz);
       el.remove();
       if (host && !host.children.length) host.remove();
+      miejsce();
     },
     get widoczny() { return el.isConnected; },
   };

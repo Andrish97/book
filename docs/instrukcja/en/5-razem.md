@@ -371,7 +371,7 @@ Some things the AI connected through the connector asks Makietka, open in your b
 | **Library element** | Makietka puts the chosen Library element (→ 4.8) on the page, where the AI says – like your click in the Library window. The AI knows the whole catalogue and searches it itself, even when Makietka is closed. |
 | **Preview link** | Makietka creates a link like [Share] in the preview (→ 23), with a password or expiry date if you give them. |
 
-A bar at the bottom of the screen shows what the AI asked for, and a moment later the change is in the project. Pictures,
+A bar at the top of the screen shows what the AI asked for, and a moment later the change is in the project. Pictures,
 panels, bubbles and Library elements are done by the tab with this project open; a tab showing the project list opens it by itself. When
 Makietka isn't open, the AI gives you a link – once you open it, the task runs by itself. A key with pictures switched off can't request pictures or panels,
 and a key without PDF and PNG files can't request a link (→ 25.2).

@@ -233,11 +233,13 @@ pełny ekran — tam daje go zainstalowanie aplikacji (→ 28.4).
 ## 28.6 Dłuższe czynności
 
 Gdy coś trwa dłużej niż chwilę — np. otwieranie dużego projektu, eksport PDF, druk w domu, wgrywanie
-obrazów — u góry pojawia się karta z paskiem, a gdy wiadomo, ile zostało, z licznikiem, np. „17 z 48”.
+obrazów — na samej górze ekranu pojawia się cienki pasek z opisem, a gdy wiadomo, ile zostało, z licznikiem, np. „17 z 48”.
+Cała aplikacja przesuwa się wtedy trochę w dół, więc pasek niczego nie zasłania; przy otwartym oknie na telefonie jest jego
+pierwszym wierszem.
 Eksport PDF przerwiesz przyciskiem [Anuluj]. Miniatury stron dużego projektu rysują się w tle (cienki pasek
 w panelu Strony) — możesz w tym czasie normalnie pracować.
 
-![Karta postępu przy eksporcie PDF](k-postep.png)
+![Pasek postępu przy eksporcie PDF](k-postep.png)
 
 # 29. Skróty klawiszowe
 

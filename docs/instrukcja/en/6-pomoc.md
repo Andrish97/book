@@ -233,11 +233,13 @@ full screen — there you get it by installing the app (→ 28.4).
 ## 28.6 Longer tasks
 
 When something takes more than a moment — e.g. opening a large project, exporting a PDF, printing at home, uploading
-images — a card with a progress bar appears at the top, and when it's known how much is left, with a counter, e.g. “17 of 48”.
+images — a thin bar with a description appears at the very top of the screen, and when it's known how much is left, with a counter, e.g. “17 of 48”.
+The whole app then moves down a little, so the bar doesn't cover anything; with a window open on a phone it is the window's
+first row.
 You can stop a PDF export with the [Cancel] button. Page thumbnails of a large project are drawn in the background (a thin bar
 in the Pages panel) — you can keep working normally in the meantime.
 
-![Progress card during PDF export](k-postep.png)
+![Progress bar during PDF export](k-postep.png)
 
 # 29. Keyboard shortcuts
 

@@ -369,7 +369,7 @@ Niektóre rzeczy AI połączone łącznikiem zleca Makietce otwartej w Twojej pr
 | **Element z Biblioteki** | Makietka wstawia wybrany element Biblioteki (→ 4.8) na stronę, w miejscu podanym przez AI – jak Twoje kliknięcie w oknie Biblioteki. AI zna cały katalog i szuka w nim samo, także gdy Makietka jest zamknięta. |
 | **Link do podglądu** | Makietka tworzy link jak [Udostępnij] w podglądzie (→ 23), z hasłem albo datą ważności, jeśli je podasz. |
 
-Na dole ekranu widać pasek z tym, co AI zleciło, a po chwili zmiana jest w projekcie. Obrazy, kadry, dymki i elementy Biblioteki robi
+Na górze ekranu widać pasek z tym, co AI zleciło, a po chwili zmiana jest w projekcie. Obrazy, kadry, dymki i elementy Biblioteki robi
 karta z otwartym tym projektem; karta z listą projektów sama go otworzy. Gdy Makietka nie jest otwarta, AI poda Ci
 link – po jego otwarciu zadanie wykona się samo. Klucz z wyłączonymi obrazami nie zleci obrazów ani kadrów,
 a klucz bez plików PDF i PNG – linku (→ 25.2).

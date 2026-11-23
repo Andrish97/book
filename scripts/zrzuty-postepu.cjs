@@ -1,4 +1,4 @@
-// Zrzut instrukcji karty postępu dłuższej czynności (#159): k-postep.png – eksport PDF z licznikiem stron
+// Zrzut instrukcji paska postępu dłuższej czynności (#159, plan J): k-postep.png – eksport PDF z licznikiem stron
 // i przyciskiem „Anuluj”. Pełny skrypt scripts/zrzuty-instrukcji.cjs wywołuje zrobZrzutPostepu na końcu.
 //
 // Użycie:  node scripts/zrzuty-postepu.cjs [adres] [ciemny]
@@ -20,7 +20,8 @@ async function zrobZrzutPostepu(kadr, { ciemny = false } = {}) {
     });
     await t.waitForSelector('.postep');
     await t.waitForTimeout(300);
-    await kadr(t, 'k-postep.png', { obszar: ['.postep'], margines: 14 });
+    // Plan J: pasek na samej górze, pod nim górny pasek edytora – w kadrze oba.
+    await kadr(t, 'k-postep.png', { obszar: ['.postepy', '#ekran-edytora .pasek-aplikacji'], margines: 0 });
     await t.evaluate(() => window.__postepZrzutu?.koniec());
   } finally {
     for (const f of sprzatanie) await f();

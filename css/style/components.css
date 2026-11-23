@@ -171,18 +171,21 @@ dialog h2 { font-size: 19px; }
 /* ---------- Postęp dłuższych czynności (js/postep.js) ---------- */
 
 .postepy {
-  /* Zgłoszenie 21.11: mniejszy i z boku – lewy dolny róg, nie zasłania pracy (powiadomienia są na środku u dołu). */
-  position: fixed; left: calc(12px + var(--bezp-lewo)); bottom: calc(12px + var(--bezp-dol)); z-index: 110;
-  display: flex; flex-direction: column-reverse; gap: 6px; width: min(290px, calc(100vw - 24px)); pointer-events: none;
+  /* Plan J (uwagi 22.11: „zakrywa elementy… dać to zawsze nad top barem, ale żeby okienka nie były zasłaniane”):
+     cienki pasek na samej górze ekranu; dopóki jest widoczny, cała aplikacja robi mu miejsce – js/postep.js
+     ustawia --wys-postepu i :root[data-postep], a --bezp-gora (górne paski, okna, zasłonki) rośnie o jego wysokość. */
+  position: fixed; top: 0; left: 0; right: 0; z-index: 110;
+  display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px);
+  background: var(--powierzchnia); border-bottom: 1px solid var(--linia); pointer-events: none;
 }
-/* W edytorze – w lewym dolnym rogu obszaru strony (za listą stron, szer. 236 px), nie na jej przyciskach. */
-@media (min-width: 761px) { body[data-ekran="edytor"] .postepy { left: calc(236px + 12px + var(--bezp-lewo)); } }
 dialog > .postepy { position: fixed; }
+/* Zasłonka (telefon) jest przesuwana palcem (transform) – pasek jest jej pierwszym wierszem, nad uchwytem. */
+:root[data-zaslonka] dialog > .postepy { position: static; order: -2; flex: none; padding-top: 0; }
 .postep {
-  pointer-events: auto; padding: 6px 10px 7px; border-radius: var(--r-s); border: 1px solid var(--linia);
-  background: var(--powierzchnia); color: var(--tusz); box-shadow: var(--cien-2); font-size: 12px;
-  opacity: .94; animation: postepWejscie var(--czas) ease-out;
+  pointer-events: auto; padding: 3px calc(12px + env(safe-area-inset-right, 0px)) 0 calc(12px + env(safe-area-inset-left, 0px));
+  color: var(--tusz); font-size: 12px; animation: postepWejscie var(--czas) ease-out;
 }
+.postep + .postep { border-top: 1px solid var(--linia); }
 .postep-wiersz { display: flex; align-items: center; gap: 8px; min-height: 18px; }
 .postep-opis { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .postep-licznik { flex: none; color: var(--cichy); font-variant-numeric: tabular-nums; }
@@ -191,11 +194,11 @@ dialog > .postepy { position: fixed; }
   color: var(--tusz); padding: 1px 8px; font: inherit; font-weight: 600; cursor: pointer;
 }
 @media (hover: hover) { .postep-anuluj:hover { background: var(--wypelnienie-hover); } }
-.postep-pasek { height: 3px; margin-top: 5px; border-radius: 2px; background: var(--wypelnienie); overflow: hidden; position: relative; }
+.postep-pasek { height: 2px; margin: 3px calc(-12px - env(safe-area-inset-right, 0px)) 0 calc(-12px - env(safe-area-inset-left, 0px)); background: var(--wypelnienie); overflow: hidden; position: relative; }
 .postep-wypelnienie { height: 100%; width: 0; border-radius: 2px; background: var(--akcent); transition: width .2s ease-out; }
 .postep.nieokreslony .postep-wypelnienie { position: absolute; width: 35%; transition: none; animation: postepRuch 1.1s ease-in-out infinite; }
 @keyframes postepRuch { from { left: -35%; } to { left: 100%; } }
-@keyframes postepWejscie { from { opacity: 0; transform: translateY(6px); } to { opacity: .94; transform: none; } }
+@keyframes postepWejscie { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .postep { animation: none; }
   .postep.nieokreslony .postep-wypelnienie { animation: none; left: 0; width: 100%; opacity: .45; }
@@ -204,8 +207,8 @@ dialog > .postepy { position: fixed; }
 /* Miniatury w panelu stron i pasek ekranu startowego (#159). */
 .postep-miniatur { flex: none; margin: 0 12px 8px; font-size: 12px; color: var(--cichy); }
 .postep-miniatur[hidden] { display: none; }
-.postep-miniatur .postep-pasek { margin-top: 4px; height: 3px; }
-.pasek-startu { width: 160px; margin: 6px auto 0; }
+.postep-miniatur .postep-pasek { margin: 4px 0 0; height: 3px; border-radius: 2px; }
+.pasek-startu { width: 160px; margin: 6px auto 0; border-radius: 2px; }
 .pasek-startu .postep-wypelnienie { position: absolute; width: 35%; animation: postepRuch 1.1s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .pasek-startu .postep-wypelnienie { animation: none; left: 0; width: 100%; opacity: .45; } }
 
@@ -521,3 +524,8 @@ img:not([src]):not(.zaladowany) { color: transparent; }
 /* Język (#219): flaga na przycisku i w menu. */
 .flaga-jezyka { width: 20px; height: 20px; display: block; border-radius: 3px; color: var(--tusz-2); }
 .menu-jezyka .flaga-jezyka { flex: none; }
+
+/* Pasek postępu widoczny (plan J): wszystko, co liczy się z górną krawędzią ekranu, robi mu miejsce. */
+:root[data-postep] { --bezp-gora: calc(env(safe-area-inset-top, 0px) + var(--wys-postepu, 0px)); }
+/* Okna na środku ekranu (komputer): środek liczony od dołu paska postępu, nie od krawędzi ekranu. */
+:root[data-postep]:not([data-zaslonka]) dialog:modal { inset-block-start: var(--wys-postepu, 0px); }

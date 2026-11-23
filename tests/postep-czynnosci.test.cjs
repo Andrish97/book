@@ -33,19 +33,19 @@ test('postęp: krótka czynność nie mruga, długa pokazuje licznik i pasek z w
   assert.deepEqual(bledy, []);
 });
 
-test('postęp na telefonie: karta w edytorze nie zasłania paska narzędzi', async (t) => {
+test('postęp na telefonie: pasek u góry nie zasłania paska narzędzi (plan J – narzędzia zjeżdżają pod niego)', async (t) => {
   const { strona, bledy } = await otworz(t, { telefon: true });
   await nowyProjekt(strona, 'Postęp telefon');
   const r = await strona.evaluate(async () => {
     const { postep } = await import('./js/postep.js');
     const p = postep('Coś długiego', { opoznienie: 0 });
-    await new Promise((ok) => setTimeout(ok, 50));
-    const k = document.querySelector('.postep').getBoundingClientRect();
+    await new Promise((ok) => setTimeout(ok, 150));
+    const k = document.querySelector('.postepy').getBoundingClientRect();
     const n = document.querySelector('#pasek-narzedzi').getBoundingClientRect();
     p.koniec();
-    return { kartaGora: k.top, paskaDol: n.bottom };
+    return { paskaPostepuDol: k.bottom, narzedziaGora: n.top };
   });
-  assert.ok(r.kartaGora >= r.paskaDol, `karta (${r.kartaGora}) pod paskiem narzędzi (${r.paskaDol})`);
+  assert.ok(r.narzedziaGora >= r.paskaPostepuDol, `narzędzia (${r.narzedziaGora}) pod paskiem postępu (${r.paskaPostepuDol})`);
   assert.deepEqual(bledy, []);
 });
 
