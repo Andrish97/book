@@ -10,6 +10,8 @@ test('menu ⋯: inne formaty i import w jednym podmenu', async (t) => {
   await strona.click('#przycisk-wiecej');
   const pozycje = await strona.$$eval('#menu-wiecej > button', (b) => b.map((x) => x.dataset.akcja));
   for (const a of ['png', 'idml', 'scribus', 'tekst-epub', 'wstaw-tekst-z-pliku', 'czat-ai', 'cofnij-ai']) assert.ok(!pozycje.includes(a), a);
+  // Na komputerze „Znajdź i zamień” jest na górnym pasku – w menu ⋯ tylko na wąskim ekranie (bez powtórzeń).
+  assert.equal(await strona.isVisible('#menu-wiecej [data-akcja="znajdz"]'), false);
   await strona.click('#menu-wiecej [data-akcja="pliki-menu"]');
   await strona.waitForSelector('.menu-przycisku [data-wartosc="idml"]');
   assert.deepEqual(await strona.$$eval('.menu-przycisku [data-wartosc]', (b) => b.map((x) => x.dataset.wartosc)),
