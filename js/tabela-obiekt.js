@@ -337,10 +337,16 @@ export function nowaTabela({ wiersze = 3, kolumny = 3, szerokosc = 120, wysokosc
 }
 
 // Układa komórki i linie siatki. Lewy górny róg tabeli zostaje na miejscu.
-export function ulozTabele(g) {
-  // Tabela wczytana z zapisu albo skopiowana ma własny opis (nie dzieli go z projektem ani z oryginałem).
+// Własny opis tabeli: tabela wczytana z zapisu albo skopiowana nie dzieli go z projektem ani z oryginałem.
+// Kto trzyma opis w zmiennej i zmienia tabelę w pętli (np. ulozKalendarz), bierze go stąd – inaczej pierwsze
+// ulozTabele podmienia g.tabela na kopię, a pętla patrzy na stary opis i nie kończy się (23.11, PDF na serwerze).
+export function opisTabeli(g) {
   if (!g._wlasnyOpis) { g.tabela = JSON.parse(JSON.stringify(g.tabela)); g._wlasnyOpis = true; }
-  const t = g.tabela;
+  return g.tabela;
+}
+
+export function ulozTabele(g) {
+  const t = opisTabeli(g);
   const K = t.kolumny.length;
   const W = t.wiersze.length;
   const komorki = komorkiTabeli(g);

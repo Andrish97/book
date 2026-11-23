@@ -19,7 +19,7 @@
 //   kolory: { dni, naglowek, niedziele, soboty, swieta, inne } – soboty: null = jak zwykłe dni.
 
 import './fabric-ustawienia.js';
-import { nowaTabela, ulozTabele, komorkiTabeli, dodajWiersz, usunWiersz, dodajKolumne, usunKolumne } from './tabela-obiekt.js';
+import { nowaTabela, ulozTabele, komorkiTabeli, dodajWiersz, usunWiersz, dodajKolumne, usunKolumne, opisTabeli } from './tabela-obiekt.js';
 import { swietaPolskie, dataZTekstu, dataIso } from './swieta.js';
 
 export const MIESIACE = ['Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec', 'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'];
@@ -148,12 +148,13 @@ export function ulozKalendarz(g, uid, dane = {}) {
   const K = 7 + (k.tygodnie ? 1 : 0);
   const naglowkow = (k.tytul ? 1 : 0) + 1;
   const W = naglowkow + siatka.length;
-  const t = g.tabela;
-  // Struktura: kolumny i wiersze dopasowane do miesiąca (4–6 tygodni).
-  while (t.kolumny.length < K) dodajKolumne(g, uid, t.kolumny.length - 1);
-  while (t.kolumny.length > K) usunKolumne(g, t.kolumny.length - 1);
-  while (t.wiersze.length < W) dodajWiersz(g, uid, t.wiersze.length - 1);
-  while (t.wiersze.length > W) usunWiersz(g, t.wiersze.length - 1);
+  const t = opisTabeli(g); // własny opis przed pętlami – ulozTabele go już nie podmieni
+  // Struktura: kolumny i wiersze dopasowane do miesiąca (4–6 tygodni). Każdy krok musi coś zmienić – inaczej koniec.
+  const dalej = (r) => r !== false && r !== -1; // false / -1 – tabela nie dała się zmienić (np. limit wierszy)
+  while (t.kolumny.length < K && dalej(dodajKolumne(g, uid, t.kolumny.length - 1)));
+  while (t.kolumny.length > K && dalej(usunKolumne(g, t.kolumny.length - 1)));
+  while (t.wiersze.length < W && dalej(dodajWiersz(g, uid, t.wiersze.length - 1)));
+  while (t.wiersze.length > W && dalej(usunWiersz(g, t.wiersze.length - 1)));
   t.naglowek = true;
   // Wiersz tytułu – jedna komórka na całą szerokość.
   t.scalenia = k.tytul ? [{ w: 0, k: 0, ileW: 1, ileK: K }] : [];
