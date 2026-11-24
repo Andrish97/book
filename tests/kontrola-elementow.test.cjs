@@ -81,7 +81,9 @@ test('Sprawdź przed drukiem: Kopiuj raport – wszystkie uwagi w schowku', asyn
   });
   await strona.click('#przycisk-wiecej');
   await strona.click('[data-akcja="kontrola"]');
+  // #422: przycisk widać od razu (także w trakcie sprawdzania tekstów); pełny raport – po zakończeniu.
   await strona.waitForSelector('#kontrola-kopiuj:not([hidden])');
+  await strona.waitForFunction(() => /do sprawdzenia|w porządku/.test(document.querySelector('#kontrola-stan').textContent));
   await strona.click('#kontrola-kopiuj');
   const tekst = await strona.evaluate(() => navigator.clipboard.readText());
   const wiersze = tekst.split('\n');
@@ -109,7 +111,7 @@ test('poważne uwagi na czerwono i pytanie przed eksportem PDF', async (t) => {
   });
   await strona.click('#przycisk-wiecej');
   await strona.click('[data-akcja="kontrola"]');
-  await strona.waitForSelector('#kontrola-kopiuj:not([hidden])');
+  await strona.waitForFunction(() => /do sprawdzenia/.test(document.querySelector('#kontrola-stan').textContent));
   const lista = await strona.evaluate(() => [...document.querySelectorAll('#kontrola-lista li')].map((li) => [li.classList.contains('powazna'), li.textContent.slice(0, 30)]));
   assert.deepEqual(lista.map((x) => x[0]), [true, false], JSON.stringify(lista));
   assert.match(lista[0][1], /Tytuł/);

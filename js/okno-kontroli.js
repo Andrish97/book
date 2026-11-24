@@ -79,7 +79,10 @@ export class OknoKontroli {
     const lista = $('#kontrola-lista');
     const stan = $('#kontrola-stan');
     const kopiuj = $('#kontrola-kopiuj');
-    kopiuj.hidden = true; // do końca sprawdzania – raport byłby niepełny
+    // „Kopiuj raport” cały czas widoczny (#422): w trakcie sprawdzania tekstów (duży projekt – nawet kilkanaście
+    // sekund) kopiuje to, co już jest, a pierwszy wiersz stanu mówi, że sprawdzanie trwa. Wcześniej przycisk
+    // znikał do końca sprawdzania i nie wracał, gdy sprawdzanie się przerwało.
+    kopiuj.hidden = false;
     this.uwagi = null;
     const pokaz = {
       wzor: (idStrony, idObiektu) => { this.okno.close(); this.zrodlo.pokaz(idStrony, idObiektu); },
@@ -87,10 +90,19 @@ export class OknoKontroli {
       napraw: this.zrodlo.napraw ? async (u) => { await this.zrodlo.napraw(u); this.okno.close(); this.otworz(); } : null,
     };
     let uwagi = najpierwPowazne(sprawdzProjekt(projekt, ciag));
+    this.uwagi = uwagi;
     rysujUwagi(lista, uwagi, pokaz);
     stan.textContent = t('oknoKontroli.sprawdzamCzyTekstyMieszcza', { egzemplarzeIle: ciag.egzemplarze.length });
     this.okno.showModal();
-    const teksty = await sprawdzMieszczenie(projekt, ciag, { przerwij: () => nr !== this.nr });
+    let teksty = [];
+    try {
+      teksty = await sprawdzMieszczenie(projekt, ciag, { przerwij: () => nr !== this.nr });
+    } catch (e) {
+      if (nr !== this.nr) return;
+      console.error(e);
+      stan.textContent = t('oknoKontroli.nieUdaloSieSprawdzicTekstow', { blad: e?.message || '' });
+      return;
+    }
     if (nr !== this.nr) return;
     uwagi = najpierwPowazne([...uwagi, ...teksty]);
     rysujUwagi(lista, uwagi, pokaz);
@@ -99,6 +111,5 @@ export class OknoKontroli {
       : powazneIle ? t('oknoKontroli.wTymPowazne', { uwagiIle: uwagi.length, powazneIle })
         : t('oknoKontroli.doSprawdzeniaZadnaNie', { uwagiIle: uwagi.length });
     this.uwagi = uwagi; // do testów i raportu
-    kopiuj.hidden = !uwagi.length;
   }
 }

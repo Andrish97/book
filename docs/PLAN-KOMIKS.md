@@ -276,3 +276,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „Możesz zrobić, żeby dało się skopiować wszystkie błędy (raport podsumowujący)?” – ✅ Kopiuj raport w oknie „Sprawdź przed drukiem” (#419).
 - „Możesz zrobić o poważnych uwagach i wszędzie je zaznaczyć na czerwono, a nie na pomarańczowo” – ✅ poważne uwagi na czerwono, pytanie przed eksportem PDF (#420).
 - „dlaczego svg mówi coś o dpi, skoro to wektor” – ✅ SVG bez uwagi o rozdzielczości (#421).
+- „Przycisk Kopiuj w Sprawdź przed drukiem był i zniknął” – ✅ widoczny od razu, także w trakcie i po błędzie sprawdzania (#422).

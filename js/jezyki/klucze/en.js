@@ -4263,6 +4263,7 @@ export default {
   "oknoDruku.wydruk": "Print",
   "oknoKontroli.doSprawdzeniaZadnaNie": "{uwagiIle} {uwagiIle|issue|issues} to check. None blocks the export.",
   "oknoKontroli.nieUdaloSieSkopiowac": "The browser didn't allow copying the report.",
+  "oknoKontroli.nieUdaloSieSprawdzicTekstow": "Couldn't check the texts in frames ({blad}). The other issues are on the list – the report will copy them.",
   "oknoKontroli.raportNaglowek": "Preflight check – {nazwa}",
   "oknoKontroli.skopiowanoRaport": "Report copied – {n} {n|issue|issues}. Paste it wherever you like.",
   "oknoKontroli.sprawdzamCzyTekstyMieszcza": "Checking whether texts fit in their frames on {egzemplarzeIle} {egzemplarzeIle|page|pages}…",
