@@ -6315,6 +6315,7 @@ export default {
   "wlasciwosci.marginesTrzymajWNim": "Margines – trzymaj w nim teksty",
   "wlasciwosci.marka.naglowki": "nagłówki",
   "wlasciwosci.marka.tekst": "tekst",
+  "wlasciwosci.miejscaNaFioletowo": "Te miejsca są zaznaczone w tekście na fioletowo (pisownia – czerwoną falą).",
   "wlasciwosci.miejsceNaNotatkiData": "Miejsce na notatki (data w rogu)",
   "wlasciwosci.miekkieKrawedzie": "Miękkie krawędzie",
   "wlasciwosci.miesciSieWRamce": "mieści się w ramce (cały widoczny)",

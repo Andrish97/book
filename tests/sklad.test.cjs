@@ -602,3 +602,34 @@ test('polskie zasady domyślnie: znaki z tabeli, przy pisaniu i z kontroli przed
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === 'od_ai')?.text === 'Zapraszamy na „Dni Miasta” – wstęp wolny.');
   assert.deepEqual(bledy, []);
 });
+
+// #425: odstępstwa od zasad zostawione w tekście (np. „Zostaw jak było”, tekst wklejony, wyłączone zasady) – zaznaczone
+// na płótnie (fioletowe tło i kropkowana linia, inaczej niż pisownia), w ostrzeżeniach strony i w kontroli przed drukiem.
+test('odstępstwa od zasad: miejsca w tekście, ostrzeżenia strony i kontrola przed drukiem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Odstępstwa');
+  const w = await strona.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    const o = e.dodajTekst('Powiedział  "tak" - i poszedł... W domu ( cicho ) czytał .');
+    o.set({ id: 'z1', left: 20, top: 30, width: 100, fontSize: 6, znaki_bez_zmian: true });
+    const b = e.dodajTekst('Ala ma kota i psa w domu oraz dwa koty w ogrodzie i w lesie.');
+    b.set({ id: 'z2', left: 20, top: 80, width: 40, fontSize: 5, zasady_pl: false, spojniki: undefined, lamanie_akapitu: false });
+    o.initDimensions(); b.initDimensions(); e.przeliczOstrzezenia();
+    await window.seriodruk.zapiszTeraz();
+    const { miejscaZasad } = await import('./js/zasady-skladu.js');
+    const { sprawdzMieszczenie } = await import('./js/kontrola-skladu.js');
+    const k = await sprawdzMieszczenie(window.seriodruk.stan.projekt);
+    return {
+      m1: miejscaZasad(o).map((x) => [x.kod, o.text.slice(x.start, x.koniec)]),
+      m2: miejscaZasad(b).map((x) => x.kod),
+      strona: e.ostrzezenia.filter((x) => x.typ === 'sklad_pl').map((x) => x.id).sort(),
+      druk: k.filter((x) => x.rodzaj === 'sklad_pl').map((x) => [x.idObiektu, x.opis]),
+    };
+  });
+  assert.deepEqual(w.m1, [['cudzyslow', '"'], ['cudzyslow', '"'], ['dywiz', '-'], ['kropki', '...'], ['spacje', '  '], ['przed_interpunkcja', ' '], ['przed_interpunkcja', ' '], ['po_otwarciu', ' ']]);
+  assert.ok(w.m2.length > 0 && w.m2.every((k) => k === 'lamanie'), JSON.stringify(w.m2));
+  assert.deepEqual(w.strona, ['z1', 'z2']);
+  assert.match(w.druk.find((x) => x[0] === 'z1')[1], /podwójne spacje/);
+  assert.ok(w.druk.some((x) => x[0] === 'z2'));
+  assert.deepEqual(bledy, []);
+});

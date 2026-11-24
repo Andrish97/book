@@ -1324,7 +1324,7 @@ export class PanelWlasciwosci {
       if (ost) s.append(this.wskazowka(ost.opis, true));
     } else {
       const uwagiSk = uwagiSkladuTekstu(obj);
-      if (uwagiSk.length) s.append(this.wskazowka(tt('wlasciwosci.niezgodneZZasadami', { join: uwagiSk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ') }), true));
+      if (uwagiSk.length) s.append(this.wskazowka(`${tt('wlasciwosci.niezgodneZZasadami', { join: uwagiSk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ') })} ${tt('wlasciwosci.miejscaNaFioletowo')}`, true));
     }
     const poprawki = poprawkiZnakow(obj.text);
     if (poprawki.length) {

@@ -115,6 +115,45 @@ export function uwagiLamania(o) {
   return [...wynik.values()];
 }
 
+// Miejsca w tekście niezgodne z zasadami (#425) – do zaznaczenia na płótnie: [{ start, koniec, kod }] (indeksy jak
+// w o.text, ze znakami nowej linii). Znaki: sam problematyczny znak (spacja, cudzysłów, dywiz, trzy kropki). Łamanie:
+// ostatni wyraz wiersza, który nie powinien tam zostać (jedno- i dwuliterowe słówka, skróty, inicjały, liczby…).
+const ZAKRES_ZNAKU = { przed_interpunkcja: (m) => [0, 1], po_otwarciu: (m) => [1, 2], dywiz: () => [1, 2] };
+export function miejscaZasad(o) {
+  if (!o || o.bez_ostrzezen || o.bez_kontroli_skladu || typeof o.text !== 'string') return [];
+  const wynik = [];
+  // Pola z danymi pomijamy – zastąpione znakami tej samej długości, żeby indeksy się zgadzały.
+  const t = o.text.replace(/\{[^}]*\}/g, (p) => 'X'.repeat(p.length));
+  for (const [kod, re] of ZNAKI) {
+    for (const m of t.matchAll(re)) {
+      const [od, d] = ZAKRES_ZNAKU[kod]?.(m) || [0, m[0].length];
+      wynik.push({ start: m.index + od, koniec: m.index + d, kod });
+    }
+  }
+  const linie = o._textLines;
+  const mapa = o._styleMap;
+  if (Array.isArray(linie) && linie.length > 1 && mapa) {
+    const akapity = String(o.text).split('\n');
+    const poczatki = [];
+    for (let i = 0, poz = 0; i < akapity.length; i += 1) { poczatki.push(poz); poz += akapity[i].length + 1; }
+    const koniecAkapitu = (i) => typeof o.isEndOfWrapping === 'function' && o.isEndOfWrapping(i);
+    for (let i = 0; i < linie.length - 1; i += 1) {
+      if (koniecAkapitu(i) || linie[i].lacznik || !mapa[i]) continue;
+      const tekstLinii = linie[i].join('');
+      const a = tekstLinii.trimEnd().split(/\s+/);
+      const b = linie[i + 1].join('').trim().split(/\s+/);
+      if (a.length < 2) continue;
+      const ost = a.at(-1);
+      const powod = powodWiazania(ost, b[0], { jednoliterowe: true })
+        || (!zasadyPl(o) && o.spojniki !== 'dwuliterowe' && DWULITEROWE.has(ost.toLocaleLowerCase('pl')) ? 'dwuliterowy' : null);
+      if (!powod || powod === 'myslnik') continue;
+      const start = poczatki[mapa[i].line] + mapa[i].offset + tekstLinii.trimEnd().length - ost.length;
+      wynik.push({ start, koniec: start + ost.length, kod: 'lamanie' });
+    }
+  }
+  return wynik;
+}
+
 // Wszystkie uwagi do tekstu – bez wyciszonych (bez_ostrzezen) i gdy tekst ma wyłączoną kontrolę.
 export function uwagiSkladuTekstu(o) {
   if (!o || o.bez_ostrzezen || o.bez_kontroli_skladu) return [];

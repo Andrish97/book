@@ -6315,6 +6315,7 @@ export default {
   "wlasciwosci.marginesTrzymajWNim": "Margin – keep text inside it",
   "wlasciwosci.marka.naglowki": "headings",
   "wlasciwosci.marka.tekst": "text",
+  "wlasciwosci.miejscaNaFioletowo": "These spots are marked in the text in purple (spelling – with a red wavy line).",
   "wlasciwosci.miejsceNaNotatkiData": "Space for notes (date in the corner)",
   "wlasciwosci.miekkieKrawedzie": "Soft edges",
   "wlasciwosci.miesciSieWRamce": "fits in the frame (fully visible)",

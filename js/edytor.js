@@ -18,7 +18,7 @@ import { polaBezpieczne, STREFY } from './okladka.js';
 import { uwagiElementu, strefaWPunkcie } from './sekcje-specjalne.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
-import { uwagiSkladuTekstu, poprawkiZnakow } from './zasady-skladu.js';
+import { uwagiSkladuTekstu, poprawkiZnakow, miejscaZasad } from './zasady-skladu.js';
 import { powazna } from './kontrola-powaga.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
 import { odswiezAdresZasobu } from './zasoby.js';
@@ -2933,6 +2933,51 @@ export class Edytor extends EventTarget {
     }
   }
 
+  // Odstępstwa od polskich zasad (#425): podwójna spacja, prosty cudzysłów, dywiz zamiast półpauzy, trzy kropki,
+  // spacja przy interpunkcji, krótkie słówko na końcu wiersza – fioletowe tło i kropkowana linia pod miejscem
+  // (inaczej niż czerwona fala pisowni). Tylko w edytorze; te same miejsca są w ostrzeżeniach i w kontroli przed drukiem.
+  _zaznaczZasady(ctx, X, Y) {
+    for (const o of this.canvas.getObjects()) {
+      if (o.zWzorca || o.type !== 'textbox' || o.visible === false || !o.__charBounds) continue;
+      const miejsca = miejscaZasad(o);
+      if (!miejsca.length) continue;
+      const m = o.calcTransformMatrix();
+      const lewo0 = o._getLeftOffset();
+      const gora0 = o._getTopOffset();
+      for (const b of miejsca) {
+        const czesci = new Map();
+        for (let i = b.start; i < b.koniec; i += 1) {
+          const { lineIndex: w, charIndex: z } = o.get2DCursorLocation(i);
+          const znak = o.__charBounds[w]?.[z];
+          if (!znak) continue;
+          const x = lewo0 + o._getLineLeftOffset(w) + znak.left;
+          const cz = czesci.get(w);
+          if (cz) cz.x2 = Math.max(cz.x2, x + Math.max(znak.kernedWidth, 0.6)); else czesci.set(w, { x1: x, x2: x + Math.max(znak.kernedWidth, 0.6) });
+        }
+        for (const [w, cz] of czesci) {
+          let y0 = gora0;
+          for (let k = 0; k < w; k += 1) y0 += o.getHeightOfLine(k);
+          const wys = o.getHeightOfLine(w) / o.lineHeight;
+          const rogi = [[cz.x1, y0], [cz.x2, y0], [cz.x2, y0 + wys], [cz.x1, y0 + wys]].map(([px, py]) => new fabric.Point(px, py).transform(m));
+          ctx.save();
+          ctx.fillStyle = 'rgba(124, 58, 237, 0.18)';
+          ctx.beginPath();
+          rogi.forEach((p, n) => (n ? ctx.lineTo(X(p.x), Y(p.y)) : ctx.moveTo(X(p.x), Y(p.y))));
+          ctx.closePath();
+          ctx.fill();
+          ctx.strokeStyle = '#7c3aed';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([2, 2]);
+          ctx.beginPath();
+          ctx.moveTo(X(rogi[3].x), Y(rogi[3].y) + 1.5);
+          ctx.lineTo(X(rogi[2].x), Y(rogi[2].y) + 1.5);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+    }
+  }
+
   // Po zmianie właściwości z panelu.
   zatwierdz() {
     const akt = this.aktywny;
@@ -4356,6 +4401,7 @@ export class Edytor extends EventTarget {
 
     if (this.pokazProwadnice) this._podswietlPola(ctx, X, Y);
     if (this.pisownia) this._podkreslPisownie(ctx, X, Y);
+    this._zaznaczZasady(ctx, X, Y);
     if (this.pokazProwadnice) this._rysujWatek(ctx, X, Y);
     if (this._trybPunktow()) this._rysujPunkty(ctx, X, Y);
     this._rysujOtwarta(ctx, X, Y);

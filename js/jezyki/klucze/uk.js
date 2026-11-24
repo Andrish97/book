@@ -6315,6 +6315,7 @@ export default {
   "wlasciwosci.marginesTrzymajWNim": "Поле – тримайте текст усередині",
   "wlasciwosci.marka.naglowki": "заголовки",
   "wlasciwosci.marka.tekst": "текст",
+  "wlasciwosci.miejscaNaFioletowo": "Ці місця позначено в тексті фіолетовим (правопис – червоною хвилястою лінією).",
   "wlasciwosci.miejsceNaNotatkiData": "Місце для нотаток (дата в куті)",
   "wlasciwosci.miekkieKrawedzie": "М'які краї",
   "wlasciwosci.miesciSieWRamce": "вміщується в рамку (видно повністю)",
