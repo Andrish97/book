@@ -20,6 +20,7 @@
 
 import './edytor-instancja.js';
 import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
+import './ostrzezenia-danych.js'; // ostrzeżenia przy stronie po przeliczeniu danych (#418)
 import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
 import { obsluzAkcje, podlaczSkladanke } from './skladanka-narzedzia.js'; // narzędzia składanki (#233)
 import { obsluzAkcjeKomiksu, podlaczKomiks } from './komiks-narzedzia.js'; // narzędzia komiksu (#364)

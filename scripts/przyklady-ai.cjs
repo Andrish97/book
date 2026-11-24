@@ -67,7 +67,7 @@ const stronaDnia = (n) => ({
     tekst(`o_d${n}_data`, '{dzien} {miesiac} 2027', 12, 12, 124, 18, { fontFamily: 'Playfair Display', fontWeight: 'bold' }),
     tekst(`o_d${n}_tydz`, '{dzien_tygodnia} · {Miesiace.haslo}', 12, 22, 124, 9, { fill: '#6b6861' }),
     // Zdjęcie z danych: obraz-wzór wyznacza ramkę, kolumna „zdjecie” podaje nazwę pliku.
-    { type: 'image', id: `o_d${n}_foto`, ...strefaZdjecia, width: 12, height: 8, scaleX: strefaZdjecia.width / 12, scaleY: strefaZdjecia.height / 8, zasob: 'z_styczen', src: 'zasob:z_styczen', pole: { kolumna: 'zdjecie', tryb: 'wypelnij' } },
+    { type: 'image', id: `o_d${n}_foto`, ...strefaZdjecia, width: 12, height: 8, scaleX: strefaZdjecia.width / 12, scaleY: strefaZdjecia.height / 8, zasob: 'z_styczen', src: 'zasob:z_styczen', pole: { kolumna: 'zdjecie', tryb: 'wypelnij' }, bez_ostrzezen: true }, // zaślepki 12×8 px – wyciszone, jak zdjęcie okładki (#418)
     // Gwiazdka tylko w niedziele: widoczność zależna od pola.
     { type: 'ellipse', id: `o_d${n}_niedz`, left: 128, top: 13, rx: 4, ry: 4, fill: '#d62828', strokeWidth: 0, z_danych: { widok: { pole: 'niedziela', gdy: 'rowne', wartosc: 'tak' } } },
     ...Array.from({ length: 9 }, (_, j) => ({ type: 'line', id: `o_d${n}_l${j}`, left: 12, top: 110 + j * 9, x1: 0, y1: 0, x2: 124, y2: 0, width: 124, height: 0, stroke: '#cfccc3', strokeWidth: 0.25, strokeUniform: true })),

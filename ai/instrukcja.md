@@ -1548,6 +1548,8 @@ Przycisk linii pomocniczych (`W`) przy powiększeniu chowa je wszystkie.
 
 Element w marginesie albo poza spadem, tekst, który się nie mieści, czy pole z literówką dostają pomarańczową ramkę i trafiają na listę **Ostrzeżenia**. Na komputerze otwiera ją przycisk z trójkątem obok powiększenia (`F8`) — liczba na nim mówi, ile jest uwag; okienko nie blokuje pracy, zamyka je krzyżyk albo `Esc`. Na telefonie — przycisk **Ostrzeżenia** na dole ekranu. Kliknięcie pozycji zaznacza element. Gdy to celowe (np. tło na spad), kliknij **Wycisz**.
 
+**Elementy z danymi** — tekst z polami (np. „{miesiac}”) i element z położeniem, rozmiarem albo widocznością z danych — sprawdzane są po przeliczeniu: na każdej stronie wydruku, która powstaje z tej strony, z jej danymi, tak jak w **Sprawdź przed drukiem** (rozdział „20.1 Lista uwag”). Gdy sama nazwa pola w klamrach się nie mieści, a wartości z tabeli się mieszczą — ostrzeżenia nie ma. Gdy coś jest nie tak na którejś stronie, ostrzeżenie podaje jej numer. Nazwa pola dłuższa od ramki nie poszerza już ramki — na wzorze może wystawać.
+
 ![Ostrzeżenia](https://makietka.app/img/instrukcja/ostrzezenia.png)
 
 ### 12.3 Siatka
@@ -2073,7 +2075,7 @@ Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
 
 ![Sprawdź przed drukiem w menu ⋯](https://makietka.app/img/instrukcja/k-menu-kontrola.png)
 
-Lista ma wszystko, co ostrzeżenia przy stronie (z całego projektu naraz, z danymi każdej powielonej strony), i więcej. Elementy wyciszone przyciskiem **Wycisz** pomija.
+Lista ma wszystko, co ostrzeżenia przy stronie (z całego projektu naraz), i więcej. Każda strona wydruku jest sprawdzana po przeliczeniu – z jej danymi: tekst z polami, obraz z kolumny (rozdzielczość pliku tej strony), położenie, rozmiar i widoczność z danych, wzorce na lewej i prawej stronie. Elementy wyciszone przyciskiem **Wycisz** pomija.
 
 | Uwaga | Co znaczy |
 |---|---|

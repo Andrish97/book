@@ -1745,6 +1745,12 @@ obok powiększenia (<kbd>F8</kbd>) — liczba na nim mówi, ile jest uwag; okien
 krzyżyk albo <kbd>Esc</kbd>. Na telefonie — przycisk [Ostrzeżenia] na dole ekranu. Kliknięcie pozycji
 zaznacza element. Gdy to celowe (np. tło na spad), kliknij [Wycisz].
 
+**Elementy z danymi** — tekst z polami (np. „{miesiac}”) i element z położeniem, rozmiarem albo widocznością
+z danych — sprawdzane są po przeliczeniu: na każdej stronie wydruku, która powstaje z tej strony, z jej
+danymi, tak jak w **Sprawdź przed drukiem** (→ 20.1). Gdy sama nazwa pola w klamrach się nie mieści, a
+wartości z tabeli się mieszczą — ostrzeżenia nie ma. Gdy coś jest nie tak na którejś stronie, ostrzeżenie
+podaje jej numer. Nazwa pola dłuższa od ramki nie poszerza już ramki — na wzorze może wystawać.
+
 ![Ostrzeżenia](ostrzezenia.png)
 
 ## 12.3 Siatka

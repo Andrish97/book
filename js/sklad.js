@@ -282,6 +282,7 @@ function sklad(o, linieTekstu, szerokoscRamki) {
   o._odstepGory = 0;
   let y = 0;
   let niepodzielne = 0;
+  const polePlaceholder = (zn, od, doZnaku) => !o.bez_pol && /\{[^{}]+\}/.test(zn.slice(od, doZnaku).join(''));
   const wysokoscWiersza = (akapit, od, doZnaku) => maxRozmiar(o, akapit, od, doZnaku) * o._fontSizeMult * o.lineHeight;
 
   for (let p = 0; p < linieTekstu.length; p += 1) {
@@ -373,7 +374,7 @@ function sklad(o, linieTekstu, szerokoscRamki) {
         if (!slowWWierszu || x + przerwa + wSlowa <= miejsce.w + scisk + 0.001) {
           // Mieści się (albo wiersz jest pusty – wtedy próbujemy dzielić słowo za długie na cały wiersz).
           if (slowWWierszu || wSlowa <= miejsce.w + 0.001 || !dziel) {
-            if (!slowWWierszu && wSlowa > miejsce.w) niepodzielne = Math.max(niepodzielne, wSlowa);
+            if (!slowWWierszu && wSlowa > miejsce.w && !polePlaceholder(zn, od, s.do)) niepodzielne = Math.max(niepodzielne, wSlowa);
             x += przerwa + wSlowa;
             if (slowWWierszu && sepPrzed === ' ') spacjeWWierszu += przerwa;
             slowWWierszu += 1;
@@ -415,8 +416,10 @@ function sklad(o, linieTekstu, szerokoscRamki) {
           continue;
         }
         if (!slowWWierszu) {
-          // Słowo za długie i nie do podzielenia – zostaje w wierszu, który się wydłuża.
-          niepodzielne = Math.max(niepodzielne, wSlowa);
+          // Słowo za długie i nie do podzielenia – zostaje w wierszu, który się wydłuża. Nazwa pola w klamrach
+          // („{miesiac_dopelniacz}”) ramki nie poszerza (#418): w druku stoi tam wartość z tabeli, a poszerzona
+          // ramka zostawała w projekcie (wchodziła w margines, przesuwała tekst wyrównany do prawej).
+          if (!polePlaceholder(zn, od, s.do)) niepodzielne = Math.max(niepodzielne, wSlowa);
           x += wSlowa;
           slowWWierszu += 1;
           break;
@@ -458,7 +461,25 @@ export function zalatajSklad() {
   for (const k of POLA_SKLADU) wplywaNaUklad(k);
   const zawijaj = P._wrapText;
   P._wrapText = function _wrapText(linie, szerokosc) {
-    if (!skladAktywny(this)) { this._inicjal = null; this._odstepGory = 0; return zawijaj.call(this, linie, szerokosc); }
+    if (!skladAktywny(this)) {
+      this._inicjal = null; this._odstepGory = 0;
+      const wynik = zawijaj.call(this, linie, szerokosc);
+      // Nazwa pola w klamrach nie poszerza ramki (#418) – jak w składzie wyżej: najdłuższy wyraz bez pól.
+      if (!this.bez_pol && typeof this.text === 'string' && /\{[^{}]+\}/.test(this.text)) {
+        let naj = 0;
+        linie.forEach((tekstLinii, p) => {
+          const zn = Array.isArray(tekstLinii) ? tekstLinii : this.graphemeSplit(String(tekstLinii));
+          for (let i = 0, od = 0; i <= zn.length; i += 1) {
+            if (i < zn.length && zn[i] !== ' ') continue;
+            const slowo = zn.slice(od, i);
+            if (slowo.length && !/\{[^{}]+\}/.test(slowo.join(''))) naj = Math.max(naj, this._measureWord(slowo, p, od));
+            od = i + 1;
+          }
+        });
+        this.dynamicMinWidth = naj;
+      }
+      return wynik;
+    }
     this.isWrapping = true;
     try { return sklad(this, linie, szerokosc); } finally { this.isWrapping = false; }
   };

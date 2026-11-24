@@ -2867,7 +2867,8 @@
      "pole": {
       "kolumna": "zdjecie",
       "tryb": "wypelnij"
-     }
+     },
+     "bez_ostrzezen": true
     },
     {
      "type": "ellipse",
@@ -3072,7 +3073,8 @@
      "pole": {
       "kolumna": "zdjecie",
       "tryb": "wypelnij"
-     }
+     },
+     "bez_ostrzezen": true
     },
     {
      "type": "ellipse",
@@ -3277,7 +3279,8 @@
      "pole": {
       "kolumna": "zdjecie",
       "tryb": "wypelnij"
-     }
+     },
+     "bez_ostrzezen": true
     },
     {
      "type": "ellipse",
@@ -3482,7 +3485,8 @@
      "pole": {
       "kolumna": "zdjecie",
       "tryb": "wypelnij"
-     }
+     },
+     "bez_ostrzezen": true
     },
     {
      "type": "ellipse",
@@ -3687,7 +3691,8 @@
      "pole": {
       "kolumna": "zdjecie",
       "tryb": "wypelnij"
-     }
+     },
+     "bez_ostrzezen": true
     },
     {
      "type": "ellipse",
@@ -3892,7 +3897,8 @@
      "pole": {
       "kolumna": "zdjecie",
       "tryb": "wypelnij"
-     }
+     },
+     "bez_ostrzezen": true
     },
     {
      "type": "ellipse",
@@ -4097,7 +4103,8 @@
      "pole": {
       "kolumna": "zdjecie",
       "tryb": "wypelnij"
-     }
+     },
+     "bez_ostrzezen": true
     },
     {
      "type": "ellipse",

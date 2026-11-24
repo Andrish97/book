@@ -1758,6 +1758,13 @@ next to the zoom (<kbd>F8</kbd>) — the number on it tells you how many notes t
 the cross or <kbd>Esc</kbd>. On a phone — the [Warnings] button at the bottom of the screen. Clicking an item
 selects the element. When it's intentional (e.g. a background into the bleed), click [Mute].
 
+**Elements with data** — text with fields (e.g. “{miesiac}”) and an element whose position, size or
+visibility comes from data — are checked after the data is filled in: on every printed page made from this
+page, with its own data, just like in **Preflight check** (→ 20.1). When only the field name in braces
+doesn't fit but the values from the table do, there is no warning. When something is wrong on some page,
+the warning gives its number. A field name longer than the frame no longer widens the frame — on the
+template it may stick out.
+
 ![Warnings](ostrzezenia.png)
 
 ## 12.3 Grid

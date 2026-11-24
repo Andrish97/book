@@ -1315,8 +1315,14 @@ export class PanelWlasciwosci {
     s.append(this.przelacznik(tt('wlasciwosci.lamCalyAkapitNaraz'), () => Boolean(obj.lamanie_akapitu), (v) => ustaw('lamanie_akapitu', v || undefined)));
     s.append(this.wskazowka(tt('wlasciwosci.wierszeAkapituDobieraneRazem')));
     // Uwagi do składu tego tekstu i poprawka znaków jednym przyciskiem (#323).
-    const uwagiSk = uwagiSkladuTekstu(obj);
-    if (uwagiSk.length) s.append(this.wskazowka(tt('wlasciwosci.niezgodneZZasadami', { join: uwagiSk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ') }), true));
+    // Tekst z polami (#418): uwagi z prawdziwych stron po przeliczeniu (jak w ostrzeżeniach), nie z nazw pól.
+    if (this.edytor.poPrzeliczeniu?.(obj)) {
+      const ost = (this.edytor.ostrzezenia || []).find((x) => x.id === obj.id && x.typ === 'sklad_pl');
+      if (ost) s.append(this.wskazowka(ost.opis, true));
+    } else {
+      const uwagiSk = uwagiSkladuTekstu(obj);
+      if (uwagiSk.length) s.append(this.wskazowka(tt('wlasciwosci.niezgodneZZasadami', { join: uwagiSk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ') }), true));
+    }
     const poprawki = poprawkiZnakow(obj.text);
     if (poprawki.length) {
       const b = document.createElement('button');

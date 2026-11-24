@@ -3,7 +3,9 @@
 // krawędzi cięcia, element do krawędzi bez spadu, element poza stroną. Działa na zapisanym projekcie (JSON),
 // bez rysowania – położenie z left/top/width/height/scale (obrócone elementy pomija przy położeniu).
 
-import { rozwin } from './serie.js';
+import { rozwin, wartosciPol } from './serie.js';
+import { podstawWObiektach } from './pola.js';
+import { obrazyZPol } from './obrazy-z-pol.js';
 import { rodzinyCzcionek } from './czcionki.js';
 import { wzorceStrony, marginesyStrony } from './projekt.js';
 import { t as tt } from './jezyk.js';
@@ -41,25 +43,39 @@ function rodzinyWTekscie(o) {
 export function uwagiElementow(projekt, ciag = rozwin(projekt)) {
   const { wlasne, wbudowane } = rodzinyCzcionek(projekt);
   const znane = new Set([...wlasne, ...wbudowane, 'Arial', 'Helvetica', 'Times New Roman', 'serif', 'sans-serif']);
-  const numery = new Map(); // id strony → numery stron wydruku
-  for (const e of ciag.egzemplarze) { const l = numery.get(e.strona.id) || []; l.push(e.indeks + 1); numery.set(e.strona.id, l); }
-  const zebrane = new Map(); // klucz → uwaga (ten sam element wzorca na wielu stronach – raz)
-  const dodaj = (klucz, u) => { if (!zebrane.has(klucz)) zebrane.set(klucz, u); };
+  // Każda strona wydruku osobno, po podstawieniu danych (#418): położenie, rozmiar i widoczność z danych, obraz
+  // z kolumny, tekst z polami i wzorce na lewej albo prawej stronie. Ten sam element na wielu stronach – jedna
+  // uwaga z numerami stron.
+  const zebrane = new Map(); // klucz → { rodzaj, klucz tłumaczenia, zmienne, strony, idStrony, idObiektu, wzorzec }
+  const naTejStronie = new Set(); // klucze uwag z bieżącej strony wydruku (numer strony dopisujemy raz)
 
   // marginesy – lista zestawów marginesów (strona lewa i prawa w rozkładówce), [] – bez sprawdzania marginesu
   // (okładka i sekcje specjalne mają własne strefy – te sprawdza edytor).
-  const sprawdz = (obiekty, { wydruk, idStrony, strony, gdzie, skala = 1, gora = true, marginesy = [] }) => {
+  const sprawdz = (obiekty, { wydruk, idStrony, nr, wzorzec = null, skala = 1, gora = true, marginesy = [] }) => {
     const W = wydruk.szerokosc_mm; const H = wydruk.wysokosc_mm; const spad = wydruk.spad_mm || 0;
     for (const o of obiekty || []) {
       if (!o || o.visible === false || o.bez_ostrzezen) continue; // wyciszony w edytorze („Wycisz”) – też tutaj (#417)
       const sx = (o.scaleX || 1) * skala; const sy = (o.scaleY || 1) * skala;
       const nazwa = nazwaEl(o);
-      const opis = (klucz, zm) => tt(klucz, { nazwa, gdzie, ...zm });
-      const u = (rodzaj, klucz, zm) => dodaj(`${rodzaj}|${o.id}`, { rodzaj, opis: opis(klucz, zm), strony, idStrony, idObiektu: o.id });
-      // Zdjęcie: piksele oryginału na milimetr druku (width w pikselach, scaleX – mm na piksel). Obraz z danych pomijamy.
-      if (o.type === 'image' && o.zasob && !o.z_danych && !o.pole?.kolumna && sx > 0) {
+      const u = (rodzaj, klucz, zm) => {
+        const k = `${rodzaj}|${o.id}`;
+        const w = zebrane.get(k) || { rodzaj, klucz, zm: { nazwa, ...zm }, strony: [], idStrony, idObiektu: o.id, wzorzec };
+        if (!naTejStronie.has(k)) { w.strony.push(nr); naTejStronie.add(k); }
+        zebrane.set(k, w);
+      };
+      const has = (rodzaj) => naTejStronie.has(`${rodzaj}|${o.id}`);
+      // Zdjęcie: piksele oryginału na milimetr druku (width w pikselach, scaleX – mm na piksel).
+      if (o.type === 'image' && o.zasob && !o.ramka_pola && !o.pole?.kolumna && sx > 0) { // obraz-wzór kolumny bez danych – osobna uwaga o brakującej kolumnie
         const dpi = Math.round(25.4 / sx);
         if (dpi < PROG_DPI) u('obraz_dpi', 'kontrolaElementow.obrazDpi', { dpi });
+      }
+      // Obraz z kolumny danych: plik tej strony wpisany w ramkę (wypełnij – na całą ramkę, inaczej – cały obraz).
+      const plik = o.type === 'image' && o.ramka_pola && projekt.zasoby?.[o.zasob];
+      if (plik?.szer > 0 && plik?.wys > 0) {
+        const rw = o.ramka_pola.w * skala; const rh = o.ramka_pola.h * skala;
+        const mmNaPx = o.pole?.tryb === 'wypelnij' ? Math.max(rw / plik.szer, rh / plik.wys) : Math.min(rw / plik.szer, rh / plik.wys);
+        const dpi = Math.round(25.4 / mmNaPx);
+        if (mmNaPx > 0 && dpi < PROG_DPI) u('obraz_dpi', 'kontrolaElementow.obrazDpi', { dpi });
       }
       if (o.type === 'textbox' || o.type === 'i-text' || o.type === 'text') {
         const min = Math.min(...rozmiaryPisma(o).filter((x) => x > 0)) * sy;
@@ -72,8 +88,8 @@ export function uwagiElementow(projekt, ciag = rozwin(projekt)) {
       }
       // Położenie – tylko elementy najwyższego poziomu, bez obrotu; wyciszone w edytorze („Wycisz”) i kadry komiksu
       // (obrys w połowie na zewnątrz, kadr na spad świadomie) – bez uwag o położeniu, jak w ostrzeżeniach edytora.
-      if (gora && !(o.angle % 360) && !o.z_danych && !o.kadr && o.kadr_nr == null) { // położenie z danych – inne na każdej stronie
-        const w = (o.width || 0) * (o.scaleX || 1); const h = (o.height || 0) * (o.scaleY || 1);
+      if (gora && !(o.angle % 360) && !o.kadr && o.kadr_nr == null) {
+        const w = o.ramka_pola ? o.ramka_pola.w : (o.width || 0) * (o.scaleX || 1); const h = o.ramka_pola ? o.ramka_pola.h : (o.height || 0) * (o.scaleY || 1);
         const x1 = o.originX === 'center' ? o.left - w / 2 : o.left; const y1 = o.originY === 'center' ? o.top - h / 2 : o.top;
         const x2 = x1 + w; const y2 = y1 + h;
         const tekst = o.type === 'textbox' && String(o.text || '').trim();
@@ -90,33 +106,29 @@ export function uwagiElementow(projekt, ciag = rozwin(projekt)) {
             if (doKrawedzi) u('bez_spadu', 'kontrolaElementow.bezSpadu', { spad: String(spad).replace('.', ',') });
           }
           // Wchodzi w margines (#417, jak ostrzeżenie edytora) – na lewej albo prawej stronie rozkładówki.
-          if (!zebrane.has(`przy_krawedzi|${o.id}`) && !zebrane.has(`bez_spadu|${o.id}`) && !zebrane.has(`poza_strona|${o.id}`) && !zebrane.has(`poza_spadem|${o.id}`)
+          if (!has('przy_krawedzi') && !has('bez_spadu') && !has('poza_strona') && !has('poza_spadem')
             && !(spad > 0 && (x1 <= -spad + tol || y1 <= -spad + tol || x2 >= W + spad - tol || y2 >= H + spad - tol)) // na spad – świadomie
             && marginesy.some((m) => x1 < m.lewy - tol || y1 < m.gora - tol || x2 > W - m.prawy + tol || y2 > H - m.dol + tol)) u('w_marginesie', 'kontrolaElementow.wMarginesie');
         }
       }
-      if (Array.isArray(o.objects) && !o.tabela) sprawdz(o.objects, { wydruk, idStrony, strony, gdzie, skala: skala * Math.min(o.scaleX || 1, o.scaleY || 1), gora: false });
+      if (Array.isArray(o.objects) && !o.tabela) sprawdz(o.objects, { wydruk, idStrony, nr, wzorzec, skala: skala * Math.min(o.scaleX || 1, o.scaleY || 1), gora: false });
     }
   };
 
-  for (const s of projekt.strony || []) {
-    const sekcja = projekt.sekcje.find((x) => x.id === s.sekcja);
-    if (!sekcja?.wydruk) continue;
-    const strony = numery.get(s.id) || [];
-    if (!strony.length) continue;
-    const boki = [...new Set(ciag.egzemplarze.filter((e) => e.strona === s).map((e) => e.bok || null))];
-    const marginesy = zwyklaSekcja(sekcja) ? boki.map((b) => marginesyStrony(projekt, s, b)) : [];
-    sprawdz(s.obiekty, { wydruk: sekcja.wydruk, idStrony: s.id, strony, marginesy, gdzie: tt('kontrolaElementow.naStronach', { lista: lista(strony) }) });
+  for (const egz of ciag.egzemplarze) {
+    const sekcja = egz.sekcja;
+    if (!sekcja?.wydruk || egz.strona.pusta) continue;
+    naTejStronie.clear();
+    const wartosc = wartosciPol(projekt, egz, ciag);
+    const dane = (obiekty) => obrazyZPol(podstawWObiektach(obiekty || [], wartosc), wartosc, projekt.zasoby || {});
+    const marginesy = zwyklaSekcja(sekcja) ? [marginesyStrony(projekt, egz.strona, egz.bok)] : [];
+    const nr = egz.indeks + 1;
+    sprawdz(dane(egz.strona.obiekty), { wydruk: sekcja.wydruk, idStrony: egz.strona.id, nr, marginesy });
+    for (const w of wzorceStrony(projekt, egz.strona)) sprawdz(dane(w.obiekty), { wydruk: sekcja.wydruk, idStrony: null, nr, wzorzec: w.nazwa || '', marginesy });
   }
-  for (const w of projekt.wzorce || []) {
-    const uzyte = (projekt.strony || []).filter((s) => wzorceStrony(projekt, s).some((x) => x.id === w.id));
-    if (!uzyte.length) continue;
-    const sekcja = projekt.sekcje.find((x) => x.id === uzyte[0].sekcja);
-    if (!sekcja?.wydruk) continue;
-    const strony = uzyte.flatMap((s) => numery.get(s.id) || []);
-    const m = w.wydruk?.marginesy || sekcja.wydruk.marginesy || {};
-    const marginesy = zwyklaSekcja(sekcja) ? [{ lewy: m.wewnetrzny ?? 10, prawy: m.zewnetrzny ?? 10, gora: m.gora ?? 10, dol: m.dol ?? 10 }] : [];
-    sprawdz(w.obiekty, { wydruk: sekcja.wydruk, idStrony: null, strony, marginesy, gdzie: tt('kontrolaElementow.weWzorcu', { wzorzec: w.nazwa || '' }) });
-  }
-  return [...zebrane.values()];
+  return [...zebrane.values()].map(({ klucz, zm, wzorzec, ...u }) => {
+    const naStronach = tt('kontrolaElementow.naStronach', { lista: lista(u.strony) });
+    const gdzie = wzorzec === null ? naStronach : `${tt('kontrolaElementow.weWzorcu', { wzorzec })}, ${naStronach}`;
+    return { ...u, opis: tt(klucz, { ...zm, gdzie }) };
+  });
 }

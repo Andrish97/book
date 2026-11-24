@@ -3552,10 +3552,22 @@ export class Edytor extends EventTarget {
         && (x1 < m.lewy - tolE || y1 < m.gora - tolE || x2 > w - m.prawy + tolE || y2 > h - m.dol + tolE)) {
         typ = 'w_marginesie';
       }
-      if (typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });
-      if (nieMiesciSie(o)) lista.push({ id: o.id, typ: 'nie_miesci_sie', obiekt: opisObiektu(o) });
+      // Element zależny od danych (#418: tekst z polami, położenie albo rozmiar z danych) na stronie z danymi:
+      // liczy się to, co wyjdzie na stronach wydruku po przeliczeniu – nie sam wzór z nazwami pól. Wynik liczy
+      // w tle edytor-start (poPrzeliczeniu): null – element nie zależy od danych, 'liczy' – jeszcze nie ma wyniku
+      // (do tego czasu bez tych ostrzeżeń), Map typ → opis z numerami stron.
+      const nrS = this.strony.length > 1 ? this.stronaW(this._srodekObiektu(o).x) : 0;
+      const pp = this.poPrzeliczeniu?.(o, nrS) ?? null;
+      const zDanychPolozenie = Boolean(o.z_danych);
+      const PRZELICZANE = new Set(['nie_miesci_sie', 'sklad_pl', ...(zDanychPolozenie ? ['poza_strona', 'poza_spadem', 'w_marginesie'] : [])]);
+      if (pp) {
+        if (pp !== 'liczy') for (const [t, opis] of pp) if (PRZELICZANE.has(t)) lista.push({ id: o.id, typ: t, obiekt: opisObiektu(o), opis });
+        if (typ && !PRZELICZANE.has(typ)) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });
+      }
+      if (!pp && typ) lista.push({ id: o.id, typ, obiekt: opisObiektu(o) });
+      if (!pp && nieMiesciSie(o)) lista.push({ id: o.id, typ: 'nie_miesci_sie', obiekt: opisObiektu(o) });
       // Polskie zasady składu (#323): złamania wierszy i znaki niezgodne z zasadami.
-      if (o.type === 'textbox') {
+      if (!pp && o.type === 'textbox') {
         const sk = uwagiSkladuTekstu(o);
         if (sk.length) lista.push({ id: o.id, typ: 'sklad_pl', obiekt: opisObiektu(o), opis: tt('edytor.skladNiezgodnyZPolskimi', { join: sk.map((u) => `${u.opis}${u.przyklad ? ` („${u.przyklad}”)` : ''}`).join('; ') }) });
       }

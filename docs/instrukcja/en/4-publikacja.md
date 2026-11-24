@@ -176,7 +176,7 @@ A list of things to check before you send the file to the print shop.
 
 ![Preflight check in the ⋯ menu](k-menu-kontrola.png)
 
-The list has everything the warnings next to the page show (for the whole project at once, with the data of every repeated page), and more. Elements silenced with **Mute** are skipped.
+The list has everything the warnings next to the page show (for the whole project at once), and more. Every printed page is checked after the data is filled in – with its own data: text with fields, an image from a column (the resolution of that page’s file), position, size and visibility from data, masters on left and right pages. Elements silenced with **Mute** are skipped.
 
 | Issue | What it means |
 |---|---|

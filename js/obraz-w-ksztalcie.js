@@ -20,14 +20,9 @@
 import { rozmiarOryginalu } from './obrazy.js';
 import { przefiltrowany } from './filtry-obrazu.js';
 
-const TYPY = new Set(['rect', 'ellipse', 'circle', 'polygon', 'triangle', 'path']);
+import { TYPY, moznaWstawicObraz } from './ksztalty-obrazow.js';
 
-// Czy kształt może być ramką obrazu: zamknięty kształt (ścieżka z pióra tylko zamknięta).
-export function moznaWstawicObraz(o) {
-  if (!o || !TYPY.has(o.type) || o.tabela) return false;
-  if (o.type === 'path') return (o.path || []).some((k) => k[0] === 'Z' || k[0] === 'z');
-  return true;
-}
+export { moznaWstawicObraz };
 
 // Czy element jest kształtem z obrazem.
 export const maObraz = (o) => Boolean(o && o.zasob && o.type !== 'image' && TYPY.has(o.type));

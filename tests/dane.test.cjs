@@ -582,7 +582,8 @@ test('wygląd z danych: kolor z kolumny i przesunięcie według numeru powieleni
   });
   assert.equal(poZmianie.regula, 'kolor');
   assert.deepEqual(poZmianie.ostrzezenia, [['nieznane_pole', ['nie_ma_takiej']]]);
-  assert.deepEqual(poZmianie.uwagi, ['nieznane_pole']);
+  // #418: zakładka przesuwana z danych dochodzi do prawej krawędzi bez spadu – po przeliczeniu stron serii to widać.
+  assert.deepEqual(poZmianie.uwagi, ['nieznane_pole', 'bez_spadu']);
   assert.deepEqual(bledy, []);
 });
 
