@@ -43,10 +43,14 @@ function spojnik(o, slowo) {
 }
 // Czy między wyrazami a i b nie wolno złamać wiersza: spójniki według ustawienia, a z polskimi zasadami składu
 // (#323) także skróty, inicjały, liczba z jednostką, datą albo dalszymi cyframi i myślnik na początku wiersza.
-function wiazane(o, a, b) {
+// bOstatni – b jest ostatnim wyrazem akapitu: z polskimi zasadami krótki ostatni wyraz (do 5 liter – „dzień.”)
+// nie zostaje sam w ostatnim wierszu, tylko przechodzi razem z poprzednim (#430, jak w kontroli składu).
+function wiazane(o, a, b, bOstatni = false) {
   // Z polskimi zasadami (#424) także dwuliterowe spójniki i przyimki (do, na, że…) – bez osobnego ustawienia.
-  return spojnik(o, a) || Boolean(zasadyPl(o) && (powodWiazania(a, b) || DWULITEROWE.has(String(a).toLocaleLowerCase('pl'))));
+  return spojnik(o, a) || Boolean(zasadyPl(o) && (powodWiazania(a, b) || DWULITEROWE.has(String(a).toLocaleLowerCase('pl'))
+    || (bOstatni && krotkiOstatni(b))));
 }
+const krotkiOstatni = (b) => { const l = String(b).replace(/[^\p{L}\d]/gu, '').length; return l > 0 && l < 6 && !String(b).includes('{'); };
 
 const inicjalAktywny = (o) => o.inicjal >= 2 && !(o.watek && o.watek_nr > 0 && (o.lacznik ?? '\n') !== '\n');
 const maTab = (o) => typeof o.text === 'string' && o.text.includes('\t');
@@ -223,7 +227,7 @@ function lamAkapitu(o, zn, slowa, W, { dziel, pl, szer, lacznikSzer, tekstSlowa 
         // Czy wolno tu złamać.
         if (!ostatniWiersz) {
           if (lacznik) { if (pl && h >= MAX_L) continue; }
-          else if (wiazane(o, tekstSlowa(fr[b].k), tekstSlowa(fr[b].k + 1))) continue;
+          else if (wiazane(o, tekstSlowa(fr[b].k), tekstSlowa(fr[b].k + 1), fr[b].k + 1 === slowa.length - 1)) continue;
         }
         let kara;
         if (ostatniWiersz) {
@@ -430,7 +434,7 @@ function sklad(o, linieTekstu, szerokoscRamki) {
         // (z polskimi zasadami – także skrót, inicjał, liczba z jednostką; myślnik nie zaczyna wiersza).
         const tekstSlowa = (i) => zn.slice(slowa[i].od, slowa[i].do).join('');
         let j = k - 1;
-        while (j > 0 && slowa[j].od >= start && slowa[j - 1].do > start && wiazane(o, tekstSlowa(j), tekstSlowa(j + 1))) j -= 1;
+        while (j > 0 && slowa[j].od >= start && slowa[j - 1].do > start && wiazane(o, tekstSlowa(j), tekstSlowa(j + 1), j + 1 === slowa.length - 1)) j -= 1;
         if (j < k - 1) {
           const pierwszy = slowa[j + 1];
           zamknij(pierwszy.od - 1, false, pierwszy.od);

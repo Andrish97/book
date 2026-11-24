@@ -284,3 +284,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „Dlaczego dalej widzę, żeby nie zamykać Makietki przy udostępnieniu podglądu na 280 stron” – ✅ przy tworzeniu linku, gdy rysuje serwer: „możesz zamknąć” (#427).
 - „Link, który dodałem potem, jest znowu niewidoczny…”, „na telefonie nie da się zaznaczyć i skopiować tekstu”, „Brak połączenia z dostawcą”, „nie da się skopiować wiadomości od czatu” – ✅ zapis linku od razu i odzyskiwanie z bazy, pisanie w zwykłym polu na dotyku, czysty klucz i lepszy komunikat, Kopiuj w czacie (#428).
 - „To się łączyło, a potem przestało” (czat AI) – ✅ nieudane pytanie cofane z rozmowy, przycinanie długiej historii, ponowienie przy przerwie sieci, bez pustych odpowiedzi w historii (#429).
+- „Chcę, żeby to było automatem” (krótki ostatni wyraz akapitu, „Krl 2:9”) – ✅ krótki ostatni wyraz łączony z poprzednim, skrót księgi z rozdziałem, z polskimi zasadami samo (#430).

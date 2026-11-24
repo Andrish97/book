@@ -633,3 +633,46 @@ test('odstępstwa od zasad: miejsca w tekście, ostrzeżenia strony i kontrola p
   assert.ok(w.druk.some((x) => x[0] === 'z2'));
   assert.deepEqual(bledy, []);
 });
+
+// #430: krótki ostatni wyraz akapitu (do 5 liter) nie zostaje sam w ostatnim wierszu – przechodzi z poprzednim wyrazem
+// (automatycznie, w obu sposobach łamania); skrót księgi zostaje z rozdziałem („Krl 2:9”, „1 Kor 13,4”).
+test('polskie zasady automatem: krótki ostatni wyraz z poprzednim, skrót księgi z rozdziałem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Zawieszki');
+  const w = await strona.evaluate(async () => {
+    const { uwagiSkladuTekstu, powodWiazania } = await import('./js/zasady-skladu.js');
+    const e = window.seriodruk.edytor;
+    const teksty = [
+      'Wczoraj poszedłem do sklepu i kupiłem chleb, masło oraz mleko. Potem wróciłem do domu. To był dzień.',
+      'Odpowiedź znajdziesz w księdze, którą czytaliśmy w zeszłym tygodniu: Krl 2:9 oraz 1 Kor 13,4 i jeszcze J 3,16 na końcu.',
+    ];
+    const wynik = { samotne: [], ksiegi: [], uwagi: [], bezZasad: 0 };
+    for (const tx of teksty) {
+      for (const lamanie of [false, true]) {
+        for (let width = 30; width <= 80; width += 1) {
+          for (const zasady of [undefined, false]) {
+            const o = new fabric.Textbox(tx, { left: 10, top: 10, width, fontSize: 4, fontFamily: 'Inter', lamanie_akapitu: lamanie, zasady_pl: zasady });
+            e.canvas.add(o); o.initDimensions();
+            const linie = o._textLines.map((l) => l.join('').trim());
+            const ost = linie.at(-1).split(/\s+/);
+            const samotny = linie.length > 1 && ost.length === 1 && ost[0].replace(/[^\p{L}\d]/gu, '').length < 6;
+            const ksiega = linie.slice(0, -1).some((l, i) => powodWiazania(l.split(/\s+/).at(-1), linie[i + 1].split(/\s+/)[0]) === 'ksiega');
+            if (zasady === false) { if (samotny || ksiega) wynik.bezZasad += 1; } else {
+              if (samotny) wynik.samotne.push(`${width}/${lamanie}: ${linie.at(-1)}`);
+              if (ksiega) wynik.ksiegi.push(`${width}/${lamanie}: ${linie.join(' | ')}`);
+              if (uwagiSkladuTekstu(o).some((u) => u.powod === 'krotki_wiersz' || u.powod === 'ksiega')) wynik.uwagi.push(width);
+              if (linie.join(' ').replace(/\s+/g, ' ') !== tx) wynik.uwagi.push(`treść ${width}`);
+            }
+            e.canvas.remove(o);
+          }
+        }
+      }
+    }
+    return wynik;
+  });
+  assert.deepEqual(w.samotne, [], 'krótki ostatni wyraz nigdy sam w wierszu');
+  assert.deepEqual(w.ksiegi, [], 'skrót księgi nigdy oddzielony od rozdziału');
+  assert.deepEqual(w.uwagi, [], 'bez uwag w kontroli i treść bez zmian');
+  assert.ok(w.bezZasad > 0, 'z wyłączonymi zasadami takie miejsca się zdarzają (test coś sprawdza)');
+  assert.deepEqual(bledy, []);
+});

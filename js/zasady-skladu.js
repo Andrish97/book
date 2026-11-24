@@ -31,6 +31,11 @@ const GRUPA_CYFR = /^\d{3}([.,]\d+)?[.,;:!?)”]*$/;
 const INICJAL = /^[(„"]?(\p{Lu}\.){1,3}$/u; // J. – J.R. – J.R.R.
 const MYSLNIK = /^[–—]/;
 const RZYMSKA = /^[IVXLCDM]+$/;
+// Odwołania do ksiąg (#430): „Krl 2:9”, „J 3,16”, „1 Kor 13,4–7”, „Mt 5” – skrót księgi nie zostaje bez rozdziału,
+// a numer księgi („1”, „2”, „II”) bez jej skrótu.
+const SKROT_KSIEGI = /^[(„"]?\p{Lu}\p{Ll}{0,3}\.?$/u;
+const ROZDZIAL = /^\d+([:,]\d+([–-]\d+)?)?[.,;:!?)”]*$/;
+const NR_KSIEGI = /^[(„"]?([1-4]|I{1,3}|IV)$/;
 
 const bezOtwarcia = (s) => s.replace(/^[(„"'«[]+/, '');
 
@@ -44,6 +49,8 @@ export function powodWiazania(a, b, { jednoliterowe = true } = {}) {
   if (INICJAL.test(a)) return 'inicjal';
   if (LICZBA.test(a) && (JEDNOSTKA.test(b) || GRUPA_CYFR.test(b) || MIESIACE.test(b))) return 'liczba';
   if (RZYMSKA.test(a) && /^(w\.|wiek|wieku|wiekiem)[.,;:!?)”]*$/.test(b)) return 'liczba';
+  if (SKROT_KSIEGI.test(a) && ROZDZIAL.test(b) && (/[:,]\d/.test(b) || a.endsWith('.'))) return 'ksiega';
+  if (NR_KSIEGI.test(a) && SKROT_KSIEGI.test(b)) return 'ksiega';
   if (MYSLNIK.test(b)) return 'myslnik';
   return null;
 }
@@ -53,6 +60,7 @@ export const OPIS_POWODU = {
   dwuliterowy: 'dwuliterowy spójnik albo przyimek na końcu wiersza (włącz „Polskie zasady składu” w panelu tekstu)',
   skrot: 'skrót oddzielony od następnego wyrazu',
   inicjal: 'inicjał oddzielony od nazwiska',
+  ksiega: 'skrót księgi oddzielony od rozdziału albo numeru',
   liczba: 'liczba oddzielona od jednostki, daty albo dalszych cyfr',
   myslnik: 'myślnik na początku wiersza',
   laczniki: 'więcej niż 3 dzielone wiersze pod rząd',
