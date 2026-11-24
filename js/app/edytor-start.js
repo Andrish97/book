@@ -105,7 +105,8 @@ edytor.znanePole = (nazwa, indeksStrony) => {
 
 // ---------- Ostrzeżenia ----------
 
-function renderujOstrzezenia(lista) {
+function renderujOstrzezenia(wszystkie) {
+  const lista = [...wszystkie.filter((o) => o.powazna), ...wszystkie.filter((o) => !o.powazna)];
   const ul = $('#lista-ostrzezen');
   ul.replaceChildren();
   const licznik = $('#licznik-ostrzezen');
@@ -117,6 +118,8 @@ function renderujOstrzezenia(lista) {
   lp.textContent = lista.length;
   lp.hidden = lista.length === 0;
   $('#przycisk-ostrzezen').classList.toggle('sa', lista.length > 0);
+  const powazne = lista.some((o) => o.powazna);
+  for (const el of [licznik, lp, $('#przycisk-ostrzezen'), $('#kropka-ostrzezen')]) el.classList.toggle('powazne', powazne);
   if (!lista.length) {
     const li = document.createElement('li');
     li.className = 'brak';
@@ -126,6 +129,7 @@ function renderujOstrzezenia(lista) {
   }
   for (const o of lista) {
     const li = document.createElement('li');
+    if (o.powazna) li.className = 'powazna'; // na czerwono (#420)
     li.innerHTML = `<span class="opis" role="button" tabindex="0" title="${t('edytorStart.zaznaczElement')}"><strong></strong><span></span></span><button class="przycisk" title="${t('edytorStart.wyciszTytul')}">${t('edytorStart.wycisz')}</button>`;
     $('strong', li).textContent = o.obiekt;
     $('.opis span', li).textContent = o.opis || t(OPIS_OSTRZEZEN[o.typ] || '');

@@ -92,3 +92,43 @@ test('Sprawdź przed drukiem: Kopiuj raport – wszystkie uwagi w schowku', asyn
   assert.ok(uwagi.some((w) => /Drobny dopisek/.test(w)) && uwagi.some((w) => /Zgubiony/.test(w)));
   assert.deepEqual(bledy, []);
 });
+
+// #420: poważne uwagi (tekst ucięty, brak obrazu/czcionki, pole bez wartości, brak danych, zdjęcie < 150 dpi) na
+// czerwono – w „Sprawdź przed drukiem” (na początku listy), w oknie PDF i w ostrzeżeniach edytora; eksport PDF pyta
+// przy nich o potwierdzenie („Wróć i popraw” – nic się nie eksportuje).
+test('poważne uwagi na czerwono i pytanie przed eksportem PDF', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Poważne');
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.strony[0].obiekty = [
+      { type: 'textbox', version: '5.3.0', id: 'p1', text: 'Tytuł', left: 20, top: 120, width: 60, height: 8, fontSize: 6, fontFamily: 'Czcionka Spoza' },
+      { type: 'textbox', version: '5.3.0', id: 'p2', text: 'Drobny dopisek', left: 20, top: 140, width: 60, height: 2, fontSize: 1.5, fontFamily: 'Inter' },
+    ];
+    await window.seriodruk.przeladuj();
+  });
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="kontrola"]');
+  await strona.waitForSelector('#kontrola-kopiuj:not([hidden])');
+  const lista = await strona.evaluate(() => [...document.querySelectorAll('#kontrola-lista li')].map((li) => [li.classList.contains('powazna'), li.textContent.slice(0, 30)]));
+  assert.deepEqual(lista.map((x) => x[0]), [true, false], JSON.stringify(lista));
+  assert.match(lista[0][1], /Tytuł/);
+  assert.match(await strona.textContent('#kontrola-stan'), /w tym 1 poważna \(na czerwono\)/);
+  await strona.click('#kontrola-zamknij');
+  // Edytor: czcionka nie jest ostrzeżeniem edytora; ostrzeżenie o polu bez wartości – poważne.
+  await strona.evaluate(() => { const e = window.seriodruk.edytor; e.dodajTekst('Data {nie_ma_takiego_pola}'); e.przeliczOstrzezenia(); });
+  await strona.waitForSelector('#lista-ostrzezen li.powazna', { state: 'attached' });
+  assert.ok(await strona.evaluate(() => document.querySelector('#licznik-ostrzezen').classList.contains('powazne')), 'licznik ostrzeżeń na czerwono');
+  // Okno PDF: poważne na czerwono, eksport pyta – „Wróć i popraw” nie eksportuje.
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="pdf"]');
+  await strona.waitForSelector('#pdf-uwagi.powazne li.powazna');
+  await strona.click('#pdf-eksportuj');
+  await strona.waitForSelector('#dlg-potwierdz[open]');
+  assert.match(await strona.textContent('#potwierdz-tytul'), /poważn/);
+  assert.equal(await strona.textContent('#potwierdz-tak'), 'Eksportuj mimo to');
+  await strona.click('#potwierdz-nie');
+  await strona.waitForFunction(() => !document.querySelector('#dlg-potwierdz').open);
+  assert.equal(await strona.evaluate(() => window.seriodruk.oknoPdf.trwa), false, 'po „Wróć i popraw” eksport się nie zaczął');
+  assert.deepEqual(bledy, []);
+});

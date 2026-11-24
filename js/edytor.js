@@ -19,6 +19,7 @@ import { uwagiElementu, strefaWPunkcie } from './sekcje-specjalne.js';
 import { znajdzPola, polaZDanych } from './pola.js';
 import { nieMiesciSie } from './tekst-ramka.js';
 import { uwagiSkladuTekstu, poprawkiZnakow } from './zasady-skladu.js';
+import { powazna } from './kontrola-powaga.js';
 import { przygotujKopie, rozmiarOryginalu } from './obrazy.js';
 import { odswiezAdresZasobu } from './zasoby.js';
 import { maObraz, moznaWstawicObraz, przygotujObrazyKsztaltow, ukladObrazu, ustawKadr, ustawZrodloObrazow } from './obraz-w-ksztalcie.js';
@@ -3575,6 +3576,7 @@ export class Edytor extends EventTarget {
       const nieznane = [...this._nieznanePola(o).map((p) => p.nazwa), ...polaZDanych(o).filter((n) => !this.znanePole(n, nrStrony))];
       if (nieznane.length) lista.push({ id: o.id, typ: 'nieznane_pole', obiekt: opisObiektu(o), pola: [...new Set(nieznane)] });
     }
+    for (const x of lista) x.powazna = powazna(x); // na czerwono (#420)
     this.ostrzezenia = lista;
     this.dispatchEvent(new CustomEvent('ostrzezenia', { detail: lista }));
   }
@@ -4395,14 +4397,15 @@ export class Edytor extends EventTarget {
       if (this._prowadnicaWRuchu) rysuj(this._prowadnicaWRuchu, true);
     }
 
-    // Obiekty z ostrzeżeniem: pomarańczowa ramka.
+    // Obiekty z ostrzeżeniem: pomarańczowa ramka, przy poważnym (#420: tekst ucięty, pole bez wartości…) – czerwona.
     if (this.ostrzezenia.length) {
       const ids = new Set(this.ostrzezenia.map((o) => o.id));
-      ctx.strokeStyle = 'rgba(234, 88, 12, 0.95)';
+      const powazne = new Set(this.ostrzezenia.filter((o) => o.powazna).map((o) => o.id));
       ctx.lineWidth = 1.5;
       ctx.setLineDash([6, 3]);
       for (const o of this.canvas.getObjects()) {
         if (!ids.has(o.id)) continue;
+        ctx.strokeStyle = powazne.has(o.id) ? 'rgba(220, 38, 38, 0.95)' : 'rgba(234, 88, 12, 0.95)';
         const r = this._prostokatNaStronie(o);
         ctx.strokeRect(X(r.left) - 2, Y(r.top) - 2, r.width * s + 4, r.height * s + 4);
       }

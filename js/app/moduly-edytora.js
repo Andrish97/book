@@ -67,6 +67,7 @@ export const MODULY_EDYTORA = [
   'js/komiks-scenariusz-ai.js',
   'js/komiks-scenariusz.js',
   'js/kontrola-elementow.js',
+  'js/kontrola-powaga.js',
   'js/kontrola-skladu.js',
   'js/kontrola.js',
   'js/ksztalty-biblioteka.js',

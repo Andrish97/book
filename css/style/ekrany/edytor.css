@@ -1490,3 +1490,16 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .czat-ai-pisz #czat-ai-wyslij:disabled { opacity: .5; }
 .czat-ai-pisz #czat-ai-przerwij { flex: none; border-radius: 999px; }
 .czat-ai-zalaczniki { padding: 2px 4px 0; }
+
+/* Poważne uwagi przed drukiem (#420): tekst ucięty, brak obrazu albo czcionki, pole bez wartości, brak danych,
+   zdjęcie poniżej 150 dpi – na czerwono zamiast pomarańczowego, wszędzie: lista ostrzeżeń, licznik, „Sprawdź przed
+   drukiem”, okno PDF. */
+.lista-ostrzezen li.powazna { background: var(--blad-tlo); color: var(--blad); }
+.licznik.sa.powazne, .przycisk-ostrzezen .licznik.powazne { background: var(--blad); color: var(--na-kolorze); }
+.przycisk-ostrzezen.sa.powazne { color: var(--blad); }
+.lista-uwag li.powazna { border-left-color: var(--blad); background: var(--blad-tlo); }
+.uwagi-druku.powazne { border-color: var(--blad-linia); }
+.uwagi-druku.powazne summary { color: var(--blad); }
+.uwagi-druku li.powazna { color: var(--blad); }
+#potwierdz-tresc { white-space: pre-line; }
+.kropka.powazne { background: var(--blad); }

@@ -129,6 +129,6 @@ export function uwagiElementow(projekt, ciag = rozwin(projekt)) {
   return [...zebrane.values()].map(({ klucz, zm, wzorzec, ...u }) => {
     const naStronach = tt('kontrolaElementow.naStronach', { lista: lista(u.strony) });
     const gdzie = wzorzec === null ? naStronach : `${tt('kontrolaElementow.weWzorcu', { wzorzec })}, ${naStronach}`;
-    return { ...u, opis: tt(klucz, { ...zm, gdzie }) };
+    return { ...u, ...(zm.dpi ? { dpi: zm.dpi } : {}), opis: tt(klucz, { ...zm, gdzie }) }; // dpi – próg poważnej uwagi (#420)
   });
 }

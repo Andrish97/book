@@ -27,6 +27,8 @@ const OBIEKTY = [
 
 // Wynik eksportu i jego opis: strony, czcionki, polecenia w treści, tekst odczytany czytnikiem, różnica obrazu.
 // punkty: true – dodatkowo porównanie punkt po punkcie (kształt liter), nie tylko uśrednionych kwadratów.
+// #420: zdjęcia testowe mają poniżej 150 dpi – poważna uwaga, eksport pyta o potwierdzenie.
+const eksportujMimoUwag = async (strona) => { await strona.click('#pdf-eksportuj'); await strona.click('#potwierdz-tak'); };
 const eksportuj = (strona, opcje, { punkty = false } = {}) => strona.evaluate(async ([o, pdfjs, watek, punktPoPunkcie]) => {
   const { stan } = window.seriodruk;
   const { eksportujPdf } = await import('./js/eksport.js');
@@ -252,7 +254,7 @@ test('PDF wektorowy: zdjęcia w oryginale z kadrem, grupy i ścieżki, własne c
   await strona.uncheck('#form-pdf input[name=krzywe]');
   assert.ok(!(await strona.isChecked('#form-pdf input[name=czcionki]')), 'PDF z osadzonymi czcionkami nie potrzebuje plików obok');
   await strona.selectOption('#form-pdf select[name=dpi]', '150');
-  const [plik] = await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
+  const [plik] = await Promise.all([strona.waitForEvent('download'), eksportujMimoUwag(strona)]);
   assert.equal(plik.suggestedFilename(), 'Wektor 2.pdf');
   await strona.waitForSelector('#dlg-pdf', { state: 'hidden' });
   assert.match(await strona.textContent('#powiadomienie'), /Jako obraz zapisane zostały 3 elementy: znaku „漢” .*\(3\)\. Tekst jako krzywe \(nie da się go zaznaczyć\) w 6 elementach: .*plik WOFF2\) \(3\)/);
@@ -302,7 +304,7 @@ test('PDF wektorowy: rysunek SVG idzie jako wektor (kadr, obrót, gradient); rys
   await strona.click('[data-akcja="pdf"]');
   await strona.waitForSelector('#dlg-pdf[open]');
   await strona.selectOption('#form-pdf select[name=dpi]', '150');
-  await Promise.all([strona.waitForEvent('download'), strona.click('#pdf-eksportuj')]);
+  await Promise.all([strona.waitForEvent('download'), eksportujMimoUwag(strona)]);
   await strona.waitForSelector('#dlg-pdf', { state: 'hidden' });
   assert.match(await strona.textContent('#powiadomienie'), /Jako obraz zapisany został 1 element: rysunek SVG z elementem „filter”\.$/);
   assert.deepEqual(bledy, []);

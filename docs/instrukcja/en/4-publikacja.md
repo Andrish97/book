@@ -176,7 +176,7 @@ A list of things to check before you send the file to the print shop.
 
 ![Preflight check in the ⋯ menu](k-menu-kontrola.png)
 
-The list has everything the warnings next to the page show (for the whole project at once), and more. Every printed page is checked after the data is filled in – with its own data: text with fields, an image from a column (the resolution of that page’s file), position, size and visibility from data, masters on left and right pages. Elements silenced with **Mute** are skipped. The **Copy report** button (below the list, once the check is finished) copies all issues as text – with the project name, date and numbers – to paste into a message to the print shop, a note or a chat with AI.
+The list has everything the warnings next to the page show (for the whole project at once), and more. Every printed page is checked after the data is filled in – with its own data: text with fields, an image from a column (the resolution of that page’s file), position, size and visibility from data, masters on left and right pages. Elements silenced with **Mute** are skipped. **Serious issues** – text that doesn't fit its frame, a table running off the page, a missing image file or font, a field without a value, missing data, a photo under 150 dpi – are in red and at the top of the list (the others, in orange, are sometimes intentional). With serious issues, PDF export asks: **Export anyway** or **Go back and fix**. The **Copy report** button (below the list, once the check is finished) copies all issues as text – with the project name, date and numbers – to paste into a message to the print shop, a note or a chat with AI.
 
 | Issue | What it means |
 |---|---|

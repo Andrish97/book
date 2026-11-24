@@ -1740,7 +1740,7 @@ Przycisk linii pomocniczych (<kbd>W</kbd>) przy powiększeniu chowa je wszystkie
 ## 12.2 Ostrzeżenia
 
 Element w marginesie albo poza spadem, tekst, który się nie mieści, czy pole z literówką dostają
-pomarańczową ramkę i trafiają na listę **Ostrzeżenia**. Na komputerze otwiera ją przycisk z trójkątem
+pomarańczową ramkę i trafiają na listę **Ostrzeżenia**; poważne (tekst ucięty w ramce, pole bez wartości) – czerwoną, na początku listy, a licznik robi się czerwony. Na komputerze otwiera ją przycisk z trójkątem
 obok powiększenia (<kbd>F8</kbd>) — liczba na nim mówi, ile jest uwag; okienko nie blokuje pracy, zamyka je
 krzyżyk albo <kbd>Esc</kbd>. Na telefonie — przycisk [Ostrzeżenia] na dole ekranu. Kliknięcie pozycji
 zaznacza element. Gdy to celowe (np. tło na spad), kliknij [Wycisz].

@@ -1753,7 +1753,7 @@ The guide lines button (<kbd>W</kbd>) next to the zoom hides them all.
 ## 12.2 Warnings
 
 An element in the margin or beyond the bleed, text that doesn't fit, or a field with a typo get
-an orange frame and go to the **Warnings** list. On a computer it's opened by the triangle button
+an orange frame and go to the **Warnings** list; serious ones (text cut off in the frame, a field without a value) get a red frame, go to the top of the list and turn the counter red. On a computer it's opened by the triangle button
 next to the zoom (<kbd>F8</kbd>) — the number on it tells you how many notes there are; the window doesn't block your work, you close it with
 the cross or <kbd>Esc</kbd>. On a phone — the [Warnings] button at the bottom of the screen. Clicking an item
 selects the element. When it's intentional (e.g. a background into the bleed), click [Mute].

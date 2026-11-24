@@ -1,7 +1,8 @@
 // Okno „Eksport do PDF”: zakres stron, jakość, spady i podział na pliki.
 
 import { uzyteKoloryDruku, trybKolorow, trybyWSekcjach, TRYBY_KOLOROW } from './kolory-druku.js';
-import { $, pobierz, powiadom } from './ui.js';
+import { $, pobierz, powiadom, potwierdz } from './ui.js';
+import { powazna, najpierwPowazne } from './kontrola-powaga.js';
 import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
@@ -57,11 +58,15 @@ export class OknoPdf {
     $('#pdf-komunikat').textContent = '';
     // Rzeczy do sprawdzenia przed drukiem – nie blokują eksportu.
     const blok = $('#pdf-uwagi');
-    const pokazUwagi = (uwagi) => {
+    const pokazUwagi = (wszystkie) => {
+      const uwagi = najpierwPowazne(wszystkie);
+      const powazneIle = uwagi.filter(powazna).length;
+      this.powazneUwagi = uwagi.filter(powazna); // eksport pyta o potwierdzenie (#420)
       blok.hidden = !uwagi.length;
-      blok.open = uwagi.length > 0 && uwagi.length <= 3;
-      blok.querySelector('summary').textContent = tt('oknoPdf.doSprawdzeniaPrzedDrukiem', { uwagiIle: uwagi.length });
-      blok.querySelector('ul').replaceChildren(...uwagi.map((u) => Object.assign(document.createElement('li'), { textContent: u.opis })));
+      blok.open = uwagi.length > 0 && (uwagi.length <= 3 || powazneIle > 0);
+      blok.classList.toggle('powazne', powazneIle > 0);
+      blok.querySelector('summary').textContent = powazneIle ? tt('oknoPdf.wTymPowazne', { uwagiIle: uwagi.length, powazneIle }) : tt('oknoPdf.doSprawdzeniaPrzedDrukiem', { uwagiIle: uwagi.length });
+      blok.querySelector('ul').replaceChildren(...uwagi.map((u) => Object.assign(document.createElement('li'), { textContent: u.opis, className: powazna(u) ? 'powazna' : '' })));
     };
     const uwagi = sprawdzProjekt(this.zrodlo.projekt(), this.ciag);
     pokazUwagi(uwagi);
@@ -187,6 +192,13 @@ export class OknoPdf {
 
   async eksportuj() {
     if (this.trwa) return;
+    // Poważne uwagi (#420): tekst ucięty, brak obrazu albo czcionki, zdjęcie poniżej 150 dpi… – najpierw pytanie.
+    const powazne = this.powazneUwagi || [];
+    if (powazne.length) {
+      const lista = powazne.slice(0, 3).map((u) => `• ${u.opis}`).join('\n') + (powazne.length > 3 ? `\n${tt('oknoPdf.iJeszcze', { n: powazne.length - 3 })}` : '');
+      const tak = await potwierdz(tt('oknoPdf.powazneTytul', { n: powazne.length }), `${lista}\n\n${tt('oknoPdf.powazneTresc')}`, tt('oknoPdf.eksportujMimoTo'), true, tt('oknoPdf.wrocIPopraw'));
+      if (!tak) return;
+    }
     const komunikat = $('#pdf-komunikat');
     this.trwa = true; this.przerwane = false;
     $('#pdf-eksportuj').disabled = true;

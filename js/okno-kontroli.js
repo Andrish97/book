@@ -5,6 +5,7 @@ import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
 import { t, jezykDat } from './jezyk.js';
+import { powazna, najpierwPowazne } from './kontrola-powaga.js';
 
 // Wypełnia listę uwagami. Przy uwadze z numerami stron jest „Pokaż” – otwiera podgląd na pierwszej z tych
 // stron (już z danymi tego powielenia); przy uwadze o konkretnym elemencie także „Otwórz wzór” – stronę
@@ -12,6 +13,7 @@ import { t, jezykDat } from './jezyk.js';
 export function rysujUwagi(ul, uwagi, { wPodgladzie, wzor, napraw } = {}) {
   ul.replaceChildren(...uwagi.map((u) => {
     const li = document.createElement('li');
+    if (powazna(u)) li.className = 'powazna'; // na czerwono (#420)
     const opis = document.createElement('span');
     opis.textContent = u.opis;
     li.append(opis);
@@ -84,17 +86,18 @@ export class OknoKontroli {
       wPodgladzie: this.zrodlo.pokazWPodgladzie ? (nrStrony) => { this.okno.close(); this.zrodlo.pokazWPodgladzie(nrStrony); } : null,
       napraw: this.zrodlo.napraw ? async (u) => { await this.zrodlo.napraw(u); this.okno.close(); this.otworz(); } : null,
     };
-    let uwagi = sprawdzProjekt(projekt, ciag);
+    let uwagi = najpierwPowazne(sprawdzProjekt(projekt, ciag));
     rysujUwagi(lista, uwagi, pokaz);
     stan.textContent = t('oknoKontroli.sprawdzamCzyTekstyMieszcza', { egzemplarzeIle: ciag.egzemplarze.length });
     this.okno.showModal();
     const teksty = await sprawdzMieszczenie(projekt, ciag, { przerwij: () => nr !== this.nr });
     if (nr !== this.nr) return;
-    uwagi = [...uwagi, ...teksty];
+    uwagi = najpierwPowazne([...uwagi, ...teksty]);
     rysujUwagi(lista, uwagi, pokaz);
-    stan.textContent = uwagi.length
-      ? t('oknoKontroli.doSprawdzeniaZadnaNie', { uwagiIle: uwagi.length })
-      : t('oknoKontroli.wszystkoWPorzadkuBez', { egzemplarzeIle: ciag.egzemplarze.length });
+    const powazneIle = uwagi.filter(powazna).length;
+    stan.textContent = !uwagi.length ? t('oknoKontroli.wszystkoWPorzadkuBez', { egzemplarzeIle: ciag.egzemplarze.length })
+      : powazneIle ? t('oknoKontroli.wTymPowazne', { uwagiIle: uwagi.length, powazneIle })
+        : t('oknoKontroli.doSprawdzeniaZadnaNie', { uwagiIle: uwagi.length });
     this.uwagi = uwagi; // do testów i raportu
     kopiuj.hidden = !uwagi.length;
   }

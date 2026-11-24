@@ -396,7 +396,8 @@ test('szablon danych i kontrola przed drukiem: brakujące kolumny, plik Excela z
   await strona.click('[data-akcja="pdf"]');
   await strona.waitForSelector('#dlg-pdf[open]');
   // #413: także polskie zasady składu z ramek rosnących z tekstem (puste pola dają „ , ” na stronie 4).
-  assert.equal(await strona.textContent('#pdf-uwagi summary'), 'Do sprawdzenia przed drukiem: 3 uwagi');
+  // #420: brak obrazu z kolumny to poważna uwaga.
+  assert.equal(await strona.textContent('#pdf-uwagi summary'), 'Do sprawdzenia przed drukiem: 3 uwagi, w tym 1 poważna');
   assert.deepEqual(await strona.locator('#pdf-uwagi li').allTextContents(), [
     'Nie ma w projekcie obrazu „chmura.png” (kolumna „ikona”) – strona 2.',
     'Wartość „2” z kolumny „dzien” (tabela „Dni”) powtarza się na stronach 2 i 4.',
