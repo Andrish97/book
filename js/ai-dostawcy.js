@@ -97,7 +97,13 @@ export async function* zdarzeniaSSE(odp) {
   const dekoder = new TextDecoder();
   let bufor = '';
   for (;;) {
-    const { value, done } = await czytnik.read();
+    let value; let done;
+    // Zerwane połączenie w trakcie odpowiedzi (#429) – ten sam czytelny komunikat co przy braku połączenia.
+    try { ({ value, done } = await czytnik.read()); } catch (e) {
+      const b = new Error(komunikatBleduDostawcy(0, '', e));
+      b.status = 0;
+      throw b;
+    }
     bufor += done ? dekoder.decode() : dekoder.decode(value, { stream: true });
     const czesci = bufor.split(/\r?\n\r?\n/);
     bufor = done ? '' : czesci.pop();

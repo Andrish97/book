@@ -192,3 +192,19 @@ test('czat po błędzie działa dalej, przerwa sieci ponowiona, długa historia 
     assert.deepEqual(mala.historia, [{ role: 'user', content: 'a' }]);
   } finally { globalThis.fetch = stary; }
 });
+
+// #429: połączenie z Gemini zerwane w trakcie odpowiedzi – czytelny komunikat, rozmowa bez śladu nieudanego pytania.
+test('Gemini: zerwana odpowiedź w trakcie – czytelny błąd i rozmowa bez zmian', async () => {
+  const m = await modul();
+  m.czekanie.ms = async () => {};
+  const stary = globalThis.fetch;
+  try {
+    const r = m.nowaRozmowa({ dostawca: 'gemini', model: 'gemini-x', ust: { klucz: 'k' }, system: 's', narzedzia: [] });
+    globalThis.fetch = async () => new Response(new ReadableStream({
+      start(c) { c.enqueue(new TextEncoder().encode('data: {"candidates":[{"content":{"parts":[{"text":"Zaczy"}]}}]}\n\n')); },
+      pull(c) { c.error(new TypeError('network error')); },
+    }), { status: 200 });
+    await assert.rejects(m.zapytaj(r, 'pyt', { naTekst: () => {}, wykonaj: async () => ({ tekst: '' }) }), /Nie udało się połączyć z dostawcą.*network error/);
+    assert.equal(r.historia.length, 0);
+  } finally { globalThis.fetch = stary; }
+});

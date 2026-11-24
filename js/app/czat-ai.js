@@ -170,7 +170,7 @@ async function kluczDostepu(projektId, rola) {
   const nazwa = `czat:${projektId}:${rola}`;
   const s = await otwartySejf({ pytaj: false });
   let k = kluczeKarty.get(nazwa);
-  if (!k && s?.klucz(nazwa)) { try { k = JSON.parse(s.klucz(nazwa)); } catch { k = null; } }
+  if (!k && s?.klucz(nazwa)) { try { k = JSON.parse(s.klucz(nazwa)); kluczeKarty.set(nazwa, k); } catch { k = null; } }
   if (k && new Date(k.wazny_do).getTime() > Date.now() + 10 * 60 * 1000) return k.klucz;
   const w = await chmura.utworzDostepAi(projektId, { opis: tt('czatAi.czatWMakietce'), rola, dni: 1 });
   k = { klucz: w.klucz, wazny_do: w.wazny_do || new Date(Date.now() + 864e5).toISOString() };
@@ -199,7 +199,9 @@ export async function wolajDlaProjektu(projektId) {
 async function przygotujNarzedzia() {
   const projekt = stan.projekt.id;
   const rola = ustawienia().rola || 'edycja';
-  if (narzedzia?.projekt === projekt && narzedzia.rola === rola) return narzedzia;
+  // Klucz czatu jest jednodniowy (#429): przy karcie otwartej dłużej narzędzia łączą się od nowa z nowym kluczem,
+  // zamiast po dobie odbijać się od wygasłego.
+  if (narzedzia?.projekt === projekt && narzedzia.rola === rola && narzedzia.wazneDo > Date.now() + 10 * 60 * 1000) return narzedzia;
   const { utworzSerwer } = await import('../ai-narzedzia-rdzen.js');
   const serwer = utworzSerwer({ adres: SUPABASE_URL, kluczPubliczny: SUPABASE_ANON_KEY, klucz: await kluczDostepu(projekt, rola), projekt });
   const stanSesji = {};
@@ -220,7 +222,8 @@ async function przygotujNarzedzia() {
   });
   // Narzędzia aplikacji (#376): obraz z AI, kadry komiksu, dymki, koszt – tylko gdy AI może zmieniać projekt.
   if (rola === 'edycja') lista.push(...NARZEDZIA_LOKALNE);
-  narzedzia = { projekt, rola, lista, instrukcje: init?.instructions || '', wolaj };
+  const waznyDo = new Date(kluczeKarty.get(`czat:${projekt}:${rola}`)?.wazny_do || 0).getTime();
+  narzedzia = { projekt, rola, lista, instrukcje: init?.instructions || '', wolaj, wazneDo: waznyDo || Date.now() + 864e5 };
   return narzedzia;
 }
 
