@@ -2629,7 +2629,7 @@ W czacie tylko rozmawiasz. **Czym rozmawia asystent**, ustawiasz w **Ustawienia 
 
 Nad rozmową widać krótko, czym rozmawiasz (dostawca · model · uprawnienia). Gdy wybrany dostawca nie ma klucza, czat mówi to i daje przycisk **Ustawienia AI**.
 
-Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik (rozdział „25.1 Co potrafi AI”); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. **Przerwij** zatrzymuje po bieżącym kroku.
+Napisz, co zrobić (Enter wysyła, Shift+Enter — nowa linia). AI używa tych samych narzędzi co łącznik (rozdział „25.1 Co potrafi AI”); w czacie widać, których (🔧), a zmiany od razu pojawiają się w edytorze. **Przerwij** zatrzymuje po bieżącym kroku. Każdą wiadomość skopiujesz przyciskiem **Kopiuj** przy niej. Gdy pytanie się nie uda (np. zerwie się sieć), rozmowa wraca do stanu sprzed niego – wyślij je jeszcze raz. W długiej rozmowie starsze wyniki narzędzi i obrazy są skracane, żeby zapytania nie rosły bez końca; AI w razie potrzeby odczyta projekt ponownie.
 
 - **Klucze są zaszyfrowane i leżą na koncie.** Przy pierwszym kluczu Makietka prosi o **hasło do kluczy AI** (co najmniej 8 znaków, najlepiej inne niż hasło konta). Przeglądarka szyfruje nim klucz (AES-256) i dopiero wtedy zapisuje go na koncie – na serwerze leży tylko zaszyfrowany zapis. Bez Twojego hasła nikt go nie odczyta, **nawet administratorzy Makietki**. Na każdym nowym urządzeniu podajesz hasło raz; potem urządzenie je pamięta. Zgubione hasło: w oknie hasła **Nie pamiętam – usuń zapisane klucze** i wklej klucze od nowa.
 - Rozmowa idzie z przeglądarki prosto do dostawcy, a koszt rozliczasz u niego.

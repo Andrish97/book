@@ -59,6 +59,11 @@ async function odpowiedz(url, opcje) {
   for (let proba = 0; ; proba += 1) {
     let odp;
     try { odp = await fetch(url, opcje); } catch (e) {
+      // Chwilowa przerwa w sieci (telefon zmienia Wi-Fi na komórkową, uśpiona karta) – jeszcze jedna próba (#429).
+      if (proba === 0 && !/header|ByteString|ISO-8859|code point|Invalid value/i.test(String(e?.message || ''))) {
+        await czekanie.ms(PONOW[0]);
+        continue;
+      }
       const b = new Error(komunikatBleduDostawcy(0, '', e));
       b.status = 0;
       throw b;
@@ -238,7 +243,7 @@ async function krokStrumien(r, naTekst) {
     }
     if (stop === 'refusal') throw new Error('Model odmówił odpowiedzi na tę prośbę.');
     const content = bloki.filter(Boolean);
-    r.historia.push({ role: 'assistant', content });
+    r.historia.push({ role: 'assistant', content: content.length ? content : [{ type: 'text', text: '…' }] });
     return {
       tekst: content.filter((b) => b.type === 'text').map((b) => b.text).join('\n'),
       wywolania: content.filter((b) => b.type === 'tool_use').map((b) => ({ id: b.id, nazwa: b.name, argumenty: b.input || {} })),
@@ -259,7 +264,7 @@ async function krokStrumien(r, naTekst) {
         else { czesci.push({ ...p }); if (p.text && !p.thought) naTekst(p.text); }
       }
     }
-    r.historia.push({ role: 'model', parts: czesci });
+    r.historia.push({ role: 'model', parts: czesci.length ? czesci : [{ text: '…' }] });
     return {
       tekst: czesci.filter((p) => p.text && !p.thought).map((p) => p.text).join('\n'),
       wywolania: czesci.filter((p) => p.functionCall).map((p, i) => ({ id: `g${i}`, nazwa: p.functionCall.name, argumenty: p.functionCall.args || {} })),
@@ -308,7 +313,7 @@ async function krok(r) {
     });
     if (w.stop_reason === 'refusal') throw new Error('Model odmówił odpowiedzi na tę prośbę.');
     // Cała treść odpowiedzi wraca do historii (także bloki myślenia – model ich potrzebuje w kolejnym kroku).
-    r.historia.push({ role: 'assistant', content: w.content });
+    r.historia.push({ role: 'assistant', content: w.content?.length ? w.content : [{ type: 'text', text: '…' }] });
     return {
       tekst: w.content.filter((b) => b.type === 'text').map((b) => b.text).join('\n'),
       wywolania: w.content.filter((b) => b.type === 'tool_use').map((b) => ({ id: b.id, nazwa: b.name, argumenty: b.input || {} })),
@@ -323,7 +328,7 @@ async function krok(r) {
       }),
     });
     const tresc = w?.candidates?.[0]?.content || { role: 'model', parts: [] };
-    r.historia.push({ role: 'model', parts: tresc.parts || [] });
+    r.historia.push({ role: 'model', parts: tresc.parts?.length ? tresc.parts : [{ text: '…' }] });
     const czesci = tresc.parts || [];
     return {
       tekst: czesci.filter((p) => p.text).map((p) => p.text).join('\n'),
@@ -371,11 +376,72 @@ export function wiadomoscUzytkownika(rodzaj, tekst, obrazy = []) {
   return { role: 'user', content: [{ type: 'text', text: tekst }, ...obrazy.map((o) => ({ type: 'image_url', image_url: { url: `data:${o.typ};base64,${o.dane}` } }))] };
 }
 
+// Rozmowa nie rośnie bez końca (#429): wyniki narzędzi (np. cały odczyt projektu) i obrazy zostają w historii
+// i każde kolejne pytanie wysyłało je znowu – po kilkunastu wiadomościach zapytanie miało megabajty i dostawca
+// zrywał połączenie („brak połączenia”). Powyżej LIMIT_HISTORII starsze wyniki narzędzi są skracane, starsze obrazy
+// pomijane, a gdy to nie wystarczy – najstarsze wymiany znikają (historia zaczyna się zawsze od zwykłej wiadomości).
+export const LIMIT_HISTORII = 400 * 1024;
+const SKROT = 1500;
+const skrocone = (t) => (typeof t === 'string' && t.length > SKROT ? `${t.slice(0, SKROT)}… (skrócone – wywołaj narzędzie jeszcze raz, jeśli potrzebujesz całości)` : t);
+const zwyklaWiadomosc = (rodzaj, m) => {
+  if (m.role !== 'user') return false;
+  if (rodzaj === 'gemini') return (m.parts || []).every((p) => !p.functionResponse);
+  if (rodzaj === 'anthropic') return typeof m.content === 'string' || !m.content.some((c) => c.type === 'tool_result');
+  return true;
+};
+function odchudzWiadomosc(rodzaj, m) {
+  if (rodzaj === 'gemini') {
+    m.parts = (m.parts || []).map((p) => {
+      if (p.inline_data) return { text: '(obraz pominięty)' };
+      if (p.functionResponse?.response?.wynik) return { functionResponse: { ...p.functionResponse, response: { ...p.functionResponse.response, wynik: skrocone(p.functionResponse.response.wynik) } } };
+      return p;
+    });
+  } else if (rodzaj === 'anthropic') {
+    if (Array.isArray(m.content)) {
+      m.content = m.content.map((c) => {
+        if (c.type === 'image') return { type: 'text', text: '(obraz pominięty)' };
+        if (c.type === 'tool_result') return { ...c, content: skrocone(c.content) };
+        return c;
+      });
+    }
+  } else if (m.role === 'tool') m.content = skrocone(m.content);
+  else if (Array.isArray(m.content)) m.content = m.content.map((c) => (c.type === 'image_url' ? { type: 'text', text: '(obraz pominięty)' } : c));
+}
+export function przytnijHistorie(r, limit = LIMIT_HISTORII) {
+  const rozmiar = () => JSON.stringify(r.historia).length;
+  if (rozmiar() <= limit) return;
+  // Od końca szukamy ostatniej zwykłej wiadomości – ona i to, co po niej (bieżące pytanie), zostaje w całości.
+  let biezace = r.historia.length - 1;
+  while (biezace > 0 && !zwyklaWiadomosc(r.rodzaj, r.historia[biezace])) biezace -= 1;
+  for (let i = 0; i < biezace; i += 1) odchudzWiadomosc(r.rodzaj, r.historia[i]);
+  while (rozmiar() > limit) {
+    let nast = 1;
+    while (nast < biezace && !zwyklaWiadomosc(r.rodzaj, r.historia[nast])) nast += 1;
+    if (nast >= biezace) break;
+    r.historia.splice(0, nast);
+    biezace -= nast;
+  }
+}
+
 export async function zapytaj(r, tekst, { wykonaj, naKrok = () => {}, naTekst = null, obrazy = [], maksKrokow = 25, przerwij = () => false } = {}) {
+  const poczatek = r.historia.length;
   r.historia.push(wiadomoscUzytkownika(r.rodzaj, tekst, obrazy));
+  try {
+    return await petla(r, { wykonaj, naKrok, naTekst, maksKrokow, przerwij });
+  } catch (e) {
+    // Nieudane pytanie nie zostaje w rozmowie (#429): wcześniej w historii zostawało pytanie bez odpowiedzi
+    // (albo wywołanie narzędzia bez wyniku) i każde następne pytanie dostawca odrzucał – czat „przestawał działać”
+    // aż do zamknięcia. Teraz rozmowa wraca do stanu sprzed pytania i można spróbować jeszcze raz.
+    if (r.historia.length >= poczatek) r.historia.length = poczatek;
+    throw e;
+  }
+}
+
+async function petla(r, { wykonaj, naKrok, naTekst, maksKrokow, przerwij }) {
   let ostatni = '';
   for (let i = 0; i < maksKrokow; i += 1) {
     if (przerwij()) return { tekst: ostatni, przerwano: true };
+    przytnijHistorie(r);
     const k = naTekst ? await krokStrumien(r, naTekst) : await krok(r);
     naKrok(k);
     if (k.tekst) ostatni = k.tekst;

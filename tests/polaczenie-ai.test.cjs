@@ -145,3 +145,50 @@ test('Gemini: lista liczb w „enum” trafia do opisu – inaczej Gemini odrzuc
   assert.deepEqual(s, { type: 'object', properties: { dpi: { type: 'integer', description: 'Rozdzielczość (150 | 300 | 600)' }, jakosc: { type: 'string', enum: ['szkic', 'pro'] } } });
   assert.deepEqual(m.schematGemini({ type: 'string', enum: ['', 'x1a'] }), { type: 'string', enum: ['x1a'], description: '(puste = brak)' });
 });
+
+// #429: „łączyło się, a potem przestało” – nieudane pytanie nie psuje rozmowy, chwilowa przerwa sieci jest ponawiana,
+// a historia (wyniki narzędzi, obrazy) nie rośnie bez końca.
+test('czat po błędzie działa dalej, przerwa sieci ponowiona, długa historia przycięta', async () => {
+  const m = await modul();
+  m.czekanie.ms = async () => {};
+  const stary = globalThis.fetch;
+  const odpowiedzOk = (tekst) => new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: tekst } }] }), { status: 200 });
+  try {
+    const r = m.nowaRozmowa({ dostawca: 'openai', model: 'gpt-x', ust: { klucz: 'sk-1' }, system: 's', narzedzia: [] });
+    // Jedna przerwa sieci – druga próba przechodzi.
+    let n = 0;
+    globalThis.fetch = async () => { n += 1; if (n === 1) throw new TypeError('Failed to fetch'); return odpowiedzOk('a'); };
+    assert.equal((await m.zapytaj(r, 'pyt1', { wykonaj: async () => ({ tekst: '' }) })).tekst, 'a');
+    assert.equal(n, 2);
+    // Trwały błąd: pytanie nie zostaje w historii.
+    const dlugosc = r.historia.length;
+    globalThis.fetch = async () => { throw new TypeError('Failed to fetch'); };
+    await assert.rejects(m.zapytaj(r, 'pyt2', { wykonaj: async () => ({ tekst: '' }) }), /Nie udało się połączyć/);
+    assert.equal(r.historia.length, dlugosc);
+    // Wysyłane po błędzie – historia bez osieroconego pytania.
+    let wyslane = null;
+    globalThis.fetch = async (url, o) => { wyslane = JSON.parse(o.body).messages; return odpowiedzOk('b'); };
+    await m.zapytaj(r, 'pyt3', { wykonaj: async () => ({ tekst: '' }) });
+    assert.deepEqual(wyslane.filter((w) => w.role === 'user').map((w) => w.content), ['pyt1', 'pyt3']);
+
+    // Przycinanie: duże wyniki narzędzi skracane, a przy dalszym nadmiarze znikają najstarsze wymiany.
+    const g = { rodzaj: 'gemini', historia: [] };
+    const duzy = 'x'.repeat(200 * 1024);
+    for (let i = 0; i < 5; i += 1) {
+      g.historia.push({ role: 'user', parts: [{ inline_data: { mime_type: 'image/png', data: duzy } }, { text: `p${i}` }] });
+      g.historia.push({ role: 'model', parts: [{ functionCall: { name: 'czytaj', args: {} } }] });
+      g.historia.push({ role: 'user', parts: [{ functionResponse: { name: 'czytaj', response: { wynik: duzy } } }] });
+      g.historia.push({ role: 'model', parts: [{ text: `o${i}` }] });
+    }
+    g.historia.push({ role: 'user', parts: [{ text: 'teraz' }] });
+    m.przytnijHistorie(g, 10 * 1024);
+    assert.ok(JSON.stringify(g.historia).length <= 10 * 1024);
+    assert.deepEqual(g.historia.at(-1), { role: 'user', parts: [{ text: 'teraz' }] });
+    assert.ok(g.historia[0].role === 'user' && !g.historia[0].parts.some((p) => p.functionResponse), 'historia zaczyna się od zwykłej wiadomości');
+    assert.match(JSON.stringify(g.historia), /obraz pominięty/);
+    // Mała historia zostaje bez zmian.
+    const mala = { rodzaj: 'openai', historia: [{ role: 'user', content: 'a' }] };
+    m.przytnijHistorie(mala);
+    assert.deepEqual(mala.historia, [{ role: 'user', content: 'a' }]);
+  } finally { globalThis.fetch = stary; }
+});

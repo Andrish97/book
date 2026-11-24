@@ -277,7 +277,9 @@ has no key, the chat says so and offers an [AI settings] button.
 
 Write what to do (Enter sends, Shift+Enter — new line). The AI uses the same tools as the connector
 (→ 25.1); the chat shows which ones (🔧), and the changes appear in the editor right away. [Stop] halts
-after the current step.
+after the current step. Copy any message with the [Copy] button next to it. When a question fails (e.g. the network
+drops), the conversation goes back to how it was before it – just send it again. In a long conversation older tool results
+and images are shortened so the requests don't grow without end; the AI reads the project again when needed.
 
 - **The keys are encrypted and stored in your account.** With the first key, Makietka asks for an **AI keys password**
   (at least 8 characters, preferably different from your account password). The browser encrypts the key with it (AES-256) and only
