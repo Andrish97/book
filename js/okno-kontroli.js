@@ -1,10 +1,10 @@
 // Okno „Sprawdź przed drukiem”: uwagi do całego projektu, już po powieleniu serii.
 
-import { $ } from './ui.js';
+import { $, powiadom } from './ui.js';
 import { rozwin } from './serie.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { sprawdzMieszczenie } from './kontrola-skladu.js';
-import { t } from './jezyk.js';
+import { t, jezykDat } from './jezyk.js';
 
 // Wypełnia listę uwagami. Przy uwadze z numerami stron jest „Pokaż” – otwiera podgląd na pierwszej z tych
 // stron (już z danymi tego powielenia); przy uwadze o konkretnym elemencie także „Otwórz wzór” – stronę
@@ -42,6 +42,31 @@ export class OknoKontroli {
     this.nr = 0;
     $('#kontrola-zamknij').addEventListener('click', () => this.okno.close());
     this.okno.addEventListener('close', () => { this.nr += 1; });
+    $('#kontrola-kopiuj').addEventListener('click', () => this.kopiujRaport());
+  }
+
+  // Raport podsumowujący (#419): wszystkie uwagi jako zwykły tekst – do wklejenia w wiadomości, notatce
+  // albo rozmowie z AI. Nagłówek z nazwą projektu, datą i liczbą uwag, potem uwagi ponumerowane.
+  raport() {
+    const projekt = this.zrodlo.projekt();
+    const data = new Date().toLocaleString(jezykDat(), { dateStyle: 'medium', timeStyle: 'short' });
+    const uwagi = this.uwagi || [];
+    return [
+      t('oknoKontroli.raportNaglowek', { nazwa: projekt?.nazwa || '' }),
+      data,
+      $('#kontrola-stan').textContent,
+      '',
+      ...uwagi.map((u, i) => `${i + 1}. ${u.opis}`),
+    ].join('\n');
+  }
+
+  async kopiujRaport() {
+    try {
+      await navigator.clipboard.writeText(this.raport());
+      powiadom(t('oknoKontroli.skopiowanoRaport', { n: (this.uwagi || []).length }));
+    } catch {
+      powiadom(t('oknoKontroli.nieUdaloSieSkopiowac'), true);
+    }
   }
 
   async otworz() {
@@ -51,6 +76,9 @@ export class OknoKontroli {
     const nr = this.nr += 1;
     const lista = $('#kontrola-lista');
     const stan = $('#kontrola-stan');
+    const kopiuj = $('#kontrola-kopiuj');
+    kopiuj.hidden = true; // do końca sprawdzania – raport byłby niepełny
+    this.uwagi = null;
     const pokaz = {
       wzor: (idStrony, idObiektu) => { this.okno.close(); this.zrodlo.pokaz(idStrony, idObiektu); },
       wPodgladzie: this.zrodlo.pokazWPodgladzie ? (nrStrony) => { this.okno.close(); this.zrodlo.pokazWPodgladzie(nrStrony); } : null,
@@ -67,6 +95,7 @@ export class OknoKontroli {
     stan.textContent = uwagi.length
       ? t('oknoKontroli.doSprawdzeniaZadnaNie', { uwagiIle: uwagi.length })
       : t('oknoKontroli.wszystkoWPorzadkuBez', { egzemplarzeIle: ciag.egzemplarze.length });
-    this.uwagi = uwagi; // do testów
+    this.uwagi = uwagi; // do testów i raportu
+    kopiuj.hidden = !uwagi.length;
   }
 }

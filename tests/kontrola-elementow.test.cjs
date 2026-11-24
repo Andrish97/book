@@ -64,3 +64,31 @@ test('podsumowanie ma ostrzeżenia ze strony: margines, poza spadem, skład; bez
   assert.ok(w.opisy.some((o) => /„Za spadem” wychodzi poza spad/.test(o)));
   assert.deepEqual(bledy, []);
 });
+
+// #419: „Kopiuj raport” w oknie „Sprawdź przed drukiem” – wszystkie uwagi jako tekst w schowku: nagłówek z nazwą
+// projektu, data, liczba uwag i uwagi ponumerowane. Przycisk pojawia się po zakończeniu sprawdzania.
+test('Sprawdź przed drukiem: Kopiuj raport – wszystkie uwagi w schowku', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await strona.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await nowyProjekt(strona, 'Raport');
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.strony[0].obiekty = [
+      { type: 'textbox', version: '5.3.0', id: 'r1', text: 'Drobny dopisek', left: 20, top: 140, width: 60, height: 2, fontSize: 1.5, fontFamily: 'Inter' },
+      { type: 'rect', version: '5.3.0', id: 'r2', nazwa: 'Zgubiony', left: 400, top: 50, width: 10, height: 10, fill: '#000000' },
+    ];
+    await window.seriodruk.przeladuj();
+  });
+  await strona.click('#przycisk-wiecej');
+  await strona.click('[data-akcja="kontrola"]');
+  await strona.waitForSelector('#kontrola-kopiuj:not([hidden])');
+  await strona.click('#kontrola-kopiuj');
+  const tekst = await strona.evaluate(() => navigator.clipboard.readText());
+  const wiersze = tekst.split('\n');
+  assert.equal(wiersze[0], 'Sprawdź przed drukiem – Raport');
+  assert.match(wiersze[2], /2 uwagi do sprawdzenia/);
+  const uwagi = wiersze.filter((w) => /^\d+\. /.test(w));
+  assert.equal(uwagi.length, 2, tekst);
+  assert.ok(uwagi.some((w) => /Drobny dopisek/.test(w)) && uwagi.some((w) => /Zgubiony/.test(w)));
+  assert.deepEqual(bledy, []);
+});

@@ -273,3 +273,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „Dalej widzę jedną uwagę, a wiem, że jest więcej, np. o krótkich rzeczach w nowej linijce” – ✅ dwuliterowe spójniki i przyimki na końcu wiersza, krótki ostatni wiersz do 5 liter (#416).
 - „W uwagach przy stronie takie rzeczy są, a w podsumowaniu nie, a powinno być prawie wszystko w podsumowaniu” – ✅ margines i spad w podsumowaniu, bez fałszywych podwójnych spacji przy polach, wyciszone pomijane (#417).
 - „ale ma to robić po przeliczeniu na strony serii… sam nagłówek nie mieści się w polu, ale jego przeliczenie zawsze się będzie mieścić… ma być sprawdzane wszystko po przeliczeniu” – ✅ podsumowanie i ostrzeżenia przy stronie po przeliczeniu danych, nazwa pola nie poszerza ramki (#418).
+- „Możesz zrobić, żeby dało się skopiować wszystkie błędy (raport podsumowujący)?” – ✅ Kopiuj raport w oknie „Sprawdź przed drukiem” (#419).

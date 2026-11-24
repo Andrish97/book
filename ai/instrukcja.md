@@ -2075,7 +2075,7 @@ Lista miejsc do sprawdzenia, zanim wyślesz plik do drukarni.
 
 ![Sprawdź przed drukiem w menu ⋯](https://makietka.app/img/instrukcja/k-menu-kontrola.png)
 
-Lista ma wszystko, co ostrzeżenia przy stronie (z całego projektu naraz), i więcej. Każda strona wydruku jest sprawdzana po przeliczeniu – z jej danymi: tekst z polami, obraz z kolumny (rozdzielczość pliku tej strony), położenie, rozmiar i widoczność z danych, wzorce na lewej i prawej stronie. Elementy wyciszone przyciskiem **Wycisz** pomija.
+Lista ma wszystko, co ostrzeżenia przy stronie (z całego projektu naraz), i więcej. Każda strona wydruku jest sprawdzana po przeliczeniu – z jej danymi: tekst z polami, obraz z kolumny (rozdzielczość pliku tej strony), położenie, rozmiar i widoczność z danych, wzorce na lewej i prawej stronie. Elementy wyciszone przyciskiem **Wycisz** pomija. Przycisk **Kopiuj raport** (pod listą, po zakończeniu sprawdzania) kopiuje wszystkie uwagi jako tekst – z nazwą projektu, datą i numerami – do wklejenia w wiadomości do drukarni, notatce albo rozmowie z AI.
 
 | Uwaga | Co znaczy |
 |---|---|
