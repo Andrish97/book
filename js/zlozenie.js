@@ -274,14 +274,18 @@ export async function tekstyEgzemplarza(projekt, egz, ciag, { wszystkie = false 
   const wynik = [];
   const zrodla = [['strona', egz.strona.obiekty], ...wzorceStrony(projekt, egz.strona).map((w) => ['wzorzec', w.obiekty])];
   for (const [zrodlo, obiekty] of zrodla) {
-    const ramki = zbierz(podstawWObiektach(obiekty, wartosc)).filter((o) => wszystkie || o.ramka_h > 0 || o.watek);
+    const podstawione = podstawWObiektach(obiekty, wartosc);
+    const ramki = zbierz(podstawione).filter((o) => wszystkie || o.ramka_h > 0 || o.watek);
     if (!ramki.length) continue;
+    // Ramki najwyższego poziomu i ich zapisana wysokość (#431): kontrola położenia sprawdza złożony tekst, który
+    // w ramce rosnącej z tekstem bywa wyższy niż zapisany w projekcie.
+    const gorne = new Map(podstawione.filter((o) => o?.type === 'textbox').map((o) => [o.id, o]));
     const zywe = await ozyw(ramki);
     const idWatkow = new Set(ramki.filter((o) => o.watek).map((o) => o.watek));
     const zInnychStron = zrodlo === 'strona' && idWatkow.size ? await ramkiWatkowZInnychStron(projekt, egz, ciag, idWatkow, new Set(ramki.map((o) => o.id))) : [];
     for (const o of zywe) if (o.watek) o._bok = egz.bok;
     rozlejWatki([...zywe, ...zInnychStron]);
-    for (const o of zywe) wynik.push({ obiekt: o, zrodlo, id: o.id });
+    for (const o of zywe) wynik.push({ obiekt: o, zrodlo, id: o.id, ...(gorne.has(o.id) ? { zapisany: gorne.get(o.id) } : {}) });
   }
   return wynik;
 }

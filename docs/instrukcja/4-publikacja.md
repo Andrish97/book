@@ -200,7 +200,7 @@ Lista ma wszystko, co ostrzeżenia przy stronie (z całego projektu naraz), i wi
 | **Tabela wychodzi poza stronę** | Wiersze urosły razem z treścią i tabela wyszła poza kartkę. |
 | **Niepełna składka** | Sekcji brakuje stron do pełnej składki (→ 10.7); przy oprawie zeszytowej — liczba stron niepodzielna przez 4. |
 | **Pokrycie farbą** | Kolor elementu po przeliczeniu profilem drukarni daje ponad 300% farby — po otwarciu podglądu separacji z profilem albo eksporcie PDF/X-4 (→ 22.6). |
-| **Element w marginesie albo poza spadem** | Jak na liście ostrzeżeń w edytorze (→ 12.2). |
+| **Element w marginesie albo poza spadem** | Jak na liście ostrzeżeń w edytorze (→ 12.2). Ramka rosnąca z tekstem jest sprawdzana po złożeniu tekstu z danymi tej strony — gdy tekst urośnie w margines albo poza stronę, uwaga też się pojawi. |
 
 [Pokaż] przy uwadze otwiera podgląd na pierwszej stronie, której uwaga dotyczy, z wyróżnioną
 kartką. [Otwórz wzór] otwiera w edytorze stronę-wzór. Uwagi nie blokują eksportu — ta sama lista

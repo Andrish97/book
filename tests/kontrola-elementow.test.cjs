@@ -162,3 +162,31 @@ test('kontrola elementów: SVG bez uwagi o dpi', async (t) => {
   assert.deepEqual(uwagi, ['j1']);
   assert.deepEqual(bledy, []);
 });
+
+// #431: ramka rosnąca z tekstem – w edytorze pomarańczowa (tekst urósł w margines), a „Sprawdź przed drukiem” liczył
+// położenie z wysokości zapisanej w projekcie (np. przed podstawieniem dłuższych danych) i nic nie pokazywał.
+test('ramka rosnąca z tekstem: margines liczony ze złożonego tekstu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Rosnąca ramka');
+  const w = await strona.evaluate(async () => {
+    const e = window.seriodruk.edytor;
+    const { stan } = window.seriodruk;
+    const H = e.wydruk?.wysokosc_mm || stan.projekt.sekcje?.[0]?.wydruk?.wysokosc_mm;
+    const tx = 'Dziesięcina – dziesiąta część plonów i dochodu oddawana Bogu na utrzymanie służby. '.repeat(6);
+    const a = e.dodajTekst(tx); a.set({ id: 'rosnie', left: 30, top: H - 60, width: 60, fontSize: 4 });
+    a.initDimensions();
+    e.zatwierdz?.();
+    await window.seriodruk.zapiszTeraz?.();
+    const { sprawdzWszystko } = await import('./js/kontrola-skladu.js');
+    const zapisany = stan.projekt.strony[0].obiekty.find((o) => o.id === 'rosnie');
+    const przed = (await sprawdzWszystko(stan.projekt)).filter((u) => u.idObiektu === 'rosnie').map((u) => u.rodzaj);
+    zapisany.height = 8; // zapisana wysokość mniejsza niż tekst po złożeniu (dane, inna wersja, AI)
+    const po = (await sprawdzWszystko(stan.projekt)).filter((u) => u.idObiektu === 'rosnie');
+    return { przed, po: po.map((u) => u.rodzaj), opis: po.map((u) => u.opis).join(' | '), wys: a.height, H };
+  });
+  assert.ok(w.wys > 60, `tekst wyższy niż miejsce do dołu strony (${w.wys})`);
+  assert.equal(w.przed.filter((r) => /margines|spad|strona|krawedzi/.test(r)).length, 1, `jedna uwaga o położeniu: ${w.przed}`);
+  assert.equal(w.po.filter((r) => /margines|spad|strona|krawedzi/.test(r)).length, 1, `po zmianie zapisanej wysokości dalej jedna: ${w.po}`);
+  assert.match(w.opis, /Dziesięcina.*strona 1/);
+  assert.deepEqual(bledy, []);
+});

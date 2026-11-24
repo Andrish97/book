@@ -24,7 +24,7 @@ const lista = (numery) => {
   const n = [...new Set(numery)].sort((a, b) => a - b);
   return n.length > 8 ? `${n.slice(0, 8).join(', ')}…` : n.join(', ');
 };
-const zwyklaSekcja = (sekcja) => !sekcja.okladka && !sekcja.wydruk?.okladka && !(sekcja.specjalna && sekcja.specjalna.rodzaj !== 'kalendarz') && !sekcja.wydruk?.specjalna;
+export const zwyklaSekcja = (sekcja) => !sekcja.okladka && !sekcja.wydruk?.okladka && !(sekcja.specjalna && sekcja.specjalna.rodzaj !== 'kalendarz') && !sekcja.wydruk?.specjalna;
 // Rysunek wektorowy (SVG) nie ma rozdzielczości – drukuje się ostro w każdym rozmiarze (#421).
 const wektorowy = (zasob, o) => /\.svgz?$/i.test(zasob?.nazwa || '') || /^data:image\/svg/i.test(zasob?.dataUrl || '')
   || /svg/i.test(zasob?.typ || zasob?.mime || '') || /\.svgz?$/i.test(o?.nazwa || '') || /^data:image\/svg/i.test(o?.src || '');
@@ -41,6 +41,20 @@ function rodzinyWTekscie(o) {
   for (const wiersz of Object.values(o.styles || {})) for (const z of Object.values(wiersz || {})) if (z?.fontFamily) r.add(z.fontFamily);
   return r;
 }
+
+// Położenie ramki tekstu na stronie (jak niżej w uwagiElementow, dla tekstu): 'poza_strona' | 'poza_spadem' |
+// 'przy_krawedzi' | 'w_marginesie' | null. Do kontroli złożonego tekstu (#431) – ramka rosnąca z tekstem.
+export function polozenieTekstu({ x1, y1, x2, y2 }, { W, H, spad = 0, marginesy = [] }) {
+  const tol = 0.05;
+  if (x2 <= -spad || y2 <= -spad || x1 >= W + spad || y1 >= H + spad) return 'poza_strona';
+  if (x1 < -spad - tol || y1 < -spad - tol || x2 > W + spad + tol || y2 > H + spad + tol) return 'poza_spadem';
+  if ((x1 < BEZPIECZNA_MM || y1 < BEZPIECZNA_MM || x2 > W - BEZPIECZNA_MM || y2 > H - BEZPIECZNA_MM) && x1 > -spad && y1 > -spad && x2 < W + spad && y2 < H + spad) return 'przy_krawedzi';
+  if (spad > 0 && (x1 <= -spad + tol || y1 <= -spad + tol || x2 >= W + spad - tol || y2 >= H + spad - tol)) return null;
+  if (marginesy.some((m) => x1 < m.lewy - tol || y1 < m.gora - tol || x2 > W - m.prawy + tol || y2 > H - m.dol + tol)) return 'w_marginesie';
+  return null;
+}
+export const KLUCZ_POLOZENIA = { poza_strona: 'kontrolaElementow.pozaStrona', poza_spadem: 'kontrolaElementow.pozaSpadem', przy_krawedzi: 'kontrolaElementow.przyKrawedzi', w_marginesie: 'kontrolaElementow.wMarginesie' };
+export const listaStron = lista;
 
 // Uwagi: [{ rodzaj, opis, strony, idStrony, idObiektu }].
 export function uwagiElementow(projekt, ciag = rozwin(projekt)) {

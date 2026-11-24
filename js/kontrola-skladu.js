@@ -8,6 +8,27 @@ import { nieMiesciSie } from './tekst-ramka.js';
 import { uwagiSkladuTekstu } from './zasady-skladu.js';
 import { sprawdzProjekt } from './kontrola.js';
 import { t as tt } from './jezyk.js';
+import { polozenieTekstu, KLUCZ_POLOZENIA, BEZPIECZNA_MM, zwyklaSekcja, listaStron } from './kontrola-elementow.js';
+import { marginesyStrony } from './projekt.js';
+
+// Ramka rosnąca z tekstem (#431): położenie liczone z wysokości złożonego tekstu, a nie zapisanej w projekcie –
+// tekst, który urósł w margines albo poza stronę, był widoczny w edytorze (pomarańczowa ramka), a w „Sprawdź przed
+// drukiem” nie. Uwaga tylko wtedy, gdy zapisana wysokość jej nie daje (tamtą zgłasza już kontrola elementów).
+function polozenieZlozonego(obiekt, zapisany, wymiary) {
+  if (!zapisany || obiekt.visible === false || obiekt.bez_ostrzezen || obiekt.ramka_h > 0 || obiekt.watek || (obiekt.angle || 0) % 360 || obiekt.kadr || obiekt.kadr_nr != null) return null;
+  if (!String(obiekt.text || '').trim()) return null;
+  const w = (obiekt.width || 0) * (obiekt.scaleX || 1);
+  const pudlo = (h) => {
+    const x1 = obiekt.originX === 'center' ? obiekt.left - w / 2 : obiekt.left;
+    const y1 = obiekt.originY === 'center' ? obiekt.top - h / 2 : obiekt.top;
+    return { x1, y1, x2: x1 + w, y2: y1 + h };
+  };
+  const hZ = (obiekt.height || 0) * (obiekt.scaleY || 1);
+  const hZap = (zapisany.height || 0) * (zapisany.scaleY || 1);
+  if (!(w > 0) || !(hZ > hZap + 0.05)) return null;
+  const teraz = polozenieTekstu(pudlo(hZ), wymiary);
+  return teraz && teraz !== polozenieTekstu(pudlo(hZap), wymiary) ? teraz : null;
+}
 
 const lista = (numery, ile = 8) => {
   const n = [...new Set(numery)].sort((a, b) => a - b);
@@ -21,6 +42,7 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
   const wystapienia = new Map(); // id obiektu → { nazwa, strony, idStrony }
   const sklad = new Map(); // id obiektu → { nazwa, strony, idStrony, powody: Map(opis → przykład) } (#323)
   const tabele = new Map(); // id tabeli → { nazwa, strony, idStrony, ile (największe wyjście poza stronę, mm) }
+  const polozenie = new Map(); // rodzaj|id → { rodzaj, nazwa, strony, idStrony, idObiektu, wzorzec } (#431)
   let licznik = 0;
   for (const egz of ciag.egzemplarze) {
     if (przerwij?.()) return [];
@@ -39,7 +61,16 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
     }
     // Wszystkie ramki tekstu (#413): polskie zasady składu dotyczą też ramek rosnących z tekstem – wcześniej
     // sprawdzane były tylko ramki o stałej wysokości, więc uwagi z edytora nie trafiały do „Sprawdź przed drukiem”.
-    for (const { obiekt, zrodlo, id } of await tekstyEgzemplarza(projekt, egz, ciag, { wszystkie: true })) {
+    const wymiary = { W: w, H: h, spad: egz.sekcja.wydruk.spad_mm || 0, marginesy: zwyklaSekcja(egz.sekcja) ? [marginesyStrony(projekt, egz.strona, egz.bok)] : [] };
+    for (const { obiekt, zrodlo, id, zapisany } of await tekstyEgzemplarza(projekt, egz, ciag, { wszystkie: true })) {
+      const gdzie = polozenieZlozonego(obiekt, zapisany, wymiary);
+      if (gdzie) {
+        const k = `${gdzie}|${id}`;
+        const tresc1 = (obiekt.nazwa || obiekt.text || '').replace(/\s+/g, ' ').trim();
+        const p = polozenie.get(k) || { rodzaj: gdzie, nazwa: tresc1.length > 30 ? `${tresc1.slice(0, 30)}…` : tresc1, strony: [], idStrony: zrodlo === 'strona' ? egz.strona.id : null, idObiektu: id, zWzorca: zrodlo === 'wzorzec' };
+        if (!p.strony.includes(egz.indeks + 1)) p.strony.push(egz.indeks + 1);
+        polozenie.set(k, p);
+      }
       const uw = uwagiSkladuTekstu(obiekt);
       if (uw.length) {
         const tresc0 = (obiekt.nazwa || obiekt.text || '').replace(/\s+/g, ' ').trim();
@@ -64,6 +95,9 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
   })), ...[...tabele].map(([idObiektu, t]) => ({
     rodzaj: 'tabela_poza_strona', strony: t.strony, idStrony: t.idStrony, idObiektu,
     opis: tt('kontrolaSkladu.tabelaPoWypelnieniuDanymi', { x: t.nazwa ? ` „${t.nazwa}”` : '', x2: t.zWzorca ? tt('kontrolaSkladu.zeWzorca') : '', replace: String(Math.round(t.ile * 10) / 10).replace('.', ','), size: new Set(t.strony).size, lista: lista(t.strony) }),
+  })), ...[...polozenie.values()].map(({ rodzaj, nazwa, strony, idStrony, idObiektu, zWzorca }) => ({
+    rodzaj, strony, idStrony, idObiektu,
+    opis: tt(KLUCZ_POLOZENIA[rodzaj], { nazwa, mm: BEZPIECZNA_MM, gdzie: `${zWzorca ? `${tt('kontrolaSkladu.zeWzorca').trim()}, ` : ''}${tt('kontrolaElementow.naStronach', { lista: listaStron(strony) })}` }),
   })), ...[...sklad].map(([idObiektu, s]) => ({
     rodzaj: 'sklad_pl', strony: s.strony, idStrony: s.idStrony, idObiektu, ...(s.znaki ? { naprawa: 'znaki' } : {}),
     opis: tt('kontrolaSkladu.tekstSkladNiezgodnyZ', { nazwa: s.nazwa, x: s.zWzorca ? tt('kontrolaSkladu.zeWzorca') : '', join: [...s.powody].map(([o, p]) => (p ? `${o} („${p}”)` : o)).join('; '), size: new Set(s.strony).size, lista: lista(s.strony) }),

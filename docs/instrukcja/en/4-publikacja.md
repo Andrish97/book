@@ -200,7 +200,7 @@ The list has everything the warnings next to the page show (for the whole projec
 | **Table goes off the page** | The rows grew with the content and the table went off the sheet. |
 | **Incomplete signature** | A section is short of pages for a full signature (→ 10.7); with saddle-stitch binding — the page count isn't divisible by 4. |
 | **Ink coverage** | An element's color, converted with the printer profile, gives over 300% ink — after you open the separations preview with a profile or export PDF/X-4 (→ 22.6). |
-| **Element in the margin or outside the bleed** | As in the warnings list in the editor (→ 12.2). |
+| **Element in the margin or outside the bleed** | As in the warnings list in the editor (→ 12.2). A frame that grows with its text is checked after the text is laid out with that page's data — when the text grows into the margin or off the page, the issue shows up too. |
 
 [Show] next to an issue opens the preview at the first page it concerns, with that
 sheet highlighted. [Open template] opens the template page in the editor. Issues don't block export — the same list
