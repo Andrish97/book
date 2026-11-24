@@ -25,6 +25,9 @@ const lista = (numery) => {
   return n.length > 8 ? `${n.slice(0, 8).join(', ')}…` : n.join(', ');
 };
 const zwyklaSekcja = (sekcja) => !sekcja.okladka && !sekcja.wydruk?.okladka && !(sekcja.specjalna && sekcja.specjalna.rodzaj !== 'kalendarz') && !sekcja.wydruk?.specjalna;
+// Rysunek wektorowy (SVG) nie ma rozdzielczości – drukuje się ostro w każdym rozmiarze (#421).
+const wektorowy = (zasob, o) => /\.svgz?$/i.test(zasob?.nazwa || '') || /^data:image\/svg/i.test(zasob?.dataUrl || '')
+  || /svg/i.test(zasob?.typ || zasob?.mime || '') || /\.svgz?$/i.test(o?.nazwa || '') || /^data:image\/svg/i.test(o?.src || '');
 const maObrys = (o) => o.stroke && o.stroke !== 'transparent' && !/^rgba\([^)]*,\s*0\)$/.test(o.stroke) && (o.strokeWidth || 0) > 0;
 const maWypelnienie = (o) => o.fill && o.fill !== 'transparent' && o.fill !== '' && !/^rgba\([^)]*,\s*0\)$/.test(String(o.fill));
 
@@ -65,13 +68,13 @@ export function uwagiElementow(projekt, ciag = rozwin(projekt)) {
       };
       const has = (rodzaj) => naTejStronie.has(`${rodzaj}|${o.id}`);
       // Zdjęcie: piksele oryginału na milimetr druku (width w pikselach, scaleX – mm na piksel).
-      if (o.type === 'image' && o.zasob && !o.ramka_pola && !o.pole?.kolumna && sx > 0) { // obraz-wzór kolumny bez danych – osobna uwaga o brakującej kolumnie
+      if (o.type === 'image' && o.zasob && !o.ramka_pola && !o.pole?.kolumna && sx > 0 && !wektorowy(projekt.zasoby?.[o.zasob], o)) { // obraz-wzór kolumny bez danych – osobna uwaga o brakującej kolumnie
         const dpi = Math.round(25.4 / sx);
         if (dpi < PROG_DPI) u('obraz_dpi', 'kontrolaElementow.obrazDpi', { dpi });
       }
       // Obraz z kolumny danych: plik tej strony wpisany w ramkę (wypełnij – na całą ramkę, inaczej – cały obraz).
       const plik = o.type === 'image' && o.ramka_pola && projekt.zasoby?.[o.zasob];
-      if (plik?.szer > 0 && plik?.wys > 0) {
+      if (plik?.szer > 0 && plik?.wys > 0 && !wektorowy(plik)) {
         const rw = o.ramka_pola.w * skala; const rh = o.ramka_pola.h * skala;
         const mmNaPx = o.pole?.tryb === 'wypelnij' ? Math.max(rw / plik.szer, rh / plik.wys) : Math.min(rw / plik.szer, rh / plik.wys);
         const dpi = Math.round(25.4 / mmNaPx);

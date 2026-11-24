@@ -132,3 +132,23 @@ test('poważne uwagi na czerwono i pytanie przed eksportem PDF', async (t) => {
   assert.equal(await strona.evaluate(() => window.seriodruk.oknoPdf.trwa), false, 'po „Wróć i popraw” eksport się nie zaczął');
   assert.deepEqual(bledy, []);
 });
+
+// #421: rysunek SVG (np. kod kreskowy wgrany jako obraz) jest wektorowy – bez uwagi o rozdzielczości, nawet gdy jego
+// „piksele” (rozmiar z viewBox) rozciągnięte na stronie dają mało dpi; zdjęcie obok – z uwagą.
+test('kontrola elementów: SVG bez uwagi o dpi', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Wektor');
+  const uwagi = await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    p.zasoby.svg = { nazwa: 'kod-isbn-przyklad.svg', szer: 120, wys: 60 };
+    p.zasoby.jpg = { nazwa: 'zdjecie.jpg', szer: 120, wys: 60 };
+    p.strony[0].obiekty = [
+      { type: 'image', id: 's1', zasob: 'svg', nazwa: 'kod-isbn-przyklad.svg', left: 20, top: 20, width: 120, height: 60, scaleX: 0.265, scaleY: 0.265 }, // ok. 96 „dpi”
+      { type: 'image', id: 'j1', zasob: 'jpg', nazwa: 'zdjecie.jpg', left: 20, top: 60, width: 120, height: 60, scaleX: 0.265, scaleY: 0.265 },
+    ];
+    const { sprawdzProjekt } = await import('./js/kontrola.js');
+    return sprawdzProjekt(p).filter((u) => u.rodzaj === 'obraz_dpi').map((u) => u.idObiektu);
+  });
+  assert.deepEqual(uwagi, ['j1']);
+  assert.deepEqual(bledy, []);
+});

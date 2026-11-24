@@ -275,3 +275,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „ale ma to robić po przeliczeniu na strony serii… sam nagłówek nie mieści się w polu, ale jego przeliczenie zawsze się będzie mieścić… ma być sprawdzane wszystko po przeliczeniu” – ✅ podsumowanie i ostrzeżenia przy stronie po przeliczeniu danych, nazwa pola nie poszerza ramki (#418).
 - „Możesz zrobić, żeby dało się skopiować wszystkie błędy (raport podsumowujący)?” – ✅ Kopiuj raport w oknie „Sprawdź przed drukiem” (#419).
 - „Możesz zrobić o poważnych uwagach i wszędzie je zaznaczyć na czerwono, a nie na pomarańczowo” – ✅ poważne uwagi na czerwono, pytanie przed eksportem PDF (#420).
+- „dlaczego svg mówi coś o dpi, skoro to wektor” – ✅ SVG bez uwagi o rozdzielczości (#421).

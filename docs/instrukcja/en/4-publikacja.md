@@ -185,7 +185,7 @@ The list has everything the warnings next to the page show (for the whole projec
 | **Missing image file** | The table contains the name of an image that hasn't been uploaded. |
 | **Duplicates** | The same value in a column marked **≠**, with page numbers. |
 | **Values outside the list** | Values outside the list of a column marked **☰**, with row numbers. |
-| **Low image resolution** | The image has less than 200 dpi in print (ideally 300) – it may come out blurry. Make it smaller on the page or upload a larger file. |
+| **Low image resolution** | The image has less than 200 dpi in print (ideally 300) – it may come out blurry. Make it smaller on the page or upload a larger file. Doesn't apply to SVG drawings – they are vector, sharp at any size. |
 | **Text too small** | Text smaller than 6 pt – hard to read in print, thin letter strokes may disappear. |
 | **Line too thin** | A stroke thinner than 0.1 mm may not print. |
 | **Missing font** | The text uses a font that isn't in the project or in Makietka – another one replaces it in the PDF; upload it in Project fonts. |

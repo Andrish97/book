@@ -185,7 +185,7 @@ Lista ma wszystko, co ostrzeżenia przy stronie (z całego projektu naraz), i wi
 | **Brak pliku obrazu** | W tabeli jest nazwa obrazu, którego nie wgrano. |
 | **Powtórzenia** | Ta sama wartość w kolumnie z **≠**, z numerami stron. |
 | **Wartości spoza listy** | Wartości spoza listy kolumny z **☰**, z numerami wierszy. |
-| **Niska rozdzielczość zdjęcia** | Zdjęcie ma w druku mniej niż 200 dpi (najlepiej 300) – może wyjść nieostre. Zmniejsz je na stronie albo wgraj większy plik. |
+| **Niska rozdzielczość zdjęcia** | Zdjęcie ma w druku mniej niż 200 dpi (najlepiej 300) – może wyjść nieostre. Zmniejsz je na stronie albo wgraj większy plik. Rysunków SVG nie dotyczy – są wektorowe, ostre w każdym rozmiarze. |
 | **Za mały tekst** | Tekst mniejszy niż 6 pt – w druku trudny do czytania, cienkie kreski liter mogą zniknąć. |
 | **Za cienka linia** | Obrys cieńszy niż 0,1 mm może się nie wydrukować. |
 | **Brak czcionki** | Tekst używa czcionki, której nie ma w projekcie ani w Makietce – w PDF zastąpi ją inna; wgraj ją w Czcionkach projektu. |
