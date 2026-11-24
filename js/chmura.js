@@ -719,6 +719,13 @@ export async function krotkiLink(projektId, kodLinku) {
   if (error) throw error;
   return data;
 }
+// Linki podglądu projektu zapisane w bazie (#428): [{ kod, krotki, konto, chroniony, haslo, wazny_do }].
+export async function linkiProjektuWBazie(projektId) {
+  const sb = await supabase();
+  const { data, error } = await sb.rpc('linki_projektu', { p_projekt: projektId });
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
 export async function rozwinKrotkiLink(kod) {
   const sb = await supabase();
   const { data, error } = await sb.rpc('krotki_link', { p_kod: kod });

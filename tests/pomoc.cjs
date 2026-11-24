@@ -362,6 +362,16 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       }
       return json(r, 200, wynik);
     }
+    if (sc.startsWith('/rest/v1/rpc/linki_projektu')) {
+      // #428: linki projektu w bazie – krótkie kody z ochroną (jak public.linki_projektu).
+      const k = zTokenu(req);
+      if (!k) return blad(r, 401, 'Brak sesji', 'PGRST301');
+      const wynik = [...(stan.krotkie || new Map())].filter(([, w]) => w.projekt === tresc.p_projekt && w.konto === k.id).map(([kod, w]) => {
+        const ch = (stan.chronione || new Map()).get(`${k.id}/${w.projekt}/${w.kod}`);
+        return { kod: w.kod, krotki: kod, konto: w.konto, chroniony: Boolean(ch), haslo: Boolean(ch?.haslo), wazny_do: ch?.wazny_do || null };
+      });
+      return json(r, 200, wynik);
+    }
     if (sc.startsWith('/rest/v1/rpc/krotki_link')) {
       const k = zTokenu(req);
       const funkcja = sc.slice('/rest/v1/rpc/'.length);

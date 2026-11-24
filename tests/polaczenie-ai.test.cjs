@@ -18,7 +18,24 @@ test('błędy dostawców: czytelne komunikaty', async () => {
   assert.match(k(404, 'model: claude-x not found'), /^Model niedostępny/);
   assert.match(k(400, 'tools are not supported for this model'), /nie obsługuje narzędzi/);
   assert.match(k(529, 'Overloaded'), /przeciążony/);
-  assert.match(k(0), /Brak połączenia z dostawcą/);
+  // #428: zapytanie nie wyszło z przeglądarki – zły znak w kluczu osobno, inaczej „nie udało się połączyć” ze szczegółem.
+  assert.match(k(0), /Nie udało się połączyć z dostawcą/);
+  assert.match(k(0, '', new TypeError("Failed to execute 'fetch' on 'Window': Invalid value")), /^Klucz API ma znak, którego nie da się wysłać/);
+  assert.match(k(0, '', new TypeError('Failed to fetch')), /Nie udało się połączyć z dostawcą.*\(Failed to fetch\)/);
+});
+
+// #428: klucz wklejony z enterem albo spacją – oczyszczony przed wysłaniem.
+test('klucz z białymi znakami jest oczyszczany', async () => {
+  const m = await modul();
+  const stary = globalThis.fetch;
+  try {
+    let naglowek = null;
+    globalThis.fetch = async (url, o) => { naglowek = o.headers.authorization; return new Response('{"data":[{"id":"gpt-x"}]}', { status: 200 }); };
+    await m.modeleDostawcy('openai', { klucz: ' sk-abc\n123 ' });
+    assert.equal(naglowek, 'Bearer sk-abc123');
+    const r = m.nowaRozmowa({ dostawca: 'openai', model: 'gpt-x', ust: { klucz: 'sk-1\r\n' }, system: '', narzedzia: [] });
+    assert.equal(r.klucz, 'sk-1');
+  } finally { globalThis.fetch = stary; }
 });
 
 test('przeciążenie: dwie kolejne próby, potem czytelny błąd; brak środków – bez ponawiania', async () => {
@@ -39,7 +56,7 @@ test('przeciążenie: dwie kolejne próby, potem czytelny błąd; brak środków
     await assert.rejects(m.modeleDostawcy('openai', { klucz: 'k' }), /Brak środków/);
     assert.equal(n, 1, 'brak środków – od razu');
     globalThis.fetch = async () => { throw new TypeError('Failed to fetch'); };
-    await assert.rejects(m.modeleDostawcy('openai', { klucz: 'k' }), /Brak połączenia/);
+    await assert.rejects(m.modeleDostawcy('openai', { klucz: 'k' }), /Nie udało się połączyć z dostawcą/);
   } finally { globalThis.fetch = stary; }
 });
 

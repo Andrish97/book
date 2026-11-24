@@ -74,3 +74,31 @@ test('link sprzed #426 (udostepnienie, znak wodny i makieta projektu) staje się
   assert.deepEqual(w.stare, [undefined, undefined, undefined]);
   assert.deepEqual(bledy, []);
 });
+
+// #428: link, który działa (jest w bazie), a nie ma go na liście projektu – np. Makietkę zamknięto, zanim projekt
+// zapisał się z nowym linkiem – wraca na listę jako „Odzyskany link” przy otwarciu okna Udostępnij.
+test('link zgubiony z listy projektu wraca przy otwarciu okna (z bazy)', async (t) => {
+  const { strona, bledy } = await otworz(t, { tryb: 'atrapa' });
+  await strona.fill('#form-logowania input[name=email]', 'anna@test.pl');
+  await strona.fill('#form-logowania input[name=haslo]', 'Dobre#Haslo1');
+  await strona.click('#przycisk-logowania');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'projekty' && [...document.querySelectorAll('.karta-projektu:not(.szkielet), #pusto-projekty')].some((e) => e.offsetParent));
+  await nowyProjekt(strona, 'Zgubiony link');
+  await strona.click('[data-akcja="podglad"]');
+  await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.fill('#udostepnij-nazwa', 'Pierwszy');
+  await strona.click('#udostepnij-utworz');
+  await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 30000 });
+  const adres = await strona.inputValue('#udostepnij-link');
+  // Projekt „zapomniał” link (jak po zamknięciu Makietki przed zapisem) – w bazie link dalej jest.
+  await strona.click('[data-akcja="udostepnij-zamknij"]');
+  await strona.evaluate(() => { delete window.seriodruk.stan.projekt.udostepnienia; });
+  await strona.click('[data-akcja="udostepnij"]');
+  await strona.waitForFunction(() => window.seriodruk.stan.projekt.udostepnienia?.length === 1, null, { timeout: 15000 });
+  const l = await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienia[0]);
+  assert.equal(l.nazwa, 'Odzyskany link');
+  assert.equal(`${new URL(adres).origin}/${l.krotki}`, adres, 'ten sam krótki adres');
+  await strona.waitForFunction((a) => document.querySelector('#udostepnij-link')?.value === a, adres);
+  assert.deepEqual(bledy, []);
+});

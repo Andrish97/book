@@ -522,12 +522,29 @@ export async function otworzUdostepnianie(projekt = null) {
     if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
     return;
   }
-  let nowe = false;
+  let nowe = await odzyskajLinki(p);
   for (const L of linkiProjektu(p)) if (L.kod && !L.krotki && await naLinku(p, L, (W) => zapewnijKrotki(W, { sprawdz: true }))) nowe = true;
   if (nowe) {
     zapiszProjektLinku(p).catch(() => {});
-    if ($('#dlg-udostepnij').open) odswiezOknoUdostepnianiaZachowujacKomunikat();
+    if ($('#dlg-udostepnij').open) { if (!wybrany) { wybrany = linkiProjektu(p)[0] || null; wypelnijUstawieniaLinku(p); } odswiezOknoUdostepnianiaZachowujacKomunikat(); }
   }
+}
+
+// Linki, które działają (są w bazie), a nie ma ich na liście projektu (#428) – np. Makietkę zamknięto, zanim projekt
+// zapisał się z nowym linkiem. Wracają na listę jako „Odzyskany link” (z ochroną z bazy; znak wodny i makietę 3D
+// ustawisz od nowa). Bez sieci albo przy błędzie – nic.
+async function odzyskajLinki(p) {
+  if (!stan.uzytkownik || !navigator.onLine || !p?.id) return false;
+  let wBazie = [];
+  try { wBazie = await chmura.linkiProjektuWBazie(p.id); } catch { return false; }
+  const znane = new Set(linkiProjektu(p).map((L) => L.kod));
+  const brakujace = wBazie.filter((x) => x?.kod && !znane.has(x.kod));
+  if (!brakujace.length) return false;
+  p.udostepnienia = [...linkiProjektu(p), ...brakujace.map((x) => ({
+    id: nowyIdLinku(), nazwa: t('podgladEkran.linkOdzyskany'), kod: x.kod, konto: x.konto, krotki: x.krotki,
+    ...(x.chroniony ? { ochrona: { haslo: Boolean(x.haslo), wazny_do: x.wazny_do || null } } : {}),
+  }))];
+  return true;
 }
 
 // Nazwa linku (#426) – widać ją na liście linków.
@@ -647,9 +664,9 @@ async function usunCudzeLinki(p) {
 // adres działa dalej. Zapis projektu niesie kod na konto i na inne urządzenia.
 export async function uzupelnijKrotkiLink() {
   const p = stan.projekt;
-  if (!linkiProjektu(p).length || !navigator.onLine) return;
+  if (!p || !navigator.onLine) return;
   if (await usunCudzeLinki(p)) return;
-  let nowe = false;
+  let nowe = await odzyskajLinki(p);
   for (const L of linkiProjektu(p)) if (L.kod && !L.krotki && await naLinku(p, L, (W) => zapewnijKrotki(W, { sprawdz: true }))) nowe = true;
   if (nowe && stan.projekt === p) zapiszTeraz().catch(() => {});
 }
@@ -736,6 +753,9 @@ export async function opublikujUdostepnienie() {
         naLink: async (W2) => {
           przepiszLink(L, W2);
           linkJest = true;
+          // Link działa – projekt zapisuje się z nim od razu (#428): zamknięcie Makietki w trakcie rysowania stron
+          // (przy rysowaniu na serwerze wolno) nie gubi go z listy.
+          zapisz().catch(() => {});
           odswiezOknoUdostepnianiaZachowujacKomunikat();
           komunikat.textContent = t('podgladEkran.linkGotowyMozeszGo');
           for (const b of [$('#udostepnij-utworz'), $('#udostepnij-teraz')]) b.disabled = true;

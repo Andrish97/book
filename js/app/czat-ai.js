@@ -14,6 +14,7 @@ import { zapiszTeraz, sprawdzKonto, synchronizuj } from './zapis.js';
 import { wymagaZgody } from '../zgoda-ai.js';
 import { NARZEDZIA_LOKALNE, nazwyLokalne, wykonajLokalne } from './czat-narzedzia-lokalne.js';
 import { t as tt, biezacyJezyk } from '../jezyk.js';
+import { ikona } from '../ikony.js';
 
 const dlg = $('#dlg-czat-ai');
 const lista = $('#czat-ai-wiadomosci');
@@ -117,7 +118,17 @@ const ustDostawcy = (u = ustawienia(), id = u.dostawca) => ({ model: DOSTAWCY[id
 function dopisz(rodzaj, tekst) {
   const li = document.createElement('li');
   li.className = rodzaj;
-  li.textContent = tekst;
+  if (rodzaj === 'ai' || rodzaj === 'ja') {
+    // Wiadomość z przyciskiem „Kopiuj” (#428: na telefonie zaznaczenie przytrzymaniem bywa kłopotliwe). Tekst
+    // w osobnym elemencie – odpowiedź dopisywana na bieżąco (streaming) nie kasuje przycisku.
+    li.tresc = Object.assign(document.createElement('span'), { className: 'czat-ai-tresc', textContent: tekst });
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk-ikona czat-ai-kopiuj', title: tt('czatAi.kopiujWiadomosc'), ariaLabel: tt('czatAi.kopiujWiadomosc') });
+    b.innerHTML = ikona('kopiuj', { rozmiar: 16 });
+    b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(li.tresc.textContent); powiadom(tt('czatAi.wiadomoscSkopiowana')); } catch { powiadom(tt('czatAi.przegladarkaNiePozwolilaSkopiowac'), true); }
+    });
+    li.append(li.tresc, b);
+  } else li.textContent = tekst;
   lista.append(li);
   lista.scrollTop = lista.scrollHeight;
   return li;
@@ -169,6 +180,8 @@ async function kluczDostepu(projektId, rola) {
 }
 
 // Narzędzia łącznika dla projektu (zadania od AI z kolejki – js/app/zadania-ai.js): klucz czatu z prawem zmian.
+export const __dopiszDoTestu = (rodzaj, tekst) => dopisz(rodzaj, tekst); // testy (#428)
+
 export async function wolajDlaProjektu(projektId) {
   const { utworzSerwer } = await import('../ai-narzedzia-rdzen.js');
   const serwer = utworzSerwer({ adres: SUPABASE_URL, kluczPubliczny: SUPABASE_ANON_KEY, klucz: await kluczDostepu(projektId, 'edycja'), projekt: projektId });
@@ -346,7 +359,7 @@ async function wyslij(tekst) {
       przerwij: () => przerwano,
       naTekst: (fragment) => {
         if (!dymek) { czeka.remove(); dymek = dopisz('ai', ''); }
-        dymek.textContent += fragment;
+        (dymek.tresc || dymek).textContent += fragment;
         strumien = true;
         lista.scrollTop = lista.scrollHeight;
       },

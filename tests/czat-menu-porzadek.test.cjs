@@ -67,7 +67,11 @@ test('ustawienia AI: OpenRouter – przycisk logowania w okienku klucza', async 
   const { strona, bledy } = await otworz(t);
   await strona.evaluate(() => { location.hash = '#/konto/ai'; });
   await strona.waitForSelector('[data-dodaj-klucz-ai="czat"]');
-  await strona.click('[data-dodaj-klucz-ai="czat"]');
+  // Moduł ustawień AI wczytuje się chwilę po pokazaniu ekranu – klikamy, aż okienko się otworzy.
+  for (let i = 0; i < 20 && !(await strona.evaluate(() => document.querySelector('#dlg-klucz-ai').open)); i += 1) {
+    await strona.click('[data-dodaj-klucz-ai="czat"]');
+    await strona.waitForTimeout(300);
+  }
   await strona.waitForSelector('#dlg-klucz-ai[open]');
   assert.equal(await strona.isVisible('#ai-nowy-openrouter'), false);
   await strona.selectOption('#ai-nowy-dostawca', 'openrouter');

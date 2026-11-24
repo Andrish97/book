@@ -1503,3 +1503,19 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 .uwagi-druku li.powazna { color: var(--blad); }
 #potwierdz-tresc { white-space: pre-line; }
 .kropka.powazne { background: var(--blad); }
+
+/* Tekst ze strony w zwykłym polu na dotyku (#428): pasek na dole ekranu, nad klawiaturą. */
+.edycja-tekstu-tel {
+  position: fixed; left: 0; right: 0; bottom: var(--klawiatura, 0px); z-index: 60;
+  display: flex; flex-direction: column; gap: 8px; padding: 10px 12px calc(10px + var(--bezp-dol, 0px));
+  background: var(--powierzchnia); border-top: 1px solid var(--linia); box-shadow: var(--cien-zaslonki);
+}
+.edycja-tekstu-tel[hidden] { display: none; }
+.edycja-tekstu-tel textarea { width: 100%; min-height: 84px; max-height: 38vh; font-size: 16px; resize: vertical; }
+.edycja-tekstu-tel .rzad-przyciskow { display: flex; align-items: center; gap: 8px; }
+
+/* Kopiowanie wiadomości czatu (#428): mały przycisk w rogu dymka; na dotyku zawsze widoczny. */
+.czat-ai-wiadomosci li.ai, .czat-ai-wiadomosci li.ja { position: relative; padding-right: 34px; -webkit-user-select: text; user-select: text; }
+.czat-ai-kopiuj { position: absolute; top: 2px; right: 2px; --dotyk: 30px; width: 28px; height: 28px; min-height: 28px; opacity: 0; color: var(--cichy); }
+.czat-ai-wiadomosci li:hover .czat-ai-kopiuj, .czat-ai-kopiuj:focus-visible { opacity: 1; }
+@media (pointer: coarse) { .czat-ai-kopiuj { opacity: 0.7; } }

@@ -28,10 +28,18 @@ export const opisMozliwosci = (id) => (DOSTAWCY[id]?.obrazy ? tt('aiDostawcy.tek
 export const nazwaZMozliwosciami = (id) => `${DOSTAWCY[id].nazwa} – ${opisMozliwosci(id)}`;
 
 // Czytelny komunikat błędu dostawcy (#256, plan AI krok 5). status – kod HTTP (0 – brak połączenia), opis – tekst dostawcy.
-export function komunikatBleduDostawcy(status, opis = '') {
+export function komunikatBleduDostawcy(status, opis = '', wyjatek = null) {
   const o = String(opis || '');
   const szczegoly = o ? ` (dostawca: ${o.slice(0, 200)})` : '';
-  if (status === 0) return 'Brak połączenia z dostawcą – sprawdź internet. Przy własnym adresie (np. Ollama) serwer musi pozwalać na zapytania z przeglądarki (CORS).';
+  if (status === 0) {
+    // Zapytanie nie wyszło z przeglądarki (#428): brak internetu, klucz ze znakiem, którego nie da się wysłać
+    // w nagłówku (spacja w środku, enter, polska litera – np. po wklejeniu), albo dostawca nie pozwala na zapytania
+    // z przeglądarki (CORS). Wcześniej zawsze „sprawdź internet” – także przy złym kluczu.
+    const w = String(wyjatek?.message || '');
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return tt('aiDostawcy.brakInternetu');
+    if (/header|ByteString|ISO-8859|code point|Invalid value/i.test(w)) return tt('aiDostawcy.kluczZNiedozwolonymiZnakami');
+    return `${tt('aiDostawcy.brakPolaczeniaZDostawca')}${w ? ` (${w.slice(0, 160)})` : ''}`;
+  }
   if (status === 401 || status === 403) return tt('aiDostawcy.dostawcaOdrzucilKluczSprawdz', { szczegoly });
   if (status === 402 || /insufficient|credit|balance|billing|quota|payment/i.test(o)) return tt('aiDostawcy.brakSrodkowAlboWyczerpany', { szczegoly });
   if (status === 429) return tt('aiDostawcy.zaDuzoZapytanNaraz', { szczegoly });
@@ -50,8 +58,8 @@ export const czekanie = { ms: (t) => new Promise((r) => setTimeout(r, t)) };
 async function odpowiedz(url, opcje) {
   for (let proba = 0; ; proba += 1) {
     let odp;
-    try { odp = await fetch(url, opcje); } catch {
-      const b = new Error(komunikatBleduDostawcy(0));
+    try { odp = await fetch(url, opcje); } catch (e) {
+      const b = new Error(komunikatBleduDostawcy(0, '', e));
       b.status = 0;
       throw b;
     }
@@ -105,7 +113,10 @@ const naglowkiAnthropic = (klucz) => ({
 const adresDostawcy = (d, ust) => String((d.wlasnyAdres ? ust.adres : d.adres) || '').replace(/\/+$/, '');
 
 // Lista modeli dostawcy (z jego API) – do wyboru; przy błędzie podpowiedź z listy wbudowanej.
-export async function modeleDostawcy(id, ust) {
+// Klucz bez białych znaków na brzegach i w środku (#428) – wklejony z enterem albo spacją psuł każde zapytanie.
+const czystyKlucz = (k) => String(k ?? '').replace(/\s+/g, '');
+export async function modeleDostawcy(id, ust0) {
+  const ust = ust0 ? { ...ust0, klucz: czystyKlucz(ust0.klucz) } : ust0;
   const d = DOSTAWCY[id];
   if (!d || !ust?.klucz) return d?.modele || [];
   const adres = adresDostawcy(d, ust);
@@ -192,7 +203,7 @@ export function schematGemini(s) {
 export function nowaRozmowa({ dostawca, model, ust, system, narzedzia }) {
   const d = DOSTAWCY[dostawca];
   if (!d) throw new Error('Nieznany dostawca.');
-  return { dostawca, rodzaj: d.rodzaj, adres: adresDostawcy(d, ust), klucz: ust.klucz, model, system, narzedzia, historia: [] };
+  return { dostawca, rodzaj: d.rodzaj, adres: adresDostawcy(d, ust), klucz: czystyKlucz(ust.klucz), model, system, narzedzia, historia: [] };
 }
 
 // Jeden krok: wysyła historię, zwraca { tekst, wywolania: [{ id, nazwa, argumenty }] } i dopisuje odpowiedź do historii.

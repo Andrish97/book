@@ -392,6 +392,8 @@ Ramki tekstu, ich wygląd, style i skład — od jednego napisu po tekst książ
 Wstaw tekst przyciskiem [Tekst] (<kbd>T</kbd>) i od razu pisz. Istniejący tekst kliknij dwa razy,
 żeby pisać w nim; <kbd>Esc</kbd> kończy pisanie. <kbd>Enter</kbd> zaczyna nowy akapit.
 
+**Na telefonie i tablecie** tekst pisze się w zwykłym polu na dole ekranu — działa tam przytrzymanie, zaznaczanie, Kopiuj/Wklej i skróty klawiatury systemu; zmiany od razu widać na stronie, a pogrubienia i inne formatowanie reszty tekstu zostają. [Formatuj fragment] przenosi zaznaczenie z pola na stronę (np. żeby pogrubić zaznaczone słowa), [Gotowe] kończy pisanie.
+
 Szerokość ramki zmieniasz bocznymi uchwytami — tekst układa się od nowa, litery się nie rozciągają.
 Wysokość ramki rośnie razem z tekstem, chyba że ustawisz stałą wysokość (→ 5.6).
 

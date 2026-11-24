@@ -282,3 +282,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „odstępstwo… podwójna spacja ma być specjalnie podkreślona, innym kolorem niż słowa spoza słownika, i w błędach druku i strony” – ✅ fioletowe zaznaczenie w tekście, ostrzeżenia i kontrola (#425).
 - „Zróbmy, żeby jeden projekt mógł mieć kilka niezależnych linków do podglądu… jak klucze AI… znak wodny, ustawienia 3D, hasło” – ✅ lista linków z własnymi ustawieniami (#426).
 - „Dlaczego dalej widzę, żeby nie zamykać Makietki przy udostępnieniu podglądu na 280 stron” – ✅ przy tworzeniu linku, gdy rysuje serwer: „możesz zamknąć” (#427).
+- „Link, który dodałem potem, jest znowu niewidoczny…”, „na telefonie nie da się zaznaczyć i skopiować tekstu”, „Brak połączenia z dostawcą”, „nie da się skopiować wiadomości od czatu” – ✅ zapis linku od razu i odzyskiwanie z bazy, pisanie w zwykłym polu na dotyku, czysty klucz i lepszy komunikat, Kopiuj w czacie (#428).
