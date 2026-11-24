@@ -95,7 +95,7 @@ test('link: dużo stron – rysuje serwer, postęp w aplikacji; serwer wyłączo
     if (wylaczony) return r.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ blad: 'wyłączone', kod: 'brak_rysowania' }) });
     if (u.pathname === '/rysuj/link') { zlecenie = JSON.parse(r.request().postData()); return r.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ stan: 'w_kolejce', id: 'z1' }) }); }
     stanow += 1;
-    const st = stanow < 2 ? { stan: 'rysuje', id: 'z1', gotowe: 1, wszystkie: 4 } : { stan: 'gotowe', id: 'z1', wyslane: 4, wszystkie: 4, koniec: Date.now(), zaktualizowano: new Date().toISOString() };
+    const st = stanow < 4 ? { stan: 'rysuje', id: 'z1', gotowe: 1, wszystkie: 4 } : { stan: 'gotowe', id: 'z1', wyslane: 4, wszystkie: 4, koniec: Date.now(), zaktualizowano: new Date().toISOString() };
     return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(st) });
   });
   const obrazyStron = () => baza.wyslania.filter((k) => k.startsWith('podglady/') && /\.(webp|jpg)$/.test(k)).length;
@@ -103,6 +103,10 @@ test('link: dużo stron – rysuje serwer, postęp w aplikacji; serwer wyłączo
   await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
   await strona.click('[data-akcja="udostepnij"]');
   await strona.click('#udostepnij-utworz');
+  // #427: tworzenie linku, strony rysuje serwer – pasek i okno mówią, że Makietkę można zamknąć, karta nie pyta.
+  await strona.waitForFunction(() => [...document.querySelectorAll('.postep')].some((e) => e.offsetParent && /możesz zamknąć Makietkę/.test(e.textContent)), null, { timeout: 15000 });
+  assert.doesNotMatch(await strona.evaluate(() => [...document.querySelectorAll('.postep')].filter((e) => e.offsetParent).map((e) => e.textContent).join(' ')), /nie zamykaj/);
+  assert.equal(await strona.evaluate(() => { const e = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(e); return e.defaultPrevented; }), false, 'zamknięcie karty bez pytania');
   await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 30000 });
   assert.ok(zlecenie, 'zlecenie poszło do serwera');
   assert.equal(zlecenie.projekt.id, await strona.evaluate(() => window.seriodruk.stan.projekt.id));

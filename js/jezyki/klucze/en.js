@@ -4545,6 +4545,7 @@ export default {
   "podgladEkran.przenoszeStronyZMozesz": "Transferring pages: {i} of {n}… (you can close this window, but don't close Makietka)",
   "podgladEkran.przygotowujeLink": "Preparing link…",
   "podgladEkran.przygotowujeStronyLinku": "Preparing link pages…",
+  "podgladEkran.serwerRysujeMoznaZamknac": "Link ready. The server is drawing the pages ({i} of {n}) – you can close the window and Makietka; the link will finish by itself.",
   "podgladEkran.stronyLinkuMajaZnak": "The link's pages have the watermark “{tekst}” (opacity {kryciaZnaku}%).",
   "podgladEkran.stronyZ": "Pages: {i} of {n}…",
   "podgladEkran.udostepnianieWymagaZalogowania": "Sharing requires signing in.",

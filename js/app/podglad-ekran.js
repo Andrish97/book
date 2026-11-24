@@ -284,16 +284,21 @@ function pilnujZamkniecia(tak) {
   if (!tak && trwajace === 0) window.removeEventListener('beforeunload', ostrzezenieZamkniecia);
 }
 let aktywnyPasek = null; // pasek linku w tle – rysowanie na serwerze zmienia jego opis (#335)
+let rysujeNaSerwerze = false; // bieżące strony linku rysuje serwer – Makietkę można zamknąć (#427)
 async function linkWTle(praca) {
   const pasek = pasekPostepu('Aktualizuję podgląd z linku – nie zamykaj Makietki', { opoznienie: 0 });
   pilnujZamkniecia(true);
   let pilnuje = true;
   const ten = { pasek, zwolnij: () => { if (pilnuje) { pilnuje = false; pilnujZamkniecia(false); } } };
   aktywnyPasek = ten;
+  rysujeNaSerwerze = false;
   try { return await praca((i, n) => pasek.krok(i, n)); } finally { pasek.koniec(); ten.zwolnij(); if (aktywnyPasek === ten) aktywnyPasek = null; }
 }
 // Rysowanie przejął serwer: Makietkę można zamknąć – link dokończy się sam.
 function rysujeSerwer() {
+  rysujeNaSerwerze = true;
+  const k = $('#udostepnij-komunikat');
+  if (k && $('#dlg-udostepnij')?.open && trwaPublikacja) k.textContent = t('podgladEkran.podgladZLinkuRysuje');
   if (!aktywnyPasek) return;
   aktywnyPasek.pasek.opis(t('podgladEkran.podgladZLinkuRysuje'));
   aktywnyPasek.zwolnij();
@@ -712,11 +717,20 @@ export async function opublikujUdostepnienie() {
     komunikat.textContent = t('podgladEkran.przygotowujeLink');
     const pasek = pasekPostepu('Udostępnianie: strony podglądu – nie zamykaj Makietki', { opoznienie: 0 });
     pilnujZamkniecia(true);
+    // Pasek tego linku jako aktywny (#427): gdy rysowanie przejmie serwer (dużo stron), rysujeSerwer() zmienia jego opis
+    // na „możesz zamknąć Makietkę” i zdejmuje pytanie przy zamykaniu karty – wcześniej robił to tylko pasek
+    // automatycznej aktualizacji, a przy tworzeniu linku zostawało „nie zamykaj Makietki”.
+    let pilnuje = true;
+    const ten = { pasek, zwolnij: () => { if (pilnuje) { pilnuje = false; pilnujZamkniecia(false); } } };
+    aktywnyPasek = ten;
+    rysujeNaSerwerze = false;
     let wynik;
     let linkJest = Boolean(L.konto);
-    const opisPostepu = (i, n) => (linkJest
-      ? t('podgladEkran.linkGotowyMozeszGo2', { i, n })
-      : t('podgladEkran.stronyZ', { i, n }));
+    const opisPostepu = (i, n) => (rysujeNaSerwerze
+      ? t('podgladEkran.serwerRysujeMoznaZamknac', { i, n })
+      : linkJest
+        ? t('podgladEkran.linkGotowyMozeszGo2', { i, n })
+        : t('podgladEkran.stronyZ', { i, n }));
     try {
       wynik = await naLinku(p, L, (W) => opublikuj(W, (i, n) => { if (komunikat.isConnected) komunikat.textContent = opisPostepu(i, n); pasek.krok(i, n); }, {
         naLink: async (W2) => {
@@ -730,7 +744,7 @@ export async function opublikujUdostepnienie() {
     } catch (e) {
       if (!L.konto) { p.udostepnienia = linkiProjektu(p).filter((x) => x !== L); if (wybrany === L) wybrany = null; } // link nie powstał
       throw e;
-    } finally { pasek.koniec(); pilnujZamkniecia(false); }
+    } finally { pasek.koniec(); ten.zwolnij(); if (aktywnyPasek === ten) aktywnyPasek = null; }
     komunikat.textContent = wynik.wyslane < wynik.wszystkie
       ? t('podgladEkran.gotoweWyslanoZStron', { wyslane: wynik.wyslane, wszystkie: wynik.wszystkie })
       : t('podgladEkran.gotoweSkopiujLinkI');

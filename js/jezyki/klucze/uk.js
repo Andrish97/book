@@ -4545,6 +4545,7 @@ export default {
   "podgladEkran.przenoszeStronyZMozesz": "Переношу сторінки: {i} з {n}… (можна закрити це вікно, але не закривайте Makietka)",
   "podgladEkran.przygotowujeLink": "Готую посилання…",
   "podgladEkran.przygotowujeStronyLinku": "Готую сторінки посилання…",
+  "podgladEkran.serwerRysujeMoznaZamknac": "Посилання готове. Сторінки малює сервер ({i} з {n}) – можете закрити вікно й Makietka, посилання завершиться саме.",
   "podgladEkran.stronyLinkuMajaZnak": "Сторінки посилання мають водяний знак «{tekst}» (непрозорість {kryciaZnaku}%).",
   "podgladEkran.stronyZ": "Сторінки: {i} з {n}…",
   "podgladEkran.udostepnianieWymagaZalogowania": "Щоб поширювати, потрібно увійти.",

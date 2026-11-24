@@ -4545,6 +4545,7 @@ export default {
   "podgladEkran.przenoszeStronyZMozesz": "Przenoszę strony: {i} z {n}… (możesz zamknąć to okno, nie zamykaj Makietki)",
   "podgladEkran.przygotowujeLink": "Przygotowuję link…",
   "podgladEkran.przygotowujeStronyLinku": "Przygotowuję strony linku…",
+  "podgladEkran.serwerRysujeMoznaZamknac": "Link gotowy. Strony rysuje serwer ({i} z {n}) – możesz zamknąć okno i Makietkę, link dokończy się sam.",
   "podgladEkran.stronyLinkuMajaZnak": "Strony linku mają znak wodny „{tekst}” (krycie {kryciaZnaku}%).",
   "podgladEkran.stronyZ": "Strony: {i} z {n}…",
   "podgladEkran.udostepnianieWymagaZalogowania": "Udostępnianie wymaga zalogowania.",
