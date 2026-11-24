@@ -22,7 +22,7 @@ import { toKod, domyslnyKod, uwagiKodu, EAN_NOMINAL } from './kod-obiekt.js';
 import { trescQR } from './kody.js';
 import { naglowkiProjektu, celeOdsylaczy, LICZENIE_PRZYPISOW, RODZAJE as RODZAJE_KSIAZKI } from './ksiazka.js';
 import { ikona } from './ikony.js';
-import { poprawkiZnakow, uwagiSkladuTekstu } from './zasady-skladu.js';
+import { poprawkiZnakow, uwagiSkladuTekstu, zasadyPl } from './zasady-skladu.js';
 import { uzyteCzcionki } from './kontrolki.js';
 import { maPrzejscie } from './pola.js';
 import { stylZObiektu, zastosujStyl, POLA_STYLU, rowneWStylu, stylZnakowyZFragmentu, zastosujStylZnakowy, stylZnakowyNaPozycji } from './style-tekstu.js';
@@ -1310,7 +1310,10 @@ export class PanelWlasciwosci {
       s.append(this.liczba(tt('wlasciwosci.najmniejLiterPrzedLacznikiem'), () => obj.dziel_przed || 2, (v) => ustaw('dziel_przed', Math.max(1, Math.min(6, Math.round(v)))), { jednostka: 'liter', krok: 1, min: 1 }));
       s.append(this.liczba(tt('wlasciwosci.najmniejLiterPoLaczniku'), () => obj.dziel_po || 2, (v) => ustaw('dziel_po', Math.max(1, Math.min(6, Math.round(v)))), { jednostka: 'liter', krok: 1, min: 1 }));
     }
-    s.append(this.przelacznik(tt('wlasciwosci.polskieZasadySkladu'), () => Boolean(obj.zasady_pl), (v) => ustaw('zasady_pl', v || undefined)));
+    // Włączone domyślnie (#424) – wyłączenie zapisuje się jako false.
+    s.append(this.przelacznik(tt('wlasciwosci.polskieZasadySkladu'), () => zasadyPl(obj), (v) => { ustaw('zasady_pl', v ? true : false); this.zbuduj(); }));
+    s.append(this.wskazowka(zasadyPl(obj) ? tt('wlasciwosci.zasadyPilnowaneSame') : tt('wlasciwosci.zasadyWylaczone'), !zasadyPl(obj)));
+    if (zasadyPl(obj)) s.append(this.przelacznik(tt('wlasciwosci.poprawiajZnaki'), () => !obj.znaki_bez_zmian, (v) => ustaw('znaki_bez_zmian', v ? undefined : true)));
     s.append(this.wskazowka(tt('wlasciwosci.nieLamieWierszaPo')));
     s.append(this.przelacznik(tt('wlasciwosci.lamCalyAkapitNaraz'), () => Boolean(obj.lamanie_akapitu), (v) => ustaw('lamanie_akapitu', v || undefined)));
     s.append(this.wskazowka(tt('wlasciwosci.wierszeAkapituDobieraneRazem')));
@@ -1339,7 +1342,7 @@ export class PanelWlasciwosci {
       ['dwuliterowe', tt('wlasciwosci.takzeDoNaZe')],
     ], () => (obj.spojniki === true ? 'tak' : (obj.spojniki || '')), (v) => ustaw('spojniki', v === 'tak' ? true : (v || undefined)));
     spojniki.classList.add('szeroki');
-    s.append(spojniki);
+    if (!zasadyPl(obj)) s.append(spojniki); // z polskimi zasadami krótkie słówka przechodzą same (#424)
     const wdowy = this.wybor(tt('wlasciwosci.wdowyISieroty'), [
       ['', tt('wlasciwosci.bezPilnowania')],
       ['2', tt('wlasciwosci.coNajmniej2Wiersze')],

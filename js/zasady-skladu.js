@@ -4,11 +4,15 @@
 // (ostrzeżenia o miejscach niezgodnych z zasadami, gdy opcja jest wyłączona).
 
 import { t as tt } from './jezyk.js';
+import { ustawPoprawiaczWartosci } from './pola.js';
 
 // Jednoliterowe spójniki i przyimki – nie zostają na końcu wiersza.
 export const JEDNOLITEROWE = new Set(['a', 'i', 'o', 'u', 'w', 'z']);
 // Dwuliterowe – dobra praktyka: też nie na końcu wiersza (ustawienie tekstu „Spójniki: także do, na, ze…”).
 export const DWULITEROWE = new Set(['do', 'na', 'od', 'po', 'we', 'za', 'ze', 'że', 'iż', 'ku', 'bo', 'by', 'ni']);
+// Polskie zasady składu są włączone, dopóki ktoś ich wyraźnie nie wyłączy (#424): także w starszych tekstach i tekstach
+// od AI – krótkie słówka przechodzą do następnego wiersza same, bez twardych spacji.
+export const zasadyPl = (o) => Boolean(o) && o.zasady_pl !== false;
 
 // Skróty, po których wiersz się nie łamie (skrót zostaje z następnym wyrazem albo liczbą).
 export const SKROTY = new Set([
@@ -46,7 +50,7 @@ export function powodWiazania(a, b, { jednoliterowe = true } = {}) {
 
 export const OPIS_POWODU = {
   spojnik: 'jednoliterowy spójnik albo przyimek na końcu wiersza',
-  dwuliterowy: 'dwuliterowy spójnik albo przyimek na końcu wiersza (ustaw „Spójniki na końcu wiersza: także do, na, że…”)',
+  dwuliterowy: 'dwuliterowy spójnik albo przyimek na końcu wiersza (włącz „Polskie zasady składu” w panelu tekstu)',
   skrot: 'skrót oddzielony od następnego wyrazu',
   inicjal: 'inicjał oddzielony od nazwiska',
   liczba: 'liczba oddzielona od jednostki, daty albo dalszych cyfr',
@@ -104,7 +108,7 @@ export function uwagiLamania(o) {
     const a = linie[i].join('').trim().split(/\s+/);
     const b = linie[i + 1].join('').trim().split(/\s+/);
     const powod = powodWiazania(a.at(-1), b[0], { jednoliterowe: true })
-      || (o.spojniki !== 'dwuliterowe' && DWULITEROWE.has(a.at(-1).toLocaleLowerCase('pl')) ? 'dwuliterowy' : null);
+      || (!zasadyPl(o) && o.spojniki !== 'dwuliterowe' && DWULITEROWE.has(a.at(-1).toLocaleLowerCase('pl')) ? 'dwuliterowy' : null);
     if (!powod || a.length < 2) continue; // jeden wyraz w wierszu – złamania nie da się uniknąć
     dodaj(powod, `${a.at(-1)} | ${b[0]}`);
   }
@@ -138,3 +142,12 @@ export function poprawkiZnakow(tekst) {
   }
   return zmiany.reverse();
 }
+
+// Tekst z poprawionymi znakami (#424) – np. wartość z tabeli wstawiana w tekst z polskimi zasadami.
+export function poprawioneZnaki(tekst) {
+  let t = String(tekst ?? '');
+  for (const z of poprawkiZnakow(t)) t = t.slice(0, z.od) + z.na + t.slice(z.do);
+  return t;
+}
+// Wartości z tabel w tekście z polskimi zasadami – z poprawnymi znakami (chyba że tekst ma „zostaw znaki”).
+ustawPoprawiaczWartosci((o) => (o?.type === 'textbox' && zasadyPl(o) && !o.znaki_bez_zmian ? poprawioneZnaki : null));

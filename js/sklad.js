@@ -20,7 +20,7 @@
 // Właściwości każdego elementu: oblewanie: 'prostokat' | 'ksztalt' | 'skok', oblewanie_odstep (mm).
 
 import { miejscaPodzialu } from './dzielenie.js';
-import { powodWiazania, DWULITEROWE } from './zasady-skladu.js';
+import { powodWiazania, DWULITEROWE, zasadyPl } from './zasady-skladu.js';
 
 const PT = 25.4 / 72;
 
@@ -44,7 +44,8 @@ function spojnik(o, slowo) {
 // Czy między wyrazami a i b nie wolno złamać wiersza: spójniki według ustawienia, a z polskimi zasadami składu
 // (#323) także skróty, inicjały, liczba z jednostką, datą albo dalszymi cyframi i myślnik na początku wiersza.
 function wiazane(o, a, b) {
-  return spojnik(o, a) || Boolean(o.zasady_pl && powodWiazania(a, b));
+  // Z polskimi zasadami (#424) także dwuliterowe spójniki i przyimki (do, na, że…) – bez osobnego ustawienia.
+  return spojnik(o, a) || Boolean(zasadyPl(o) && (powodWiazania(a, b) || DWULITEROWE.has(String(a).toLocaleLowerCase('pl'))));
 }
 
 const inicjalAktywny = (o) => o.inicjal >= 2 && !(o.watek && o.watek_nr > 0 && (o.lacznik ?? '\n') !== '\n');
@@ -52,7 +53,7 @@ const maTab = (o) => typeof o.text === 'string' && o.text.includes('\t');
 
 // Czy tekst potrzebuje składu (inaczej – zwykłe łamanie Fabric, bez żadnej zmiany).
 export function skladAktywny(o) {
-  return Boolean(o.zasady_pl || o.lamanie_akapitu || o.dziel_wyrazy || o.spojniki || inicjalAktywny(o) || o._przeszkody?.length || o.tabulatory?.length || maTab(o));
+  return Boolean(zasadyPl(o) || o.lamanie_akapitu || o.dziel_wyrazy || o.spojniki || inicjalAktywny(o) || o._przeszkody?.length || o.tabulatory?.length || maTab(o));
 }
 
 // ---------- Tabulatory ----------
@@ -227,8 +228,8 @@ function lamAkapitu(o, zn, slowa, W, { dziel, pl, szer, lacznikSzer, tekstSlowa 
         let kara;
         if (ostatniWiersz) {
           kara = 0;
-          // krótki ostatni wiersz (jeden wyraz krótszy niż 4 litery) w akapicie z kilku wierszy
-          if (pl && a > 0 && fr[a].poczatek && fr[a].k === fr[b].k && tekstSlowa(fr[b].k).replace(/[^\p{L}\d]/gu, '').length < 4) kara += 3000;
+          // krótki ostatni wiersz (jeden wyraz do 5 liter – „dzień.”, #424; jak w kontroli składu) w akapicie z kilku wierszy
+          if (pl && a > 0 && fr[a].poczatek && fr[a].k === fr[b].k && tekstSlowa(fr[b].k).replace(/[^\p{L}\d]/gu, '').length < 6) kara += 3000;
         } else {
           const luz = W - nat;
           let r;
@@ -273,7 +274,7 @@ function sklad(o, linieTekstu, szerokoscRamki) {
   const wynik = [];
   // Polskie zasady (#323): nie mniej niż 2 litery przed łącznikiem i 3 po nim, najwyżej 3 dzielone wiersze pod rząd,
   // bez dzielenia ostatniego wyrazu akapitu i wyrazów od wielkiej litery (nazwy własne, skróty).
-  const pl = Boolean(o.zasady_pl);
+  const pl = zasadyPl(o);
   const dziel = o.dziel_wyrazy ? { min: o.dziel_min || 5, przed: Math.max(pl ? 2 : 1, o.dziel_przed || 2), po: Math.max(pl ? 3 : 1, o.dziel_po || 2) } : null;
   const MAX_LACZNIKOW = 3;
   let laczniki = 0; // dzielone wiersze pod rząd

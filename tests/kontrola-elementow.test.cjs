@@ -43,7 +43,8 @@ test('podsumowanie ma ostrzeżenia ze strony: margines, poza spadem, skład; bez
     e.canvas.add(new fabric.Rect({ id: 'margines', left: 2, top: 40, width: 30, height: 20, fill: '#336699', nazwa: 'W marginesie' }));
     e.canvas.add(new fabric.Rect({ id: 'spad', left: -10, top: 80, width: 30, height: 20, fill: '#993366', nazwa: 'Za spadem' }));
     const a = e.dodajTekst('Dzień {dzien_roku} · {miesiac}'); a.set({ id: 'pola', left: 30, top: 120, width: 80 });
-    const b = e.dodajTekst('Wczoraj poszedłem do sklepu i kupiłem chleb, masło oraz mleko.'); b.set({ id: 'sklad', left: 30, top: 140, width: 40 });
+    // #424: łamanie pilnowane samo – uwaga o składzie z powodu znaków (podwójna spacja, proste cudzysłowy).
+    const b = e.dodajTekst('Wczoraj  poszedłem do sklepu i kupiłem "chleb", masło oraz mleko.'); b.set({ id: 'sklad', left: 30, top: 140, width: 40 });
     e.canvas.requestRenderAll();
     e.zatwierdz?.();
     e.przeliczOstrzezenia();

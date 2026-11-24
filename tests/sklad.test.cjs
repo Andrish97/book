@@ -61,7 +61,7 @@ test('spójniki: jednoliterowe nie zostają na końcu wiersza; wyłączone – m
   }
   let byl = false;
   for (const szer of [30, 38, 45, 52, 61]) {
-    const z = await tekst(strona, { text, width: szer, spojniki: undefined, zasady_pl: undefined });
+    const z = await tekst(strona, { text, width: szer, spojniki: undefined, zasady_pl: false }); // #424: zasady trzeba wyłączyć wprost
     if (z.linie.slice(0, -1).some((l) => /\s[aiouwz]$/u.test(l.tekst))) byl = true;
   }
   assert.ok(byl, 'bez ustawienia spójnik zostaje czasem na końcu wiersza');
@@ -248,7 +248,7 @@ test('polskie zasady składu: skróty, inicjały, liczby z jednostkami i myślni
     for (const [klucz, zasady] of [['zasady', true], ['bez', false]]) {
       for (let w = 40; w <= 110; w += 3) {
         const o = edytor.dodajTekst(tekstAkapitu);
-        o.set({ width: w, fontSize: 3, zasady_pl: zasady || undefined, spojniki: zasady || undefined });
+        o.set({ width: w, fontSize: 3, zasady_pl: zasady, spojniki: zasady || undefined }); // #424: false – wyłączone wprost
         o.initDimensions();
         wyniki[klucz].push(o._textLines.map((l) => l.join('')));
         edytor.canvas.remove(o);
@@ -509,17 +509,96 @@ test('polskie zasady: dwuliterowe na końcu wiersza i krótki ostatni wiersz –
   const w = await strona.evaluate(async () => {
     const e = window.seriodruk.edytor;
     const tx = 'Wczoraj poszedłem do sklepu i kupiłem chleb, masło oraz mleko. Potem wróciłem do domu i zrobiłem sobie śniadanie na tarasie w słońcu. To był dzień.';
-    const a = e.dodajTekst(tx); a.set({ id: 'dwa', width: 40, left: 10, top: 10 });
-    const b = e.dodajTekst(tx); b.set({ id: 'krotki', width: 50, left: 60, top: 10 });
-    const c = e.dodajTekst(tx); c.set({ id: 'przenosi', width: 40, left: 120, top: 10, spojniki: 'dwuliterowe' });
+    // #424: z polskimi zasadami (domyślnie) dwuliterowe i krótki ostatni wiersz pilnowane same – uwagi tylko przy wyłączonych.
+    const a = e.dodajTekst(tx); a.set({ id: 'dwa', width: 40, left: 10, top: 10, zasady_pl: false, lamanie_akapitu: false });
+    const b = e.dodajTekst(tx); b.set({ id: 'krotki', width: 50, left: 60, top: 10, zasady_pl: false, lamanie_akapitu: false });
+    const c = e.dodajTekst(tx); c.set({ id: 'przenosi', width: 40, left: 120, top: 10 });
     e.zatwierdz?.();
     await window.seriodruk.zapiszTeraz?.();
     const { sprawdzMieszczenie } = await import('./js/kontrola-skladu.js');
     const k = await sprawdzMieszczenie(window.seriodruk.stan.projekt);
     return Object.fromEntries(k.filter((x) => x.rodzaj === 'sklad_pl').map((x) => [x.idObiektu, x.opis]));
   });
-  assert.match(w.dwa, /dwuliterowy spójnik albo przyimek na końcu wiersza.*„do \| sklepu”/);
+  assert.match(w.dwa, /dwuliterowy spójnik albo przyimek na końcu wiersza \(włącz „Polskie zasady składu”.*„do \| sklepu”/);
   assert.match(w.krotki, /krótki ostatni wiersz akapitu.*„dzień\.”/);
-  assert.doesNotMatch(w.przenosi || '', /dwuliterowy/, 'z ustawieniem „także do, na, że” tekst przenosi je sam – bez tej uwagi');
+  assert.equal(w.przenosi, undefined, 'z polskimi zasadami (domyślnie) tekst pilnuje tego sam – bez uwag');
+  assert.deepEqual(bledy, []);
+});
+
+// #424: polskie zasady składu działają same – także w tekście bez ustawień (starszym albo od AI): jedno- i dwuliterowe
+// słówka (w, i, do, na…) przechodzą do następnego wiersza bez twardych spacji, krótki ostatni wiersz jest unikany.
+// Wyłączone zasady (zasady_pl: false) – łamanie jak dawniej i uwaga w kontroli.
+test('polskie zasady domyślnie: krótkie słówka same przechodzą do następnego wiersza', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Automatycznie');
+  const w = await strona.evaluate(async () => {
+    const { uwagiSkladuTekstu, JEDNOLITEROWE, DWULITEROWE } = await import('./js/zasady-skladu.js');
+    const e = window.seriodruk.edytor;
+    const tx = 'Wczoraj poszedłem do sklepu i kupiłem chleb, masło oraz mleko. Potem wróciłem do domu i zrobiłem sobie śniadanie na tarasie w słońcu. Na przykład w poniedziałek o godzinie 10 rano spotkanie z zespołem w sali na drugim piętrze, a w środę od 9 do 12 warsztaty.';
+    const wynik = {};
+    for (const [nazwa, dodatki] of [['bez', {}], ['wylaczone', { zasady_pl: false }]]) {
+      const zle = [];
+      for (const width of [35, 40, 45, 50, 55, 60]) {
+        const o = new fabric.Textbox(tx, { left: 10, top: 10, width, fontSize: 4, fontFamily: 'Inter', ...dodatki });
+        e.canvas.add(o); o.initDimensions();
+        o._textLines.forEach((l, i) => {
+          if (i === o._textLines.length - 1) return;
+          const sl = l.join('').trim().split(/\s+/);
+          const ost = sl.at(-1).toLocaleLowerCase('pl');
+          if (sl.length > 1 && (JEDNOLITEROWE.has(ost) || DWULITEROWE.has(ost))) zle.push(`${width}: ${sl.at(-1)}`);
+        });
+        if (nazwa === 'wylaczone' && !wynik.uwagi) wynik.uwagi = uwagiSkladuTekstu(o).map((u) => u.opis).join(' | ');
+        e.canvas.remove(o);
+      }
+      wynik[nazwa] = zle;
+    }
+    return wynik;
+  });
+  assert.deepEqual(w.bez, [], 'tekst bez ustawień: żadne krótkie słówko na końcu wiersza');
+  assert.ok(w.wylaczone.length > 0, 'z wyłączonymi zasadami – zostają na końcach wierszy');
+  assert.match(w.uwagi, /włącz „Polskie zasady składu”/);
+  assert.deepEqual(bledy, []);
+});
+
+// #424: znaki według polskich zasad same – wartość z tabeli wstawiana w tekst (bez zmiany danych), pisanie (po wyjściu
+// z edycji, z informacją i „Zostaw jak było”), a tekst od AI albo starszy – przycisk „Popraw znaki” w kontroli.
+test('polskie zasady domyślnie: znaki z tabeli, przy pisaniu i z kontroli przed drukiem', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Znaki');
+  const dane = await strona.evaluate(async () => {
+    await import('./js/zasady-skladu.js');
+    const { podstawWObiektach } = await import('./js/pola.js');
+    const w = (n) => ({ opis: 'Spotkanie "na rynku" - od 9...  do 12' }[n]);
+    const [zZasadami] = podstawWObiektach([{ type: 'textbox', text: 'Uwaga: {opis}', styles: [] }], w);
+    const [bezZmian] = podstawWObiektach([{ type: 'textbox', text: 'Uwaga: {opis}', styles: [], znaki_bez_zmian: true }], w);
+    return [zZasadami.text, bezZmian.text];
+  });
+  assert.deepEqual(dane, ['Uwaga: Spotkanie „na rynku” – od 9… do 12', 'Uwaga: Spotkanie "na rynku" - od 9...  do 12']);
+
+  // Pisanie: po wyjściu z edycji – poprawione, z powiadomieniem; „Zostaw jak było” przywraca i wyłącza poprawianie.
+  await strona.evaluate(() => {
+    const e = window.seriodruk.edytor;
+    const o = e.dodajTekst('Tekst'); o.set({ id: 'pisany' });
+    o.set({ text: 'Powiedział "tak" - i poszedł...' }); o.initDimensions();
+    e.canvas.setActiveObject(o); o.enterEditing(); o.exitEditing();
+  });
+  assert.equal(await strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === 'pisany').text), 'Powiedział „tak” – i poszedł…');
+  await strona.waitForSelector('#powiadomienie:not([hidden]) button');
+  assert.match(await strona.textContent('#powiadomienie'), /Poprawiono znaki według polskich zasad: 4/);
+  await strona.click('#powiadomienie button');
+  assert.deepEqual(await strona.evaluate(() => { const o = window.seriodruk.edytor.canvas.getObjects().find((x) => x.id === 'pisany'); return [o.text, o.znaki_bez_zmian]; }), ['Powiedział "tak" - i poszedł...', true]);
+
+  // Tekst od AI (bez ustawień, z prostymi cudzysłowami) – „Popraw znaki” w „Sprawdź przed drukiem”.
+  await strona.evaluate(async () => {
+    const p = window.seriodruk.stan.projekt;
+    window.seriodruk.edytor.canvas.getObjects().filter((o) => o.id === 'pisany').forEach((o) => window.seriodruk.edytor.canvas.remove(o));
+    await window.seriodruk.zapiszTeraz();
+    p.strony[0].obiekty.push({ type: 'textbox', version: '5.3.0', id: 'od_ai', text: 'Zapraszamy na "Dni Miasta" - wstęp wolny.', styles: [], left: 20, top: 150, width: 100, fontSize: 4, fontFamily: 'Inter' });
+    await window.seriodruk.przeladuj();
+  });
+  await strona.evaluate(() => window.seriodruk.oknoKontroli.otworz());
+  await strona.waitForFunction(() => /do sprawdzenia|w porządku/.test(document.querySelector('#kontrola-stan').textContent));
+  await strona.click('#kontrola-lista li:has-text("Dni Miasta") button:has-text("Popraw znaki")');
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === 'od_ai')?.text === 'Zapraszamy na „Dni Miasta” – wstęp wolny.');
   assert.deepEqual(bledy, []);
 });

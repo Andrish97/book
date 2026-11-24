@@ -475,12 +475,21 @@ export function kadrZWartosci(v) {
 
 // Podstawia pola we wszystkich tekstach listy obiektów (także w grupach) i nadaje
 // elementom kolor, rozmiar oraz przesunięcie zależne od danych.
+// Poprawianie wartości z tabel wstawianych w tekst (#424) – ustawia js/zasady-skladu.js (ten plik zostaje bez importów):
+// (obiekt) → funkcja (tekst → tekst) albo null.
+let poprawiaczWartosci = null;
+export const ustawPoprawiaczWartosci = (f) => { poprawiaczWartosci = f; };
+
 export function podstawWObiektach(obiekty, wartosc) {
   return (obiekty || []).map((o) => {
     let k = o;
     // Tekst z przełącznikiem „klamry to zwykły tekst” (bez_pol) zostaje nietknięty.
     if (typeof o.text === 'string' && (o.text.includes('{') || o.text.includes('}}')) && !o.bez_pol) {
-      const { text, styles } = podstawWTekscie(o.text, o.styles, wartosc);
+      // Polskie zasady (#424): wartości z tabel wstawiane w tekst z zasadami dostają poprawne znaki (cudzysłowy
+      // „”, półpauzy, wielokropki, pojedyncze spacje) – bez zmiany danych w tabeli.
+      const popraw = poprawiaczWartosci?.(o);
+      const w = popraw ? Object.assign((n, z) => { const v = wartosc(n, z); return typeof v === 'string' ? popraw(v) : v; }, wartosc) : wartosc;
+      const { text, styles } = podstawWTekscie(o.text, o.styles, w);
       if (text !== o.text) k = { ...o, text, styles };
     }
     // Kod QR / EAN z polem w treści (#128): każda strona serii ma swój kod; rysunek przebuduje się po wczytaniu.

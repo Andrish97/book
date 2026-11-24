@@ -20,7 +20,8 @@
 
 import './edytor-instancja.js';
 import './obecnosc.js'; // kto jeszcze jest w projekcie (współpraca)
-import './ostrzezenia-danych.js'; // ostrzeżenia przy stronie po przeliczeniu danych (#418)
+import './ostrzezenia-danych.js';
+import { zasadyPl } from '../zasady-skladu.js'; // ostrzeżenia przy stronie po przeliczeniu danych (#418)
 import { otworzKomentarze, narzedzieKomentarz } from './komentarze.js'; // komentarze na stronach (#131D)
 import { obsluzAkcje, podlaczSkladanke } from './skladanka-narzedzia.js'; // narzędzia składanki (#233)
 import { obsluzAkcjeKomiksu, podlaczKomiks } from './komiks-narzedzia.js'; // narzędzia komiksu (#364)
@@ -268,6 +269,13 @@ const oknoKontroli = new OknoKontroli({
       const naPlotnie = edytor.canvas.getObjects().find((o) => o.id === u.idObiektu);
       if (naPlotnie) delete naPlotnie.z_importu;
       zaplanujZapis();
+    }
+    // Znaki według polskich zasad (#424): cudzysłowy, półpauzy, wielokropki, spacje – w tekście tej uwagi.
+    if (u.naprawa === 'znaki') {
+      zapiszBiezacyCel();
+      const ile = await poprawZnakiElementu(u.idObiektu);
+      zaplanujZapis();
+      powiadom(t('edytorStart.poprawionoZnaki', { n: ile }));
     }
     // Twarda oprawa bez wyklejek (#177): brakujące wyklejki dochodzą jako czyste sekcje.
     if (u.naprawa === 'wyklejki') {
@@ -750,6 +758,46 @@ edytor.addEventListener('punkty', (e) => {
   if (e.detail) powiadom(t('edytorStart.edycjaPunktowPrzeciagajPunkty'));
 });
 edytor.addEventListener('schowek', () => { if (!edytor.aktywny) panel.zbuduj(); });
+// Poprawki znaków w jednym tekście projektu (#424): na płótnie – z zachowaniem stylów fragmentów; poza płótnem tekst
+// bez stylów fragmentów poprawiamy w projekcie, ze stylami – otwieramy jego stronę (albo wzorzec) i poprawiamy na płótnie.
+async function poprawZnakiElementu(id) {
+  const naPlotnieObj = () => edytor.canvas.getObjects().find((o) => o.id === id);
+  if (naPlotnieObj()) return edytor.poprawZnaki(naPlotnieObj());
+  const { poprawioneZnaki } = await import('../zasady-skladu.js');
+  const znajdz = (lista) => { for (const o of lista || []) { if (o?.id === id) return o; const g = o?.objects && znajdz(o.objects); if (g) return g; } return null; };
+  const p = stan.projekt;
+  const iStrony = p.strony.findIndex((s) => znajdz(s.obiekty));
+  const wzorzec = iStrony < 0 ? (p.wzorce || []).find((w) => znajdz(w.obiekty)) : null;
+  const o = iStrony >= 0 ? znajdz(p.strony[iStrony].obiekty) : wzorzec && znajdz(wzorzec.obiekty);
+  if (!o) return 0;
+  const style = Array.isArray(o.styles) ? o.styles.length : Object.keys(o.styles || {}).length;
+  if (!style) {
+    const nowy = poprawioneZnaki(o.text);
+    if (nowy === o.text) return 0;
+    const { poprawkiZnakow } = await import('../zasady-skladu.js');
+    const ile = poprawkiZnakow(o.text).length;
+    o.text = nowy;
+    stan.miniatury.delete(p.strony[iStrony]?.id);
+    await zaladujCel();
+    return ile;
+  }
+  if (wzorzec) await edytujWzorzec(wzorzec.id); else await przejdzDoStrony(iStrony);
+  return naPlotnieObj() ? edytor.poprawZnaki(naPlotnieObj()) : 0;
+}
+
+// Pisanie (#424): po wyjściu z edycji tekstu z polskimi zasadami znaki poprawiają się same – z informacją i „Zostaw
+// jak było” (wtedy tekst dostaje znaki_bez_zmian i nie jest już poprawiany; przełącznik w panelu tekstu).
+edytor.canvas.on('text:editing:exited', (e) => {
+  const o = e.target;
+  if (!o || o.type !== 'textbox' || !zasadyPl(o) || o.znaki_bez_zmian) return;
+  const przed = { text: o.text, styles: JSON.parse(JSON.stringify(o.styles || {})) };
+  const ile = edytor.poprawZnaki(o);
+  if (!ile) return;
+  powiadom(t('edytorStart.poprawionoZnakiPisanie', { n: ile }), false, {
+    etykieta: t('edytorStart.zostawJakBylo'),
+    fn: () => { o.set({ text: przed.text, styles: przed.styles, znaki_bez_zmian: true }); o.initDimensions(); o.dirty = true; edytor.canvas.requestRenderAll(); edytor.oznaczZmiane(); panel.zbuduj?.(); },
+  });
+});
 edytor.addEventListener('ostrzezenia', (e) => renderujOstrzezenia(e.detail));
 // Długi tekst z „Dokładaj strony” (#212): po zmianie (i po zakończeniu pisania) dochodzą albo znikają strony.
 let czasDokladania = null;

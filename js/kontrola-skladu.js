@@ -46,6 +46,7 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
         const s = sklad.get(id) || { nazwa: tresc0.length > 30 ? `${tresc0.slice(0, 30)}…` : tresc0, strony: [], idStrony: zrodlo === 'strona' ? egz.strona.id : null, zWzorca: zrodlo === 'wzorzec', powody: new Map() };
         s.strony.push(egz.indeks + 1);
         for (const u of uw) if (!s.powody.has(u.opis)) s.powody.set(u.opis, u.przyklad || '');
+        if (uw.some((u) => u.kod !== 'lamanie')) s.znaki = true; // znaki w samym tekście (wartości z tabel poprawiają się same, #424)
         sklad.set(id, s);
       }
       if (!nieMiesciSie(obiekt)) continue;
@@ -64,7 +65,7 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
     rodzaj: 'tabela_poza_strona', strony: t.strony, idStrony: t.idStrony, idObiektu,
     opis: tt('kontrolaSkladu.tabelaPoWypelnieniuDanymi', { x: t.nazwa ? ` „${t.nazwa}”` : '', x2: t.zWzorca ? tt('kontrolaSkladu.zeWzorca') : '', replace: String(Math.round(t.ile * 10) / 10).replace('.', ','), size: new Set(t.strony).size, lista: lista(t.strony) }),
   })), ...[...sklad].map(([idObiektu, s]) => ({
-    rodzaj: 'sklad_pl', strony: s.strony, idStrony: s.idStrony, idObiektu,
+    rodzaj: 'sklad_pl', strony: s.strony, idStrony: s.idStrony, idObiektu, ...(s.znaki ? { naprawa: 'znaki' } : {}),
     opis: tt('kontrolaSkladu.tekstSkladNiezgodnyZ', { nazwa: s.nazwa, x: s.zWzorca ? tt('kontrolaSkladu.zeWzorca') : '', join: [...s.powody].map(([o, p]) => (p ? `${o} („${p}”)` : o)).join('; '), size: new Set(s.strony).size, lista: lista(s.strony) }),
   }))];
 }

@@ -28,7 +28,10 @@ const OBIEKTY = [
 // Wynik eksportu i jego opis: strony, czcionki, polecenia w treści, tekst odczytany czytnikiem, różnica obrazu.
 // punkty: true – dodatkowo porównanie punkt po punkcie (kształt liter), nie tylko uśrednionych kwadratów.
 // #420: zdjęcia testowe mają poniżej 150 dpi – poważna uwaga, eksport pyta o potwierdzenie.
-const eksportujMimoUwag = async (strona) => { await strona.click('#pdf-eksportuj'); await strona.click('#potwierdz-tak'); };
+const eksportujMimoUwag = async (strona) => {
+  await strona.click('#pdf-eksportuj');
+  if (await strona.waitForSelector('#dlg-potwierdz[open]', { timeout: 1500 }).catch(() => null)) await strona.click('#potwierdz-tak');
+};
 const eksportuj = (strona, opcje, { punkty = false } = {}) => strona.evaluate(async ([o, pdfjs, watek, punktPoPunkcie]) => {
   const { stan } = window.seriodruk;
   const { eksportujPdf } = await import('./js/eksport.js');

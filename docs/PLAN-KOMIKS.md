@@ -278,3 +278,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „dlaczego svg mówi coś o dpi, skoro to wektor” – ✅ SVG bez uwagi o rozdzielczości (#421).
 - „Przycisk Kopiuj w Sprawdź przed drukiem był i zniknął” – ✅ widoczny od razu, także w trakcie i po błędzie sprawdzania (#422).
 - „możesz go wyszarzyć, jeśli raport jeszcze się ładuje” – ✅ wyszarzony do końca sprawdzania (#423).
+- „żeby nie robić twardych spacji… zasady mają być utrzymywane automatycznie, a nietrzymanie się ich ma wymagać działania, użytkownik informowany” – ✅ polskie zasady domyślnie we wszystkich tekstach, dwuliterowe i krótki ostatni wiersz same, znaki poprawiane przy pisaniu i w danych z „Zostaw jak było” (#424).

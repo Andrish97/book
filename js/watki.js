@@ -15,6 +15,7 @@
 // a składanie strony dobiera je z projektu (zlozenie.js).
 
 import { poprawWdowy } from './sklad.js';
+import { zasadyPl } from './zasady-skladu.js';
 
 // Liczba znaków bez znaków nowej linii – tak Fabric liczy położenia stylów.
 const bezLinii = (t) => t.length - (t.match(/\n/g) || []).length;
@@ -86,7 +87,7 @@ function ileWierszy(ramka, limit = Infinity) {
   // Wdowy i sieroty (#131): akapit przecięty granicą ramek zostawia po obu stronach co najmniej `wdowy` wierszy.
   k = poprawWdowy(ramka, k);
   // Polskie zasady (#323): tytuł (śródtytuł) nie zostaje sam na końcu ramki – przechodzi z następnym akapitem.
-  if (ramka.zasady_pl && k < ramka._textLines.length) k = tytulZNastepnym(ramka, k);
+  if (zasadyPl(ramka) && k < ramka._textLines.length) k = tytulZNastepnym(ramka, k);
   return Math.max(1, k);
 }
 
@@ -180,7 +181,7 @@ function wyrownajLamy(ramki, limity) {
   for (let i = 0; i + 2 < ramki.length; i += 1) {
     const l = ramki[i];
     const p = ramki[i + 1];
-    if (!l.zasady_pl || l._bok !== 'lewa' || p._bok !== 'prawa') continue;
+    if (!zasadyPl(l) || l._bok !== 'lewa' || p._bok !== 'prawa') continue;
     if (!(l.ramka_h > 0) || Math.abs(l.ramka_h - p.ramka_h) > 0.5 || !l._textLines?.length || !p._textLines?.length) continue;
     if (!ramki[i + 2].text) continue; // za prawą ramką nic już nie płynie – nie jest pełna
     const hl = wysokoscTekstu(l);
