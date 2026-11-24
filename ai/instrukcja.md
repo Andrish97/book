@@ -2340,6 +2340,8 @@ Osoba z linkiem widzi strony tak jak w podglądzie; nie może niczego zmienić i
 2. **Utwórz link** — link jest gotowy od razu; obrazy stron przygotowują się w tle (okno możesz zamknąć). Kto otworzy link w tym czasie, zobaczy „Podgląd jest w przygotowaniu”, a strony pojawią się u niego same.
 3. Skopiuj link i wyślij go.
 
+**Kilka linków.** Projekt może mieć kilka niezależnych linków — jak klucze AI: każdy z własną nazwą (widzisz ją tylko Ty), hasłem i datą ważności, znakiem wodnym i makietą 3D, np. „Klient” bez znaku wodnego i „Drukarnia” z hasłem i znakiem „DO DRUKU”. Na górze okna jest lista linków — kliknięcie wybiera link, a pola niżej pokazują i zmieniają jego ustawienia; ikona obok kopiuje jego adres. **+ Nowy link** czyści pola: wpisz nazwę, ustaw hasło, znak wodny i makietę, kliknij **Utwórz link**. Każdy link ma własny krótki adres i aktualizuje się sam po zmianach w projekcie.
+
 Link jest krótki: **makietka.app/** i sześć znaków, np. `makietka.app/k7m2xq`. Linki utworzone wcześniej dostają krótki adres same, przy najbliższym otwarciu projektu; stary, długi adres dalej działa.
 
 ![Udostępnij w podglądzie](https://makietka.app/img/instrukcja/k-udostepnij.png)
@@ -2388,7 +2390,7 @@ Część **Makieta 3D w linku** w oknie Udostępnij decyduje, co oglądający zo
 
 ### 23.6 Unieważnienie linku
 
-**Unieważnij link** usuwa udostępnione strony — stary adres od razu przestaje działać. Ponowne udostępnienie daje nowy adres.
+**Unieważnij link** usuwa strony wybranego linku — jego adres od razu przestaje działać; pozostałe linki projektu działają dalej. Ponowne udostępnienie daje nowy adres.
 
 > **Uwaga:** Link jest długi i losowy, więc nie da się go zgadnąć, ale każdy, kto go dostanie, może go przekazać dalej. Do poufnych projektów ustaw hasło.
 

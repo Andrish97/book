@@ -131,7 +131,7 @@ test('stary link bez makiety: po otwarciu projektu manifest sam dostaje opis mak
   baza.pliki.set(klucz, { ...baza.pliki.get(klucz), tresc: Buffer.from(JSON.stringify(stary)) });
   await strona.evaluate(async () => {
     const p = window.seriodruk.stan.projekt;
-    p.udostepnienie.odcisk = 'sprzed-188';
+    p.udostepnienia[0].odcisk = 'sprzed-188';
     document.querySelector('#dlg-udostepnij')?.close();
     await (await import('./js/app/zapis.js')).otworzProjekt(p);
   });

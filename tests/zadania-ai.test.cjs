@@ -50,7 +50,7 @@ test('zadania AI: obraz do ramki (Gemini z sejfu) i link do podglądu z hasłem'
   assert.equal(link.stan, 'gotowe', link.blad);
   assert.match(link.wynik.adres, /^http:\/\/[^/]+\/(\w{6}|.*#\/u\/)/);
   assert.equal(link.wynik.haslo, true);
-  const u = await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie);
+  const u = await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienia?.[0]);
   assert.equal(u.ochrona.haslo, true);
   assert.ok(link.wynik.adres.endsWith(u.krotki || u.kod));
   assert.deepEqual(bledy, []);

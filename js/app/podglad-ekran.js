@@ -13,6 +13,7 @@ import { podglad } from './skladniki.js';
 import { przejdzDoStrony } from './lista-stron.js';
 import { zapiszGdziekolwiek, pokazProjekty } from './projekty.js';
 import { t, jezykDat } from '../jezyk.js';
+import { wstawIkony } from '../ikony.js';
 
 export async function doEdycji(idStrony) {
   const i = stan.projekt.strony.findIndex((s) => s.id === idStrony);
@@ -77,38 +78,117 @@ function odciskPodgladu(egz, ciag) {
   return skrot(JSON.stringify([odciskStrony(p, egz, ciag), skrotCzesci(pam, p.style), watek]));
 }
 
-function linkUdostepnienia(p) {
-  const u = p.udostepnienie;
-  if (u.krotki) return `${location.origin}/${u.krotki}`; // krótki link (#195)
-  return `${location.origin}${location.pathname}#/u/${u.konto}/${p.id}/${u.kod}`;
+// ---------- Kilka linków podglądu (#426) ----------
+// projekt.udostepnienia = [{ id, nazwa, kod, konto, krotki, ochrona, odcisk, zaktualizowano, znak_wodny, makieta_linku }]
+// – każdy link ma własne pliki (kod), hasło i datę ważności, znak wodny i makietę 3D. Publikacja i ochrona działają
+// na „widoku” projektu dla jednego linku: kopii projektu z udostepnienie, znak_wodny i makieta_linku tego linku –
+// rysowanie (także na serwerze), odciski i opis makiety biorą ustawienia z niego, bez zmian w tych modułach.
+export const linkiProjektu = (p) => (Array.isArray(p?.udostepnienia) ? p.udostepnienia : []);
+const POLA_LINKU = ['kod', 'konto', 'krotki', 'ochrona', 'odcisk', 'zaktualizowano'];
+function widokLinku(p, L) {
+  const w = { ...p };
+  delete w.udostepnienia; delete w.udostepnienie; delete w.znak_wodny; delete w.makieta_linku;
+  if (L?.kod) w.udostepnienie = Object.fromEntries(POLA_LINKU.filter((k) => L[k] !== undefined).map((k) => [k, L[k]]));
+  if (L?.znak_wodny) w.znak_wodny = L.znak_wodny;
+  if (L?.makieta_linku) w.makieta_linku = L.makieta_linku;
+  return w;
+}
+function przepiszLink(L, w) {
+  for (const k of POLA_LINKU) { const v = w.udostepnienie?.[k]; if (v === undefined) delete L[k]; else L[k] = v; }
+}
+// Praca na widoku jednego linku; dane linku (kod, krótki adres, ochrona, odcisk…) wracają do niego także wtedy,
+// gdy praca przerwie się w połowie.
+async function naLinku(p, L, praca) {
+  const w = widokLinku(p, L);
+  try { return await praca(w); } finally { przepiszLink(L, w); }
+}
+const nowyIdLinku = () => `ln_${[...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(36)).join('')}`;
+const nazwaLinku = (p, L) => L?.nazwa || t('podgladEkran.linkNr', { n: linkiProjektu(p).indexOf(L) + 1 });
+const linkAktualny = (p, L) => L.odcisk === odciskTresci(widokLinku(p, L));
+const zapiszProjektLinku = async (p) => { if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); } };
+
+function linkUdostepnienia(p, L) {
+  if (L.krotki) return `${location.origin}/${L.krotki}`; // krótki link (#195)
+  return `${location.origin}${location.pathname}#/u/${L.konto}/${p.id}/${L.kod}`;
 }
 
 // Projekt, którego dotyczy otwarte okno: zwykle otwarty w edytorze, a po kliknięciu plakietki
 // na liście projektów – wczytany tylko po to, żeby pokazać link albo go unieważnić.
 let celOkna = null;
+// Link, którego ustawienia są w oknie; null – nowy link (jeszcze nieutworzony).
+let wybrany = null;
 let trwaPublikacja = false;
+
+// Lista linków projektu – jak lista kluczy AI: nazwa, adres, ochrona i znak wodny; kliknięcie wybiera link do
+// ustawień, „Kopiuj” kopiuje jego adres, „+ Nowy link” – ustawienia nowego.
+function rysujListeLinkow(p) {
+  const lista = $('#udostepnij-linki');
+  if (!lista) return;
+  const linki = linkiProjektu(p);
+  lista.hidden = !linki.length;
+  lista.replaceChildren(...linki.map((L) => {
+    const li = document.createElement('li');
+    li.className = L === wybrany ? 'wybrany' : '';
+    const opis = [L.ochrona?.haslo ? t('podgladEkran.zHaslem') : null, L.ochrona?.wazny_do ? t('podgladEkran.waznyDoKrotko', { data: dataSlownie(L.ochrona.wazny_do) }) : null,
+      L.znak_wodny ? t('podgladEkran.zeZnakiemWodnymKrotko', { tekst: L.znak_wodny.tekst }) : null, L.makieta_linku?.pokaz === false ? t('podgladEkran.bezMakiety3d') : null].filter(Boolean);
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'link-wybor' });
+    const nazwa = Object.assign(document.createElement('strong'), { textContent: nazwaLinku(p, L) });
+    const adres = Object.assign(document.createElement('span'), { className: 'ciche', textContent: L.kod ? linkUdostepnienia(p, L).replace(/^https?:\/\//, '') : t('podgladEkran.linkPrzygotowujeSie') });
+    const cechy = Object.assign(document.createElement('span'), { className: 'ciche', textContent: opis.length ? opis.join(' · ') : t('podgladEkran.bezOchronyKrotko') });
+    b.append(nazwa, adres, cechy);
+    b.addEventListener('click', () => { wybrany = L; wypelnijUstawieniaLinku(p); odswiezOknoUdostepniania(); });
+    li.append(b);
+    if (L.kod) {
+      const k = Object.assign(document.createElement('button'), { type: 'button', className: 'przycisk-ikona', title: t('podgladEkran.kopiujLinkTytul'), ariaLabel: t('podgladEkran.kopiujLinkTytul') });
+      k.dataset.ikona = 'kopiuj';
+      k.addEventListener('click', () => kopiujTekst(linkUdostepnienia(p, L)));
+      li.append(k);
+    }
+    return li;
+  }), (() => {
+    const li = document.createElement('li');
+    li.className = wybrany === null ? 'wybrany nowy' : 'nowy';
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'link-wybor', textContent: t('podgladEkran.nowyLinkPlus') });
+    b.addEventListener('click', () => { wybrany = null; wypelnijUstawieniaLinku(p); odswiezOknoUdostepniania(); });
+    li.append(b);
+    return li;
+  })());
+  wstawIkony(lista);
+}
+// Pola okna według wybranego linku (albo domyślne dla nowego).
+function wypelnijUstawieniaLinku(p) {
+  wypelnijOchrone(wybrany);
+  wypelnijZnak(wybrany);
+  wypelnijMakieteLinku(p, wybrany);
+  $('#udostepnij-nazwa').value = wybrany?.nazwa || '';
+  $('#udostepnij-nazwa').placeholder = wybrany ? nazwaLinku(p, wybrany) : t('podgladEkran.linkNr', { n: linkiProjektu(p).length + 1 });
+}
 
 function odswiezOknoUdostepniania() {
   const p = celOkna || stan.projekt;
   if (!p) return;
-  const u = p.udostepnienie;
+  if (wybrany && !linkiProjektu(p).includes(wybrany)) wybrany = linkiProjektu(p)[0] || null;
+  const L = wybrany;
+  const u = L?.kod ? L : null;
   const zKontem = Boolean(stan.uzytkownik);
+  rysujListeLinkow(p);
   $('#udostepnij-link-blok').hidden = !u;
-  $('#udostepnij-wylacz').hidden = !u;
+  $('#udostepnij-wylacz').hidden = !L;
   // Z listy projektów też (#196): utworzenie linku i „Aktualizuj teraz” rysują strony w tle.
-  $('#udostepnij-utworz').hidden = !zKontem || Boolean(u);
+  $('#udostepnij-utworz').hidden = !zKontem || Boolean(L);
   $('#udostepnij-teraz').hidden = !zKontem || !u;
+  $('#udostepnij-nazwa-pole').hidden = !zKontem;
+  $('#udostepnij-nazwa-zapisz').hidden = !L;
   $('#udostepnij-komunikat').textContent = zKontem ? '' : t('podgladEkran.udostepnianieWymagaZalogowania');
   $('#udostepnij-komunikat').classList.remove('sukces');
   odswiezOchrone(p, zKontem); // z listy projektów: ochronę też ustawisz i zmienisz (#190, #196)
   odswiezZnak(p, zKontem);
   odswiezMakieteLinku(p, zKontem);
   if (!u) return;
-  $('#udostepnij-link').value = linkUdostepnienia(p);
-  const aktualny = u.odcisk === odciskTresci(p);
+  $('#udostepnij-link').value = linkUdostepnienia(p, L);
   $('#udostepnij-stan').textContent = trwaPublikacja
     ? t('podgladEkran.aktualizujeLink')
-    : (aktualny
+    : (linkAktualny(p, L)
       ? t('podgladEkran.linkPokazujeAktualnyStan', { kiedy: kiedy(u.zaktualizowano) })
       : t('podgladEkran.projektZmienilSiePo', { kiedy: kiedy(u.zaktualizowano) }));
 }
@@ -133,7 +213,7 @@ function opisOchrony(ochrona) {
 }
 
 function odswiezPolaOchrony() {
-  const u = (celOkna || stan.projekt)?.udostepnienie;
+  const u = wybrany;
   $('#udostepnij-haslo-pole').hidden = !$('#udostepnij-haslo-wl').checked;
   $('#udostepnij-termin-pole').hidden = !$('#udostepnij-termin-wl').checked;
   $('#udostepnij-haslo').placeholder = u?.ochrona?.haslo ? t('podgladEkran.bezZmianWpiszNowe') : t('podgladEkran.coNajmniej4Znaki');
@@ -141,8 +221,8 @@ function odswiezPolaOchrony() {
 
 // Pola ochrony według zapisanych ustawień linku – przy otwarciu okna i po udanym zapisie
 // (nie przy każdym odświeżeniu, żeby nie kasować tego, co ktoś właśnie zaznacza).
-function wypelnijOchrone(p) {
-  const o = p?.udostepnienie?.ochrona;
+function wypelnijOchrone(L) {
+  const o = L?.ochrona;
   $('#udostepnij-haslo-wl').checked = Boolean(o?.haslo);
   $('#udostepnij-haslo').value = '';
   $('#udostepnij-termin-wl').checked = Boolean(o?.wazny_do);
@@ -151,14 +231,14 @@ function wypelnijOchrone(p) {
 
 function odswiezOchrone(p, mozna) {
   $('#udostepnij-ochrona').hidden = !mozna;
-  $('#udostepnij-ochrona-stan').textContent = p.udostepnienie ? opisOchrony(p.udostepnienie.ochrona) : t('podgladEkran.ustawieniaZadzialajaOdRazu');
-  $('#udostepnij-ochrona-zapisz').hidden = !p.udostepnienie;
+  $('#udostepnij-ochrona-stan').textContent = wybrany?.kod ? opisOchrony(wybrany.ochrona) : t('podgladEkran.ustawieniaZadzialajaOdRazu');
+  $('#udostepnij-ochrona-zapisz').hidden = !wybrany?.kod;
   odswiezPolaOchrony();
 }
 
 // Ochrona wybrana w oknie: { chroniony, zmienHaslo, haslo, waznyDo } albo { blad }.
-function ochronaZOkna(p) {
-  const o = p.udostepnienie?.ochrona;
+function ochronaZOkna(L) {
+  const o = L?.ochrona;
   const chceHasla = $('#udostepnij-haslo-wl').checked;
   const haslo = $('#udostepnij-haslo').value;
   const chceTerminu = $('#udostepnij-termin-wl').checked;
@@ -228,26 +308,27 @@ const ochronaRysuje = (u, w) => Boolean(w.chroniony) !== Boolean(u.ochrona) || (
 // (hasło, włączenie albo zdjęcie ochrony) rysuje je w tle, bez otwierania projektu.
 export async function zapiszOchroneLinku() {
   const p = celOkna || stan.projekt;
+  const L = wybrany;
   const komunikat = $('#udostepnij-komunikat');
   komunikat.classList.remove('sukces');
-  if (!p?.udostepnienie) return;
-  const w = ochronaZOkna(p);
+  if (!p || !L?.kod) return;
+  const w = ochronaZOkna(L);
   if (w.blad) { komunikat.textContent = w.blad; return; }
-  if (!w.chroniony && !p.udostepnienie.ochrona) { komunikat.textContent = t('podgladEkran.linkJestBezOchrony'); return; }
+  if (!w.chroniony && !L.ochrona) { komunikat.textContent = t('podgladEkran.linkJestBezOchrony'); return; }
   const przycisk = $('#udostepnij-ochrona-zapisz');
   przycisk.disabled = true;
   trwaPublikacja = true;
   try {
-    if (p !== stan.projekt && ochronaRysuje(p.udostepnienie, w)) {
+    if (p !== stan.projekt && ochronaRysuje(L, w)) {
       komunikat.textContent = t('podgladEkran.przygotowujeStronyLinku');
       await przygotujDoRysowania(p);
     }
     komunikat.textContent = t('podgladEkran.zapisujeOchroneLinku');
-    await linkWTle((pasek) => zastosujOchrone(p, w, (i, n) => { pasek(i, n); komunikat.textContent = t('podgladEkran.przenoszeStronyZMozesz', { i, n }); }));
-    if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
-    komunikat.textContent = t('podgladEkran.zapisano', { opisOchrony: opisOchrony(p.udostepnienie.ochrona) });
+    await linkWTle((pasek) => naLinku(p, L, (W) => zastosujOchrone(W, w, (i, n) => { pasek(i, n); komunikat.textContent = t('podgladEkran.przenoszeStronyZMozesz', { i, n }); })));
+    await zapiszProjektLinku(p);
+    komunikat.textContent = t('podgladEkran.zapisano', { opisOchrony: opisOchrony(L.ochrona) });
     komunikat.classList.add('sukces');
-    wypelnijOchrone(p);
+    wypelnijOchrone(L);
   } catch (e) {
     komunikat.textContent = t('podgladEkran.nieUdaloSieZapisac', { komunikatBledu: chmura.komunikatBledu(e) });
   } finally {
@@ -264,10 +345,10 @@ for (const id of ['#udostepnij-haslo-wl', '#udostepnij-termin-wl']) $(id)?.addEv
 // (nie nakładka w przeglądarce oglądającego, więc nie da się go wyłączyć ani wyciąć z obrazu jednym ruchem).
 export { ZNAK_DOMYSLNY, KRYCIE_ZNAKU, kryciaZnaku, zeZnakiemWodnym };
 
-function wypelnijZnak(p) {
-  $('#udostepnij-znak-wl').checked = Boolean(p?.znak_wodny);
-  $('#udostepnij-znak-tekst').value = p?.znak_wodny?.tekst || '';
-  $('#udostepnij-znak-krycie').value = String(kryciaZnaku(p?.znak_wodny));
+function wypelnijZnak(L) {
+  $('#udostepnij-znak-wl').checked = Boolean(L?.znak_wodny);
+  $('#udostepnij-znak-tekst').value = L?.znak_wodny?.tekst || '';
+  $('#udostepnij-znak-krycie').value = String(kryciaZnaku(L?.znak_wodny));
   pokazPodgladZnaku();
 }
 
@@ -290,11 +371,14 @@ function pokazPodgladZnaku() {
 
 function odswiezZnak(p, mozna) {
   $('#udostepnij-znak').hidden = !mozna;
+  $('#udostepnij-znak-zapisz').hidden = !wybrany?.kod; // nowy link: znak z pól zapisze się przy „Utwórz link”
   pokazPolaZnaku();
-  $('#udostepnij-znak-stan').textContent = p.znak_wodny
-    ? t('podgladEkran.stronyLinkuMajaZnak', { tekst: p.znak_wodny.tekst, kryciaZnaku: kryciaZnaku(p.znak_wodny) })
+  $('#udostepnij-znak-stan').textContent = !wybrany ? t('podgladEkran.ustawieniaZadzialajaOdRazu') : wybrany.znak_wodny
+    ? t('podgladEkran.stronyLinkuMajaZnak', { tekst: wybrany.znak_wodny.tekst, kryciaZnaku: kryciaZnaku(wybrany.znak_wodny) })
     : t('podgladEkran.bezZnakuWodnego');
 }
+// Znak wodny z pól okna (null – bez znaku).
+const znakZOkna = () => ($('#udostepnij-znak-wl').checked ? { tekst: ($('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY).slice(0, 40), krycie: kryciaZnaku({ krycie: $('#udostepnij-znak-krycie').value }) } : null);
 const pokazPolaZnaku = () => { const wl = $('#udostepnij-znak-wl').checked; $('#udostepnij-znak-pole').hidden = !wl; $('#udostepnij-znak-krycie-pole').hidden = !wl; if (wl) pokazPodgladZnaku(); };
 $('#udostepnij-znak-wl')?.addEventListener('change', pokazPolaZnaku);
 $('#udostepnij-znak-krycie')?.addEventListener('input', pokazPodgladZnaku);
@@ -304,32 +388,32 @@ $('#udostepnij-znak-tekst')?.addEventListener('input', pokazPodgladZnaku);
 // (także z listy projektów – w tle, bez otwierania projektu).
 export async function zapiszZnakWodny() {
   const p = celOkna || stan.projekt;
-  if (!p) return;
+  const L = wybrany;
+  if (!p || !L) return;
   const komunikat = $('#udostepnij-komunikat');
   komunikat.classList.remove('sukces');
-  const wl = $('#udostepnij-znak-wl').checked;
-  const nowy = wl ? { tekst: ($('#udostepnij-znak-tekst').value.trim() || ZNAK_DOMYSLNY).slice(0, 40), krycie: kryciaZnaku({ krycie: $('#udostepnij-znak-krycie').value }) } : null;
-  if (JSON.stringify(nowy) === JSON.stringify(p.znak_wodny || null)) { komunikat.textContent = t('podgladEkran.bezZmian'); return; }
+  const nowy = znakZOkna();
+  if (JSON.stringify(nowy) === JSON.stringify(L.znak_wodny || null)) { komunikat.textContent = t('podgladEkran.bezZmian'); return; }
   const przycisk = $('#udostepnij-znak-zapisz');
   przycisk.disabled = true;
   trwaPublikacja = true;
   // Zapis od razu (#316): ustawienie jest w projekcie, zanim zaczną się rysować strony linku – zamknięcie karty
   // w trakcie nie gubi zmiany, a link dokończy się sam przy następnym otwarciu.
-  const zapiszP = async () => { if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); } };
+  const zapiszP = () => zapiszProjektLinku(p);
   try {
-    if (nowy) p.znak_wodny = nowy; else delete p.znak_wodny;
+    if (nowy) L.znak_wodny = nowy; else delete L.znak_wodny;
     await zapiszP();
-    wypelnijZnak(p);
+    wypelnijZnak(L);
     odswiezZnak(p, true); // stan ustawienia widać od razu, nie dopiero po narysowaniu stron
-    if (p.udostepnienie) {
+    if (L.kod) {
       komunikat.textContent = t('podgladEkran.zapisanoStronyLinkuPrzygotowuja');
       if (p !== stan.projekt) await przygotujDoRysowania(p);
-      await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); komunikat.textContent = t('podgladEkran.zapisanoStronyLinkuZ', { i, n }); }));
+      await linkWTle((pasek) => naLinku(p, L, (W) => opublikuj(W, (i, n) => { pasek(i, n); komunikat.textContent = t('podgladEkran.zapisanoStronyLinkuZ', { i, n }); })));
       await zapiszP();
     }
-    komunikat.textContent = nowy ? t('podgladEkran.zapisanoZnakWodnyKrycie', { tekst: nowy.tekst, krycie: nowy.krycie, x: p.udostepnienie ? t('podgladEkran.jestJuzNaStronach') : t('podgladEkran.pojawiSieNaStronach') }) : t('podgladEkran.zapisanoStronyLinkuSa');
+    komunikat.textContent = nowy ? t('podgladEkran.zapisanoZnakWodnyKrycie', { tekst: nowy.tekst, krycie: nowy.krycie, x: L.kod ? t('podgladEkran.jestJuzNaStronach') : t('podgladEkran.pojawiSieNaStronach') }) : t('podgladEkran.zapisanoStronyLinkuSa');
     komunikat.classList.add('sukces');
-    wypelnijZnak(p);
+    wypelnijZnak(L);
   } catch (e) {
     komunikat.textContent = t('podgladEkran.nieUdaloSieZapisac2', { komunikatBledu: chmura.komunikatBledu(e) });
   } finally {
@@ -342,9 +426,9 @@ export async function zapiszZnakWodny() {
 // ---------- Makieta 3D w linku (#325) ----------
 // projekt.makieta_linku = { pokaz: false } – bez makiety; { model } – rodzaj; { ujecie } – id zapisanego ujęcia
 // (rodzaj, kamera, światło i tło z ujęcia). Bez pola – rodzaj dobrany do projektu, pierwsze zapisane ujęcie.
-function wypelnijMakieteLinku(p) {
+function wypelnijMakieteLinku(p, L) {
   if (!p) return;
-  const ml = p.makieta_linku || {};
+  const ml = L?.makieta_linku || {};
   $('#udostepnij-makieta-wl').checked = ml.pokaz !== false;
   let modele = []; let inne = [];
   try { ({ modele, inne = [] } = modeleProjektu(p)); } catch { modele = []; }
@@ -362,8 +446,8 @@ function wypelnijMakieteLinku(p) {
 }
 const pokazPolaMakiety = () => { $('#udostepnij-makieta-pola').hidden = !$('#udostepnij-makieta-wl').checked; };
 $('#udostepnij-makieta-wl')?.addEventListener('change', pokazPolaMakiety);
-function opisMakietyLinku(p) {
-  const ml = p.makieta_linku || {};
+function opisMakietyLinku(p, L) {
+  const ml = L?.makieta_linku || {};
   if (ml.pokaz === false) return 'Oglądający nie widzi makiety 3D – tylko strony.';
   const uj = ml.ujecie && p.makieta?.ujecia?.find((u) => u.id === ml.ujecie);
   if (uj) return t('podgladEkran.ogladajacyWidziMakiete3d', { x: uj.nazwa || t('podgladEkran.ujecie') });
@@ -372,36 +456,41 @@ function opisMakietyLinku(p) {
 }
 function odswiezMakieteLinku(p, mozna) {
   $('#udostepnij-makieta').hidden = !mozna;
+  $('#udostepnij-makieta-zapisz').hidden = !wybrany?.kod; // nowy link: ustawienie z pól zapisze się przy „Utwórz link”
   pokazPolaMakiety();
-  $('#udostepnij-makieta-stan').textContent = opisMakietyLinku(p);
+  $('#udostepnij-makieta-stan').textContent = wybrany ? opisMakietyLinku(p, wybrany) : t('podgladEkran.ustawieniaZadzialajaOdRazu');
+}
+// Makieta 3D w linku z pól okna (null – jak w makiecie projektu).
+function makietaZOkna() {
+  const model = $('#udostepnij-makieta-model').value;
+  const ujecie = $('#udostepnij-makieta-ujecie').value;
+  const nowy = !$('#udostepnij-makieta-wl').checked ? { pokaz: false } : { ...(model ? { model } : {}), ...(ujecie ? { ujecie } : {}) };
+  return Object.keys(nowy).length ? nowy : null;
 }
 // „Zapisz makietę w linku”: zapis w projekcie; istniejący link aktualizuje się w tle (opis makiety w manifeście).
 export async function zapiszMakieteLinku() {
   const p = celOkna || stan.projekt;
-  if (!p) return;
+  const L = wybrany;
+  if (!p || !L) return;
   const komunikat = $('#udostepnij-komunikat');
   komunikat.classList.remove('sukces');
-  const wl = $('#udostepnij-makieta-wl').checked;
-  const model = $('#udostepnij-makieta-model').value;
-  const ujecie = $('#udostepnij-makieta-ujecie').value;
-  const nowy = !wl ? { pokaz: false } : { ...(model ? { model } : {}), ...(ujecie ? { ujecie } : {}) };
-  const pusty = !Object.keys(nowy).length;
-  if (JSON.stringify(pusty ? null : nowy) === JSON.stringify(p.makieta_linku || null)) { komunikat.textContent = t('podgladEkran.bezZmian'); return; }
+  const nowy = makietaZOkna();
+  if (JSON.stringify(nowy) === JSON.stringify(L.makieta_linku || null)) { komunikat.textContent = t('podgladEkran.bezZmian'); return; }
   const przycisk = $('#udostepnij-makieta-zapisz');
   przycisk.disabled = true;
   trwaPublikacja = true;
-  const zapiszP = async () => { if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); } };
+  const zapiszP = () => zapiszProjektLinku(p);
   try {
-    if (pusty) delete p.makieta_linku; else p.makieta_linku = nowy;
+    if (!nowy) delete L.makieta_linku; else L.makieta_linku = nowy;
     await zapiszP();
     odswiezMakieteLinku(p, true);
-    if (p.udostepnienie) {
+    if (L.kod) {
       komunikat.textContent = t('podgladEkran.zapisanoLinkAktualizujeSie');
       if (p !== stan.projekt) await przygotujDoRysowania(p);
-      await linkWTle((pasek) => opublikuj(p, (i, n) => { pasek(i, n); }));
+      await linkWTle((pasek) => naLinku(p, L, (W) => opublikuj(W, (i, n) => { pasek(i, n); })));
       await zapiszP();
     }
-    komunikat.textContent = t('podgladEkran.zapisano2', { opisMakietyLinku: opisMakietyLinku(p) });
+    komunikat.textContent = t('podgladEkran.zapisano2', { opisMakietyLinku: opisMakietyLinku(p, L) });
     komunikat.classList.add('sukces');
   } catch (e) {
     komunikat.textContent = t('podgladEkran.nieUdaloSieZapisac3', { komunikatBledu: chmura.komunikatBledu(e) });
@@ -416,23 +505,33 @@ export async function otworzUdostepnianie(projekt = null) {
   // Ten sam projekt co otwarty (np. wczytany drugi raz z listy) – pracujemy na otwartym, żeby nie było dwóch kopii.
   celOkna = projekt && projekt !== stan.projekt && projekt.id !== stan.projekt?.id ? projekt : null;
   if (!celOkna && !stan.projekt) return;
-  wypelnijOchrone(celOkna || stan.projekt);
-  wypelnijZnak(celOkna || stan.projekt);
-  wypelnijMakieteLinku(celOkna || stan.projekt);
+  const p = celOkna || stan.projekt;
+  wybrany = linkiProjektu(p)[0] || null; // pierwszy link; bez linków – ustawienia nowego
+  wypelnijUstawieniaLinku(p);
   odswiezOknoUdostepniania();
   $('#dlg-udostepnij').showModal();
-  // Link sprzed krótkich adresów (#195) dostaje krótki kod przy otwarciu okna.
-  const p = celOkna || stan.projekt;
-  if (await usunCudzyLink(p)) {
-    wypelnijOchrone(p);
+  // Linki sprzed krótkich adresów (#195) dostają krótki kod przy otwarciu okna; skopiowane z innego projektu znikają.
+  if (await usunCudzeLinki(p)) {
+    wypelnijUstawieniaLinku(p);
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
     return;
   }
-  if (p?.udostepnienie && !p.udostepnienie.krotki && await zapewnijKrotki(p, { sprawdz: true })) {
-    if (p === stan.projekt) zapiszTeraz().catch(() => {}); else { p.zmieniono = new Date().toISOString(); zapiszGdziekolwiek(p).catch(() => {}); }
+  let nowe = false;
+  for (const L of linkiProjektu(p)) if (L.kod && !L.krotki && await naLinku(p, L, (W) => zapewnijKrotki(W, { sprawdz: true }))) nowe = true;
+  if (nowe) {
+    zapiszProjektLinku(p).catch(() => {});
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepnianiaZachowujacKomunikat();
   }
+}
+
+// Nazwa linku (#426) – widać ją na liście linków.
+export async function zapiszNazweLinku() {
+  const p = celOkna || stan.projekt;
+  if (!p || !wybrany) return;
+  wybrany.nazwa = $('#udostepnij-nazwa').value.trim().slice(0, 60);
+  await zapiszProjektLinku(p);
+  odswiezOknoUdostepnianiaZachowujacKomunikat();
 }
 
 const nowyKod = () => [...crypto.getRandomValues(new Uint8Array(12))].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -525,14 +624,17 @@ async function zapewnijKrotki(p, { sprawdz = false } = {}) {
 // Link skopiowany z innego projektu (#198: „Duplikuj” kopiował dane linku oryginału). Za cudzy uznajemy link
 // tylko wtedy, gdy jego krótki kod wprost prowadzi do innego projektu (#201: dawne sprawdzanie plików na koncie
 // mogło uznać własny link za cudzy i kasowało go przy każdym otwarciu). Przy błędzie sieci nic nie ruszamy.
-async function usunCudzyLink(p) {
-  const u = p?.udostepnienie;
-  if (!u?.kod || !u.krotki || !stan.uzytkownik) return false;
-  let cudzy = false;
-  try { const k = await chmura.rozwinKrotkiLink(u.krotki); cudzy = Boolean(k && k.projekt !== p.id); } catch { return false; }
-  if (!cudzy || p.udostepnienie !== u) return false;
-  delete p.udostepnienie;
-  if (p === stan.projekt) await zapiszTeraz().catch(() => {}); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p).catch(() => {}); }
+async function usunCudzeLinki(p) {
+  if (!stan.uzytkownik) return false;
+  const cudze = [];
+  for (const L of linkiProjektu(p)) {
+    if (!L.kod || !L.krotki) continue;
+    try { const k = await chmura.rozwinKrotkiLink(L.krotki); if (k && k.projekt !== p.id) cudze.push(L); } catch { return false; }
+  }
+  if (!cudze.length) return false;
+  p.udostepnienia = linkiProjektu(p).filter((L) => !cudze.includes(L));
+  if (!p.udostepnienia.length) delete p.udostepnienia;
+  await zapiszProjektLinku(p).catch(() => {});
   return true;
 }
 
@@ -540,37 +642,42 @@ async function usunCudzyLink(p) {
 // adres działa dalej. Zapis projektu niesie kod na konto i na inne urządzenia.
 export async function uzupelnijKrotkiLink() {
   const p = stan.projekt;
-  if (!p?.udostepnienie || !navigator.onLine) return;
-  if (await usunCudzyLink(p)) return;
-  if (p.udostepnienie.krotki) return;
-  if (await zapewnijKrotki(p, { sprawdz: true }) && stan.projekt === p) zapiszTeraz().catch(() => {});
+  if (!linkiProjektu(p).length || !navigator.onLine) return;
+  if (await usunCudzeLinki(p)) return;
+  let nowe = false;
+  for (const L of linkiProjektu(p)) if (L.kod && !L.krotki && await naLinku(p, L, (W) => zapewnijKrotki(W, { sprawdz: true }))) nowe = true;
+  if (nowe && stan.projekt === p) zapiszTeraz().catch(() => {});
 }
 
 // Link zlecony przez AI (plan H4, js/app/zadania-ai.js): ten sam link co z okna Udostępnij – nowy albo istniejący,
 // z hasłem i datą ważności podanymi przez AI (za zgodą użytkownika). Projekt otwarty albo wczytany w tle.
+// Projekt z linkami (#426): AI dostaje pierwszy link projektu; bez linków – tworzy nowy.
 export async function linkDlaAi(p, { haslo = '', wazny_do: dzien = '' } = {}) {
   const otwarty = p === stan.projekt;
-  const zapiszP = async () => { if (otwarty) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); } };
   if (otwarty) await zapiszTeraz(); else await przygotujDoRysowania(p);
+  let L = linkiProjektu(p).find((x) => x.kod);
+  const nowy = !L;
+  if (nowy) L = { id: nowyIdLinku(), nazwa: '' };
   const waznyDo = isoZDnia(dzien || null);
-  const w = { chroniony: Boolean(haslo || waznyDo || p.udostepnienie?.ochrona), zmienHaslo: Boolean(haslo) || Boolean(p.udostepnienie?.ochrona?.haslo), haslo: haslo || '', waznyDo: waznyDo || p.udostepnienie?.ochrona?.wazny_do || null };
+  const w = { chroniony: Boolean(haslo || waznyDo || L.ochrona), zmienHaslo: Boolean(haslo) || Boolean(L.ochrona?.haslo), haslo: haslo || '', waznyDo: waznyDo || L.ochrona?.wazny_do || null };
   trwaPublikacja = true;
   try {
-    if (!p.udostepnienie) {
+    if (nowy) {
       if (w.chroniony) {
         const kod = nowyKod();
         const ochrona = await chmura.ustawOchroneLinku(p.id, kod, w);
-        p.udostepnienie = { kod, ochrona: { haslo: Boolean(ochrona?.haslo), wazny_do: ochrona?.wazny_do || null } };
+        Object.assign(L, { kod, ochrona: { haslo: Boolean(ochrona?.haslo), wazny_do: ochrona?.wazny_do || null } });
       }
-      await linkWTle((pasek) => opublikuj(p, pasek));
+      p.udostepnienia = [...linkiProjektu(p), L];
+      try { await linkWTle((pasek) => naLinku(p, L, (W) => opublikuj(W, pasek))); } catch (e) { if (!L.konto) p.udostepnienia = linkiProjektu(p).filter((x) => x !== L); throw e; }
     } else if (haslo || waznyDo) {
-      await linkWTle((pasek) => zastosujOchrone(p, w, pasek));
+      await linkWTle((pasek) => naLinku(p, L, (W) => zastosujOchrone(W, w, pasek)));
     }
-    await zapiszP();
+    await zapiszProjektLinku(p);
   } finally { trwaPublikacja = false; }
   if (!otwarty && document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
-  const o = p.udostepnienie.ochrona;
-  return { adres: linkUdostepnienia(p), haslo: Boolean(o?.haslo), wazny_do: o?.wazny_do || null };
+  const o = L.ochrona;
+  return { adres: linkUdostepnienia(p, L), haslo: Boolean(o?.haslo), wazny_do: o?.wazny_do || null };
 }
 
 // Przycisk „Utwórz link” albo „Aktualizuj teraz”.
@@ -579,46 +686,56 @@ export async function linkDlaAi(p, { haslo = '', wazny_do: dzien = '' } = {}) {
 export async function opublikujUdostepnienie() {
   const p = celOkna || stan.projekt;
   const otwarty = p === stan.projekt;
-  const zapisz = () => (otwarty ? zapiszTeraz() : (p.zmieniono = new Date().toISOString(), zapiszGdziekolwiek(p)));
+  const zapisz = () => zapiszProjektLinku(p);
   const komunikat = $('#udostepnij-komunikat');
   komunikat.classList.remove('sukces');
   for (const b of [$('#udostepnij-utworz'), $('#udostepnij-teraz')]) b.disabled = true;
   trwaPublikacja = true;
   try {
     if (otwarty) await zapiszTeraz(); else await przygotujDoRysowania(p);
-    if (!p.udostepnienie) {
-      // Nowy link: ochrona wybrana w oknie działa od pierwszej publikacji.
-      const w = ochronaZOkna(p);
+    let L = wybrany;
+    if (!L) {
+      // Nowy link (#426): nazwa, ochrona, znak wodny i makieta 3D z pól okna działają od pierwszej publikacji.
+      const w = ochronaZOkna(null);
       if (w.blad) { komunikat.textContent = w.blad; return; }
+      const znak = znakZOkna();
+      const makieta = makietaZOkna();
+      L = { id: nowyIdLinku(), nazwa: $('#udostepnij-nazwa').value.trim().slice(0, 60), ...(znak ? { znak_wodny: znak } : {}), ...(makieta ? { makieta_linku: makieta } : {}) };
       if (w.chroniony) {
         const kod = nowyKod();
         const ochrona = await chmura.ustawOchroneLinku(p.id, kod, w);
-        p.udostepnienie = { kod, ochrona: { haslo: Boolean(ochrona?.haslo), wazny_do: ochrona?.wazny_do || null } };
+        Object.assign(L, { kod, ochrona: { haslo: Boolean(ochrona?.haslo), wazny_do: ochrona?.wazny_do || null } });
       }
+      p.udostepnienia = [...linkiProjektu(p), L];
+      wybrany = L;
     }
     komunikat.textContent = t('podgladEkran.przygotowujeLink');
     const pasek = pasekPostepu('Udostępnianie: strony podglądu – nie zamykaj Makietki', { opoznienie: 0 });
     pilnujZamkniecia(true);
     let wynik;
-    let linkJest = Boolean(p.udostepnienie);
+    let linkJest = Boolean(L.konto);
     const opisPostepu = (i, n) => (linkJest
       ? t('podgladEkran.linkGotowyMozeszGo2', { i, n })
       : t('podgladEkran.stronyZ', { i, n }));
     try {
-      wynik = await opublikuj(p, (i, n) => { if (komunikat.isConnected) komunikat.textContent = opisPostepu(i, n); pasek.krok(i, n); }, {
-        naLink: async () => {
+      wynik = await naLinku(p, L, (W) => opublikuj(W, (i, n) => { if (komunikat.isConnected) komunikat.textContent = opisPostepu(i, n); pasek.krok(i, n); }, {
+        naLink: async (W2) => {
+          przepiszLink(L, W2);
           linkJest = true;
           odswiezOknoUdostepnianiaZachowujacKomunikat();
           komunikat.textContent = t('podgladEkran.linkGotowyMozeszGo');
           for (const b of [$('#udostepnij-utworz'), $('#udostepnij-teraz')]) b.disabled = true;
         },
-      });
+      }));
+    } catch (e) {
+      if (!L.konto) { p.udostepnienia = linkiProjektu(p).filter((x) => x !== L); if (wybrany === L) wybrany = null; } // link nie powstał
+      throw e;
     } finally { pasek.koniec(); pilnujZamkniecia(false); }
     komunikat.textContent = wynik.wyslane < wynik.wszystkie
       ? t('podgladEkran.gotoweWyslanoZStron', { wyslane: wynik.wyslane, wszystkie: wynik.wszystkie })
       : t('podgladEkran.gotoweSkopiujLinkI');
     komunikat.classList.add('sukces');
-    wypelnijOchrone(p);
+    wypelnijUstawieniaLinku(p);
     odswiezOknoUdostepnianiaZachowujacKomunikat(); // link od razu w oknie, zapis – zaraz potem
     await zapisz();
     if (!otwarty && document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true }); // plakietka „Udostępniony”
@@ -639,17 +756,19 @@ export async function opublikujUdostepnienie() {
 const OPOZNIENIE_LINKU_MS = 4000;
 export const OPOZNIENIE_LINKU_Z_KONTA_MS = 15000;
 let timerLinku = null;
+// Wszystkie linki projektu (#426) – po kolei, każdy z własnymi ustawieniami.
+const nieaktualneLinki = (p) => linkiProjektu(p).filter((L) => L.kod && L.konto && !linkAktualny(p, L));
 export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
   clearTimeout(timerLinku);
   const p = stan.projekt;
-  if (!p?.udostepnienie || !stan.uzytkownik || p.udostepnienie.odcisk === odciskTresci(p)) return;
+  if (!p || !stan.uzytkownik || !nieaktualneLinki(p).length) return;
   timerLinku = setTimeout(async () => {
-    if (stan.projekt !== p || !p.udostepnienie || trwaPublikacja || !navigator.onLine) return;
-    if (p.udostepnienie.odcisk === odciskTresci(p)) return;
+    if (stan.projekt !== p || trwaPublikacja || !navigator.onLine) return;
+    if (!nieaktualneLinki(p).length) return;
     trwaPublikacja = true;
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     try {
-      await linkWTle((pasek) => opublikuj(p, pasek));
+      for (const L of nieaktualneLinki(p)) await linkWTle((pasek) => naLinku(p, L, (W) => opublikuj(W, pasek)));
       await zapiszTeraz();
     } catch { /* spróbujemy przy następnym zapisie */ } finally {
       trwaPublikacja = false;
@@ -667,17 +786,24 @@ function odswiezOknoUdostepnianiaZachowujacKomunikat() {
 }
 
 // Unieważnia link: usuwa obrazy stron; stary adres przestaje działać.
+// Unieważnia wybrany link (#426: pozostałe linki projektu działają dalej).
 export async function wylaczUdostepnienie() {
   const p = celOkna || stan.projekt;
-  if (!p?.udostepnienie) return;
-  if (!await potwierdz(t('podgladEkran.uniewaznicLink'), t('podgladEkran.osobyKtoreDostalyLink'), t('podgladEkran.uniewaznijLink'), true)) return;
+  const L = wybrany;
+  if (!p || !L) return;
+  if (!await potwierdz(t('podgladEkran.uniewaznicLinkNazwa', { nazwa: nazwaLinku(p, L) }), t('podgladEkran.osobyKtoreDostalyLink'), t('podgladEkran.uniewaznijLink'), true)) return;
   try {
     clearTimeout(timerLinku);
-    if (p.udostepnienie.ochrona) await chmura.usunPodgladChroniony(p.id, p.udostepnienie.kod);
-    await chmura.wylaczPodglad(p.id, p.udostepnienie.kod);
-    if (p.udostepnienie.krotki) await chmura.usunKrotkiLink(p.id).catch(() => {});
-    delete p.udostepnienie;
-    if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); }
+    if (L.kod) {
+      if (L.ochrona) await chmura.usunPodgladChroniony(p.id, L.kod);
+      await chmura.wylaczPodglad(p.id, L.kod);
+      if (L.krotki) await chmura.usunKrotkiLink(p.id, L.kod).catch(() => {});
+    }
+    p.udostepnienia = linkiProjektu(p).filter((x) => x !== L);
+    if (!p.udostepnienia.length) delete p.udostepnienia;
+    wybrany = linkiProjektu(p)[0] || null;
+    await zapiszProjektLinku(p);
+    wypelnijUstawieniaLinku(p);
     odswiezOknoUdostepniania();
     $('#udostepnij-komunikat').textContent = t('podgladEkran.linkUniewazniony');
     if (document.body.dataset.ekran === 'projekty') pokazProjekty({ cicho: true });
@@ -695,4 +821,7 @@ export async function kopiujLinkUdostepnienia() {
     pole.select();
     powiadom(t('podgladEkran.zaznaczylemLinkSkopiujGo'));
   }
+}
+async function kopiujTekst(tekst) {
+  try { await navigator.clipboard.writeText(tekst); powiadom(t('podgladEkran.linkSkopiowany')); } catch { powiadom(tekst); }
 }

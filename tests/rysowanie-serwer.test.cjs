@@ -108,7 +108,7 @@ test('link: dużo stron – rysuje serwer, postęp w aplikacji; serwer wyłączo
   assert.equal(zlecenie.projekt.id, await strona.evaluate(() => window.seriodruk.stan.projekt.id));
   assert.match(zlecenie.folder, /^[0-9a-f-]+\/[^/]+\/[0-9a-f]+$/, 'własny folder linku');
   assert.equal(obrazyStron(), 0, 'urządzenie nie rysowało stron');
-  assert.ok(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie?.zaktualizowano), 'link oznaczony jako aktualny');
+  assert.ok(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienia?.[0]?.zaktualizowano), 'link oznaczony jako aktualny');
   // Serwer wyłączony – ta sama zmiana rysuje się na urządzeniu.
   wylaczony = true;
   const przed = obrazyStron();

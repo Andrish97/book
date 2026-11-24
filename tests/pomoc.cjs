@@ -46,6 +46,9 @@ const Z_ATRAPA = "export const SUPABASE_URL = 'https://atrapa.supabase.co';\nexp
 // Baza trzyma projekt i strony w kolumnach jsonb, a te nie pamiętają kolejności pól: oddają je
 // posortowane po długości nazwy, potem alfabetycznie. Atrapa oddaje dane tak samo, żeby żaden test
 // nie przechodził dzięki kolejności, której prawdziwa baza nie zachowa.
+// Kody linków projektu jak public.kody_linkow (#426): dawne pole udostepnienie i lista udostepnienia.
+const kodyLinkow = (d) => [...new Set([d?.udostepnienie?.kod, ...(Array.isArray(d?.udostepnienia) ? d.udostepnienia.map((l) => l?.kod) : [])].filter(Boolean))];
+
 function jakJsonb(x) {
   if (Array.isArray(x)) return x.map(jakJsonb);
   if (!x || typeof x !== 'object') return x;
@@ -102,7 +105,7 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   if (funkcja === 'pliki_osierocone') {
     const odwolania = new Set(stan.projekty.flatMap((pr) => zasobyProjektu(pr).map((z) => z?.sciezka)).filter(Boolean));
     const linki = [
-      ...stan.projekty.filter((pr) => pr.owner_id === k.id && pr.dane?.udostepnienie?.kod).map((pr) => `${k.id}/${pr.id}/${pr.dane.udostepnienie.kod}/`),
+      ...stan.projekty.filter((pr) => pr.owner_id === k.id).flatMap((pr) => kodyLinkow(pr.dane).map((kod) => `${k.id}/${pr.id}/${kod}/`)),
       ...chronione.filter(([, u]) => u.sekret).map(([klucz, u]) => `${klucz}.${u.sekret}/`),
     ];
     return moje.filter((x) => Date.now() - (x.p.czas || 0) > DWA_DNI)
@@ -116,7 +119,7 @@ function miejsceAtrapy(stan, funkcja, tresc, k) {
   const aiDoUsuniecia = ai.filter(([id, o]) => (!o.gotowy && Date.now() - o.utworzono > 24 * 3600 * 1000) || (o.gotowy && Date.now() - o.utworzono > DWA_DNI && !uzytyAi(id, o)));
   const linkiDoUsuniecia = chronione.filter(([klucz, u]) => {
     const [, idProjektu, kod] = klucz.split('/');
-    return Date.now() - (u.zmieniono || 0) > DWA_DNI && !stan.projekty.some((pr) => pr.id === idProjektu && pr.dane?.udostepnienie?.kod === kod);
+    return Date.now() - (u.zmieniono || 0) > DWA_DNI && !stan.projekty.some((pr) => pr.id === idProjektu && kodyLinkow(pr.dane).includes(kod));
   });
   const wynik = {
     ai: aiDoUsuniecia.length, ai_bajty: aiDoUsuniecia.reduce((n, [, o]) => n + bajtyAi(o), 0),
@@ -366,12 +369,10 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       if (funkcja === 'krotki_link') return json(r, 200, stan.krotkie.get(String(tresc.p_kod || '').toLowerCase()) || null);
       if (!k) return blad(r, 401, 'Brak sesji', 'PGRST301');
       if (funkcja === 'krotki_link_usun') { for (const [kod, w] of stan.krotkie) if (w.projekt === tresc.p_projekt && w.konto === k.id) stan.krotkie.delete(kod); return json(r, 200, null); }
+      if (funkcja === 'krotki_link_usun_kod') { for (const [kod, w] of stan.krotkie) if (w.projekt === tresc.p_projekt && w.kod === tresc.p_kod_linku && w.konto === k.id) stan.krotkie.delete(kod); return json(r, 200, null); }
       if (funkcja === 'krotki_link_utworz') {
-        for (const [kod, w] of stan.krotkie) {
-          if (w.projekt !== tresc.p_projekt) continue;
-          if (w.kod === tresc.p_kod_linku) return json(r, 200, kod);
-          stan.krotkie.delete(kod);
-        }
+        // #426: krótki kod na każdy link projektu – inne linki zostają.
+        for (const [kod, w] of stan.krotkie) if (w.projekt === tresc.p_projekt && w.kod === tresc.p_kod_linku) return json(r, 200, kod);
         const znaki = 'abcdefghjkmnpqrstuvwxyz23456789';
         let kod;
         do kod = Array.from(crypto.randomBytes(6), (b) => znaki[b % 31]).join(''); while (stan.krotkie.has(kod));
@@ -569,7 +570,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       const wlasne = stan.projekty.filter((pr) => pr.owner_id === k.id).map((pr) => ({
         id: pr.id, nazwa: pr.nazwa, zmieniono: pr.zmieniono, obrazy: obrazy(pr.dane), strony: strony(pr),
         dane_bajty: JSON.stringify(pr.dane || {}).length, klucze_ai: (stan.dostepy || []).filter((d) => d.projekt_id === pr.id && !d.odwolany).length,
-        link: Boolean(pr.dane?.udostepnienie?.kod), link_chroniony: [...(stan.chronione || new Map()).keys()].some((x) => x.startsWith(`${k.id}/${pr.id}/`)),
+        link: kodyLinkow(pr.dane).length > 0, link_chroniony: [...(stan.chronione || new Map()).keys()].some((x) => x.startsWith(`${k.id}/${pr.id}/`)),
       }));
       const uInnych = stan.projekty.filter((pr) => pr.owner_id !== k.id && rolaW(stan, k, pr.id)).map((pr) => ({
         id: pr.id, nazwa: pr.nazwa, zmieniono: pr.zmieniono, obrazy: obrazy(pr.dane), strony: strony(pr), rola: rolaW(stan, k, pr.id),
@@ -596,7 +597,7 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
           const wiersz = { dane: jakJsonb(p.dane), wersja: p.wersja, zmieniono: p.zmieniono };
           return json(r, 200, jeden ? wiersz : [wiersz]);
         }
-        return json(r, 200, widoczne.map((p) => ({ id: p.id, owner_id: p.owner_id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null, udostepnienie: p.dane.udostepnienie || null })));
+        return json(r, 200, widoczne.map((p) => ({ id: p.id, owner_id: p.owner_id, nazwa: p.nazwa, zmieniono: p.zmieniono, wersja: p.wersja, miniatura: p.dane.miniatura || null, udostepnienie: p.dane.udostepnienie || null, udostepnienia: p.dane.udostepnienia || null })));
       }
       if (m === 'POST') {
         const w = Array.isArray(tresc) ? tresc[0] : tresc;

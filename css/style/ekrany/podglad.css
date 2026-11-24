@@ -181,3 +181,15 @@ button.podglad-kartka { cursor: pointer; }
 /* Przeglądarka nie rysuje makiety wcale (ani 3D, ani 2D): spokojna informacja zamiast płótna i ustawień. */
 .makieta-czeka-tryb :is(#makieta-plotno, #makieta-ujecia, .makieta-sterowanie, #makieta-ustawienia, #makieta-eksport, #makieta-zapisane) { display: none !important; }
 .makieta-czeka-tryb #makieta-brak-3d { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: var(--cichy); background: transparent; border: 0; }
+
+/* Kilka linków podglądu (#426): lista jak klucze AI – nazwa, adres, cechy; wybrany link ma obramowanie akcentu. */
+.lista-linkow { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.lista-linkow li { display: flex; align-items: center; gap: 6px; border: 1px solid var(--linia); border-radius: var(--r-s); background: var(--powierzchnia); }
+.lista-linkow li.wybrany { border-color: var(--akcent); box-shadow: 0 0 0 1px var(--akcent) inset; }
+.lista-linkow .link-wybor { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; background: none; border: 0; text-align: left; color: inherit; font: inherit; cursor: pointer; }
+.lista-linkow .link-wybor > span { font-size: 12.5px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lista-linkow li.nowy { border-style: dashed; }
+.lista-linkow li.nowy .link-wybor { color: var(--akcent); font-weight: 600; }
+.lista-linkow .przycisk-ikona { margin-right: 4px; }
+#udostepnij-nazwa-pole .z-przyciskiem { display: flex; gap: 8px; align-items: center; } #udostepnij-nazwa-pole .z-przyciskiem input { flex: 1; min-width: 0; } #udostepnij-nazwa-pole .z-przyciskiem .przycisk { position: static; flex: none; }
+#udostepnij-nazwa-pole .z-przyciskiem input { padding-right: 12px; }

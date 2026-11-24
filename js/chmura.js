@@ -260,7 +260,7 @@ export async function usunKonto() {
 export async function listaWChmurze() {
   const sb = await supabase();
   return sprawdz(await sb.from('projekty')
-    .select('id, owner_id, nazwa, zmieniono, wersja, miniatura:dane->>miniatura, udostepnienie:dane->udostepnienie')
+    .select('id, owner_id, nazwa, zmieniono, wersja, miniatura:dane->>miniatura, udostepnienie:dane->udostepnienie, udostepnienia:dane->udostepnienia')
     .order('zmieniono', { ascending: false }));
 }
 
@@ -725,9 +725,12 @@ export async function rozwinKrotkiLink(kod) {
   if (error) throw error;
   return data; // { konto, projekt, kod } albo null
 }
-export async function usunKrotkiLink(projektId) {
+// kodLinku – tylko krótki kod tego linku (#426: projekt może mieć kilka linków); bez – wszystkie linki projektu.
+export async function usunKrotkiLink(projektId, kodLinku = null) {
   const sb = await supabase();
-  const { error } = await sb.rpc('krotki_link_usun', { p_projekt: projektId });
+  const { error } = kodLinku
+    ? await sb.rpc('krotki_link_usun_kod', { p_projekt: projektId, p_kod_linku: kodLinku })
+    : await sb.rpc('krotki_link_usun', { p_projekt: projektId });
   if (error) throw error;
 }
 

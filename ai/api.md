@@ -123,7 +123,7 @@ Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekt
 | `wyrownaj_elementy`, `rozmiesc_elementy` | wyrównanie elementów (lewo, środek, prawo, góra, środek w pionie, dół – do skrajnego z elementów albo do strony) i równe odstępy poziomo albo pionowo (albo stały odstęp w mm) |
 | `dodaj_strone`, `zmien_strone`, `usun_strony`, `kolejnosc_stron` | strony: sekcja, wzorce, seria, tło, kolejność |
 | `kopiuj_strone` | kopia strony z elementami (nowe id), do 50 kopii, za oryginałem albo za wskazaną stroną |
-| `udostepnij_link` | link do podglądu projektu (jak Udostępnij w aplikacji), opcjonalnie `haslo` (od 4 znaków) i `wazny_do` (RRRR-MM-DD); wymaga `zgoda_uzytkownika: true` – AI musi najpierw zapytać; robi otwarta aplikacja |
+| `udostepnij_link` | link do podglądu projektu (jak Udostępnij w aplikacji; projekt z kilkoma linkami – pierwszy z nich, bez linków – nowy), opcjonalnie `haslo` (od 4 znaków) i `wazny_do` (RRRR-MM-DD); wymaga `zgoda_uzytkownika: true` – AI musi najpierw zapytać; robi otwarta aplikacja |
 | `generuj_obraz` | obraz z opisu kluczem Gemini użytkownika, do ramki (`element`) albo na stronę (`gdzie`); `jakosc`, `proporcja`, `popraw`; robi otwarta aplikacja, kosztuje (miesięczny limit) |
 | `rysuj_kadry` | obrazy do kadrów strony komiksu (`strona`, opcjonalnie `kadry`, `jakosc`); robi otwarta aplikacja w edytorze |
 | `ustaw_dymki` | dymki z tabeli scenariusza na stronach komiksu (`kolumna` – inna wersja językowa); robi otwarta aplikacja |

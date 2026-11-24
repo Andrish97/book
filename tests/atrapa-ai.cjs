@@ -147,7 +147,7 @@ function atrapaAi(stan) {
     if (zla) return { blad: `Strona „${zla.id}”: „sekcja” musi wskazywać istniejącą sekcję.` };
     const teraz = new Date().toISOString();
     const dane = kopia(p_dane);
-    for (const k of ['strony', 'strony_osobno', 'udostepnienie', 'podstawa_chmury', 'wersja_chmury']) delete dane[k];
+    for (const k of ['strony', 'strony_osobno', 'udostepnienie', 'udostepnienia', 'podstawa_chmury', 'wersja_chmury']) delete dane[k];
     const p = {
       id: p_id, owner_id: d.owner_id, nazwa: p_nazwa.trim(), wersja: 1, zmieniono: teraz,
       dane: { ...dane, id: p_id, nazwa: p_nazwa.trim(), strony: ids, strony_osobno: true, zasoby: {}, zmieniono: teraz },
@@ -171,7 +171,7 @@ function atrapaAi(stan) {
     if (stan.limitProjektow && stan.projekty.filter((x) => x.owner_id === d.owner_id).length >= stan.limitProjektow) return { blad: `Masz już ${stan.limitProjektow} projektów – to limit jednego konta. Usuń albo wyeksportuj do pliku projekt, którego nie potrzebujesz, żeby założyć nowy.` };
     const teraz = new Date().toISOString();
     const dane = kopia(src.dane);
-    for (const k of ['udostepnienie', 'podstawa_chmury', 'wersja_chmury', 'wspolpraca_chmury']) delete dane[k];
+    for (const k of ['udostepnienie', 'udostepnienia', 'podstawa_chmury', 'wersja_chmury', 'wspolpraca_chmury']) delete dane[k];
     let obrazyAi = 0;
     for (const z of Object.values(dane.zasoby || {})) {
       if (!String(z?.sciezka || '').startsWith('ai:')) continue;
@@ -211,7 +211,7 @@ function atrapaAi(stan) {
     const p = stan.projekty.find((x) => x.id === d.projekt_id);
     if (!p) return { blad: 'Projektu już nie ma.' };
     const dane = kopia(p.dane);
-    for (const k of ['strony_osobno', 'podstawa_chmury', 'wersja_chmury', 'miniatura', 'udostepnienie']) delete dane[k];
+    for (const k of ['strony_osobno', 'podstawa_chmury', 'wersja_chmury', 'miniatura', 'udostepnienie', 'udostepnienia']) delete dane[k];
     dane.strony = stronyProjektu(p);
     dane.zasoby = Object.fromEntries(Object.entries(p.dane.zasoby || {}).map(([id, z]) => [id, Object.fromEntries(
       Object.entries({ nazwa: z.nazwa, typ: z.typ, szer: z.szer, wys: z.wys, rozmiar: z.rozmiar, skrot: z.skrot }).filter(([, v]) => v !== undefined && v !== null),

@@ -1456,7 +1456,13 @@
         <h2 data-i18n="dlgUdostepnij.udostepnijPodglad">Udostępnij podgląd</h2>
         <button class="przycisk-ikona" data-akcja="udostepnij-zamknij" data-ikona="zamknij" aria-label="Zamknij" data-i18n-aria-label="dlgUdostepnij.zamknij"></button>
       </div>
-      <p class="ciche" id="udostepnij-opis" data-i18n="udostepnijOpis.kazdyKtoDostanieLink">Każdy, kto dostanie link, zobaczy strony projektu – bez konta i bez możliwości zmiany. Projekt ma jeden link; aktualizuje się on sam, chwilę po zapisaniu zmian na koncie.</p>
+      <p class="ciche" id="udostepnij-opis" data-i18n="udostepnijOpis.kilkaLinkow">Każdy, kto dostanie link, zobaczy strony projektu – bez konta i bez możliwości zmiany. Projekt może mieć kilka linków, każdy z własnym hasłem, znakiem wodnym i makietą 3D (np. inny dla klienta, inny dla drukarni). Każdy link aktualizuje się sam, chwilę po zapisaniu zmian.</p>
+
+      <ul class="lista-linkow" id="udostepnij-linki" hidden></ul>
+
+      <div class="pole" id="udostepnij-nazwa-pole"><label for="udostepnij-nazwa" data-i18n="udostepnijNazwa.nazwaLinku">Nazwa linku (widzisz ją tylko Ty)</label>
+        <span class="z-przyciskiem"><input id="udostepnij-nazwa" type="text" maxlength="60" autocomplete="off"><button type="button" class="przycisk" id="udostepnij-nazwa-zapisz" data-akcja="udostepnij-nazwa" data-i18n="udostepnijNazwa.zapisz">Zapisz</button></span>
+      </div>
 
       <div id="udostepnij-link-blok" hidden>
         <label class="pole"><span data-i18n="udostepnijLinkBlok.linkDoPodgladu">Link do podglądu</span>

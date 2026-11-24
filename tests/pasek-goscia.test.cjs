@@ -15,7 +15,7 @@ test('telefon: przyciski w pasku podglądu z linku mają co najmniej 40 px', asy
   await strona.waitForSelector('#dlg-udostepnij[open]');
   await strona.click('#udostepnij-utworz');
   await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces'), null, { timeout: 60000 });
-  const link = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return `${location.origin}${location.pathname}#/u/${p.udostepnienie.konto}/${p.id}/${p.udostepnienie.kod}`; });
+  const link = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return `${location.origin}${location.pathname}#/u/${p.udostepnienia[0].konto}/${p.id}/${p.udostepnienia[0].kod}`; });
   const g = await kontekst.newPage();
   await g.goto(link);
   await g.waitForFunction(() => document.querySelectorAll('.podglad-strona[data-id]').length > 0, null, { timeout: 30000 });

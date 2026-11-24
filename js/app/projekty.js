@@ -50,7 +50,7 @@ export async function wpisyProjektow() {
         const cudzy = Boolean(c.owner_id) && c.owner_id !== stan.uzytkownik.id;
         const u = udzialy.get(c.id);
         w.wspolpraca = cudzy ? { wlasciciel: c.owner_id, nazwa: u?.wlasciciel || t('projekty.wlasciciel'), rola: u?.rola || 'odczyt' } : null;
-        if (!w.lokalnie || !w.doSynchronizacji) w.udostepniony = !cudzy && Boolean(c.udostepnienie);
+        if (!w.lokalnie || !w.doSynchronizacji) w.udostepniony = !cudzy && Boolean(c.udostepnienia?.length || c.udostepnienie);
         if (!w.lokalnie || (!w.doSynchronizacji && c.zmieniono > (w.zmieniono || ''))) {
           w.nazwa = c.nazwa;
           w.miniatura = c.miniatura || w.miniatura;

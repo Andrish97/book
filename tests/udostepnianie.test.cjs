@@ -27,16 +27,16 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.click('[data-akcja="udostepnij-zamknij"]');
   await strona.evaluate(async () => {
     const p = window.seriodruk.stan.projekt;
-    delete p.udostepnienie.krotki;
+    delete p.udostepnienia[0].krotki;
     await (await import('./js/app/zapis.js')).otworzProjekt(p);
   });
-  await strona.waitForFunction((k) => window.seriodruk.stan.projekt.udostepnienie?.krotki === k, link.split('/').pop(), { timeout: 15000 });
+  await strona.waitForFunction((k) => window.seriodruk.stan.projekt.udostepnienia?.[0]?.krotki === k, link.split('/').pop(), { timeout: 15000 });
   await strona.click('[data-akcja="podglad"]');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'podglad');
   await strona.click('[data-akcja="udostepnij"]');
   // …i przy otwarciu okna – ten sam, bo kod linku się nie zmienił.
   await strona.click('[data-akcja="udostepnij-zamknij"]');
-  await strona.evaluate(() => { delete window.seriodruk.stan.projekt.udostepnienie.krotki; });
+  await strona.evaluate(() => { delete window.seriodruk.stan.projekt.udostepnienia[0].krotki; });
   await strona.click('[data-akcja="udostepnij"]');
   await strona.waitForFunction((l) => document.querySelector('#udostepnij-link').value === l, link);
   assert.match(await strona.textContent('#udostepnij-stan'), /aktualny stan/);
@@ -71,7 +71,7 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   assert.ok(await obca.isHidden('[data-akcja="udostepnij"]'));
   assert.ok(await obca.isHidden('[data-akcja="podglad-zamknij"]'));
   // Stary, długi link (sprzed #195) działa dalej.
-  const dlugi = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return `${location.origin}/#/u/${p.udostepnienie.konto}/${p.id}/${p.udostepnienie.kod}`; });
+  const dlugi = await strona.evaluate(() => { const p = window.seriodruk.stan.projekt; return `${location.origin}/#/u/${p.udostepnienia[0].konto}/${p.id}/${p.udostepnienia[0].kod}`; });
   const stara = await gosc.newPage();
   await stara.goto(dlugi);
   await stara.waitForFunction(() => document.body.dataset.ekran === 'podglad' && document.querySelectorAll('.podglad-strona[data-id]').length === 2);
@@ -85,9 +85,9 @@ test('udostępnianie podglądu linkiem: publikacja, widok bez logowania, aktuali
   await strona.keyboard.press('Escape');
   await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
   const przedAktualizacja = baza.wyslania.length;
-  const stanPrzed = await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano);
+  const stanPrzed = await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienia[0].zaktualizowano);
   await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
-  await strona.waitForFunction((z) => window.seriodruk.stan.projekt.udostepnienie.zaktualizowano !== z, stanPrzed, { timeout: 25000 });
+  await strona.waitForFunction((z) => window.seriodruk.stan.projekt.udostepnienia[0].zaktualizowano !== z, stanPrzed, { timeout: 25000 });
   // Zmieniła się jedna strona z dwóch: narysowany i wysłany jest tylko jej obraz, do tego opis – od razu na
   // początku (nowy układ, #331) i na końcu (nowe skróty stron).
   const ponownie = baza.wyslania.slice(przedAktualizacja).filter((k) => k.startsWith('podglady/'));
@@ -248,7 +248,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   await strona.fill('#udostepnij-haslo', 'abc');
   await strona.click('#udostepnij-utworz');
   await strona.waitForFunction(() => /co najmniej 4 znaki/.test(document.querySelector('#udostepnij-komunikat').textContent));
-  assert.equal(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.udostepnienie)), false);
+  assert.equal(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.udostepnienia?.length)), false);
   await strona.fill('#udostepnij-haslo', 'tajne-haslo');
   await strona.click('#udostepnij-utworz');
   await strona.waitForFunction(() => document.querySelector('#udostepnij-komunikat.sukces') && !document.querySelector('#udostepnij-teraz').disabled && !document.querySelector('#udostepnij-utworz').disabled, null, { timeout: 20000 });
@@ -262,7 +262,7 @@ test('link z hasłem i datą ważności: obrazy w folderze z sekretem, pole has�
   assert.equal([...baza.krotkie.values()].find((w) => w.projekt === klucz.split('/')[1])?.kod, klucz.split('/').pop(), 'krótki kod prowadzi do kodu linku z bazy');
   assert.equal(baza.krotkie.get(link.split('/').pop())?.kod, klucz.split('/').pop());
   assert.equal(await strona.textContent('#udostepnij-ochrona-stan'), 'Link chroniony hasłem.');
-  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienie.ochrona), { haslo: true, wazny_do: null });
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienia[0].ochrona), { haslo: true, wazny_do: null });
 
   // Gość: pole hasła, złe hasło, dobre hasło – strony.
   const g = await otworzJakoGosc(przegladarka, baza, Z_ATRAPA, link);
@@ -476,7 +476,7 @@ test('kopia projektu: zmiana bez pytania o konflikt, link dodany w kopii zostaje
   await strona.waitForFunction(() => document.body.dataset.ekran === 'edytor');
   await strona.waitForTimeout(5000);
   assert.equal(await strona.locator('#dlg-potwierdz[open]').count(), 0);
-  assert.ok(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.udostepnienie?.krotki)), 'link kopii zostaje');
+  assert.ok(await strona.evaluate(() => Boolean(window.seriodruk.stan.projekt.udostepnienia?.[0]?.krotki)), 'link kopii zostaje');
   await naListe();
   await kopia().locator('.plakietka-linku').click();
   await strona.waitForSelector('#dlg-udostepnij[open]');

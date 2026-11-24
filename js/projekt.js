@@ -248,6 +248,16 @@ export function normalizuj(p) {
     wynik.makieta_linku = { ...(ml.pokaz === false ? { pokaz: false } : {}), ...(typeof ml.model === 'string' && ml.model ? { model: ml.model } : {}), ...(typeof ml.ujecie === 'string' && ml.ujecie ? { ujecie: ml.ujecie } : {}) };
     if (!Object.keys(wynik.makieta_linku).length) delete wynik.makieta_linku;
   } else delete wynik.makieta_linku;
+  // Linki podglądu (#426): kilka niezależnych linków, każdy z własną ochroną, znakiem wodnym i makietą 3D –
+  // [{ id, nazwa, kod, konto, krotki, ochrona, odcisk, zaktualizowano, znak_wodny, makieta_linku }]. Pojedynczy link
+  // sprzed tej zmiany (udostepnienie oraz znak wodny i makieta całego projektu) staje się pierwszym linkiem listy.
+  const stary = !Array.isArray(p.udostepnienia) && p.udostepnienie?.kod;
+  const linki = Array.isArray(p.udostepnienia) ? p.udostepnienia
+    : (stary ? [{ ...p.udostepnienie, ...(p.znak_wodny ? { znak_wodny: p.znak_wodny } : {}), ...(wynik.makieta_linku ? { makieta_linku: wynik.makieta_linku } : {}) }] : []);
+  wynik.udostepnienia = linki.filter((l) => l && typeof l === 'object').map((l) => ({ ...l, id: l.id || l.kod || uid('ln'), nazwa: typeof l.nazwa === 'string' ? l.nazwa : '' }));
+  if (!wynik.udostepnienia.length) delete wynik.udostepnienia;
+  delete wynik.udostepnienie;
+  if (stary) { delete wynik.znak_wodny; delete wynik.makieta_linku; }
   delete wynik.motywy; // zastąpione wzorcami
   delete wynik.uklad;
 
@@ -449,6 +459,7 @@ export function kopiujProjekt(projekt, nazwa) {
   delete kopia.podstawa_chmury;
   delete kopia.wspolpraca_chmury; // kopia projektu współdzielonego jest już własna
   delete kopia.udostepnienie; // link do podglądu należy do oryginału – kopia dostaje własny dopiero po „Utwórz link” (#198)
+  delete kopia.udostepnienia; // linki podglądu (#426) – tak samo
   // Obrazy trzeba wysłać na konto jeszcze raz, pod nowym projektem.
   for (const z of Object.values(kopia.zasoby || {})) delete z.sciezka;
   return kopia;

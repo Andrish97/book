@@ -472,6 +472,8 @@ and without changing the type. The mockup updates in the link by itself, also in
    who opens the link in the meantime will see "The preview is being prepared", and the pages will appear for them by themselves.
 3. Copy the link and send it.
 
+**Several links.** A project can have several independent links — like AI keys: each with its own name (only you see it), password and expiry date, watermark and 3D mockup, e.g. “Client” without a watermark and “Print shop” with a password and the watermark “FOR PRINT”. At the top of the window there is the list of links — clicking one selects it, and the fields below show and change its settings; the icon next to it copies its address. **+ New link** clears the fields: type a name, set a password, watermark and mockup, and click [Create link]. Each link has its own short address and updates itself after changes in the project.
+
 The link is short: **makietka.app/** and six characters, e.g. `makietka.app/k7m2xq`. Links created earlier
 get a short address by themselves the next time the project is opened; the old, long address still works.
 
@@ -540,8 +542,8 @@ The **3D mockup in the link** part of the Share window decides what the viewer s
 
 ## 23.6 Revoking a link
 
-[Revoke link] deletes the shared pages — the old address stops working immediately. Sharing again
-gives a new address.
+[Revoke link] deletes the pages of the selected link — its address stops working immediately; the project's
+other links keep working. Sharing again gives a new address.
 
 > Note: The link is long and random, so it can't be guessed, but anyone who gets it can
 > pass it on. Set a password for confidential projects.

@@ -31,7 +31,7 @@ test('znak wodny: zapis od razu, strony linku w tle z paskiem postępu po zamkni
   await strona.click('#udostepnij-znak-zapisz');
   // Zapisane od razu – w projekcie i na koncie, choć strony linku jeszcze się nie wysłały.
   await strona.waitForFunction(() => /Zapisano\. Strony linku/.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 15000 });
-  const naKoncie = () => baza.projekty.find((p) => p.nazwa === 'W tle' || p.dane?.nazwa === 'W tle')?.dane?.znak_wodny;
+  const naKoncie = () => baza.projekty.find((p) => p.nazwa === 'W tle' || p.dane?.nazwa === 'W tle')?.dane?.udostepnienia?.[0]?.znak_wodny; // #426: znak wodny należy do linku
   for (let i = 0; i < 50 && !naKoncie(); i += 1) await strona.waitForTimeout(200);
   assert.deepEqual(naKoncie(), { tekst: 'WZÓR', krycie: 12 }, 'znak wodny na koncie przed końcem aktualizacji linku');
   // Okno można zamknąć – pasek na dole ekranu zostaje, karta pyta przy zamknięciu.
@@ -49,7 +49,7 @@ test('znak wodny: zapis od razu, strony linku w tle z paskiem postępu po zamkni
   // Link ma już strony ze znakiem: odcisk linku zgodny z treścią (bez ponownej aktualizacji przy otwarciu).
   const zgodny = await strona.evaluate(async () => {
     const p = window.seriodruk.stan.projekt;
-    return { znak: p.znak_wodny, odcisk: Boolean(p.udostepnienie?.odcisk) };
+    return { znak: p.udostepnienia?.[0]?.znak_wodny, odcisk: Boolean(p.udostepnienia?.[0]?.odcisk) };
   });
   assert.deepEqual(zgodny, { znak: { tekst: 'WZÓR', krycie: 12 }, odcisk: true });
   const ostatni = await strona.evaluate(() => { const e = new Event('beforeunload', { cancelable: true }); window.dispatchEvent(e); return e.defaultPrevented; });
