@@ -4264,6 +4264,7 @@ export default {
   "oknoKontroli.doSprawdzeniaZadnaNie": "{uwagiIle} {uwagiIle|зауваження|зауваження|зауважень} для перевірки. Жодне не блокує експорт.",
   "oknoKontroli.nieUdaloSieSkopiowac": "Браузер не дозволив скопіювати звіт.",
   "oknoKontroli.nieUdaloSieSprawdzicTekstow": "Не вдалося перевірити тексти в рамках ({blad}). Інші зауваження є в списку – звіт їх скопіює.",
+  "oknoKontroli.raportJeszczeSieLaduje": "Звіт ще готується – триває перевірка текстів на всіх сторінках.",
   "oknoKontroli.raportNaglowek": "Перевірка перед друком – {nazwa}",
   "oknoKontroli.skopiowanoRaport": "Звіт скопійовано – {n} {n|зауваження|зауваження|зауважень}. Вставте його куди завгодно.",
   "oknoKontroli.sprawdzamCzyTekstyMieszcza": "Перевіряю, чи тексти вміщуються в рамки на {egzemplarzeIle} {egzemplarzeIle|сторінці|сторінках|сторінках}…",

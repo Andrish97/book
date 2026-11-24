@@ -79,10 +79,12 @@ export class OknoKontroli {
     const lista = $('#kontrola-lista');
     const stan = $('#kontrola-stan');
     const kopiuj = $('#kontrola-kopiuj');
-    // „Kopiuj raport” cały czas widoczny (#422): w trakcie sprawdzania tekstów (duży projekt – nawet kilkanaście
-    // sekund) kopiuje to, co już jest, a pierwszy wiersz stanu mówi, że sprawdzanie trwa. Wcześniej przycisk
-    // znikał do końca sprawdzania i nie wracał, gdy sprawdzanie się przerwało.
+    // „Kopiuj raport” cały czas widoczny (#422), w trakcie sprawdzania tekstów (duży projekt – nawet kilkanaście
+    // sekund) wyszarzony (#423) – raport byłby niepełny. Wcześniej przycisk znikał do końca sprawdzania i nie
+    // wracał, gdy sprawdzanie się przerwało; po błędzie jest aktywny (kopiuje pozostałe uwagi).
     kopiuj.hidden = false;
+    kopiuj.disabled = true;
+    kopiuj.title = t('oknoKontroli.raportJeszczeSieLaduje');
     this.uwagi = null;
     const pokaz = {
       wzor: (idStrony, idObiektu) => { this.okno.close(); this.zrodlo.pokaz(idStrony, idObiektu); },
@@ -101,6 +103,7 @@ export class OknoKontroli {
       if (nr !== this.nr) return;
       console.error(e);
       stan.textContent = t('oknoKontroli.nieUdaloSieSprawdzicTekstow', { blad: e?.message || '' });
+      kopiuj.disabled = false; kopiuj.title = '';
       return;
     }
     if (nr !== this.nr) return;
@@ -111,5 +114,6 @@ export class OknoKontroli {
       : powazneIle ? t('oknoKontroli.wTymPowazne', { uwagiIle: uwagi.length, powazneIle })
         : t('oknoKontroli.doSprawdzeniaZadnaNie', { uwagiIle: uwagi.length });
     this.uwagi = uwagi; // do testów i raportu
+    kopiuj.disabled = false; kopiuj.title = '';
   }
 }

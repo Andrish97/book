@@ -79,8 +79,15 @@ test('Sprawdź przed drukiem: Kopiuj raport – wszystkie uwagi w schowku', asyn
     ];
     await window.seriodruk.przeladuj();
   });
-  await strona.click('#przycisk-wiecej');
-  await strona.click('[data-akcja="kontrola"]');
+  // #423: w trakcie sprawdzania przycisk widoczny, ale wyszarzony; po zakończeniu – aktywny.
+  const stany = await strona.evaluate(async () => {
+    const b = document.querySelector('#kontrola-kopiuj');
+    const p = window.seriodruk.oknoKontroli.otworz();
+    const wTrakcie = [b.hidden, b.disabled];
+    await p;
+    return [wTrakcie, [b.hidden, b.disabled]];
+  });
+  assert.deepEqual(stany, [[false, true], [false, false]]);
   // #422: przycisk widać od razu (także w trakcie sprawdzania tekstów); pełny raport – po zakończeniu.
   await strona.waitForSelector('#kontrola-kopiuj:not([hidden])');
   await strona.waitForFunction(() => /do sprawdzenia|w porządku/.test(document.querySelector('#kontrola-stan').textContent));

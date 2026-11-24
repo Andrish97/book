@@ -4264,6 +4264,7 @@ export default {
   "oknoKontroli.doSprawdzeniaZadnaNie": "{uwagiIle} {uwagiIle|uwaga|uwagi|uwag} do sprawdzenia. Żadna nie blokuje eksportu.",
   "oknoKontroli.nieUdaloSieSkopiowac": "Przeglądarka nie pozwoliła skopiować raportu.",
   "oknoKontroli.nieUdaloSieSprawdzicTekstow": "Nie udało się sprawdzić tekstów w ramkach ({blad}). Pozostałe uwagi są na liście – raport je skopiuje.",
+  "oknoKontroli.raportJeszczeSieLaduje": "Raport jeszcze się przygotowuje – trwa sprawdzanie tekstów na wszystkich stronach.",
   "oknoKontroli.raportNaglowek": "Sprawdź przed drukiem – {nazwa}",
   "oknoKontroli.skopiowanoRaport": "Skopiowano raport – {n} {n|uwaga|uwagi|uwag}. Wklej go, gdzie chcesz.",
   "oknoKontroli.sprawdzamCzyTekstyMieszcza": "Sprawdzam, czy teksty mieszczą się w ramkach na {egzemplarzeIle} {egzemplarzeIle|stronie|stronach|stronach}…",

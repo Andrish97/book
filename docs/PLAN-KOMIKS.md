@@ -277,3 +277,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „Możesz zrobić o poważnych uwagach i wszędzie je zaznaczyć na czerwono, a nie na pomarańczowo” – ✅ poważne uwagi na czerwono, pytanie przed eksportem PDF (#420).
 - „dlaczego svg mówi coś o dpi, skoro to wektor” – ✅ SVG bez uwagi o rozdzielczości (#421).
 - „Przycisk Kopiuj w Sprawdź przed drukiem był i zniknął” – ✅ widoczny od razu, także w trakcie i po błędzie sprawdzania (#422).
+- „możesz go wyszarzyć, jeśli raport jeszcze się ładuje” – ✅ wyszarzony do końca sprawdzania (#423).
