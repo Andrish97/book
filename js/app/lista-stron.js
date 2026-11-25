@@ -612,14 +612,32 @@ export async function piszNaInnejStronie({ strona, id, indeks, wPrzod }) {
     else if (e.key === 'Enter') znaki.push('\n');
     else if (e.key === 'Backspace') znaki.pop();
   };
+  // Tekst wstawiany bez zdarzenia klawisza (litery z ogonkami, klawiatura telefonu, IME) trafia do ukrytego pola,
+  // które w czasie przejścia ma fokus – inaczej „ó”, „ś”, „ę” wpisane w tej chwili by przepadły.
+  const pole = Object.assign(document.createElement('textarea'), { tabIndex: -1 });
+  pole.setAttribute('aria-hidden', 'true');
+  pole.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0';
+  const wstaw = (e) => {
+    e.preventDefault();
+    if (e.inputType === 'insertText' && e.data) znaki.push(...e.data);
+    else if (e.inputType === 'insertLineBreak' || e.inputType === 'insertParagraph') znaki.push('\n');
+    else if (e.inputType === 'deleteContentBackward') znaki.pop();
+  };
+  pole.addEventListener('beforeinput', wstaw);
+  const trzymajFokus = () => { if (document.activeElement !== pole) pole.focus({ preventScroll: true }); };
   window.addEventListener('keydown', lap, true);
   try {
     // Koniec pisania w dotychczasowej ramce jest zmianą (krok historii obejmie obie strony).
     const akt = edytor.aktywny;
     if (akt?.isEditing) akt.exitEditing();
+    document.body.append(pole);
+    trzymajFokus();
+    document.addEventListener('focusin', trzymajFokus, true);
     await przejdzDoStrony(i);
   } finally {
+    document.removeEventListener('focusin', trzymajFokus, true);
     window.removeEventListener('keydown', lap, true);
+    pole.remove();
     przejscieZaKursorem = false;
   }
   if (!edytor.piszWRamce(id, indeks, znaki.join(''))) return false;
