@@ -281,6 +281,12 @@ async function wczytajCel({ dopasuj = false, nawigacja = false } = {}) {
     await edytor.wczytajArkusz(dane, projekt.zasoby);
     // Tekst płynący przez strony: ramki tych samych wątków z pozostałych stron.
     await edytor.ustawRamkiPoza(ramkiZInnychStron(projekt, strony));
+    // Ramki z innych stron w warunkach swoich stron (bok rozkładówki, oblewanie, siatka) – jak na płótnie i jak na
+    // serwerze (#436): podział wątku nie zależy od tego, która strona jest otwarta.
+    if (edytor._poza?.length) {
+      const { ulozWWarunkachStron } = await import('../przelewanie.js');
+      await ulozWWarunkachStron(projekt, edytor._poza.map((x) => ({ strona: projekt.strony.find((s) => s.id === x.strona), o: x.o })), { ciag });
+    }
     naPlotnie = { strony: strony.map((s) => s.id), wczytane: zdjeciePlotna(strony) };
     naPlotnie.pola = zdjeciePol(strony);
     podpisKsiazki = uzywaKsiazki(projekt) ? podpisWarstwKsiazki(projekt) : ''; // to, co pokazują wczytane warstwy (#131B)
