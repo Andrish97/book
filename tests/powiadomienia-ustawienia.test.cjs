@@ -139,7 +139,8 @@ test('powiadomienia: e-maile o zaproszeniach wyłączane dla całego konta (#206
   // Zapraszający: adresat wyłączył e-maile – jasny komunikat zamiast błędu.
   const tekst = await strona.evaluate(async () => {
     const { BEZ_MAILA } = await import('./js/app/wspolpraca.js');
-    return BEZ_MAILA;
+    const { t } = await import('./js/jezyk.js');
+    return t(BEZ_MAILA); // stała to klucz tłumaczenia – sprawdzamy tekst, który widzi użytkownik
   });
   assert.match(tekst, /wyłączyła e-maile o zaproszeniach/);
   assert.deepEqual(bledy, []);
