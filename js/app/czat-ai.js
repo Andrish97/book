@@ -179,12 +179,21 @@ async function kluczDostepu(projektId, rola) {
   return w.klucz;
 }
 
+// Usługa składu w aplikacji (#436): przelewanie wątków, wysokości, sprawdzenie, podgląd – tym samym kodem co serwer
+// łącznika (js/sklad-uslugi.js), tutaj, bez przeglądarki serwera (czcionki i obrazy są już wczytane).
+async function skladanieLokalne({ projekt, dzialania }) {
+  const [{ skladaj }, { przygotujDoRysowania }, { normalizuj }] = await Promise.all([import('../sklad-uslugi.js'), import('./zapis.js'), import('../projekt.js')]);
+  const p = normalizuj(JSON.parse(JSON.stringify(projekt)));
+  await przygotujDoRysowania(p);
+  return skladaj(p, dzialania);
+}
+
 // Narzędzia łącznika dla projektu (zadania od AI z kolejki – js/app/zadania-ai.js): klucz czatu z prawem zmian.
 export const __dopiszDoTestu = (rodzaj, tekst) => dopisz(rodzaj, tekst); // testy (#428)
 
 export async function wolajDlaProjektu(projektId) {
   const { utworzSerwer } = await import('../ai-narzedzia-rdzen.js');
-  const serwer = utworzSerwer({ adres: SUPABASE_URL, kluczPubliczny: SUPABASE_ANON_KEY, klucz: await kluczDostepu(projektId, 'edycja'), projekt: projektId });
+  const serwer = utworzSerwer({ adres: SUPABASE_URL, kluczPubliczny: SUPABASE_ANON_KEY, klucz: await kluczDostepu(projektId, 'edycja'), projekt: projektId, skladanie: skladanieLokalne });
   const stanSesji = {};
   let nr = 0;
   const wolaj = async (method, params = {}) => {
@@ -203,7 +212,7 @@ async function przygotujNarzedzia() {
   // zamiast po dobie odbijać się od wygasłego.
   if (narzedzia?.projekt === projekt && narzedzia.rola === rola && narzedzia.wazneDo > Date.now() + 10 * 60 * 1000) return narzedzia;
   const { utworzSerwer } = await import('../ai-narzedzia-rdzen.js');
-  const serwer = utworzSerwer({ adres: SUPABASE_URL, kluczPubliczny: SUPABASE_ANON_KEY, klucz: await kluczDostepu(projekt, rola), projekt });
+  const serwer = utworzSerwer({ adres: SUPABASE_URL, kluczPubliczny: SUPABASE_ANON_KEY, klucz: await kluczDostepu(projekt, rola), projekt, skladanie: skladanieLokalne });
   const stanSesji = {};
   let nr = 0;
   const wolaj = async (method, params = {}) => {

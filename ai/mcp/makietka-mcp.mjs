@@ -39,6 +39,8 @@ export const ADRES_APLIKACJI = 'https://makietka.app/';
 const ADRES_LACZNIKA = 'https://api.makietka.app/mcp';
 // Pliki eksportu zleconego przez AI (#175): przekaźnik wydaje je pod /eksport/<zlecenie>/<sekret>/<nazwa>.
 export const ADRES_POBIERANIA = 'https://api.makietka.app/eksport/';
+// Usługa składu (#436): przeglądarka serwera z kodem edytora (cloudflare/rysowanie.js → js/sklad-uslugi.js).
+export const ADRES_SKLADANIA = 'https://api.makietka.app/rysuj/skladaj';
 
 // Te same listy co w aplikacji (js/pola.js, js/style-tekstu.js) – test pilnuje, żeby się zgadzały.
 export const POLA_DOKUMENTU = ['nr', 'nr_ogolny', 'nr_w_sekcji', 'liczba_stron', 'liczba_stron_sekcji', 'sekcja', 'nr_sekcji', 'strona', 'projekt', 'format', 'oprawa', 'grzbiet', 'stron_bloku', 'papier', 'rok_kalendarza', 'seria', 'egzemplarz', 'liczba_egzemplarzy', 'data', 'rok', 'poczatek', 'koniec', 'nr_strony', 'rozdzial', 's', 'przypis', 'pierwszy', 'ostatni', 'pierwsza_litera', 'ostatnia_litera'];
@@ -2103,8 +2105,8 @@ function argumentyZEn(a, s, narzedzie) {
 }
 
 // czekanieEksportu, krokEksportu (ms): jak długo i jak często łącznik czeka na plik zlecony aplikacji (#175).
-export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Sztuczna inteligencja).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, rysowanie = true, angielski = false, projekt: wybranyProjekt = null, czekanieEksportu = 45000, krokEksportu = 1500, adresPobierania = ADRES_POBIERANIA }) {
-  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu, rysowanie, angielski, czekanieEksportu, krokEksportu, adresPobierania };
+export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, brakKlucza = 'Brak klucza dostępu (klucz z aplikacji: menu ⋯ → Sztuczna inteligencja).', czytajPliki = null, pobierzAdres = pobierzZAdresu, plikiZCzatu = false, rysowanie = true, angielski = false, projekt: wybranyProjekt = null, czekanieEksportu = 45000, krokEksportu = 1500, adresPobierania = ADRES_POBIERANIA, skladanie = null, adresSkladania = ADRES_SKLADANIA }) {
+  const OPCJE = { adres, kluczPubliczny, klucz, czytajOpis, brakKlucza, czytajPliki, pobierzAdres, plikiZCzatu, rysowanie, angielski, czekanieEksportu, krokEksportu, adresPobierania, skladanie, adresSkladania };
   const ADRES = String(adres || '').replace(/\/+$/, '');
   const KLUCZ_PUBLICZNY = kluczPubliczny;
   // Klucz konta (ustawienia konta → Sztuczna inteligencja) i – dla narzędzi projektu – wybrany projekt: funkcje bazy ai_*
@@ -2282,6 +2284,92 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     delete zmiany.wersja;
   }
 
+  // ---------- Usługa składu (#436) ----------
+  // Przelewanie wątków, wysokości ramek, pełne sprawdzenie, podgląd i opis strony tym samym kodem co edytor – w czacie
+  // aplikacji lokalnie (opcja skladanie), na serwerze łącznika przez przeglądarkę workera (adresSkladania).
+  // Zwraca wynik albo { blad }.
+  // Baza na własnym komputerze (testy, serwer lokalny) – bez usługi na produkcji.
+  const SKLADANIE = /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(String(adres || '')) && adresSkladania === ADRES_SKLADANIA ? null : adresSkladania;
+  async function uslugaSkladu(projekt, dzialania) {
+    try {
+      if (typeof skladanie === 'function') return await skladanie({ projekt, dzialania });
+      if (!SKLADANIE) return { blad: 'usługa składu niedostępna' };
+      const stop = new AbortController();
+      const czas = setTimeout(() => stop.abort(), 120000);
+      try {
+        const odp = await fetch(SKLADANIE, {
+          method: 'POST', signal: stop.signal,
+          headers: { 'content-type': 'application/json', 'x-makietka-klucz': KLUCZ_KONTA },
+          body: JSON.stringify({ projekt_id: projekt.id || wybranyProjekt, projekt, dzialania }),
+        });
+        const dane = await odp.json().catch(() => null);
+        if (!odp.ok) return { blad: dane?.blad || `błąd ${odp.status}` };
+        return dane || { blad: 'pusta odpowiedź' };
+      } finally { clearTimeout(czas); }
+    } catch (e) {
+      return { blad: String(e?.name === 'AbortError' ? 'przekroczony czas' : (e?.message || e)).slice(0, 200) };
+    }
+  }
+
+  // Ramki tekstu (strona → id → obiekt) i wątki, w których zmiana coś ruszyła (tekst, style, wymiary, pola wątku).
+  const ramkiTekstu = (p) => {
+    const m = new Map();
+    for (const s of p.strony || []) for (const o of s.obiekty || []) if (o?.type === 'textbox') m.set(o.id, { s, o });
+    return m;
+  };
+  function zmienioneWatki(przed, po) {
+    const a = ramkiTekstu(przed);
+    const b = ramkiTekstu(po);
+    const watki = new Set();
+    for (const id of new Set([...a.keys(), ...b.keys()])) {
+      const x = a.get(id)?.o; const y = b.get(id)?.o;
+      if (!x?.watek && !y?.watek) continue;
+      if (JSON.stringify(x) === JSON.stringify(y)) continue;
+      if (x?.watek) watki.add(x.watek);
+      if (y?.watek) watki.add(y.watek);
+    }
+    // Wątek, z którego zniknęły wszystkie ramki, nie ma czego przelewać.
+    return [...watki].filter((w) => [...b.values()].some((r) => r.o.watek === w));
+  }
+
+  // Po zmianie z łącznika, przed zapisem (#436): przelanie zmienionych wątków, treść z tabeli po zmianie danych
+  // i wysokości ramek rosnących z tekstem na zmienionych stronach – w tym samym zapisie (tej samej wersji).
+  // Zmienione strony dochodzą do zmiany (pełne obiekty stron). Zwraca opis do odpowiedzi narzędzia.
+  async function skladPoZmianie(przed, projekt, zmiany) {
+    const watki = zmienioneWatki(przed, projekt);
+    const trescZTabel = Boolean(zmiany.tabele) && (projekt.strony || []).some((s) => (s.obiekty || []).some((o) => o?.z_tabeli));
+    // Wysokości tylko tam, gdzie zmieniła się ramka rosnąca z tekstem (bez wątku) – inaczej usługa nie jest potrzebna.
+    const a = ramkiTekstu(przed);
+    const stronyZmiany = [...new Set([...ramkiTekstu(projekt).values()]
+      .filter(({ o }) => !o.watek && !(o.ramka_h > 0) && JSON.stringify(a.get(o.id)?.o) !== JSON.stringify(o)).map(({ s }) => s.id))];
+    if (!watki.length && !trescZTabel && !stronyZmiany.length) return '';
+    const dzialania = [
+      ...(trescZTabel ? [{ rodzaj: 'tresc_z_tabel' }] : []),
+      ...(watki.length ? [{ rodzaj: 'przelej', watki }] : []),
+      ...(stronyZmiany.length ? [{ rodzaj: 'wysokosci', strony: stronyZmiany }] : []),
+    ];
+    const w = await uslugaSkladu(projekt, dzialania);
+    if (w?.blad) return watki.length || trescZTabel ? ` Tekstu w połączonych ramkach nie przelano od razu (${w.blad}) – przeleje się po otwarciu strony w edytorze.` : '';
+    const ramki = ramkiTekstu(projekt);
+    const doZapisu = new Set();
+    const wpisz = (id, pola) => {
+      const r = ramki.get(id);
+      if (!r) return;
+      for (const [k, v] of Object.entries(pola)) { if (v === undefined || v === null) delete r.o[k]; else r.o[k] = v; }
+      doZapisu.add(r.s);
+    };
+    for (const z of w.tresc_z_tabel || []) wpisz(z.id, z.pola);
+    for (const p of w.przelej || []) for (const z of p.zmiany || []) wpisz(z.id, z.pola);
+    for (const z of w.wysokosci || []) wpisz(z.id, { height: z.height });
+    if (doZapisu.size) {
+      const lista = Array.isArray(zmiany.strony) ? zmiany.strony : [];
+      for (const s of doZapisu) { const i = lista.findIndex((x) => x?.id === s.id); if (i >= 0) lista[i] = s; else lista.push(s); }
+      zmiany.strony = lista;
+    }
+    const raporty = (w.przelej || []).map((p) => p.opis).filter(Boolean);
+    return raporty.length ? `\nTekst w połączonych ramkach przelany na nowo:\n${raporty.join('\n')}` : '';
+  }
+
   // Pobierz → zmień → zapisz z numerem wersji. Przy odmowie (projekt zmienił się w międzyczasie, np. ktoś
   // pisze w edytorze) pobiera projekt na nowo i nanosi zmianę jeszcze raz – raz.
   async function zmien(zmiana) {
@@ -2292,10 +2380,11 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       const { zmiany, opis } = zmiana(projekt);
       if (!zmiany || !Object.keys(zmiany).length) return opis || 'Nic do zmiany.';
       zachowajWyliczone(zmiany, przed);
+      const sklad = await skladPoZmianie(przed, projekt, zmiany);
       const w = await rpc('ai_zapisz', { p_klucz: KLUCZ, p_znana_wersja: wersja, p_zmiany: zmiany });
       if (w?.konflikt && proba === 0) continue;
       if (w?.blad) throw new BladBazy(opisBledu(w));
-      return `${opis} Zapisano (wersja ${w.wersja}); zmiana jest już w edytorze właściciela.`;
+      return `${opis} Zapisano (wersja ${w.wersja}); zmiana jest już w edytorze właściciela.${sklad}`;
     }
     throw new BladBazy('Projekt zmienia się teraz bardzo często – spróbuj za chwilę.');
   }
