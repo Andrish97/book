@@ -114,6 +114,7 @@
   --cien-probki-mocny: inset 0 0 0 1px rgba(0, 0, 0, .15);
   --cien-uchwytu-koloru: 0 0 0 1px rgba(0, 0, 0, .5);
   --cien-zaslonki: 0 -10px 36px rgba(0, 0, 0, .22);
+  --cien-uchwytu-tekstu: 0 1px 3px rgba(0, 0, 0, .3); /* uchwyty zaznaczania tekstu na telefonie (#434) */
   --cien-okienka-zaslonki: 0 -8px 32px rgba(0, 0, 0, .22);
   --cien-podpowiedzi: 0 6px 20px rgba(0, 0, 0, .14);
   --cien-miniatury: 0 1px 3px rgba(28, 27, 25, .2);

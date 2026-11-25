@@ -1511,17 +1511,17 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 }
 .tekst-dotyk-uchwyt::after {
   content: ''; position: absolute; left: 6px; top: 6px; width: 14px; height: 14px; border-radius: 50% 0 50% 50%;
-  background: var(--akcent); transform: rotate(-45deg); box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+  background: var(--akcent); transform: rotate(-45deg); box-shadow: var(--cien-uchwytu-tekstu);
 }
 .tekst-dotyk-uchwyt.koniec::after { border-radius: 0 50% 50% 50%; transform: rotate(45deg); }
 .tekst-dotyk-uchwyt[hidden], .tekst-dotyk-menu[hidden] { display: none; }
 .tekst-dotyk-menu {
   position: fixed; z-index: 62; display: flex; gap: 2px; padding: 4px; border-radius: 10px;
-  background: var(--powierzchnia); border: 1px solid var(--linia); box-shadow: var(--cien-zaslonki, 0 4px 16px rgb(0 0 0 / 20%));
+  background: var(--powierzchnia); border: 1px solid var(--linia); box-shadow: var(--cien-2);
   transform: translate(-50%, -100%); white-space: nowrap;
 }
 .tekst-dotyk-menu button { border: 0; background: transparent; color: var(--tekst); font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 6px; }
-.tekst-dotyk-menu button:active { background: var(--akcent-tlo, rgb(0 0 0 / 8%)); }
+.tekst-dotyk-menu button:active { background: var(--akcent-tlo); }
 
 /* Kopiowanie wiadomości czatu (#428): mały przycisk w rogu dymka; na dotyku zawsze widoczny. */
 .czat-ai-wiadomosci li.ai, .czat-ai-wiadomosci li.ja { position: relative; padding-right: 34px; -webkit-user-select: text; user-select: text; }
