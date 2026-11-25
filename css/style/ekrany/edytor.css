@@ -1504,15 +1504,24 @@ body.tryb-komentarza #kontener-plotna .upper-canvas, body.tryb-komentarza .podgl
 #potwierdz-tresc { white-space: pre-line; }
 .kropka.powazne { background: var(--blad); }
 
-/* Tekst ze strony w zwykłym polu na dotyku (#428): pasek na dole ekranu, nad klawiaturą. */
-.edycja-tekstu-tel {
-  position: fixed; left: 0; right: 0; bottom: var(--klawiatura, 0px); z-index: 60;
-  display: flex; flex-direction: column; gap: 8px; padding: 10px 12px calc(10px + var(--bezp-dol, 0px));
-  background: var(--powierzchnia); border-top: 1px solid var(--linia); box-shadow: var(--cien-zaslonki);
+/* Tekst na stronie na dotyku (#434): uchwyty zaznaczania i menu Kopiuj / Wytnij / Wklej nad tekstem (tekst-dotyk.js). */
+.tekst-dotyk-uchwyt {
+  position: fixed; z-index: 61; width: 26px; height: 26px; margin: 0 0 0 -13px; padding: 0; border: 0;
+  background: transparent; touch-action: none; -webkit-tap-highlight-color: transparent;
 }
-.edycja-tekstu-tel[hidden] { display: none; }
-.edycja-tekstu-tel textarea { width: 100%; min-height: 84px; max-height: 38vh; font-size: 16px; resize: vertical; }
-.edycja-tekstu-tel .rzad-przyciskow { display: flex; align-items: center; gap: 8px; }
+.tekst-dotyk-uchwyt::after {
+  content: ''; position: absolute; left: 6px; top: 6px; width: 14px; height: 14px; border-radius: 50% 0 50% 50%;
+  background: var(--akcent); transform: rotate(-45deg); box-shadow: 0 1px 3px rgb(0 0 0 / 30%);
+}
+.tekst-dotyk-uchwyt.koniec::after { border-radius: 0 50% 50% 50%; transform: rotate(45deg); }
+.tekst-dotyk-uchwyt[hidden], .tekst-dotyk-menu[hidden] { display: none; }
+.tekst-dotyk-menu {
+  position: fixed; z-index: 62; display: flex; gap: 2px; padding: 4px; border-radius: 10px;
+  background: var(--powierzchnia); border: 1px solid var(--linia); box-shadow: var(--cien-zaslonki, 0 4px 16px rgb(0 0 0 / 20%));
+  transform: translate(-50%, -100%); white-space: nowrap;
+}
+.tekst-dotyk-menu button { border: 0; background: transparent; color: var(--tekst); font: inherit; font-size: 14px; padding: 8px 10px; border-radius: 6px; }
+.tekst-dotyk-menu button:active { background: var(--akcent-tlo, rgb(0 0 0 / 8%)); }
 
 /* Kopiowanie wiadomości czatu (#428): mały przycisk w rogu dymka; na dotyku zawsze widoczny. */
 .czat-ai-wiadomosci li.ai, .czat-ai-wiadomosci li.ja { position: relative; padding-right: 34px; -webkit-user-select: text; user-select: text; }

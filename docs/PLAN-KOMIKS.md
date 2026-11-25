@@ -288,3 +288,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „Dlaczego sprawdzanie przed drukiem tego nie pokazało?” (tekst urósł pod margines) – ✅ ramka rosnąca z tekstem sprawdzana po złożeniu tekstu (#431).
 - „Kolumny jako kontynuacja tekstu litego… jako opcję” (słowniczek z tabeli) – ✅ Treść z tabeli: wzór wpisu dla każdego wiersza płynie przez ramki i strony, nagłówek {pierwszy:haslo}–{ostatni:haslo} (#432).
 - „Nagłówek hasła zostaje sam na dole kolumny, a opis przechodzi do kolejnej” – ✅ nagłówek hasła (pogrubiona nazwa + drobny odnośnik, jeden wiersz) uznawany za tytuł i przenoszony z opisem (#433).
+- „Edycja pól tekstowych w jakimś dolnym nie wiadomo czym… ma działać jak normalne pole tekstowe” – ✅ pisanie wprost na stronie, uchwyty zaznaczania i menu Kopiuj/Wytnij/Wklej po przytrzymaniu (#434).

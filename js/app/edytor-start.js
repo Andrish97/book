@@ -798,85 +798,12 @@ function poprawZnakiPoPisaniu(o) {
     fn: () => { o.set({ text: przed.text, styles: przed.styles, znaki_bez_zmian: true }); o.initDimensions(); o.dirty = true; edytor.canvas.requestRenderAll(); edytor.oznaczZmiane(); panel.zbuduj?.(); },
   });
 }
-edytor.canvas.on('text:editing:exited', (e) => { if (!e.target?.__przejscieDoPola) poprawZnakiPoPisaniu(e.target); });
+edytor.canvas.on('text:editing:exited', (e) => poprawZnakiPoPisaniu(e.target));
 
-// ---------- Tekst na stronie w zwykłym polu na urządzeniach dotykowych (#428) ----------
-// „Na telefonie w polu, w którym edytuję, nie jestem w stanie tego tekstu zaznaczyć i skopiować… przytrzymanie
-// i skróty Androida nie działają.” Tekst pisany na płótnie nie jest zwykłym polem – system nie pokazuje przy nim
-// uchwytów zaznaczania ani menu Kopiuj/Wklej. Na dotyku edycja idzie do zwykłego pola na dole ekranu: zmiany
-// od razu widać na stronie (różnica wpisywana w tekst – formatowanie pozostałych fragmentów zostaje).
-// „Formatuj fragment” wraca do pisania na stronie z tym samym zaznaczeniem (np. pogrubienie fragmentu).
-const naDotyku = () => window.matchMedia?.('(pointer: coarse)').matches || ['telefon', 'tablet'].includes(document.documentElement.dataset.urzadzenie);
-let tekstWPolu = null; // { o, czas }
-function wpiszRoznice(o, nowy) {
-  const stary = o.text;
-  if (stary === nowy) return false;
-  let a = 0;
-  while (a < stary.length && a < nowy.length && stary[a] === nowy[a]) a += 1;
-  let b = 0;
-  while (b < stary.length - a && b < nowy.length - a && stary[stary.length - 1 - b] === nowy[nowy.length - 1 - b]) b += 1;
-  const g = (t) => o.graphemeSplit(t).length;
-  const od = g(stary.slice(0, a));
-  const doZn = od + g(stary.slice(a, stary.length - b));
-  if (doZn > od) o.removeChars(od, doZn);
-  const wstaw = nowy.slice(a, nowy.length - b);
-  if (wstaw) o.insertChars(wstaw, null, od, od);
-  o.initDimensions?.();
-  o.dirty = true;
-  edytor.canvas.requestRenderAll();
-  return true;
-}
-function zamknijTekstWPolu({ formatuj = false } = {}) {
-  const w = tekstWPolu;
-  if (!w) return;
-  tekstWPolu = null;
-  clearTimeout(w.czas);
-  const pole = $('#edycja-tekstu-pole');
-  const zaznaczenie = [pole.selectionStart, pole.selectionEnd];
-  $('#edycja-tekstu-tel').hidden = true;
-  pole.blur();
-  edytor.oznaczZmiane();
-  if (formatuj) {
-    // Pozycje w polu (znaki) → pozycje w tekście na stronie (grafemy).
-    const g = (t) => w.o.graphemeSplit(t).length;
-    w.o.__bezPola = true;
-    edytor.canvas.setActiveObject(w.o);
-    w.o.enterEditing();
-    w.o.selectionStart = g(pole.value.slice(0, zaznaczenie[0]));
-    w.o.selectionEnd = g(pole.value.slice(0, zaznaczenie[1]));
-    w.o.__bezPola = false;
-    edytor.canvas.requestRenderAll();
-    return;
-  }
-  poprawZnakiPoPisaniu(w.o);
-  panel.odswiez?.();
-}
-edytor.canvas.on('text:editing:entered', (e) => {
-  const o = e.target;
-  if (!naDotyku() || !o || o.type !== 'textbox' || o.group || o.__bezPola) return;
-  // Wyjście z pisania na płótnie bez poprawiania znaków – pisanie trwa w polu.
-  o.__przejscieDoPola = true;
-  o.exitEditing();
-  o.__przejscieDoPola = false;
-  edytor.canvas.setActiveObject(o);
-  tekstWPolu = { o, czas: null };
-  const pole = $('#edycja-tekstu-pole');
-  pole.value = o.text;
-  $('#edycja-tekstu-tel').hidden = false;
-  pole.focus();
-  pole.setSelectionRange(pole.value.length, pole.value.length);
-});
-$('#edycja-tekstu-pole')?.addEventListener('input', (e) => {
-  const w = tekstWPolu;
-  if (!w) return;
-  wpiszRoznice(w.o, e.target.value);
-  clearTimeout(w.czas);
-  w.czas = setTimeout(() => edytor.oznaczZmiane(), 800); // zapis w trakcie pisania, bez kroku historii na każdą literę
-});
-$('#edycja-tekstu-gotowe')?.addEventListener('click', () => zamknijTekstWPolu());
-$('#edycja-tekstu-formatuj')?.addEventListener('click', () => zamknijTekstWPolu({ formatuj: true }));
-edytor.canvas.on('selection:cleared', () => zamknijTekstWPolu());
-edytor.canvas.on('selection:updated', (e) => { if (tekstWPolu && !e.selected?.includes(tekstWPolu.o)) zamknijTekstWPolu(); });
+// Tekst na stronie na dotyku (#434): pisanie wprost na stronie jak w zwykłym polu – kursor tam, gdzie dotkniesz,
+// kasowanie i wpisywanie na miejscu; uchwyty zaznaczania i menu Kopiuj / Wytnij / Wklej / Wszystko (tekst-dotyk.js).
+// (Wcześniej, #428, pisanie szło do osobnego pola na dole ekranu – „ten zabieg jest bez sensu”.)
+import('./tekst-dotyk.js').then((m) => m.podlaczTekstDotyk(edytor)).catch((e) => console.error(e));
 edytor.addEventListener('ostrzezenia', (e) => renderujOstrzezenia(e.detail));
 // Długi tekst z „Dokładaj strony” (#212): po zmianie (i po zakończeniu pisania) dochodzą albo znikają strony.
 let czasDokladania = null;

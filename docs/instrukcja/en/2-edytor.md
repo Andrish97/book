@@ -392,7 +392,7 @@ Text frames, their look, styles and typesetting — from a single caption to the
 Insert text with the [Text] button (<kbd>T</kbd>) and start typing right away. Double-click existing text
 to type in it; <kbd>Esc</kbd> ends typing. <kbd>Enter</kbd> starts a new paragraph.
 
-**On a phone or tablet** you type in a regular field at the bottom of the screen — long-press, selection, Copy/Paste and the system keyboard shortcuts work there; changes show on the page right away, and bold and other formatting of the rest of the text stays. [Format a part] moves the selection from the field to the page (e.g. to make the selected words bold), [Done] ends typing.
+**On a phone or tablet** you type right on the page, like in a regular field: a tap puts the cursor there, you delete and type in place, and the text reflows right away. Holding your finger on the text selects a word and shows a menu with **Copy**, **Cut**, **Paste** and **All**; drag the handles to change the ends of the selection.
 
 Change the frame width with the side handles — the text reflows, the letters don't stretch.
 The frame height grows with the text unless you set a fixed height (→ 5.6).
