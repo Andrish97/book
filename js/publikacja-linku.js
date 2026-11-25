@@ -2,7 +2,7 @@
 // Układ linku, odciski stron (strona bez zmian nie jest rysowana), znak wodny wtopiony w obraz, obraz strony.
 import { renderujCel } from './zlozenie.js';
 import { rozwin, wartosciPol } from './serie.js';
-import { podstawWObiektach, polaWObiektach } from './pola.js';
+import { podstawWObiektach, polaWObiektach, znajdzPola } from './pola.js';
 import { obrazyZPol } from './obrazy-z-pol.js';
 import { elementyNaBok } from './boki-stron.js';
 import { przypisyStrony, uzywaKsiazki } from './ksiazka.js';
@@ -69,27 +69,52 @@ export const skrotCzesci = (pam, o) => skrotObiektu(pam, o);
 // bok rozkładówki, sąsiad przez grzbiet, format sekcji, tło, przypisy, tekst wątków i części wspólne (czcionki, style,
 // pliki). Bez numeru miejsca w projekcie: strona serii przesunięta o jedno miejsce, która wygląda tak samo, ma ten
 // sam odcisk (jej podgląd nie rysuje się drugi raz).
-const zalezyOdDanych = (pam, obiekty) => {
-  if (!Array.isArray(obiekty) || !obiekty.length) return false;
+// Raz na zestaw elementów: czy zależy od danych i od których pól. Zwykła strona z polami: skrót wzoru + wartości
+// użytych pól (bez podstawiania w całej stronie – przy 365 dniach serii liczy się kilkanaście razy szybciej).
+// Kalendarz, wykres i treść książki liczą się z czegoś więcej niż wartości pól – tam podstawienie w całości.
+const opisDanych = (pam, obiekty) => {
+  if (!Array.isArray(obiekty) || !obiekty.length) return null;
   let w = pam.zDanych.get(obiekty);
   if (w === undefined) {
     const s = JSON.stringify(obiekty);
-    w = polaWObiektach(obiekty).size > 0 || /"z_danych"|"pole":\{|"kalendarz"|"wykres"|"ksiazka"/.test(s);
+    // Pola z zapisem ({pierwszy:haslo}, {nr:rzymskie}) – para nazwa + zapis; kolumny obrazów i danych – sama nazwa.
+    const pary = new Map();
+    const zbierz = (lista) => {
+      for (const o of lista || []) {
+        if (!o || typeof o !== 'object') continue;
+        if (!o.bez_pol) for (const f of [...znajdzPola(o.text), ...(o.kod ? znajdzPola(o.kod.tresc) : [])]) pary.set(`${f.nazwa}\u0001${f.zapis ?? ''}`, [f.nazwa, f.zapis]);
+        if (Array.isArray(o.objects)) zbierz(o.objects);
+      }
+    };
+    zbierz(obiekty);
+    for (const n of polaWObiektach(obiekty)) if (![...pary.values()].some(([x]) => x === n)) pary.set(`${n}\u0001`, [n, null]);
+    const pola = [...pary.keys()].sort().map((k) => pary.get(k));
+    const pelne = /"kalendarz"|"wykres"|"ksiazka"/.test(s);
+    w = pola.length || pelne || /"z_danych"/.test(s) ? { pola, pelne: pelne || (/"z_danych"/.test(s) && !pola.length) } : null;
     pam.zDanych.set(obiekty, w);
   }
   return w;
 };
 function trescPoDanych(pam, projekt, obiekty, wartosc) {
-  if (!zalezyOdDanych(pam, obiekty)) return skrotObiektu(pam, obiekty);
+  const d = opisDanych(pam, obiekty);
+  if (!d) return skrotObiektu(pam, obiekty);
+  if (!d.pelne) return skrot(JSON.stringify([skrotObiektu(pam, obiekty), d.pola.map(([n, z]) => [wartosc(n, z) ?? null, wartosc.wyglad?.(n) ?? null])]));
   return skrot(JSON.stringify(obrazyZPol(podstawWObiektach(obiekty, wartosc), wartosc, projekt.zasoby || {})));
+}
+// Elementy strony na boku rozkładówki – odbite raz na stronę i bok (pamięć skrótów działa po obiekcie).
+function naBok(pam, strona, bok, szer) {
+  const k = `${strona.id}|${bok}|${szer}`;
+  pam.boki ||= new Map();
+  if (!pam.boki.has(k)) pam.boki.set(k, elementyNaBok(strona, bok, szer));
+  return pam.boki.get(k);
 }
 export function odciskStrony(projekt, egz, ciag) {
   const pam = pamiecDla(projekt, ciag);
   const wartosc = wartosciPol(projekt, egz, ciag);
   const szer = egz.sekcja.wydruk.szerokosc_mm;
-  const strona = trescPoDanych(pam, projekt, elementyNaBok(egz.strona, egz.bok, szer), wartosc);
+  const strona = trescPoDanych(pam, projekt, naBok(pam, egz.strona, egz.bok, szer), wartosc);
   const wzorce = wzorceStrony(projekt, egz.strona).map((w) => [trescPoDanych(pam, projekt, w.obiekty, wartosc), w.tlo, w.lustro]);
-  const sasiad = egz.sasiad ? trescPoDanych(pam, projekt, elementyNaBok(egz.sasiad.strona, egz.sasiad.bok, szer), wartosciPol(projekt, egz.sasiad, ciag)) : null;
+  const sasiad = egz.sasiad ? trescPoDanych(pam, projekt, naBok(pam, egz.sasiad.strona, egz.sasiad.bok, szer), wartosciPol(projekt, egz.sasiad, ciag)) : null;
   // Kalendarze i wykresy liczą się z tabel; tekst wątku płynie przez ramki z innych stron.
   const zTabel = (egz.strona.obiekty || []).some((o) => o?.kalendarz || o?.wykres) ? pam.tabele : null;
   const watki = [...new Set((egz.strona.obiekty || []).map((o) => o?.watek).filter(Boolean))].sort();
@@ -100,7 +125,8 @@ export function odciskStrony(projekt, egz, ciag) {
     if (!pam.watki.has(kl)) pam.watki.set(kl, skrot(JSON.stringify(projekt.strony.flatMap((s) => (s.obiekty || []).filter((o) => watki.includes(o?.watek))))));
     watek = pam.watki.get(kl);
   }
-  const przypisy = uzywaKsiazki(projekt) ? przypisyStrony(projekt, egz, ciag) : null;
+  if (pam.ksiazka === undefined) pam.ksiazka = uzywaKsiazki(projekt); // raz na rozwinięcie – nie na każdą stronę
+  const przypisy = pam.ksiazka ? przypisyStrony(projekt, egz, ciag) : null;
   return skrotMocny(JSON.stringify(['o2', strona, egz.strona.tlo, wzorce, sasiad, egz.bok, skrotObiektu(pam, egz.sekcja.wydruk), zTabel, watek, przypisy, pam.wspolny]));
 }
 

@@ -44,7 +44,8 @@ test('znak wodny: włączony w oknie Udostępnij jest w obrazach linku, wyłącz
   await strona.waitForFunction(() => /Znak wodny „WZÓR” \(krycie 12%\) jest już/.test(document.querySelector('#udostepnij-komunikat').textContent), null, { timeout: 30000 });
   const ze = await ciemne(obrazLinku());
   assert.ok(ze.udzial > 0.03, `strona ze znakiem ma napisy: ${ze.udzial}`);
-  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.znak_wodny), { tekst: 'WZÓR', krycie: 12 });
+  // Znak wodny należy do linku (#426: kilka linków, każdy z własnym znakiem).
+  assert.deepEqual(await strona.evaluate(() => window.seriodruk.stan.projekt.udostepnienia?.[0]?.znak_wodny), { tekst: 'WZÓR', krycie: 12 });
   assert.match(await strona.textContent('#udostepnij-znak-stan'), /„WZÓR” \(krycie 12%\)/);
   // Suwak krycia: podgląd ciemnieje na żywo, po zapisie napis na stronach linku jest mocniejszy.
   // Biały pas między obrazkiem a tekstem podglądu (x 162–178) – ciemnieje tylko od napisu.
