@@ -11,6 +11,7 @@ const path = require('path');
 const { chromium, devices } = require('playwright');
 const { atrapaAi } = require('./atrapa-ai.cjs');
 const { atrapaEksportu } = require('./atrapa-eksport.cjs');
+const { atrapaPrac } = require('./atrapa-prace.cjs');
 const { atrapaWspolpracy, rolaW } = require('./atrapa-wspolpraca.cjs');
 const { atrapaPoczty } = require('./atrapa-poczta.cjs');
 
@@ -457,6 +458,16 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
         return blad(r, e.status || 400, e.message, 'P0001');
       }
     }
+    // Kolejka prac w tle (#438) – tests/atrapa-prace.cjs; stan.bezKolejkiPrac – baza sprzed kolejki.
+    if (sc.startsWith('/rest/v1/rpc/') && atrapaPrac.ma(sc.slice('/rest/v1/rpc/'.length))) {
+      if (stan.bezKolejkiPrac) return blad(r, 404, 'Could not find the function', 'PGRST202');
+      stan.praceAtrapa = stan.praceAtrapa || atrapaPrac(stan);
+      try {
+        return json(r, 200, stan.praceAtrapa.app(sc.slice('/rest/v1/rpc/'.length), tresc, zTokenu(req)) ?? null);
+      } catch (e) {
+        return blad(r, e.status || 400, e.message, 'P0001');
+      }
+    }
     // Eksport zlecony przez AI (#175): funkcje aplikacji (przyjmij, zakończ, sprzątanie) – tests/atrapa-eksport.cjs.
     if (sc.startsWith('/rest/v1/rpc/') && atrapaEksportu.ma(sc.slice('/rest/v1/rpc/'.length))) {
       stan.eksport = stan.eksport || atrapaEksportu(stan);
@@ -547,6 +558,8 @@ function atrapaSupabase(kontekst, poczatkowe = {}) {
       const zostaja = new Set(tresc.p_dane.strony.map((id) => `${p.id}/${id}`));
       for (const klucz of [...stan.strony.keys()]) if (klucz.startsWith(`${p.id}/`) && !zostaja.has(klucz)) stan.strony.delete(klucz);
       stan.oglos(p, p.wersja === 1 ? 'INSERT' : 'UPDATE');
+      // Wyzwalacz prace_po_zapisie (#438): nowa wersja do wszystkich linków projektu.
+      if (!stan.bezKolejkiPrac) { stan.praceAtrapa = stan.praceAtrapa || atrapaPrac(stan); stan.praceAtrapa.zglos(p.id, p.wersja); }
       return json(r, 200, { wersja: p.wersja });
     }
     if (sc === '/rest/v1/projekty_strony') {

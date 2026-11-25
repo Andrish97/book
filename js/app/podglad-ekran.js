@@ -11,8 +11,9 @@ import { stan, pokazEkran, trasa, edytor, biezacaStrona } from './kontekst.js';
 import { zapiszTeraz, pokazEdytor, plotnoOdlozone, przygotujDoRysowania } from './zapis.js';
 import { podglad } from './skladniki.js';
 import { przejdzDoStrony } from './lista-stron.js';
-import { zapiszGdziekolwiek, pokazProjekty } from './projekty.js';
+import { zapiszGdziekolwiek, pokazProjekty, wpisyProjektow, wczytajProjektZWpisu } from './projekty.js';
 import { t, jezykDat } from '../jezyk.js';
+import { zDzierzawa, mozeSam, potwierdzAktualne, SPOKOJ_PO_ZMIANIE_MS } from './prace-w-tle.js';
 import { wstawIkony } from '../ikony.js';
 
 export async function doEdycji(idStrony) {
@@ -561,7 +562,7 @@ const nowyKod = () => [...crypto.getRandomValues(new Uint8Array(12))].map((b) =>
 // Rysuje zmienione strony do JPEG i wysyła je razem z opisem – do folderu publicznego albo,
 // przy linku z ochroną, do tabeli chronionego linku. pelna: wysyła wszystkie strony.
 // Zwraca { wyslane, wszystkie }.
-async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } = {}) {
+async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null, przedStrona = null, ogladane = [] } = {}) {
   const kod = p.udostepnienie?.kod || nowyKod();
   const ochrona = p.udostepnienie?.ochrona;
   const { uklad, strony, odciski, rozszerzenie, obraz, odcisk } = przygotujPublikacje(p);
@@ -575,16 +576,28 @@ async function opublikuj(p, postep = () => {}, { pelna = false, naLink = null } 
   // Dużo stron do narysowania (#335) – rysuje serwer; drobne zmiany i każdy kłopot z serwerem – urządzenie.
   const wynik = await naSerwerze(p, { kod, ochrona: Boolean(ochrona), strony, odciski, rozszerzenie, pelna, postep, naLink: linkGotowy })
     || (ochrona
-      ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie, naLink: linkGotowy })
-      : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie, naLink: linkGotowy }));
+      ? await chmura.opublikujPodgladChroniony(p.id, kod, uklad, strony, obraz, postep, odciski, { pelna, rozszerzenie, naLink: linkGotowy, przedStrona, ogladane: ogladaneStrony(strony, ogladane) })
+      : await chmura.opublikujPodglad(p.id, kod, uklad, strony, obraz, postep, pelna ? null : odciski, { rozszerzenie, naLink: linkGotowy, przedStrona, ogladane: ogladaneStrony(strony, ogladane) }));
+  // Przerwana praca (#438): link działa z tym, co gotowe, ale nie jest aktualny – odcisk zostaje stary.
+  if (wynik.przerwane) {
+    if (!p.udostepnienie?.kod) p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, ...(ochrona ? { ochrona } : {}) };
+    return wynik;
+  }
   const krotki = p.udostepnienie?.kod === kod ? p.udostepnienie.krotki : null;
   p.udostepnienie = { kod, konto: wynik.konto, zaktualizowano: wynik.zaktualizowano, odcisk, ...(ochrona ? { ochrona } : {}), ...(krotki ? { krotki } : {}) };
   await zapewnijKrotki(p);
   return wynik;
 }
 
+// Strony linku z oglądanej strony edytora (id egzemplarzy: „<strona>” albo „<strona>-<nr>”) – rysowane najpierw.
+function ogladaneStrony(strony, ogladane) {
+  const ids = new Set(ogladane);
+  return strony.filter((s) => ids.has(s.id) || [...ids].some((i) => s.id.startsWith(`${i}-`))).slice(0, 4).map((s) => s.id);
+}
+
 // ---------- Rysowanie linku na serwerze (#335) ----------
-// Tylko ciężkie zlecenia: od PROG_SERWERA stron do narysowania. Przeglądarka serwera rysuje te same obrazy
+// Tylko wtedy, gdy to urządzenie samo się nie nadaje (#438: telefon na danych komórkowych, duża praca na telefonie
+// bez ładowania, prawie rozładowana bateria – js/prace-w-tle.js); wcześniej: od PROG_SERWERA stron. Przeglądarka serwera rysuje te same obrazy
 // (rysuj.html, wspólne moduły), a aplikacja tylko pokazuje postęp – można ją zamknąć, link dokończy się sam.
 // null – rysuje urządzenie (mało stron, brak sieci, serwer wyłączony albo zajęty limitem, błąd).
 export const PROG_SERWERA = 40;
@@ -610,7 +623,7 @@ async function naSerwerze(p, { kod, ochrona, strony, odciski, rozszerzenie, peln
       const juzSa = new Set(Object.values(tresci));
       doRysowania = strony.filter((s) => !juzSa.has(odciski[s.id])).length;
     }
-    if (doRysowania < (globalThis.__progSerwera ?? PROG_SERWERA)) return null;
+    if (globalThis.__progSerwera !== undefined ? doRysowania < globalThis.__progSerwera : mozeSam(doRysowania)) return null;
     const { id } = await chmura.zlecRysowanieLinku(doZlecenia(p), folder, odNowa);
     rysujeSerwer();
     let linkGotowy = !naLink;
@@ -676,6 +689,23 @@ export async function uzupelnijKrotkiLink() {
 // Link zlecony przez AI (plan H4, js/app/zadania-ai.js): ten sam link co z okna Udostępnij – nowy albo istniejący,
 // z hasłem i datą ważności podanymi przez AI (za zgodą użytkownika). Projekt otwarty albo wczytany w tle.
 // Projekt z linkami (#426): AI dostaje pierwszy link projektu; bez linków – tworzy nowy.
+// Link projektu, którego ta karta nie ma otwartego (#438): wybrane urządzenie konta rysuje go w tle, pod dzierżawą
+// pracy. Projekt wczytany tylko do rysowania – bez zapisu (dane linku uzupełni karta z projektem przy otwarciu).
+export async function linkInnegoProjektu(projektId, kod) {
+  const wpis = (await wpisyProjektow()).find((w) => w.id === projektId);
+  if (!wpis) return null;
+  const { czekajNaEdytor } = await import('./doczytaj.js');
+  await czekajNaEdytor();
+  const surowy = await wczytajProjektZWpisu(wpis);
+  if (!surowy) return null;
+  const { normalizuj } = await import('../projekt.js');
+  const p = normalizuj(surowy);
+  const L = linkiProjektu(p).find((x) => x.kod === kod);
+  if (!L?.konto) return null;
+  await przygotujDoRysowania(p);
+  return zDzierzawa(p, L, ({ przedStrona }) => linkWTle((pasek) => naLinku(p, L, (W) => opublikuj(W, pasek, { przedStrona }))));
+}
+
 export async function linkDlaAi(p, { haslo = '', wazny_do: dzien = '' } = {}) {
   const otwarty = p === stan.projekt;
   if (otwarty) await zapiszTeraz(); else await przygotujDoRysowania(p);
@@ -797,16 +827,34 @@ const nieaktualneLinki = (p) => linkiProjektu(p).filter((L) => L.kod && L.konto 
 export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
   clearTimeout(timerLinku);
   const p = stan.projekt;
-  if (!p || !stan.uzytkownik || !nieaktualneLinki(p).length) return;
+  if (!p || !stan.uzytkownik) return;
+  if (!nieaktualneLinki(p).length) {
+    // Linki aktualne – praca z kolejki (np. po zapisie samych danych linku) zamyka się bez rysowania (#438).
+    const kody = linkiProjektu(p).filter((L) => L.kod && L.konto).map((L) => L.kod);
+    if (kody.length) timerLinku = setTimeout(() => { if (stan.projekt === p && !trwaPublikacja && !nieaktualneLinki(p).length) potwierdzAktualne(p, kody); }, 500);
+    return;
+  }
   timerLinku = setTimeout(async () => {
     if (stan.projekt !== p || trwaPublikacja || !navigator.onLine) return;
     if (!nieaktualneLinki(p).length) return;
     trwaPublikacja = true;
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
+    let przerwane = false;
+    let narysowane = false;
     try {
-      for (const L of nieaktualneLinki(p)) await linkWTle((pasek) => naLinku(p, L, (W) => opublikuj(W, pasek)));
-      await zapiszTeraz();
+      // Jedna kolejka prac konta (#438): link rysuje karta z dzierżawą (albo lepsze urządzenie, albo serwer).
+      const ogladane = stan.tryb === 'strona' && p.strony[stan.indeks] ? [p.strony[stan.indeks].id] : [];
+      for (const L of nieaktualneLinki(p)) {
+        const w = await zDzierzawa(p, L, ({ przedStrona }) => linkWTle((pasek) => naLinku(p, L, (W) => opublikuj(W, pasek, { przedStrona, ogladane }))));
+        if (w.wynik) narysowane = true;
+        if (w.wynik?.przerwane) { przerwane = true; break; }
+      }
+      // Dane linku (odcisk, data) zapisują się tylko po rysowaniu w tej karcie – link rysowany przez inne urządzenie
+      // nie może wywołać tu zapisu, bo każdy zapis to nowa wersja i nowa praca (pętla).
+      if (narysowane) await zapiszTeraz();
     } catch { /* spróbujemy przy następnym zapisie */ } finally {
+      // Przerwane dla nowszej wersji: nowy plan po chwili spokoju – rysują się tylko strony, których jeszcze nie ma.
+      if (przerwane) zaplanujAktualizacjeLinku(SPOKOJ_PO_ZMIANIE_MS);
       trwaPublikacja = false;
       if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     }

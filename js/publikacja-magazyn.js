@@ -8,6 +8,8 @@
 //   usun(klucze),
 // }
 
+import { kolejnoscStron } from './prace-w-tle.js';
+
 // Obrazy stron linku: WebP albo JPEG (dawne linki) – rozszerzenie zapisane w opisie (manifest.rozszerzenie).
 export const typZRozszerzenia = (r) => (r === 'webp' ? 'image/webp' : 'image/jpeg');
 
@@ -29,8 +31,12 @@ export async function skrotPliku(plik) {
 // nie jest ani rysowana, ani wysyłana. Bez odcisków nazwą jest skrót samego obrazu („p-<skrót>”). Dawne linki
 // (bez manifest.pliki) mają pliki „<idStrony>.<rozszerzenie>” – te też są używane, dopóki pasują.
 // Strona jest jednostką atomową: plik zapisany → wpis w opisie; opis zapisuje się w całości (jeden obiekt).
-// Zwraca { zaktualizowano, wyslane, wszystkie, narysowane }.
-export async function publikujDoMagazynu(magazyn, folder, uklad, strony, obraz, postep, odciski, { rozszerzenie = 'jpg', pelna = false, chroniony = false, naLink = null } = {}) {
+// Praca w tle (#438, etap C): przedStrona() – wywoływane przed każdą stroną; zwraca true, gdy trzeba przerwać
+// (nowsza wersja projektu, praca odebrana). Przerwana publikacja zapisuje opis z tym, co już gotowe (link działa,
+// następna praca rysuje tylko brakujące strony) i nie usuwa plików. ogladane – id stron rysowanych najpierw;
+// potem zmienione, brakujące i reszta (js/prace-w-tle.js kolejnoscStron).
+// Zwraca { zaktualizowano, wyslane, wszystkie, narysowane, przerwane }.
+export async function publikujDoMagazynu(magazyn, folder, uklad, strony, obraz, postep, odciski, { rozszerzenie = 'jpg', pelna = false, chroniony = false, naLink = null, przedStrona = null, ogladane = [] } = {}) {
   let poprzednie = {};
   let poprzednieTresci = {};
   let poprzedniePliki = {};
@@ -80,8 +86,10 @@ export async function publikujDoMagazynu(magazyn, folder, uklad, strony, obraz, 
   if (naLink || !pelna) await zapiszOpis(false);
   if (naLink) await naLink();
   let ostatniOpis = Date.now();
-  for (const s of strony) {
+  let przerwane = false;
+  for (const s of kolejnoscStron(strony, { ogladane, poprzednie: poprzednieTresci, odciski: odciski || {} })) {
     const o = odciski?.[s.id];
+    if (przedStrona && !(o && wgOdcisku.has(o)) && await przedStrona()) { przerwane = true; break; }
     const jest = o && wgOdcisku.get(o);
     if (jest) {
       skroty[s.id] = jest.skrot;
@@ -104,10 +112,14 @@ export async function publikujDoMagazynu(magazyn, folder, uklad, strony, obraz, 
     postep(gotowe, strony.length);
     if ((naLink || !pelna) && Date.now() - ostatniOpis > 3000 && gotowe < strony.length) { ostatniOpis = Date.now(); await zapiszOpis(false); }
   }
+  if (przerwane) {
+    const { zaktualizowano } = await zapiszOpis(false);
+    return { zaktualizowano, wyslane, wszystkie: strony.length, narysowane, przerwane: true };
+  }
   const { zaktualizowano } = await zapiszOpis(true);
   // Pliki, których żadna strona już nie pokazuje (po zapisaniu opisu – oglądający nie trafi na brakujący plik).
   const potrzebne = new Set([...strony.map((s) => `${pliki[s.id]}.${rozszerzenie}`), 'manifest.json']);
   const zbedne = (await magazyn.lista(folder)).filter((k) => !potrzebne.has(k.slice(folder.length + 1)));
   if (zbedne.length) await magazyn.usun(zbedne);
-  return { zaktualizowano, wyslane, wszystkie: strony.length, narysowane };
+  return { zaktualizowano, wyslane, wszystkie: strony.length, narysowane, przerwane: false };
 }

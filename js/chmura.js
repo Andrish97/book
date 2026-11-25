@@ -694,10 +694,10 @@ const publikujDoFolderu = (...a) => publikujDoMagazynu(magazynR2, ...a);
 // uklad: sekcje → wiersze → strony (podglad.js); obraz(strona) → Blob WebP albo JPEG (rozszerzenie: 'webp' | 'jpg').
 // Zwraca { konto, zaktualizowano, wyslane, wszystkie }.
 // odciski: { idStrony: skrót treści } – strona o tym samym skrócie co poprzednio nie jest nawet rysowana.
-export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg', naLink = null } = {}) {
+export async function opublikujPodglad(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { rozszerzenie = 'jpg', naLink = null, przedStrona = null, ogladane = [] } = {}) {
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
-  const w = await publikujDoFolderu(`${uzytkownik.id}/${projektId}/${kod}`, uklad, strony, obraz, postep, odciski, { rozszerzenie, naLink: naLink && (() => naLink({ konto: uzytkownik.id })) });
+  const w = await publikujDoFolderu(`${uzytkownik.id}/${projektId}/${kod}`, uklad, strony, obraz, postep, odciski, { rozszerzenie, przedStrona, ogladane, naLink: naLink && (() => naLink({ konto: uzytkownik.id })) });
   return { konto: uzytkownik.id, ...w };
 }
 
@@ -819,13 +819,13 @@ export async function usunPodgladChroniony(projektId, kod) {
 
 // Właściciel: ta sama publikacja co opublikujPodglad, ale do folderu linku z ochroną.
 // pelna: true – wysyła wszystkie strony (np. przy przejściu z linku publicznego albo po zmianie hasła).
-export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false, rozszerzenie = 'jpg', naLink = null } = {}) {
+export async function opublikujPodgladChroniony(projektId, kod, uklad, strony, obraz, postep = () => {}, odciski = null, { pelna = false, rozszerzenie = 'jpg', naLink = null, przedStrona = null, ogladane = [] } = {}) {
   const sb = await supabase();
   const uzytkownik = await biezacyUzytkownik();
   if (!uzytkownik) throw new Error(t('chmura.niezalogowany'));
   const w = await wywolajPodgladChroniony(sb, uzytkownik.id, projektId, kod, null);
   const folder = `${uzytkownik.id}/${projektId}/${w.folder}`;
-  const wynik = await publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie, pelna: pelna || w.nowy, chroniony: true, naLink: naLink && (() => naLink({ konto: uzytkownik.id })) });
+  const wynik = await publikujDoFolderu(folder, uklad, strony, obraz, postep, odciski, { rozszerzenie, przedStrona, ogladane, pelna: pelna || w.nowy, chroniony: true, naLink: naLink && (() => naLink({ konto: uzytkownik.id })) });
   return { konto: uzytkownik.id, ...wynik };
 }
 

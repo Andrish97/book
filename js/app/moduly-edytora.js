@@ -45,6 +45,7 @@ export const MODULY_EDYTORA = [
   'js/ai-tekst.js',
   'js/app/komiks-postacie.js',
   'js/app/komiks-scenariusz-okno.js',
+  'js/app/prace-w-tle.js',
   'js/app/sejf-ai.js',
   'js/biblioteka-gotowe-sekcje.js',
   'js/biblioteka-kompozycje.js',

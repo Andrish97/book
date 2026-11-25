@@ -72,12 +72,15 @@ export async function wlaczNaZywo(uzytkownik) {
   if (dla === uzytkownik.id) wlaczWspolprace(uzytkownik); // zaproszenia do projektów na żywo
   // Eksport PDF/PNG zlecony przez AI (#175): ta karta może przyjąć zlecenie i zrobić plik.
   if (dla === uzytkownik.id) import('./eksport-ai.js').then((m) => m.wlaczZleceniaEksportu(uzytkownik)).catch(() => {});
+  // Prace w tle konta (#438): obecność kart i link rysowany przez najmocniejsze urządzenie.
+  if (dla === uzytkownik.id) import('./prace-w-tle.js').then((m) => m.wlaczPraceWTle(uzytkownik)).catch(() => {});
 }
 
 export async function wylaczNaZywo() {
   dla = null;
   wylaczWspolprace();
   import('./eksport-ai.js').then((m) => m.wylaczZleceniaEksportu()).catch(() => {});
+  import('./prace-w-tle.js').then((m) => m.wylaczPraceWTle()).catch(() => {});
   polaczony = false;
   clearTimeout(timer);
   clearTimeout(timerListy);

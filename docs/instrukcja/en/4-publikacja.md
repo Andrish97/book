@@ -502,10 +502,17 @@ in the editor or the preview, on any device. Meanwhile a bar is shown on screen:
 the browser will ask if you're sure. If the tab does close, the link will finish by itself the next time
 you open the project.
 
-When there are many pages to draw at once (from 40, e.g. the first link to a thick book or a watermark change),
-the images are drawn by the Makietka server, not your device. The bar then changes to **The link preview is being drawn
-on the server – you can close Makietka**: the link will finish by itself, even after you close the app. The server draws
-the same images as the app. Small changes (a few pages) are still drawn by the device, because it only takes a moment.
+**Which device draws.** If the project is open on several devices or in several tabs, only one draws the link — the
+most capable one: a computer before a tablet, a tablet before a phone. A phone draws only on Wi-Fi, and many pages at
+once (from 40) only while charging. When the device you are editing on isn't suitable (e.g. a phone on mobile data),
+another open device of the same account draws the link (the project list open on a computer is enough), and when there
+is none — the Makietka server. The bar then shows **The link preview is being drawn on the server – you can close
+Makietka**: the link will finish by itself, even after you close the app. The server draws the same images as the app.
+
+**Drawing doesn't get in the way.** Pages are drawn in the background, one at a time; while you type or move elements,
+drawing waits. If you change something again in the meantime, the app finishes the current page and after a few quiet
+seconds starts over — pages already drawn stay, only the ones that look different are drawn. The page you are looking
+at is drawn first, then changed pages, missing ones and the rest.
 
 ## 23.3 Link protection
 
