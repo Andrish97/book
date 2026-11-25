@@ -676,3 +676,72 @@ test('polskie zasady automatem: krótki ostatni wyraz z poprzednim, skrót księ
   assert.ok(w.bezZasad > 0, 'z wyłączonymi zasadami takie miejsca się zdarzają (test coś sprawdza)');
   assert.deepEqual(bledy, []);
 });
+
+// Nagłówek hasła słowniczka „Ewangelia Mk 1:1” (nazwa pogrubiona i większa, odnośnik cienki i mniejszy) jest tytułem:
+// nie zostaje sam na dole ramki, tylko przechodzi z opisem do następnej. Bez fałszywych trafień („Uwaga:”, zdanie).
+test('wątek: nagłówek hasła (pogrubiona nazwa + drobny odnośnik) przechodzi z opisem do następnej ramki', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Hasła');
+  const w = await strona.evaluate(async () => {
+    const { rozlej, akapitTytulem } = await import('./js/watki.js');
+    const { edytor } = window.seriodruk;
+    const opis = 'Dobra nowina o zbawieniu przez Jezusa Chrystusa; także nazwa czterech ksiąg o Jego życiu i nauczaniu.';
+    const naglowek = 'Ewangelia Mk 1:1';
+    const nazwa = 'Ewangelia';
+    // Ramka z hasłami: wypełniacz (n zwykłych haseł), potem hasło „Ewangelia”, za nim dalsze hasła.
+    const n = 4;
+    const uloz = (h, zasady) => {
+      const ramki = [0, 1, 2].map((i) => {
+        const o = edytor.dodajTekst('');
+        o.set({ width: 60, fontSize: 2.65, watek: 'wh', watek_nr: i, ramka_h: h, zasady_pl: zasady, wdowy: 1 });
+        return o;
+      });
+      const wpis = (h) => `${h} Dz 1:1\n${opis}`;
+      const tekst = [...Array.from({ length: n }, (_, i) => wpis(`Hasło${i}`)), `${naglowek}\n${opis}`, ...Array.from({ length: 6 }, (_, i) => wpis(`Dalsze${i}`))].join('\n');
+      ramki[0].text = tekst;
+      ramki[0].initDimensions(); // style znaków liczą się od złożonego tekstu
+      // Każdy nagłówek: nazwa pogrubiona 600 i większa, odnośnik szary, cienki, mniejszy.
+      for (const m of tekst.matchAll(/^(\S+) (\S+ \S+)$/gm)) {
+        const od = m.index;
+        ramki[0].setSelectionStyles({ fontWeight: 600, fontSize: 2.999 }, od, od + m[1].length);
+        ramki[0].setSelectionStyles({ fontWeight: 300, fontSize: 2.293, fill: '#888888' }, od + m[1].length + 1, od + m[0].length);
+      }
+      ramki[0].initDimensions();
+      rozlej(ramki);
+      const teksty = ramki.map((x) => x.text);
+      ramki.forEach((x) => edytor.canvas.remove(x));
+      return teksty;
+    };
+    // Wysokość ramki, przy której bez reguły nagłówek „Ewangelii” wypada na końcu pierwszej ramki.
+    let h = 20;
+    for (; h < 90; h += 0.25) if (uloz(h, false)[0].trimEnd().endsWith(naglowek)) break;
+    const bez = uloz(h, false);
+    const z = uloz(h, true);
+    // Fałszywe trafienia i dawne zachowanie.
+    const proba = (tekst, style) => {
+      const o = edytor.dodajTekst(tekst);
+      o.set({ width: 80, fontSize: 2.65 });
+      for (const [od, dl, s] of style) o.setSelectionStyles(s, od, od + dl);
+      o.initDimensions();
+      const wynik = akapitTytulem(o, 0);
+      edytor.canvas.remove(o);
+      return wynik;
+    };
+    const B = { fontWeight: 'bold' };
+    return {
+      h, bez, z, nazwa,
+      haslo: proba('Ewangelia Mk 1:1', [[0, 9, { fontWeight: 600, fontSize: 2.999 }], [10, 6, { fontWeight: 300, fontSize: 2.293 }]]),
+      calyGruby: proba('Rozdział drugi', [[0, 14, B]]),
+      uwaga: proba('Uwaga: zamknij drzwi', [[0, 6, B]]),
+      zdanie: proba('Uwaga proszę zamknąć drzwi po wyjściu', [[0, 5, B]]),
+      srodek: proba('Zwykły akapit z pogrubionym słowem w środku', [[15, 11, B]]),
+    };
+  });
+  assert.ok(w.bez[0].trimEnd().endsWith('Ewangelia Mk 1:1'), `bez zasad nagłówek zostaje na dole pierwszej ramki (h=${w.h})`);
+  assert.ok(!w.z[0].trimEnd().endsWith('Ewangelia Mk 1:1'), 'z zasadami nagłówek nie zostaje sam na dole');
+  assert.ok(w.z[1].startsWith('Ewangelia Mk 1:1\nDobra nowina'), `nagłówek na początku drugiej ramki razem z opisem: ${w.z[1].slice(0, 40)}`);
+  assert.equal(w.z.join('\n').replace(/\s+/g, ' '), w.bez.join('\n').replace(/\s+/g, ' '), 'treść bez zmian');
+  assert.deepEqual({ haslo: w.haslo, calyGruby: w.calyGruby, uwaga: w.uwaga, zdanie: w.zdanie, srodek: w.srodek },
+    { haslo: true, calyGruby: true, uwaga: false, zdanie: false, srodek: false });
+  assert.deepEqual(bledy, []);
+});

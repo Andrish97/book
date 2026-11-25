@@ -92,19 +92,45 @@ function ileWierszy(ramka, limit = Infinity) {
 }
 
 // Akapit wygląda na tytuł: krótki (do 2 wierszy, bez kropki na końcu), cały większy niż tekst albo pogrubiony.
+// Albo nagłówek hasła (słowniczek, indeks): „Ewangelia Mk 1:1” – pierwszy wyraz pogrubiony albo większy, reszta też
+// wyróżniona (pogrubiona, większa albo mniejsza – np. szary, drobny odnośnik), w jednym wierszu ramki, do 80 znaków,
+// bez znaku końca zdania. Próg celowo wąski: „Uwaga:” (dwukropek po wyrazie) i zwykłe zdanie zaczęte pogrubionym słowem
+// („**Uwaga** proszę zamknąć drzwi” – dalej zwykłe pismo tekstu) tytułem nie są.
+const NAGLOWEK_HASLA_ZNAKOW = 80;
 export function akapitTytulem(ramka, nrAkapitu) {
   const tekst = (ramka._unwrappedTextLines?.[nrAkapitu] || []).join('');
   if (!tekst.trim() || tekst.length > 140 || /[.:;,]\s*$/.test(tekst)) return false;
   const st = ramka.styles?.[nrAkapitu] || {};
+  const rozmiar = (i) => st[i]?.fontSize ?? ramka.fontSize;
+  const wiekszyZnak = (i) => rozmiar(i) > ramka.fontSize * 1.08;
+  const grubyZnak = (i) => { const w = st[i]?.fontWeight ?? ramka.fontWeight; return w === 'bold' || Number(w) >= 600; };
   let wiekszy = true; let gruby = true;
   for (let i = 0; i < tekst.length; i += 1) {
     if (/\s/.test(tekst[i])) continue;
-    const s = st[i] || {};
-    if (!((s.fontSize ?? ramka.fontSize) > ramka.fontSize * 1.08)) wiekszy = false;
-    const w = s.fontWeight ?? ramka.fontWeight;
-    if (!(w === 'bold' || Number(w) >= 600)) gruby = false;
+    if (!wiekszyZnak(i)) wiekszy = false;
+    if (!grubyZnak(i)) gruby = false;
   }
-  return wiekszy || gruby;
+  if (wiekszy || gruby) return true;
+  return naglowekHasla(ramka, nrAkapitu, tekst, { wiekszyZnak, grubyZnak, mniejszyZnak: (i) => rozmiar(i) < ramka.fontSize * 0.92 });
+}
+
+function naglowekHasla(ramka, nrAkapitu, tekst, { wiekszyZnak, grubyZnak, mniejszyZnak }) {
+  if (tekst.length > NAGLOWEK_HASLA_ZNAKOW || /[.!?…:;,]\s*$/.test(tekst)) return false;
+  // Jeden wiersz w ramce (po zawinięciu).
+  const mapa = ramka._styleMap;
+  if (mapa && Object.values(mapa).filter((m) => m?.line === nrAkapitu).length > 1) return false;
+  const m = /^(\s*)(\S+)/.exec(tekst);
+  if (!m || /[:;,.!?]$/.test(m[2])) return false; // „Uwaga:”
+  const od = m[1].length; const doZn = od + m[2].length;
+  let pierwszyGruby = true; let pierwszyWiekszy = true;
+  for (let i = od; i < doZn; i += 1) { if (!grubyZnak(i)) pierwszyGruby = false; if (!wiekszyZnak(i)) pierwszyWiekszy = false; }
+  if (!pierwszyGruby && !pierwszyWiekszy) return false;
+  // Reszta też odróżnia się od zwykłego tekstu – inaczej to zdanie zaczęte pogrubionym słowem.
+  for (let i = doZn; i < tekst.length; i += 1) {
+    if (/\s/.test(tekst[i])) continue;
+    if (!grubyZnak(i) && !wiekszyZnak(i) && !mniejszyZnak(i)) return false;
+  }
+  return true;
 }
 
 // Granica ramki po wierszu k: gdy ostatni akapit w ramce to tytuł, a następny akapit już się nie zaczyna w tej
