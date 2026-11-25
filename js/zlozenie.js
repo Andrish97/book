@@ -259,7 +259,7 @@ export function obiektyZSasiadem(projekt, cel, ciag = rozwin(projekt)) {
 // Służy do sprawdzenia przed drukiem, czy tekst mieści się w ramce na każdej powielonej stronie.
 // Zwraca [{ obiekt (Fabric), zrodlo: 'strona' | 'wzorzec', id }].
 // wszystkie – także ramki rosnące z tekstem (polskie zasady składu, #413); bez – tylko te, które mogą się nie zmieścić.
-export async function tekstyEgzemplarza(projekt, egz, ciag, { wszystkie = false } = {}) {
+export async function tekstyEgzemplarza(projekt, egz, ciag, { wszystkie = false, tylko = null } = {}) {
   if (uzywaDzielenia(egz.strona.obiekty) || projekt.wzorce.some((w) => uzywaDzielenia(w.obiekty))) await zaladujDzielenie();
   const wartosc = wartosciPol(projekt, egz, ciag);
   const zbierz = (obiekty, wynik = []) => {
@@ -275,7 +275,12 @@ export async function tekstyEgzemplarza(projekt, egz, ciag, { wszystkie = false 
   const zrodla = [['strona', egz.strona.obiekty], ...wzorceStrony(projekt, egz.strona).map((w) => ['wzorzec', w.obiekty])];
   for (const [zrodlo, obiekty] of zrodla) {
     const podstawione = podstawWObiektach(obiekty, wartosc);
-    const ramki = zbierz(podstawione).filter((o) => wszystkie || o.ramka_h > 0 || o.watek);
+    let ramki = zbierz(podstawione).filter((o) => wszystkie || o.ramka_h > 0 || o.watek);
+    // Tylko wybrane ramki (i ramki ich wątków) – bez składania pozostałych (#435).
+    if (tylko) {
+      const watkiTu = new Set(ramki.filter((o) => tylko.has(o.id) && o.watek).map((o) => o.watek));
+      ramki = ramki.filter((o) => tylko.has(o.id) || (o.watek && watkiTu.has(o.watek)));
+    }
     if (!ramki.length) continue;
     // Ramki najwyższego poziomu i ich zapisana wysokość (#431): kontrola położenia sprawdza złożony tekst, który
     // w ramce rosnącej z tekstem bywa wyższy niż zapisany w projekcie.

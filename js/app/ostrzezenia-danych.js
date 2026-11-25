@@ -47,7 +47,9 @@ async function policz(kl, stanPlotna) {
   const { projekt, strony } = stanPlotna;
   const caly = rozwin(projekt);
   const ciag = { ...caly, egzemplarze: caly.egzemplarze.filter((e) => strony.has(e.strona.id)) };
-  const uwagi = [...uwagiElementow(projekt, ciag), ...await sprawdzMieszczenie(projekt, ciag, { przerwij: () => liczony !== kl })];
+  // Tylko elementy zależne od danych (#435) – ich ostrzeżenia tu się liczą; reszta ma zwykłe ostrzeżenia edytora.
+  const tylko = new Set(stanPlotna.obiekty.filter(zaleznyOdDanych).map((o) => o.id));
+  const uwagi = [...uwagiElementow(projekt, ciag), ...await sprawdzMieszczenie(projekt, ciag, { przerwij: () => liczony !== kl, tylko })];
   if (liczony !== kl) return; // w międzyczasie coś się zmieniło – liczy się nowsza wersja
   const nowy = new Map();
   for (const u of uwagi) {
@@ -74,15 +76,28 @@ edytor.poPrzeliczeniu = (o) => {
 
 // Po zmianie ostrzeżeń (każda zmiana na płótnie): gdy są elementy zależne od danych – po chwili spokoju
 // sprawdzamy, czy płótno albo dane się zmieniły, i wtedy liczymy w tle.
-edytor.addEventListener('ostrzezenia', () => {
+// Liczenie w tle nie przeszkadza w pracy (#435): rusza po 0,8 s spokoju, a dotknięcie ekranu, klik albo klawisz
+// przerywa je i odkłada na później (zaczyna się od nowa po kolejnej chwili spokoju).
+const SPOKOJ_MS = 800;
+let zaplanuj = () => {};
+const przerwijLiczenie = () => {
+  if (!liczony) return;
+  liczony = '';
+  zaplanuj();
+};
+for (const z of ['pointerdown', 'keydown', 'wheel']) window.addEventListener(z, przerwijLiczenie, { capture: true, passive: true });
+zaplanuj = () => {
   clearTimeout(czas);
   czas = setTimeout(() => {
     if (!stan.projekt || !naPlotnie || !edytor.canvas.getObjects().some(zaleznyOdDanych)) return;
+    if (edytor.aktywny?.isEditing) { zaplanuj(); return; } // w trakcie pisania – po skończeniu
     const sp = projektZPlotnem();
     if (!sp) return;
-    const kl = JSON.stringify([naPlotnie, sp.obiekty]) + odciskDanych(stan.projekt);
+    // Klucz z elementów zależnych od danych (przesunięcie zwykłego elementu nie liczy wszystkiego od nowa).
+    const kl = JSON.stringify([naPlotnie, sp.obiekty.filter(zaleznyOdDanych)]) + odciskDanych(stan.projekt);
     if (kl === klucz || kl === liczony) return;
     const dla = coNaPlotnie();
     policz(kl, sp).then(() => { if (klucz === kl) { wynikDla = dla; edytor.przeliczOstrzezenia(); } }).catch(() => { liczony = ''; });
-  }, 300);
-});
+  }, SPOKOJ_MS);
+};
+edytor.addEventListener('ostrzezenia', () => zaplanuj());

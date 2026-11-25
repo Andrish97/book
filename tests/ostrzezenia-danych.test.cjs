@@ -59,3 +59,29 @@ test('ostrzeżenia przy stronie po przeliczeniu: położenie z danych – margin
   assert.match(w[0][1], /„Kwadrat” wchodzi w margines.*strona 3\./);
   assert.deepEqual(bledy, []);
 });
+
+// #435: „Apka tak strasznie laguje… klikam, a nic się nie dzieje, a potem dzieje się po kilku sekundach”. Na stronie
+// serii z 365 dniami każda zmiana liczyła w tle ostrzeżenia na wszystkich dniach kawałkami po 25 stron – 13–14 blokad
+// ekranu po ~0,2 s (na telefonie po sekundzie). Teraz liczenie oddaje głos co ~8 ms i nie blokuje kliknięć.
+test('ostrzeżenia z danymi na stronie serii nie blokują ekranu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Bez lagów');
+  await strona.evaluate(() => {
+    const { stan, edytor: e } = window.seriodruk;
+    const p = stan.projekt;
+    p.tabele.push({ id: 'dni', nazwa: 'Dni', kolumny: ['data', 'werset', 'opis'], wiersze: Array.from({ length: 365 }, (_, i) => [`${i + 1} stycznia`, `J ${i}:1`, 'Treść czytania na ten dzień, dość długa, żeby zajęła kilka linijek w ramce tekstu. '.repeat(3)]) });
+    p.serie.push({ id: 's1', nazwa: 'Dni', tabela: 'dni', tryb: 'tabela', uklad: 'dlugi' });
+    p.strony[0].seria = 's1';
+    for (let k = 0; k < 6; k += 1) { const o = e.dodajTekst('{data} – {werset}\n{opis}'); o.set({ left: 10, top: 10 + k * 30, width: 120, ramka_h: 25 }); }
+    e.zatwierdz?.();
+    window.__dlugie = [];
+    new PerformanceObserver((l) => { for (const x of l.getEntries()) window.__dlugie.push(Math.round(x.duration)); }).observe({ type: 'longtask' });
+  });
+  await strona.waitForTimeout(2500);
+  await strona.evaluate(() => { window.__dlugie = []; const e = window.seriodruk.edytor; const o = e.canvas.getObjects().find((x) => x.type === 'textbox'); o.set('left', o.left + 1); e.oznaczZmiane(); e.przeliczOstrzezenia(); });
+  // Liczenie kończy się w tle (wynik ostrzeżeń dla tej strony), a żadna blokada nie trwa długo.
+  await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().filter((o) => o.type === 'textbox').every((o) => window.seriodruk.edytor.poPrzeliczeniu(o) !== 'liczy'), null, { timeout: 30000 });
+  const dlugie = await strona.evaluate(() => window.__dlugie);
+  assert.ok(Math.max(0, ...dlugie) < 120, `blokady ekranu: ${dlugie.join(', ')} ms`);
+  assert.deepEqual(bledy, []);
+});

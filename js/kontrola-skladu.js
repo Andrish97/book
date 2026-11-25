@@ -38,13 +38,26 @@ const lista = (numery, ile = 8) => {
 // Uwagi o tekstach, które nie mieszczą się w ramce: [{ rodzaj: 'nie_miesci_sie', opis, strony, idStrony, idObiektu }],
 // oraz o tabelach, które po wypełnieniu danymi wychodzą poza stronę (rodzaj 'tabela_poza_strona').
 // przerwij() → true kończy sprawdzanie wcześniej (np. zamknięto okno).
-export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { przerwij } = {}) {
+// tylko – zbiór id ramek do sprawdzenia (ostrzeżenia przy stronie liczą tylko elementy zależne od danych, #435);
+// ramki wątku z taką ramką też się składają (tekst przelewa się przez cały wątek).
+// Oddawanie głosu przeglądarce co ~8 ms (#435): wcześniej co 25 stron – na stronie serii z 365 dniami każda zmiana
+// blokowała ekran kawałkami po 0,2 s (na telefonie po sekundzie) i kliknięcia czekały kilka sekund.
+const KAWALEK_MS = 8;
+const teraz = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
+export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { przerwij, tylko = null } = {}) {
   const wystapienia = new Map(); // id obiektu → { nazwa, strony, idStrony }
   const sklad = new Map(); // id obiektu → { nazwa, strony, idStrony, powody: Map(opis → przykład) } (#323)
   const tabele = new Map(); // id tabeli → { nazwa, strony, idStrony, ile (największe wyjście poza stronę, mm) }
   const polozenie = new Map(); // rodzaj|id → { rodzaj, nazwa, strony, idStrony, idObiektu, wzorzec } (#431)
-  let licznik = 0;
+  let odOddania = teraz();
+  const oddaj = async () => {
+    if (teraz() - odOddania < KAWALEK_MS) return;
+    await new Promise((ok) => setTimeout(ok));
+    odOddania = teraz();
+  };
   for (const egz of ciag.egzemplarze) {
+    if (przerwij?.()) return [];
+    await oddaj();
     if (przerwij?.()) return [];
     // Tabela rośnie razem z treścią komórek – na stronie z dłuższymi danymi może wyjść poza kartkę.
     const { szerokosc_mm: w, wysokosc_mm: h } = egz.sekcja.wydruk;
@@ -62,7 +75,8 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
     // Wszystkie ramki tekstu (#413): polskie zasady składu dotyczą też ramek rosnących z tekstem – wcześniej
     // sprawdzane były tylko ramki o stałej wysokości, więc uwagi z edytora nie trafiały do „Sprawdź przed drukiem”.
     const wymiary = { W: w, H: h, spad: egz.sekcja.wydruk.spad_mm || 0, marginesy: zwyklaSekcja(egz.sekcja) ? [marginesyStrony(projekt, egz.strona, egz.bok)] : [] };
-    for (const { obiekt, zrodlo, id, zapisany } of await tekstyEgzemplarza(projekt, egz, ciag, { wszystkie: true })) {
+    for (const { obiekt, zrodlo, id, zapisany } of await tekstyEgzemplarza(projekt, egz, ciag, { wszystkie: true, tylko })) {
+      if (tylko && !tylko.has(id)) continue;
       const gdzie = polozenieZlozonego(obiekt, zapisany, wymiary);
       if (gdzie) {
         const k = `${gdzie}|${id}`;
@@ -86,8 +100,6 @@ export async function sprawdzMieszczenie(projekt, ciag = rozwin(projekt), { prze
       wpis.strony.push(egz.indeks + 1);
       wystapienia.set(id, wpis);
     }
-    licznik += 1;
-    if (licznik % 25 === 0) await new Promise((ok) => setTimeout(ok)); // oddaj głos przeglądarce
   }
   return [...[...wystapienia].map(([idObiektu, w]) => ({
     rodzaj: 'nie_miesci_sie', strony: w.strony, idStrony: w.idStrony, idObiektu,
