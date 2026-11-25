@@ -606,7 +606,9 @@ async function naSerwerze(p, { kod, ochrona, strony, odciski, rozszerzenie, peln
     if (!odNowa) {
       const m = await chmura.opisLinku(folder).catch(() => null);
       const tresci = m && (m.rozszerzenie || 'jpg') === rozszerzenie ? (m.tresci || {}) : {};
-      doRysowania = strony.filter((s) => tresci[s.id] !== odciski[s.id]).length;
+      // Pliki według treści (#438, A2): rysować trzeba tylko strony, których odcisku nie ma jeszcze w folderze.
+      const juzSa = new Set(Object.values(tresci));
+      doRysowania = strony.filter((s) => !juzSa.has(odciski[s.id])).length;
     }
     if (doRysowania < (globalThis.__progSerwera ?? PROG_SERWERA)) return null;
     const { id } = await chmura.zlecRysowanieLinku(doZlecenia(p), folder, odNowa);

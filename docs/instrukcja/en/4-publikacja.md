@@ -488,6 +488,13 @@ The link updates by itself: a few seconds after your changes the app uploads the
 changed. The address stays the same. [Update now] does it right away. Someone who has the link open
 doesn't need to refresh the page — new pages appear by themselves.
 
+**Which pages changed.** The app looks at what is really visible on the page — after filling in data from
+the table, the page number and the page count. A page that looks the same as before is not drawn or
+uploaded again, even when it has moved to another place. Example: in a series calendar you add one day in
+the middle of the table — only that one new page is drawn, and the later days just move along. If the
+series pages print the page number, the moved pages have a different number, so they are drawn again.
+Pages that look identical (e.g. blank ones) share one image in the link.
+
 The page images are prepared by the app, so the link keeps up with changes while the project is open —
 in the editor or the preview, on any device. Meanwhile a bar is shown on screen:
 **Updating the link preview – don't close Makietka**, with a page counter. You can close the Share window

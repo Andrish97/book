@@ -146,8 +146,10 @@ test('rysowanie na serwerze: pełne rysowanie linku do R2, tylko folder linku, r
   await env.PLIKI.put(`zadania/${UID}/p1.json`, JSON.stringify({ projekt, folder, chroniony: false, pelna: false, sciezki: [], uid: UID }));
   const postep = [];
   const w = await R.rysujLink(env, `zadania/${UID}/p1.json`, (i, n) => postep.push([i, n]));
-  assert.ok(w.wszystkie > 2 && w.wyslane === w.wszystkie, `strony narysowane (${w.wyslane}/${w.wszystkie})`);
   const opis = await (await env.PLIKI.get(`podglady/${folder}/manifest.json`)).json();
+  // Pliki według treści (#438, A2): takie same strony – jeden plik.
+  assert.ok(w.wszystkie > 2 && w.wyslane === new Set(Object.values(opis.pliki)).size, `strony narysowane (${w.wyslane}/${w.wszystkie})`);
+  for (const n of new Set(Object.values(opis.pliki))) assert.ok(env.PLIKI.m.has(`podglady/${folder}/${n}.${opis.rozszerzenie}`), n);
   assert.equal(opis.format, 'seriodruk-podglad');
   assert.equal(Object.keys(opis.skroty).length, w.wszystkie);
   assert.equal(env.PLIKI.m.get(`podglady/${folder}/manifest.json`).meta.cacheControl, 'no-cache');

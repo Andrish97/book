@@ -57,14 +57,16 @@ test('rysowanie na serwerze: rysuj.html rysuje strony linku tak samo jak aplikac
   await rys.waitForFunction(() => window.makietkaRysujGotowe === true);
   const w = await rys.evaluate((p) => window.makietkaRysuj.publikujLink({ projekt: p, folder: 'konto/proj/kod' }), projekt);
   assert.equal(w.wszystkie, Object.keys(wAplikacji.skroty).length);
-  assert.ok(w.wyslane > 0 && w.wyslane === w.wszystkie, `wszystkie strony wysłane przy pierwszej publikacji (${w.wyslane}/${w.wszystkie})`);
   const opis = JSON.parse(Buffer.from(mag.pliki.get('konto/proj/kod/manifest.json').b64, 'base64').toString());
+  // Pliki według treści (#438, A2): strony wyglądające tak samo (np. puste) dzielą jeden plik.
+  assert.ok(w.wyslane > 0 && w.wyslane === new Set(Object.values(opis.pliki)).size, `każdy plik wysłany raz przy pierwszej publikacji (${w.wyslane}/${w.wszystkie})`);
   assert.equal(opis.format, 'seriodruk-podglad');
   assert.deepEqual(Object.keys(opis.tresci).sort(), Object.keys(opis.skroty).sort(), 'odcisk każdej strony');
   assert.ok(opis.uklad.makieta, 'opis makiety 3D w linku');
   // Obrazy identyczne jak w aplikacji (te same skróty plików).
   const rozne = Object.keys(opis.skroty).filter((k) => opis.skroty[k] !== wAplikacji.skroty[k]);
   assert.deepEqual(opis.skroty, wAplikacji.skroty, 'strony narysowane tak samo jak w aplikacji');
+  assert.deepEqual(opis.pliki, wAplikacji.pliki, 'te same nazwy plików (odciski) co w aplikacji');
   assert.ok(postep.length >= w.wszystkie, 'postęp zgłaszany na bieżąco');
   // Druga publikacja bez zmian: nic nie jest rysowane ani wysyłane.
   const w2 = await rys.evaluate((p) => window.makietkaRysuj.publikujLink({ projekt: p, folder: 'konto/proj/kod' }), projekt);

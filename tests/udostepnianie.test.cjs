@@ -498,6 +498,8 @@ test('udostępnianie w tle: link od razu, oglądający widzi „w przygotowaniu�
     const P = await import('./js/projekt.js');
     const p = window.seriodruk.stan.projekt;
     for (let i = 2; i <= 8; i += 1) p.strony.push(P.nowaStrona(`S${i}`, p.sekcje[0].id));
+    // Różna treść stron – takie same strony dzieliłyby jeden plik (#438, A2).
+    p.strony.forEach((s, i) => { s.obiekty = [{ type: 'textbox', id: `t${i}`, left: 10, top: 10, width: 80, text: `Strona ${i + 1}`, fontFamily: 'Inter', fontSize: 8 }]; });
     await (await import('./js/app/zapis.js')).otworzProjekt(p);
   });
   // Wolne wysyłanie obrazów stron (np. słaby internet): każdy obraz ok. 1,2 s.

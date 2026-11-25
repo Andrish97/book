@@ -488,6 +488,13 @@ Link aktualizuje się sam: kilka sekund po Twoich zmianach aplikacja wysyła obr
 zmieniły. Adres zostaje ten sam. [Aktualizuj teraz] robi to od razu. Osoba, która ma link otwarty,
 nie musi odświeżać strony — nowe strony pojawią się same.
 
+**Które strony się zmieniły.** Aplikacja patrzy na to, co na stronie naprawdę widać — po wstawieniu danych
+z tabeli, numeru strony i liczby stron. Strona, która wygląda tak samo jak wcześniej, nie jest rysowana
+ani wysyłana drugi raz, nawet gdy przesunęła się na inne miejsce. Przykład: w kalendarzu z serii dopisujesz
+jeden dzień w środku tabeli — rysuje się tylko ta jedna nowa strona, a dalsze dni tylko się przesuwają.
+Jeśli na stronach serii jest wydrukowany numer strony, przesunięte strony mają inny numer, więc rysują się
+od nowa. Strony, które wyglądają identycznie (np. puste), mają w linku jeden wspólny obraz.
+
 Obrazy stron przygotowuje aplikacja, więc link nadąża za zmianami, gdy projekt jest otwarty —
 w edytorze albo w podglądzie, na dowolnym urządzeniu. W trakcie na ekranie widać pasek
 **Aktualizuję podgląd z linku – nie zamykaj Makietki** z licznikiem stron. Okno Udostępnij możesz

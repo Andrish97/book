@@ -676,6 +676,8 @@ async function usunPodglady(folderProjektu) {
 // Adres obrazu strony zmienia się tylko wtedy, gdy zmienia się obraz (skrót z opisu linku) – niezmienione strony
 // po aktualizacji linku przeglądarka bierze ze swojej pamięci zamiast pobierać jeszcze raz.
 const wersjaObrazu = (manifest, id) => (manifest.skroty?.[id] || '').slice(0, 16) || manifest.v;
+// Plik obrazu strony (#438, A2): nazwa z opisu linku (według treści strony), w dawnych linkach – id strony.
+const adresyObrazow = (folder, manifest) => (id) => `${adresPodgladu(`${folder}/${manifest.pliki?.[id] || id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}`;
 
 // Magazyn podglądów w R2 przez worker (sesja właściciela) – dla wspólnej publikacji (js/publikacja-magazyn.js).
 const magazynR2 = {
@@ -755,7 +757,7 @@ export async function wczytajPodgladPubliczny(konto, projektId, kod) {
   if (!odp.ok) throw new Error(t('chmura.linkNieDziala'));
   const manifest = await odp.json();
   if (manifest.format !== 'seriodruk-podglad') throw new Error(t('chmura.toNiePodglad'));
-  return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
+  return { manifest, adresObrazu: adresyObrazow(folder, manifest) };
 }
 
 // ---------- Link chroniony: hasło albo data ważności ----------
@@ -905,7 +907,7 @@ export async function wczytajPodgladChroniony(konto, projektId, kod, haslo = '')
   if (!odp.ok) throw bladLinku('brak');
   const manifest = await odp.json();
   if (manifest.format !== 'seriodruk-podglad') throw new Error(t('chmura.toNiePodglad'));
-  return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
+  return { manifest, adresObrazu: adresyObrazow(folder, manifest) };
 }
 
 // Właściciel: opis i adresy obrazów własnego linku – zwykłego albo z ochroną (folder z sekretem bez hasła,
@@ -922,7 +924,7 @@ export async function wczytajPodgladWlasciciela(projektId, kod, chroniony = fals
   const odp = await fetch(`${adresPodgladu(`${folder}/manifest.json`)}?t=${Date.now()}`, { cache: 'no-store' });
   if (!odp.ok) throw bladLinku('brak');
   const manifest = await odp.json();
-  return { manifest, adresObrazu: (id) => `${adresPodgladu(`${folder}/${id}.${manifest.rozszerzenie || 'jpg'}`)}?v=${wersjaObrazu(manifest, id)}` };
+  return { manifest, adresObrazu: adresyObrazow(folder, manifest) };
 }
 
 // ---------- Sztuczna inteligencja (klucze konta, decyzja #94) ----------

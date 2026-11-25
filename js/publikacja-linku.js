@@ -16,6 +16,18 @@ export function skrot(tekst) {
   for (let i = 0; i < tekst.length; i += 1) { h ^= tekst.charCodeAt(i); h = Math.imul(h, 16777619); }
   return `${tekst.length}-${(h >>> 0).toString(36)}`;
 }
+// Mocniejszy skrót (dwa niezależne 32-bitowe) – odcisk strony jest nazwą pliku podglądu (#438, A2), więc dwie różne
+// strony nie mogą mieć tej samej nazwy.
+export function skrotMocny(tekst) {
+  let h = 2166136261;
+  let g = 0x811c9dc5 ^ 0x5bd1e995;
+  for (let i = 0; i < tekst.length; i += 1) {
+    const c = tekst.charCodeAt(i);
+    h ^= c; h = Math.imul(h, 16777619);
+    g = Math.imul(g ^ c, 0x5bd1e995); g ^= g >>> 15;
+  }
+  return `${tekst.length.toString(36)}-${(h >>> 0).toString(36)}${(g >>> 0).toString(36)}`;
+}
 // 'm1' i projekt.makieta (#189): link idzie też za makietą 3D – a link sprzed #188 (bez opisu makiety) ma inny
 // odcisk, więc przy najbliższym otwarciu projektu sam się uzupełnia (wysyła się tylko opis, strony się nie zmieniły).
 export const odciskTresci = (projekt) => skrot(JSON.stringify(['m1', projekt.nazwa, projekt.sekcje, projekt.wzorce, projekt.strony, projekt.style, projekt.tabele, projekt.serie, projekt.czcionki, projekt.makieta || null, projekt.makieta_linku || null, projekt.znak_wodny || null]));
@@ -89,7 +101,7 @@ export function odciskStrony(projekt, egz, ciag) {
     watek = pam.watki.get(kl);
   }
   const przypisy = uzywaKsiazki(projekt) ? przypisyStrony(projekt, egz, ciag) : null;
-  return skrot(JSON.stringify(['o2', strona, egz.strona.tlo, wzorce, sasiad, egz.bok, skrotObiektu(pam, egz.sekcja.wydruk), zTabel, watek, przypisy, pam.wspolny]));
+  return skrotMocny(JSON.stringify(['o2', strona, egz.strona.tlo, wzorce, sasiad, egz.bok, skrotObiektu(pam, egz.sekcja.wydruk), zTabel, watek, przypisy, pam.wspolny]));
 }
 
 
