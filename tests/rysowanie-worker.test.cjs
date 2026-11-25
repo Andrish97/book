@@ -248,3 +248,69 @@ test('zużycie serwera: zapis czasu i stron, podgląd tylko dla administratora',
   assert.equal(w.planGodzin, 10);
   assert.deepEqual(w.dni.at(-1).rodzaje, { link: 1, pdf: 1 });
 });
+
+// #436: usługa składu dla łącznika MCP – klucz AI sprawdza baza (serwer_klucz_ai), przeglądarka przelewa wątek tym samym
+// kodem co edytor (wynik = moduł przelewania w aplikacji), podaje wysokości, opis strony, podgląd PNG i pełne sprawdzenie.
+test('usługa składu dla MCP: klucz AI, przelanie wątku jak w aplikacji, opis, podgląd, sprawdzenie', async (t) => {
+  const R = await import(MODUL);
+  const { strona, przegladarka, adres } = await otworz(t);
+  await nowyProjekt(strona, 'Skład');
+  const PROJ = '33333333-3333-4333-8333-333333333333';
+  const { projekt, oczekiwane } = await strona.evaluate(async (id) => {
+    const { stan, edytor: e } = window.seriodruk;
+    const { nowaStrona } = await import('./js/projekt.js');
+    const { zapiszBiezacyCel } = await import('./js/app/zapis.js');
+    const { przelejWatek } = await import('./js/przelewanie.js');
+    const o = e.dodajTekst(Array.from({ length: 12 }, (_, i) => `Hasło${i} Dz 1:${i}\nDobra nowina o zbawieniu przez Jezusa Chrystusa; także nazwa czterech ksiąg.`).join('\n'));
+    o.set({ id: 'r0', left: 15, top: 20, width: 60, fontSize: 3, ramka_h: 45, wdowy: 3, lamanie_akapitu: true });
+    const naglowek = e.dodajTekst('Słowniczek');
+    naglowek.set({ id: 'nag', left: 15, top: 8, width: 80 });
+    e.zatwierdz?.();
+    zapiszBiezacyCel();
+    const p = JSON.parse(JSON.stringify(stan.projekt));
+    p.id = id;
+    const r0 = p.strony[0].obiekty.find((x) => x.id === 'r0');
+    Object.assign(r0, { watek: 'w1', watek_nr: 0 });
+    const s2 = nowaStrona('Strona 2', p.strony[0].sekcja);
+    s2.obiekty = [{ ...JSON.parse(JSON.stringify(r0)), id: 'r1', text: '', styles: [], watek_nr: 1, lacznik: '\n' }];
+    p.strony.push(s2);
+    const kopia = JSON.parse(JSON.stringify(p));
+    await przelejWatek(kopia, 'w1');
+    return { projekt: p, oczekiwane: kopia.strony.flatMap((s) => s.obiekty.filter((x) => x.watek === 'w1')).map((x) => [x.id, x.text, x.lacznik ?? null]) };
+  }, PROJ);
+  const wywolania = [];
+  const prawdziwy = globalThis.fetch;
+  globalThis.fetch = async (adresZ, opcje) => {
+    const u = String(adresZ);
+    if (u.startsWith('https://baza.test/rest/v1/rpc/')) {
+      const nazwa = u.split('/').pop();
+      const cialo = JSON.parse(opcje.body);
+      wywolania.push([nazwa, cialo]);
+      const dane = nazwa === 'serwer_klucz_ai' ? (cialo.p_klucz === 'sdk_dobry' ? { owner_id: UID, projekt_id: PROJ, rola: 'edycja' } : { blad: 'Zły klucz.' })
+        : nazwa === 'serwer_projekt' ? projekt : null;
+      return new Response(JSON.stringify(dane), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    return prawdziwy(adresZ, opcje);
+  };
+  t.after(() => { globalThis.fetch = prawdziwy; });
+  const env = { PLIKI: r2(), PRZEGLADARKA: {}, APLIKACJA: adres.replace(/\/$/, ''), SUPABASE_URL: 'https://baza.test', SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', __puppeteer: puppeteerZPlaywright(przegladarka) };
+  env.RYSOWANIE = kolejki(env, R.Rysowanie);
+  // Zły klucz – bez przeglądarki.
+  const zly = await R.skladajDlaAi(env, { klucz: 'sdk_zly', projektId: PROJ, dzialania: [{ rodzaj: 'przelej' }] });
+  assert.equal(zly.status, 403);
+  const w = await R.skladajDlaAi(env, {
+    klucz: 'sdk_dobry', projektId: PROJ, projekt,
+    dzialania: [{ rodzaj: 'przelej' }, { rodzaj: 'wysokosci' }, { rodzaj: 'opis', strona: projekt.strony[1].id }, { rodzaj: 'podglad', strona: projekt.strony[0].id, szerokosc: 400 }, { rodzaj: 'sprawdz' }],
+  });
+  assert.equal(w.status, 200, JSON.stringify(w.dane).slice(0, 300));
+  const { przelej, opis, podglad, sprawdz, wysokosci } = w.dane;
+  // Przelanie identyczne jak moduł w aplikacji.
+  const czesci = Object.fromEntries(przelej[0].zmiany.map((z) => [z.id, [z.id, z.pola.text, z.pola.lacznik ?? null]]));
+  assert.deepEqual(w.dane.przelej[0].watek, 'w1');
+  for (const [id, text, lacznik] of oczekiwane) assert.deepEqual(czesci[id] || [id, projekt.strony.flatMap((s) => s.obiekty).find((x) => x.id === id).text, lacznik], [id, text, lacznik], `ramka ${id} jak w aplikacji`);
+  assert.match(przelej[0].opis, /Wątek w1: 2 ramek\./);
+  assert.ok(opis.length === 1 && opis[0].id === 'r1' && opis[0].wierszy > 0 && opis[0].watek === 'w1', JSON.stringify(opis));
+  assert.ok(Buffer.from(podglad.b64, 'base64').subarray(1, 4).toString() === 'PNG' && podglad.szerokosc === 400);
+  assert.ok(Array.isArray(sprawdz) && Array.isArray(wysokosci));
+  assert.ok(wywolania.some(([n, c]) => n === 'serwer_klucz_ai' && c.p_klucz === 'sdk_dobry' && c.p_projekt === PROJ));
+});

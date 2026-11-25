@@ -56,6 +56,8 @@ export async function obsluzRysowanie(zapytanie, env, u, pomoc) {
   const cors = pomoc.naglowkiCors(zapytanie, false);
   if (zapytanie.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
   if (!env.RYSOWANIE || !env.PRZEGLADARKA || !env.PLIKI) return pomoc.json(503, { blad: 'Rysowanie na serwerze nie jest włączone.', kod: 'brak_rysowania' }, cors);
+  // Usługa składu dla łącznika MCP (#436) – uwierzytelnia kluczem AI, nie sesją użytkownika.
+  if (u.pathname === '/rysuj/skladaj') return obsluzSkladanie(zapytanie, env, pomoc, cors);
   const token = pomoc.tokenZZapytania(zapytanie);
   const uid = await pomoc.uzytkownik(env, token);
   if (!uid) return pomoc.json(401, { blad: 'Zaloguj się ponownie.' }, cors);
@@ -370,6 +372,47 @@ async function wPrzegladarce(env, { pobierz, postep = () => {} }, praca) {
     }
   } finally {
     await przegladarka.close().catch(() => {});
+  }
+}
+
+// ---------- Usługa składu dla MCP (#436) ----------
+// POST /rysuj/skladaj, nagłówek x-makietka-klucz: klucz AI (ten sam co w adresie łącznika), ciało
+// { projekt_id, projekt?, dzialania }. Klucz sprawdza baza (serwer_klucz_ai – tylko klucz serwisowy workera):
+// właściciel i dostęp do projektu. Projekt w ciele to zmiana łącznika jeszcze przed zapisem (przelanie liczy się przed
+// zapisem, w tej samej wersji); bez niego – projekt z bazy. Pliki (czcionki, obrazy) tylko z zapisanego projektu
+// i z folderu tego projektu u właściciela. Wynik: makietkaRysuj.skladaj (rysuj.js).
+export async function skladajDlaAi(env, { klucz, projektId, projekt = null, dzialania = [] }) {
+  if (!klucz || !ID.test(String(projektId || ''))) return { status: 400, dane: { blad: 'Brak klucza albo projektu.' } };
+  if (!Array.isArray(dzialania) || !dzialania.length || dzialania.length > 12) return { status: 400, dane: { blad: 'Nieprawidłowe działania.' } };
+  const k = await rpcSerwisowe(env, 'serwer_klucz_ai', { p_klucz: klucz, p_projekt: projektId });
+  if (!k || k.blad) return { status: 403, dane: { blad: k?.blad || 'Klucz nie obejmuje tego projektu.' } };
+  const zapisany = await rpcSerwisowe(env, 'serwer_projekt', { p_projekt: projektId });
+  if (!zapisany) return { status: 404, dane: { blad: 'Nie ma tego projektu.' } };
+  const dozwolone = new Set(sciezkiZasobow(zapisany));
+  const folder = `${k.owner_id}/${projektId}/`;
+  const p = projekt && typeof projekt === 'object' ? projekt : zapisany;
+  p.id ??= projektId;
+  const od = Date.now();
+  try {
+    const wynik = await wPrzegladarce(env, { pobierz: (sc) => dozwolone.has(sc) || String(sc).startsWith(folder) },
+      (strona) => strona.evaluate((a) => window.makietkaRysuj.skladaj(a), { projekt: p, dzialania }));
+    return { status: 200, dane: wynik };
+  } finally {
+    await zapiszZuzycie(env, { ms: Date.now() - od, stron: 0, rodzaj: 'sklad' }).catch(() => {});
+  }
+}
+
+async function obsluzSkladanie(zapytanie, env, pomoc, cors) {
+  if (zapytanie.method !== 'POST') return pomoc.json(405, { blad: 'Tylko POST.' }, cors);
+  if (!env.SUPABASE_SERVICE_ROLE_KEY) return pomoc.json(503, { blad: 'Usługa składu nie jest włączona.', kod: 'brak_skladu' }, cors);
+  if (Number(zapytanie.headers.get('content-length') || 0) > MAKS_ZLECENIA) return pomoc.json(413, { blad: 'Projekt za duży.' }, cors);
+  let dane;
+  try { dane = await zapytanie.json(); } catch { return pomoc.json(400, { blad: 'Nieprawidłowe zlecenie.' }, cors); }
+  try {
+    const w = await skladajDlaAi(env, { klucz: zapytanie.headers.get('x-makietka-klucz'), projektId: dane?.projekt_id, projekt: dane?.projekt, dzialania: dane?.dzialania });
+    return pomoc.json(w.status, w.dane, cors);
+  } catch (e) {
+    return pomoc.json(500, { blad: String(e?.message || e).slice(0, 500) }, cors);
   }
 }
 
