@@ -331,3 +331,48 @@ test('otwarta karta nie odpowiada zapisem na każdą zmianę AI – AI nie dosta
   assert.equal(baza.zapisy.length, przed, 'karta bez zmian użytkownika nic nie wysyła');
   assert.deepEqual(bledy, []);
 });
+
+// #436: AI zmienia tekst w połączonych ramkach i zapisuje nowy podział (przelany na serwerze tym samym kodem co edytor),
+// a edytor jest otwarty na stronie wątku: przyjmuje cały nowy podział naraz, nie nadpisuje go starym i sam nic nie zmienia.
+test('wątek przelany przez AI przy otwartym edytorze: nowy podział przyjęty w całości, bez nadpisania', async (t) => {
+  const { strona, baza, bledy } = await otworz(t);
+  await projektTrzyStrony(strona);
+  const OPIS = 'Dobra nowina o zbawieniu przez Jezusa Chrystusa; także nazwa czterech ksiąg o Jego życiu i nauczaniu.';
+  await strona.evaluate(async (opis) => {
+    const p = window.seriodruk.stan.projekt;
+    const { przelejWatek } = await import('./js/przelewanie.js');
+    const ramka = (i, text) => ({ type: 'textbox', id: `w${i}`, left: 15, top: 60, width: 90, ramka_h: 40, fontFamily: 'Inter', fontSize: 3.5, text, styles: [], watek: 'w1', watek_nr: i, ...(i ? { lacznik: '\n' } : {}), wdowy: 3, lamanie_akapitu: true });
+    p.strony.forEach((s, i) => s.obiekty.push(ramka(i, i ? '' : Array.from({ length: 6 }, (_, k) => `Hasło${k} Dz 1:${k}\n${opis}`).join('\n'))));
+    await przelejWatek(p, 'w1');
+    window.seriodruk.stan.indeks = 0;
+    await window.seriodruk.przeladuj();
+    window.seriodruk.edytor.zatwierdz();
+  }, OPIS);
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  await zapisano(strona);
+  const klucz = await kluczAi(strona);
+  // AI: nowy tekst w pierwszej ramce i przelanie całego wątku (jak usługa składu) – jeden zapis.
+  const { projekt, wersja } = baza.ai('ai_projekt', { p_klucz: klucz });
+  const zmienione = await strona.evaluate(async ({ p, opis }) => {
+    const { przelejWatek } = await import('./js/przelewanie.js');
+    const r0 = p.strony[0].obiekty.find((o) => o.id === 'w0');
+    r0.text = `Wstęp od AI, który przesuwa wszystkie hasła dalej.\n${r0.text}`;
+    const { zmiany } = await przelejWatek(p, 'w1');
+    const strony = [...new Set(['w0', ...zmiany.map((z) => z.id)])].map((id) => p.strony.find((s) => s.obiekty.some((o) => o.id === id)));
+    return { strony: [...new Set(strony)], ramki: p.strony.flatMap((s) => s.obiekty.filter((o) => o.watek === 'w1')).map((o) => [o.id, o.text]) };
+  }, { p: projekt, opis: OPIS });
+  assert.ok(zmienione.ramki.filter(([, x]) => x).length >= 2, `tekst w kilku ramkach: ${JSON.stringify(zmienione.ramki.map(([i, x]) => [i, x.length]))}`);
+  const w = baza.ai('ai_zapisz', { p_klucz: klucz, p_znana_wersja: wersja, p_zmiany: { strony: zmienione.strony } });
+  assert.ok(!w.blad && !w.konflikt, JSON.stringify(w));
+  await strona.evaluate(() => window.seriodruk.sprawdzKonto?.());
+  // Edytor pokazuje nowy podział całego wątku (także ramki z innych stron w pamięci).
+  await strona.waitForFunction((oczek) => oczek.every(([id, text]) => window.seriodruk.stan.projekt.strony.flatMap((s) => s.obiekty).find((o) => o.id === id)?.text === text), zmienione.ramki, { timeout: 20000 });
+  await strona.waitForFunction((t0) => window.seriodruk.edytor.canvas.getObjects().find((o) => o.id === 'w0')?.text === t0, zmienione.ramki[0][1]);
+  // Chwila pracy edytora (przelewanie po wczytaniu, zapisy w tle) niczego nie zmienia.
+  await strona.evaluate(() => window.seriodruk.zapiszTeraz());
+  await strona.waitForTimeout(3000);
+  const naKoncieRamki = naKoncie(baza, klucz).strony.flatMap((s) => s.obiekty.filter((o) => o.watek === 'w1')).map((o) => [o.id, o.text]);
+  assert.deepEqual(naKoncieRamki, zmienione.ramki, 'na koncie podział od AI – bez nadpisania starym');
+  assert.equal(await strona.locator('#dlg-konflikt[open], #dlg-potwierdz[open]').count(), 0);
+  assert.deepEqual(bledy, []);
+});
