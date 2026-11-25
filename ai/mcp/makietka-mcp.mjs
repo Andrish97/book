@@ -553,10 +553,118 @@ function znajdz(lista, id, co) {
 }
 
 // Scalenie pól: wartość null usuwa pole; identyfikatora nie da się zmienić.
+// ---------- Tekst z łącznika jak pisany w edytorze (#436) ----------
+// Formatowanie fragmentów tekstu (styles: [{ start, end, style }], indeksy znaków bez znaków nowej linii – jak Fabric)
+// przesuwa się przy zmianie tekstu; style można nadać po fragmencie tekstu (bez liczenia pozycji); tekst z polskimi
+// zasadami dostaje poprawne znaki (cudzysłowy, półpauzy, wielokropek, pojedyncze spacje) – jak po pisaniu w edytorze.
+const SEGMENTY = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter('pl', { granularity: 'grapheme' }) : null;
+const grafemy = (t) => (SEGMENTY ? [...SEGMENTY.segment(String(t ?? ''))].map((s) => s.segment) : Array.from(String(t ?? '')));
+const bezLiniiIdx = (g) => { let k = 0; return g.map((c) => (c === '\n' ? -1 : k++)); };
+function stylePoZnakach(text, styles) {
+  const n = grafemy(text).filter((c) => c !== '\n').length;
+  const tab = new Array(n).fill(null);
+  for (const s of Array.isArray(styles) ? styles : []) for (let i = Math.max(0, s.start); i < Math.min(n, s.end); i += 1) tab[i] = { ...(tab[i] || {}), ...(s.style || {}) };
+  return tab;
+}
+function zwinStyle(tab) {
+  const wynik = [];
+  tab.forEach((st, i) => {
+    if (!st || !Object.keys(st).length) return;
+    const k = JSON.stringify(st);
+    const ost = wynik.at(-1);
+    if (ost && ost.end === i && ost.k === k) ost.end += 1; else wynik.push({ start: i, end: i + 1, style: st, k });
+  });
+  return wynik.map(({ k, ...x }) => x);
+}
+// Style po zmianie tekstu stary → nowy: wspólny początek i koniec zostają na swoich znakach, wstawione znaki dostają
+// wygląd znaku przed nimi (jak przy pisaniu w edytorze); dopisane na samym początku – bez formatowania.
+export function przesunStyle(stary, nowy, styles) {
+  if (!Array.isArray(styles) || !styles.length || stary === nowy) return styles;
+  const a = grafemy(stary); const b = grafemy(nowy);
+  let p = 0;
+  while (p < a.length && p < b.length && a[p] === b[p]) p += 1;
+  let s = 0;
+  while (s < a.length - p && s < b.length - p && a[a.length - 1 - s] === b[b.length - 1 - s]) s += 1;
+  const stare = stylePoZnakach(stary, styles);
+  const ma = bezLiniiIdx(a); const mb = bezLiniiIdx(b);
+  const nowe = new Array(mb.filter((x) => x >= 0).length).fill(null);
+  for (let i = 0; i < p; i += 1) if (ma[i] >= 0) nowe[mb[i]] = stare[ma[i]];
+  for (let j = 0; j < s; j += 1) { const ia = a.length - 1 - j; const ib = b.length - 1 - j; if (ma[ia] >= 0) nowe[mb[ib]] = stare[ma[ia]]; }
+  let k = p - 1;
+  while (k >= 0 && ma[k] < 0) k -= 1;
+  const wzor = k >= 0 ? stare[ma[k]] : null; // na samym początku – zwykłe pismo (nowy tekst przed pogrubionym słowem)
+  for (let i = p; i < b.length - s; i += 1) if (mb[i] >= 0) nowe[mb[i]] = wzor;
+  return zwinStyle(nowe);
+}
+// Style po fragmencie: [{ fragment, wystapienie?: n | 'wszystkie' (domyślnie wszystkie), styl }] – dopisane do styles.
+export function styleFragmentow(text, styles, lista) {
+  const g = grafemy(text);
+  const odJednostki = []; // indeks jednostki kodu → indeks grafemu bez nowych linii
+  const mg = bezLiniiIdx(g);
+  let poz = 0;
+  g.forEach((c, i) => { odJednostki[poz] = mg[i] >= 0 ? mg[i] : null; poz += c.length; });
+  const tab = stylePoZnakach(text, styles);
+  const nieZnalezione = [];
+  for (const f of Array.isArray(lista) ? lista : []) {
+    const frag = String(f?.fragment ?? '');
+    if (!frag || !f.styl || typeof f.styl !== 'object') continue;
+    const trafienia = [];
+    for (let i = text.indexOf(frag); i >= 0; i = text.indexOf(frag, i + frag.length)) trafienia.push(i);
+    const wybrane = f.wystapienie && f.wystapienie !== 'wszystkie' ? [trafienia[Number(f.wystapienie) - 1]].filter((x) => x !== undefined) : trafienia;
+    if (!wybrane.length) { nieZnalezione.push(frag); continue; }
+    for (const od of wybrane) for (let j = od; j < od + frag.length; j += 1) { const ix = odJednostki[j]; if (ix !== null && ix !== undefined) tab[ix] = { ...(tab[ix] || {}), ...f.styl }; }
+  }
+  return { styles: zwinStyle(tab), nieZnalezione };
+}
+// Poprawki znaków – ta sama reguła co js/zasady-skladu.js poprawkiZnakow (test pilnuje zgodności).
+export function poprawkiZnakowTekstu(tekst) {
+  const t = String(tekst || '');
+  const pola = [];
+  for (const m of t.matchAll(/\{[^}]*\}/g)) pola.push([m.index, m.index + m[0].length]);
+  const wPolu = (i) => pola.some(([a, b]) => i >= a && i < b);
+  const zmiany = [];
+  for (let i = 0; i < t.length; i += 1) {
+    if (wPolu(i)) continue;
+    const c = t[i];
+    if (c === '"') { const przed = i === 0 ? ' ' : t[i - 1]; zmiany.push({ od: i, do: i + 1, na: /[\s(\[–—/]/.test(przed) ? '„' : '”' }); }
+    else if (c === '-' && t[i - 1] === ' ' && t[i + 1] === ' ') zmiany.push({ od: i, do: i + 1, na: '–' });
+    else if (c === '.' && t[i + 1] === '.' && t[i + 2] === '.' && t[i + 3] !== '.') { zmiany.push({ od: i, do: i + 3, na: '…' }); i += 2; }
+    else if (c === ' ' && t[i + 1] === ' ') { let j = i + 1; while (t[j] === ' ') j += 1; zmiany.push({ od: i + 1, do: j, na: '' }); i = j - 1; }
+    else if (c === ' ' && (/[,;:!?)”]/.test(t[i + 1] || '') || (t[i + 1] === '.' && t[i + 2] !== '.' && !/\d/.test(t[i + 2] || ''))) && i > 0 && t[i - 1] !== '\n') zmiany.push({ od: i, do: i + 1, na: '' });
+    else if (c === ' ' && /[(„]/.test(t[i - 1] || '')) zmiany.push({ od: i, do: i + 1, na: '' });
+  }
+  return zmiany.reverse();
+}
+// Tekst ramki z poprawionymi znakami (styles przesunięte poprawka po poprawce). Zwraca liczbę poprawek.
+function poprawZnakiRamki(o) {
+  if (o?.type !== 'textbox' || o.zasady_pl === false || o.znaki_bez_zmian || typeof o.text !== 'string' || o.bez_pol) return 0;
+  const poprawki = poprawkiZnakowTekstu(o.text);
+  for (const z of poprawki) {
+    const nowy = o.text.slice(0, z.od) + z.na + o.text.slice(z.do);
+    if (Array.isArray(o.styles) && o.styles.length) o.styles = przesunStyle(o.text, nowy, o.styles);
+    o.text = nowy;
+  }
+  return poprawki.length;
+}
+
 function scal(obiekt, pola) {
-  for (const [k, v] of Object.entries(pola || {})) {
+  const staryTekst = obiekt?.type === 'textbox' ? obiekt.text : undefined;
+  const { style_fragmentow: fragmenty, ...reszta } = pola || {};
+  for (const [k, v] of Object.entries(reszta)) {
     if (k === 'id') continue;
     if (v === null) delete obiekt[k]; else obiekt[k] = v;
+  }
+  if (obiekt?.type === 'textbox') {
+    // Nowy tekst bez nowych styles – formatowanie fragmentów przesuwa się razem z tekstem (#436).
+    if (typeof reszta.text === 'string' && staryTekst !== undefined && reszta.text !== staryTekst && !('styles' in reszta) && Array.isArray(obiekt.styles)) {
+      obiekt.styles = przesunStyle(staryTekst, reszta.text, obiekt.styles);
+    }
+    if (typeof reszta.text === 'string') poprawZnakiRamki(obiekt);
+    if (fragmenty) {
+      const w = styleFragmentow(obiekt.text || '', obiekt.styles, fragmenty);
+      obiekt.styles = w.styles;
+      if (w.nieZnalezione.length) throw new BladBazy(`W tekście elementu ${obiekt.id} nie ma: ${w.nieZnalezione.map((x) => `„${x}”`).join(', ')} (style_fragmentow).`);
+    }
   }
   return obiekt;
 }
@@ -646,6 +754,13 @@ function przygotujElement(e) {
     const domyslne = { fontFamily: 'Inter', fontSize: Math.round((14 * 25.4 / 72) * 1000) / 1000, fill: '#1a1a1a', lineHeight: 1.2, textAlign: 'left' };
     for (const [k, v] of Object.entries(domyslne)) if (o[k] === undefined) o[k] = v;
     if (o.type === 'textbox' && !(o.width > 0)) o.width = 80;
+  }
+  // Nowy tekst: znaki według polskich zasad i style po fragmencie – jak przy zmianie (#436).
+  if (o.type === 'textbox') {
+    const { style_fragmentow: fragmenty } = o;
+    delete o.style_fragmentow;
+    poprawZnakiRamki(o);
+    if (fragmenty) o.styles = styleFragmentow(o.text || '', o.styles, fragmenty).styles;
   }
   return o;
 }
@@ -1887,7 +2002,6 @@ const TEKSTY_EN = {
  "Pełny JSON jednej części projektu: strony, wzorca, sekcji, stylu, tabeli albo serii (po id), albo całego projektu (co=\"projekt\"; może być duży).": "Full JSON of one project part: a page, master, section, style, table or series (by id), or the whole project (part=\"project\"; can be large).",
  "Identyfikator (nie dotyczy „widok” i „projekt”).": "Identifier (not for “view” and “project”).",
  "Zmień elementy": "Update elements",
- "Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole.": "Changes element fields (by id) on a page or master – e.g. text, colour (fill), position (left, top in mm), font size (fontSize in mm), z_danych, pole, ksztalt_tekstu (text along an arc, circle, path or warped), link (clickable address in a PDF for screen reading). Give only the changed fields; null removes a field.",
  "„strona:<id strony>” albo „wzorzec:<id wzorca>”.": "“page:<page id>” or “master:<master id>”.",
  "id elementu": "element id",
  "Pola do zmiany": "Fields to change",
@@ -2075,7 +2189,8 @@ const TEKSTY_EN = {
  "Szerokość obrazu w pikselach (200–1600, domyślnie 700)": "Image width in pixels (200–1600, default 700)",
  "Teksty strony po złożeniu": "Page texts after layout",
  "Lekki odczyt: ramki tekstu strony (albo jedna) po złożeniu z danymi – tekst, liczba wierszy, czy się mieści w ramce, wysokość treści, wątek. Bez obrazu i bez pełnego projektu.": "Light read: the page’s text frames (or one) after layout with data – text, number of lines, whether it fits the frame, content height, thread. No image and no full project.",
- "id ramki tekstu (bez – wszystkie na stronie)": "text frame id (none – all on the page)"
+ "id ramki tekstu (bez – wszystkie na stronie)": "text frame id (none – all on the page)",
+ "Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole. Tekst ramki: formatowanie fragmentów (styles) przesuwa się samo razem ze zmienionym tekstem, a znaki poprawiają się według polskich zasad (cudzysłowy „”, półpauzy, wielokropek, pojedyncze spacje; bez tego – znaki_bez_zmian: true). Styl fragmentu bez liczenia pozycji: style_fragmentow: [{ fragment: \"Ewangelia\", wystapienie?: 1, styl: { fontWeight: 600 } }]. Zmiana ramki w połączonych ramkach (watek) przelewa cały wątek – odpowiedź ma raport.": "Changes element fields (by id) on a page or master – e.g. text, colour (fill), position (left, top in mm), font size (fontSize in mm), z_danych, pole, ksztalt_tekstu (text along an arc, circle, path or warped), link (clickable address in a PDF for screen reading). Give only the changed fields; null removes a field. Text frame: fragment formatting (styles) shifts with the changed text by itself, and characters are corrected by Polish typesetting rules (curly quotes, en dashes, ellipsis, single spaces; to keep them – znaki_bez_zmian: true). Style a fragment without counting positions: style_fragmentow: [{ fragment: \"Ewangelia\", wystapienie?: 1, styl: { fontWeight: 600 } }]. Changing a frame in linked frames (watek) reflows the whole thread – the response has a report."
 };
 // </TEKSTY_EN>
 const INSTRUKCJE_EN_PELNE = 'The tools read and change Makietka projects (an editor for calendars and data-driven print publications) in the key owner’s account – alongside them when they have the project open in the editor. Start with list_projects: the projects the key gives access to (and whether you can create and delete projects). Pass the project (id or name from the list) to every project tool; it can be omitted when the key covers one project. Then get_project_overview. Sizes are in millimetres (font size too: pt × 25.4 / 72). Project data (element fields, page and table JSON) uses Polish field names – get_format_spec describes them; read it before larger changes. Change things in small steps (update_elements, update_table, update_part; deleting: delete_table_data, delete_part); a Library element is changed afterwards with update_elements; use update_project only for changes the other tools don’t cover. Repeated pages are made as a series from a table, not as page copies. Comments on pages: list_comments; reply with reply_to_comment (resolve=true when the fix is already in the project), add new ones with add_comment. Comic panels are drawn by draw_comic_panels and pictures from a description by generate_image (done by the open app with the user’s Gemini key; it costs money – tell the user what you are drawing); speech bubbles are placed by place_speech_bubbles. Ready-made elements (frames, icons, calendars, charts, ornaments…): search_library and insert_library_element. Preview link: share_preview_link – only with the user’s explicit consent (suggest a password or expiry date). Delete a project (delete_project) only after asking directly. AI changes are undone by undo_ai_changes: first check_only=true, tell the user what will be undone, and undo only at their explicit request. Final file: export_pdf (whole project, a section or pages, for print or screen) and export_png (one page) return a download link – the file is made by the open Makietka app; when it isn’t open, give the user the app link from the result and check get_job_status. Images: upload_image (https url, SVG code, base64) adds a file to the project (an image from the web – give the source and respect copyright); replace_image swaps a used image for a new file (pages show the new one right away), place_image puts it on a page as a single element, list_images lists them. Files in your own environment (workspace, sandbox attachment) you upload yourself with upload_image_chunks – base64 chunks through the connector, no network access needed (unpack a ZIP locally). That’s a good way for graphics up to a few hundred KB; don’t lower file quality without the user’s consent. get_upload_url gives an address with a key – don’t show it. Large photos or files you can’t reach: call get_upload_link and give the user the link – they upload them themselves; then check list_images and carry on. Never answer that it’s impossible or that you have no access to their files. Don’t connect to the database from your own sandbox – use the Makietka connector tools and don’t ask the user to unblock domains or change network settings.';
@@ -2695,7 +2810,7 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     {
       name: 'zmien_elementy',
       title: 'Zmień elementy',
-      description: 'Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole.',
+      description: 'Zmienia pola elementów (po id) na stronie albo we wzorcu – np. tekst, kolor (fill), położenie (left, top w mm), rozmiar pisma (fontSize w mm), z_danych, pole, ksztalt_tekstu (tekst po łuku, okręgu, ścieżce albo wygięty), link (adres klikalny w PDF do czytania na ekranie). Podawaj tylko zmieniane pola; null usuwa pole. Tekst ramki: formatowanie fragmentów (styles) przesuwa się samo razem ze zmienionym tekstem, a znaki poprawiają się według polskich zasad (cudzysłowy „”, półpauzy, wielokropek, pojedyncze spacje; bez tego – znaki_bez_zmian: true). Styl fragmentu bez liczenia pozycji: style_fragmentow: [{ fragment: "Ewangelia", wystapienie?: 1, styl: { fontWeight: 600 } }]. Zmiana ramki w połączonych ramkach (watek) przelewa cały wątek – odpowiedź ma raport.',
       inputSchema: S('', { gdzie: GDZIE, zmiany: { type: 'array', items: S('', { id: tekst('id elementu'), pola: obiekt('Pola do zmiany') }, ['id', 'pola']) } }, ['gdzie', 'zmiany']),
       dzialaj: ({ gdzie, zmiany }) => zmien((p) => {
         const m = miejsce(p, gdzie);
