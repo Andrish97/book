@@ -1088,6 +1088,26 @@ export class PanelWlasciwosci {
       }
     }
 
+    // Treść z tabeli (#432): wpis-wzór powtórzony dla każdego wiersza tabeli, płynący przez kolumny i strony.
+    const tabeleProjektu = this.opcje.projekt?.()?.tabele || [];
+    if (naStronie && this.opcje.trescZTabeli && tabeleProjektu.length && !obj.group) {
+      const zt = this.sekcja(tt('wlasciwosci.trescZTabeli'), { zwinieta: !(watek ? this.edytor._ramkiWatku(obj) : [obj]).some((x) => x.z_tabeli) });
+      const zrodloZT = (watek ? this.edytor._ramkiWatku(obj) : [obj]).find((x) => x.z_tabeli);
+      const ust = zrodloZT?.z_tabeli;
+      zt.append(this.wybor(tt('wlasciwosci.wpisyZTabeli'), [['', tt('wlasciwosci.bezTabeli')], ...tabeleProjektu.map((t) => [t.id, t.nazwa])], () => ust?.tabela || '', (v) => {
+        this.opcje.trescZTabeli(obj, v ? 'wlacz' : 'wylacz', v || null);
+      }));
+      if (!ust) zt.append(this.wskazowka(tt('wlasciwosci.trescZTabeliOpis')));
+      else if (ust.edycja) {
+        zt.append(this.wskazowka(tt('wlasciwosci.wzorWpisuWRamce'), true));
+        zt.append(this.akcje([['tabela', tt('wlasciwosci.wypelnijZTabeli'), () => this.opcje.trescZTabeli(obj, 'wypelnij')]]));
+      } else {
+        const t = tabeleProjektu.find((x) => x.id === ust.tabela);
+        zt.append(this.wskazowka(tt('wlasciwosci.wpisyZTabeliPlyna', { nazwa: t?.nazwa || '', od: `{pierwszy:${(t?.kolumny[0] || 'haslo')}}`, do: `{ostatni:${(t?.kolumny[0] || 'haslo')}}`, lod: `{pierwsza_litera:${(t?.kolumny[0] || 'haslo')}}`, ldo: `{ostatnia_litera:${(t?.kolumny[0] || 'haslo')}}` })));
+        zt.append(this.akcje([['pioro', tt('wlasciwosci.edytujWzorWpisu'), () => this.opcje.trescZTabeli(obj, 'edytuj')]]));
+      }
+    }
+
     // Ramka: stała wysokość, wyrównanie w pionie, zmniejszanie tekstu, który się nie mieści.
     const r = this.sekcja(tt('wlasciwosci.ramkaTekstu'));
     const przelicz = () => { obj.initDimensions(); obj.setCoords(); };

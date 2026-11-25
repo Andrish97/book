@@ -5,7 +5,8 @@ import {
   stronySekcji, stronyZWzorcem, nowaStrona, uporzadkujStrony, kopiujStrone, wzorceStrony, sekcjaStrony,
 } from '../projekt.js';
 import { renderujCel } from '../zlozenie.js';
-import { zachowajTekstStrony, uporzadkujWatkiPoStronach } from '../watki.js';
+import { zachowajTekstStrony, uporzadkujWatkiPoStronach, watkiProjektu, polaczCzesci } from '../watki.js';
+import { odswiezTekstyZTabel } from '../tekst-z-tabeli.js';
 import { uid } from '../projekt.js';
 import { rozwin, blokiSerii, bokStrony } from '../serie.js';
 import { ikona } from '../ikony.js';
@@ -438,7 +439,7 @@ export async function ramkaNaNastepnejStronie() {
   }
   for (const s of p.strony) for (const o of s.obiekty) if (o.watek === zrodlo.watek && o.watek_nr > zrodlo.watek_nr) o.watek_nr += 1;
   const nowa = { ...JSON.parse(JSON.stringify(zrodlo)), id: uid('o'), text: '', styles: [], watek_nr: zrodlo.watek_nr + 1, lacznik: '\n' };
-  delete nowa.lista_start; delete nowa.z;
+  delete nowa.lista_start; delete nowa.z; delete nowa.z_tabeli;
   nastepna.obiekty.push(nowa);
   stan.miniatury.clear();
   stan.indeks = p.strony.indexOf(nastepna);
@@ -482,7 +483,7 @@ async function dokladajTeraz() {
         if (Array.isArray(strona.wzorce)) nowa.wzorce = [...strona.wzorce];
         nowa.auto_watek = zrodlo.watek;
         const ramka = { ...JSON.parse(JSON.stringify(zrodlo)), id: uid('o'), text: '', styles: [], watek_nr: (zrodlo.watek_nr || 0) + n, lacznik: '\n' };
-        delete ramka.lista_start; delete ramka.z;
+        delete ramka.lista_start; delete ramka.z; delete ramka.z_tabeli;
         nowa.obiekty = [ramka];
         p.strony.splice(i + 1, 0, nowa);
         i += 1;
@@ -519,6 +520,61 @@ async function dokladajTeraz() {
     powiadom(netto >= 0 ? t('listaStron.dodanoCalyTekstSie', { netto, x: netto === 1 ? t('listaStron.strone') : netto < 5 ? t('listaStron.strony') : t('listaStron.stron') }) : t('listaStron.usunietoPustychStronNa', { x: -netto }));
   }
   return dodane - usuniete;
+}
+
+// ---------- Treść z tabeli (#432) ----------
+// Ramka (albo połączone ramki) z wpisem-wzorem powtórzonym dla każdego wiersza tabeli – tekst płynie przez kolumny
+// i strony jak tekst książki, a „Dokładaj strony” dokłada strony, aż wszystkie wpisy się zmieszczą.
+// akcja: 'wlacz' (tabela – id), 'edytuj' (wzór z powrotem w ramce), 'wypelnij' (tekst ramki staje się wzorem), 'wylacz'.
+const czescRamki = (o, i) => ({ text: o.text || '', styles: Array.isArray(o.styles) ? o.styles : [], lacznik: i ? (o.lacznik ?? '\n') : '' });
+export async function trescZTabeli(obj, akcja, tabela = null) {
+  if (stan.tryb !== 'strona' || !obj) return;
+  if (obj.isEditing) obj.exitEditing();
+  zapiszBiezacyCel();
+  const p = stan.projekt;
+  const strona = p.strony.find((s) => s.obiekty.some((o) => o.id === obj.id));
+  const json = strona?.obiekty.find((o) => o.id === obj.id);
+  if (!json) return;
+  const ramki = json.watek ? watkiProjektu(p).get(json.watek).map((x) => x.o) : [json];
+  const zrodlo = ramki.find((o) => o.z_tabeli) || ramki[0];
+  const caly = () => polaczCzesci(ramki.map(czescRamki));
+  if (akcja === 'wylacz') {
+    for (const o of ramki) delete o.z_tabeli;
+  } else if (akcja === 'edytuj') {
+    if (!zrodlo.z_tabeli) return;
+    zrodlo.z_tabeli.edycja = true;
+    delete zrodlo.z_tabeli.odcisk;
+    ramki.forEach((o, i) => { o.text = i ? '' : zrodlo.z_tabeli.wzor.text; o.styles = i ? [] : (zrodlo.z_tabeli.wzor.styles || []); if (i) o.lacznik = '\n'; });
+  } else {
+    const wzor = akcja === 'wlacz' && zrodlo.z_tabeli && !zrodlo.z_tabeli.edycja ? zrodlo.z_tabeli.wzor : caly();
+    const id = tabela || zrodlo.z_tabeli?.tabela;
+    if (!id) return;
+    for (const o of ramki) if (o !== zrodlo) delete o.z_tabeli;
+    zrodlo.z_tabeli = { tabela: id, wzor: { text: wzor.text, styles: wzor.styles } };
+    // Wpisy płyną przez kolejne strony same – jak tekst książki (#212).
+    for (const o of ramki) { o.auto_strony = true; if (!(o.ramka_h > 0)) o.ramka_h = Math.max(o.height || 0, 3); }
+    await odswiezTekstyZTabel(p);
+  }
+  stan.miniatury.clear();
+  await zaladujCel();
+  edytor.zaznacz(obj.id);
+  zaplanujZapis();
+  await dokladajStrony();
+  renderujListe();
+  panel.zbuduj?.();
+}
+
+// Po zmianie danych (okno Dane, otwarcie projektu): treść z tabeli ułożona od nowa, brakujące strony dołożone.
+export async function odswiezTresciZTabel() {
+  if (!stan.projekt || !stan.projekt.strony.some((s) => s.obiekty.some((o) => o?.z_tabeli))) return false;
+  if (stan.tryb === 'strona') zapiszBiezacyCel();
+  const zmienione = await odswiezTekstyZTabel(stan.projekt);
+  if (!zmienione.length) return false;
+  for (const id of zmienione) stan.miniatury.delete(id);
+  if (stan.tryb === 'strona') { await zaladujCel(); await dokladajStrony(); }
+  renderujListe();
+  zaplanujZapis();
+  return true;
 }
 
 // Przechodzi do ramki tego samego wątku na innej stronie i ją zaznacza.

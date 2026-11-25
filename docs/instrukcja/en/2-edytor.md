@@ -492,6 +492,15 @@ you finish typing (Esc or a click outside), after pasting and after changing the
 and everything after it moves to the next frame. You choose this for each paragraph separately: a chapter can start
 on a new page or keep flowing. With page adding on, the next frame is created automatically.
 
+**Content from a table (glossary, index, list).** Write one sample entry in the frame with column fields in braces —
+e.g. a bold `{haslo}` with a reference `{odnosnik}`, and `{opis}` below — and choose a table in **Content from a table**.
+The entry repeats for every row (except “[pomiń]” rows) as one continuous text: it flows through linked frames (columns)
+and following pages like book text, and pages are added automatically. After you change the data in the **Data** window
+the entries are laid out again. [Edit entry template] puts the template back in the frame (entries wait), [Fill from
+table] uses the corrected template. In the page header (running head) the fields `{pierwszy:haslo}` and `{ostatni:haslo}`
+show the first and last entry on that page, and `{pierwsza_litera:haslo}`–`{ostatnia_litera:haslo}` their first letters
+(e.g. “A–D”).
+
 ![Columns, lists and a table](uklad.png)
 
 ## 5.8 Fonts

@@ -33,6 +33,7 @@
 import { sekcjaStrony } from './projekt.js';
 import { zapiszLiczbe, polePodstawowe } from './pola.js';
 import { poleKsiazki } from './ksiazka.js';
+import { poleWpisow } from './wpisy-strony.js';
 import { pozaNumeracja as bezNumerow } from './typ-sekcji.js';
 import { t as tt, wybranyJezyk } from './jezyk.js';
 
@@ -401,6 +402,8 @@ export function wartosciPol(projekt, egz, ciag) {
         const cel = projekt.strony.find((s) => s.nazwa.trim().toLowerCase() === String(zapis || '').trim().toLowerCase());
         return cel ? liczba(ciag.pierwszy.get(cel.id)?.nr ?? null) : undefined;
       }
+      // Treść z tabeli (#432): pierwszy i ostatni wpis na stronie – {pierwszy:haslo}, {ostatnia_litera:haslo}.
+      case 'pierwszy': case 'ostatni': case 'pierwsza_litera': case 'ostatnia_litera': return poleWpisow(projekt, egz.strona, nazwa, zapis);
       // Pola książki (#131B): {rozdzial}, {s:id}, {przypis:id} (js/ksiazka.js).
       default: return poleKsiazki(projekt, egz, ciag, nazwa, zapis);
     }

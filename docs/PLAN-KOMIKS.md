@@ -286,3 +286,4 @@ I asystent jest w 3 miejscach, podejrzewam że niektóre rzeczy też. Trzeba to 
 - „To się łączyło, a potem przestało” (czat AI) – ✅ nieudane pytanie cofane z rozmowy, przycinanie długiej historii, ponowienie przy przerwie sieci, bez pustych odpowiedzi w historii (#429).
 - „Chcę, żeby to było automatem” (krótki ostatni wyraz akapitu, „Krl 2:9”) – ✅ krótki ostatni wyraz łączony z poprzednim, skrót księgi z rozdziałem, z polskimi zasadami samo (#430).
 - „Dlaczego sprawdzanie przed drukiem tego nie pokazało?” (tekst urósł pod margines) – ✅ ramka rosnąca z tekstem sprawdzana po złożeniu tekstu (#431).
+- „Kolumny jako kontynuacja tekstu litego… jako opcję” (słowniczek z tabeli) – ✅ Treść z tabeli: wzór wpisu dla każdego wiersza płynie przez ramki i strony, nagłówek {pierwszy:haslo}–{ostatni:haslo} (#432).

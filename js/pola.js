@@ -60,6 +60,11 @@ export const POLA_DOKUMENTU = [
   ['rozdzial', 'Żywa pagina: tytuł bieżącego rozdziału – ostatni nagłówek poziomu 1 do tej strony; {rozdzial:2} – poziomu 2'],
   ['s', 'Odsyłacz: numer strony, na której stoi wskazany nagłówek albo element – wstawia „Wstaw odsyłacz”'],
   ['przypis', 'Numer przypisu dolnego – wstawia „Wstaw przypis”'],
+  // Treść z tabeli (#432): wpisy, które stoją na tej stronie (żywa pagina słowniczka, indeksu).
+  ['pierwszy', 'Pierwszy wpis z tabeli na tej stronie (ramka z „Treść z tabeli”), np. {pierwszy:haslo}'],
+  ['ostatni', 'Ostatni wpis z tabeli na tej stronie, np. {ostatni:haslo}'],
+  ['pierwsza_litera', 'Pierwsza litera pierwszego wpisu na stronie, np. {pierwsza_litera:haslo}'],
+  ['ostatnia_litera', 'Pierwsza litera ostatniego wpisu na stronie, np. {ostatnia_litera:haslo}'],
 ];
 
 // Nazwy pól dokumentu w innych językach (#365): {page} i {номер} działają jak {nr}. W tekście zostaje to, co wpisano
@@ -71,7 +76,7 @@ export const NAZWY_POL = {
     projekt: 'project', oprawa: 'binding', grzbiet: 'spine', stron_bloku: 'block_pages', papier: 'paper',
     rok_kalendarza: 'calendar_year', seria: 'series', egzemplarz: 'copy', liczba_egzemplarzy: 'copy_count',
     data: 'date', rok: 'year', poczatek: 'start', koniec: 'end', nr_strony: 'page_of', rozdzial: 'chapter',
-    przypis: 'footnote',
+    przypis: 'footnote', pierwszy: 'first', ostatni: 'last', pierwsza_litera: 'first_letter', ostatnia_litera: 'last_letter',
   },
   uk: {
     nr: 'номер', nr_ogolny: 'номер_загальний', nr_w_sekcji: 'номер_у_розділі', liczba_stron: 'кількість_сторінок',
@@ -79,7 +84,8 @@ export const NAZWY_POL = {
     projekt: 'проєкт', format: 'формат', oprawa: 'палітурка', grzbiet: 'корінець', stron_bloku: 'сторінок_блоку',
     papier: 'папір', rok_kalendarza: 'рік_календаря', seria: 'серія', egzemplarz: 'примірник',
     liczba_egzemplarzy: 'кількість_примірників', data: 'дата', rok: 'рік', poczatek: 'початок', koniec: 'кінець',
-    nr_strony: 'номер_сторінки', rozdzial: 'глава', przypis: 'виноска',
+    nr_strony: 'номер_сторінки', rozdzial: 'глава', przypis: 'виноска', pierwszy: 'перший', ostatni: 'останній',
+    pierwsza_litera: 'перша_літера', ostatnia_litera: 'остання_літера',
   },
 };
 const PODSTAWOWE = new Map(Object.values(NAZWY_POL).flatMap((m) => Object.entries(m).map(([pl, obca]) => [obca, pl])));

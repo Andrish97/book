@@ -95,6 +95,7 @@ export const MODULY_EDYTORA = [
   'js/tabela-obiekt.js',
   'js/tekst-ksztalt.js',
   'js/tekst-ramka.js',
+  'js/tekst-z-tabeli.js',
   'js/warstwy-plotna.js',
   'js/warstwy.js',
   'js/widok.js',

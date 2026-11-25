@@ -492,6 +492,14 @@ zakończeniu pisania (Esc albo kliknięcie obok), po wklejeniu i po zmianie wygl
 i wszystko po nim przechodzi do następnej ramki. Wybór jest przy każdym akapicie osobno: rozdział może zaczynać się
 od nowej strony albo płynąć dalej. Z włączonym dokładaniem stron następna ramka powstaje sama.
 
+**Treść z tabeli (słowniczek, indeks, spis).** Napisz w ramce jeden wpis-wzór z polami kolumn w klamrach — np.
+pogrubione `{haslo}` z odnośnikiem `{odnosnik}`, a pod spodem `{opis}` — i w części **Treść z tabeli** wybierz tabelę.
+Wpis powtórzy się dla każdego wiersza (bez wierszy „[pomiń]”) jednym ciągiem: płynie przez połączone ramki (kolumny)
+i kolejne strony jak tekst książki, a strony dochodzą same. Po zmianie danych w oknie **Dane** wpisy układają się od
+nowa. [Edytuj wzór wpisu] wkłada wzór z powrotem do ramki (wpisy czekają), [Wypełnij z tabeli] bierze poprawiony wzór.
+W nagłówku strony (żywa pagina) pola `{pierwszy:haslo}` i `{ostatni:haslo}` pokazują pierwszy i ostatni wpis na tej
+stronie, a `{pierwsza_litera:haslo}`–`{ostatnia_litera:haslo}` — ich pierwsze litery (np. „A–D”).
+
 ![Kolumny, listy i tabela](uklad.png)
 
 ## 5.8 Czcionki

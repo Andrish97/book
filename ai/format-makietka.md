@@ -210,6 +210,7 @@ Wszystkie mają polskie znaki. Przy czcionce bez pogrubienia albo kursywy nie us
 | `wielkosc_liter` | `wielkie`, `male`, `kapitaliki` – tylko wygląd, treść zostaje |
 | `watek`, `watek_nr`, `lacznik` | tekst płynący przez kilka ramek – lepiej połączyć ramki w edytorze („Dodaj ramkę z ciągiem dalszym”); tego opis nie sprawdza |
 | `auto_strony` | `true` – wątek dokłada strony (z kopią ramki w tym samym miejscu), aż cały tekst się zmieści; ustawia się w edytorze. Akapit od nowej strony: w stylu znaku pierwszego znaku akapitu `nowa_strona: true` (z `deltaY: 0`) |
+| `z_tabeli` | Treść z tabeli (słowniczek, indeks): `{ tabela: id, wzor: { text, styles }, poczatki, odcisk, edycja? }` w pierwszej ramce wątku – wzór wpisu z polami kolumn w klamrach powtórzony dla każdego wiersza tabeli; tekst ramek układa aplikacja (po zmianie danych sama), z `auto_strony`. Zmieniaj dane tabeli albo `wzor`, nie tekst ramek. Na stronie pola `{pierwszy:kolumna}`, `{ostatni:kolumna}`, `{pierwsza_litera:kolumna}`, `{ostatnia_litera:kolumna}` – wpisy, które na niej stoją |
 | `pole` | obraz z danych (rozdział 8) |
 | `z_danych` | kolor, położenie, obrót, rozmiar i widoczność z danych (rozdział 8) |
 | `tabela` | tabela jako jeden element (rozdział 9) |

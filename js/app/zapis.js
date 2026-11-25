@@ -24,7 +24,7 @@ import { przeliczKsiazke, uzywaKsiazki, przypisyStrony, poleKsiazki } from '../k
 import { stan, historia, edytor, wydrukCelu, biezacyCel, jednaStrona, trasa, pokazEkran, kolor, wlasciciel } from './kontekst.js';
 import { odswiezPasekEdytora } from './panel-strony.js';
 import { panel, linijki, panelWarstw, odswiezMojeCzcionki } from './skladniki.js';
-import { ustawZakladke, generujMiniatury, renderujListe, oznaczBiezacaWLiscie, odswiezMiniature, odrysujMiniaturyWTle } from './lista-stron.js';
+import { ustawZakladke, generujMiniatury, renderujListe, oznaczBiezacaWLiscie, odswiezMiniature, odrysujMiniaturyWTle, odswiezTresciZTabel } from './lista-stron.js';
 import { wpiszNazwe, t } from '../jezyk.js';
 
 // Nazwa projektu w górnym pasku; pełna także w dymku – na wąskim ekranie pole bywa ucięte.
@@ -375,6 +375,7 @@ export async function otworzProjekt(p, cel = {}) {
   stanZapisu('ok', stan.uzytkownik ? 'Zapisano' : 'Zapisano w przeglądarce');
   generujMiniatury();
   zaplanujKsiazke(); // spis treści i skorowidz mogły się zmienić poza edytorem (np. przez AI) – #131B
+  if (!plotnoOdlozone) odswiezTresciZTabel().catch((e) => console.error(e)); // dane tabel mogły się zmienić (np. przez AI) – #432
   // Czcionki tego projektu trafiają do „Moich czcionek”; lista w panelu dostaje czcionki z innych projektów.
   stan.mojeRodziny = [];
   odswiezMojeCzcionki({ projekt: stan.projekt, zKontem: true });

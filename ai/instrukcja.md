@@ -587,6 +587,8 @@ Piszesz w dowolnej ramce, a tekst przelewa się na bieżąco. Wygląd tekstu (cz
 
 **Akapit od nowej strony** (np. rozdział): ustaw kursor w akapicie i włącz **Ten akapit od nowej strony** — akapit i wszystko po nim przechodzi do następnej ramki. Wybór jest przy każdym akapicie osobno: rozdział może zaczynać się od nowej strony albo płynąć dalej. Z włączonym dokładaniem stron następna ramka powstaje sama.
 
+**Treść z tabeli (słowniczek, indeks, spis).** Napisz w ramce jeden wpis-wzór z polami kolumn w klamrach — np. pogrubione `{haslo}` z odnośnikiem `{odnosnik}`, a pod spodem `{opis}` — i w części **Treść z tabeli** wybierz tabelę. Wpis powtórzy się dla każdego wiersza (bez wierszy „**pomiń**”) jednym ciągiem: płynie przez połączone ramki (kolumny) i kolejne strony jak tekst książki, a strony dochodzą same. Po zmianie danych w oknie **Dane** wpisy układają się od nowa. **Edytuj wzór wpisu** wkłada wzór z powrotem do ramki (wpisy czekają), **Wypełnij z tabeli** bierze poprawiony wzór. W nagłówku strony (żywa pagina) pola `{pierwszy:haslo}` i `{ostatni:haslo}` pokazują pierwszy i ostatni wpis na tej stronie, a `{pierwsza_litera:haslo}`–`{ostatnia_litera:haslo}` — ich pierwsze litery (np. „A–D”).
+
 ![Kolumny, listy i tabela](https://makietka.app/img/instrukcja/uklad.png)
 
 ### 5.8 Czcionki
@@ -1777,6 +1779,10 @@ Pola dokumentu wynikają z samego projektu i działają na każdej stronie, tak�
 | `{rozdzial}` | Żywa pagina: tytuł bieżącego rozdziału – ostatni nagłówek poziomu 1 do tej strony; {rozdzial:2} – poziomu 2 |
 | `{s}` | Odsyłacz: numer strony, na której stoi wskazany nagłówek albo element – wstawia „Wstaw odsyłacz” |
 | `{przypis}` | Numer przypisu dolnego – wstawia „Wstaw przypis” |
+| `{pierwszy}` | Pierwszy wpis z tabeli na tej stronie (ramka z „Treść z tabeli”), np. {pierwszy:haslo} |
+| `{ostatni}` | Ostatni wpis z tabeli na tej stronie, np. {ostatni:haslo} |
+| `{pierwsza_litera}` | Pierwsza litera pierwszego wpisu na stronie, np. {pierwsza_litera:haslo} |
+| `{ostatnia_litera}` | Pierwsza litera ostatniego wpisu na stronie, np. {ostatnia_litera:haslo} |
 
 | Zapis liczby | Znaczenie |
 |---|---|
