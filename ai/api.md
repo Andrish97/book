@@ -152,7 +152,10 @@ Każde narzędzie projektu ma parametr `projekt` (id albo nazwa z listy `projekt
 | `eksport_pdf` | plik PDF: `zakres` (wszystko / sekcja / strony `od`–`do`), `przeznaczenie` (drukarnia – spad i znaki cięcia; ekran – zakładki i linki), `rodzaj` (wektor / obraz), `dpi`, `cmyk`, `pdfx` (fogra39 / fogra47), `uklad` (zwykly, broszura, skladki, dwie, cztery), `format_arkusza`, `skladka`. Plik rysuje aplikacja w przeglądarce użytkownika: narzędzie składa zlecenie, otwarta aplikacja konta klucza robi plik, a narzędzie czeka do ok. 45 s i zwraca link do pobrania (bez logowania, 7 dni) z uwagami z kontroli. Bez otwartej aplikacji – link do aplikacji (`…/#/p/<projekt>/eksport/<zlecenie>`), po którego otwarciu plik robi się sam. Także z kluczem tylko do czytania |
 | `eksport_png` | obraz PNG jednej strony (`strona`, `egzemplarz` z serii, `dpi` 72–600) – tak samo jak `eksport_pdf` |
 | `stan_eksportu` | stan zlecenia (`zlecenie`): czeka, w toku, gotowe z linkiem do pobrania albo błąd |
-| `kontrola` | szybka kontrola: nieznane pola `{…}`, brakujące albo niejednoznaczne pliki obrazów z danych (rozszerzenie się liczy: `a.jpg` ≠ `a.png`; nazwa bez rozszerzenia działa tylko przy jednym pasującym pliku), elementy poza stroną |
+| `kontrola` | szybka kontrola: nieznane pola `{…}`, brakujące albo niejednoznaczne pliki obrazów z danych (rozszerzenie się liczy: `a.jpg` ≠ `a.png`; nazwa bez rozszerzenia działa tylko przy jednym pasującym pliku), elementy poza stroną – i pełne „Sprawdź przed drukiem” tym samym kodem co aplikacja (przeglądarka serwera): teksty po podstawieniu danych na każdej stronie serii, marginesy, spad, dpi, polskie zasady, wątki tekstu (przepełnienie, podzielone akapity). `szybka: true` – tylko szybkie uwagi |
+| `przelej_watek` | przelewa tekst połączonych ramek (`watek`, bez – wszystkie) jak edytor i zapisuje podział; raport: pierwsze i ostatnie słowa ramek, czy tekst się mieści, podzielone akapity. `sucho: true` – tylko raport. Zmiany tekstu, stylów i wymiarów ramek wątku przelewają się same przy każdym narzędziu zmiany (raport w odpowiedzi) |
+| `podglad_strony` | obraz PNG strony wprost w odpowiedzi (`strona`, `egzemplarz` z serii, `szerokosc` 200–1600 px) – bez otwartej aplikacji |
+| `teksty_strony` | lekki odczyt ramek tekstu strony (albo `element`) po złożeniu: tekst, liczba wierszy, czy się mieści, wysokość treści, wątek |
 | `opis_formatu` | ten sam opis modelu co [format-makietka.md](https://makietka.app/ai/format-makietka.md) |
 
 Każda zmiana działa tak: pobierz projekt → zmień → zapisz z numerem wersji. Jeśli w międzyczasie zmieniłeś coś w edytorze, baza odmawia, a łącznik pobiera projekt na nowo i nanosi zmianę jeszcze raz.
@@ -314,6 +317,9 @@ Treść: `{"p_klucz": "sdk_…", "p_kopie": {"z_nowe": {"z": "z_ab12", "nazwa": 
 | `zmien_projekt` | `update_project` |
 | `nazwa_projektu` | `rename_project` |
 | `kontrola` | `check_project` |
+| `przelej_watek` | `reflow_thread` |
+| `podglad_strony` | `preview_page` |
+| `teksty_strony` | `page_texts` |
 | `komentarze` | `list_comments` |
 | `skomentuj` | `add_comment` |
 | `odpowiedz` | `reply_to_comment` |

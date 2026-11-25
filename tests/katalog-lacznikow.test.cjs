@@ -36,14 +36,14 @@ test('łącznik z katalogu: bez rysowania obrazów, /mcp/full – pełny; opisy 
   }), env)).json();
   const nazwy = async (url) => (await wolaj(url, 'tools/list')).result.tools.map((t) => t.name);
   const katalog = await nazwy('https://api.makietka.app/mcp');
-  assert.equal(katalog.length, 48);
+  assert.equal(katalog.length, 51); // #436: reflow_thread, preview_page, page_texts
   assert.ok(!katalog.includes('generate_image') && !katalog.includes('draw_comic_panels') && katalog.includes('place_speech_bubbles'));
   assert.equal((await wolaj('https://api.makietka.app/mcp', 'tools/call', { name: 'generate_image', arguments: {} })).error?.code !== undefined, true);
   assert.doesNotMatch((await wolaj('https://api.makietka.app/mcp', 'initialize', { protocolVersion: '2025-06-18' })).result.instructions, /generate_image|draw_comic_panels|generuj_obraz|rysuj_kadry/);
   const pelny = await nazwy('https://api.makietka.app/mcp/full');
-  assert.equal(pelny.length, 50);
+  assert.equal(pelny.length, 53);
   assert.ok(pelny.includes('generate_image') && pelny.includes('draw_comic_panels'));
-  assert.equal((await nazwy(`https://api.makietka.app/mcp/${KLUCZ}`)).length, 50);
+  assert.equal((await nazwy(`https://api.makietka.app/mcp/${KLUCZ}`)).length, 53);
   // Logowanie OAuth pod pełnym adresem: zasób /mcp/full.
   const bez = await obsluzHttp(new Request('https://api.makietka.app/mcp/full', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' }), env);
   assert.equal(bez.status, 401);

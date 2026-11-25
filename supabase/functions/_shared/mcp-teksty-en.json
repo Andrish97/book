@@ -119,7 +119,6 @@
  "Zmienia nazwę projektu.": "Changes the project name (as shown in the project list).",
  "Nowa nazwa": "New name",
  "Kontrola projektu": "Check project",
- "Szybka kontrola bez rysowania: nieznane pola {…} w tekstach, brakujące pliki obrazów z danych, elementy poza stroną. Pełne „Sprawdź przed drukiem” jest w aplikacji.": "Quick check without rendering: unknown {…} fields in texts, missing image files from data, elements outside the page. The full “Check before printing” is in the app.",
  "Komentarze projektu": "Project comments",
  "Komentarze na stronach (osobno od projektu, nie zmieniają jego wersji): wątki z numerem pinezki, stroną, elementem albo miejscem (mm od lewego górnego rogu strony), autorem, treścią, stanem (otwarty/rozwiązany) i odpowiedziami. Domyślnie tylko nierozwiązane.": "Comments on pages (separate from the project, they don’t change its version): threads with a pin number, page, element or position (mm from the top-left corner of the page), author, text, state (open/resolved) and replies. By default only unresolved ones.",
  "true – także rozwiązane wątki": "true – also resolved threads",
@@ -200,5 +199,18 @@
  "Czcionki": "Fonts",
  "Lista czcionek, których można użyć w projekcie (pole fontFamily): wbudowane w Makietkę, pogrupowane według rodzaju, z informacją o pogrubieniu i kursywie, oraz czcionki wgrane do tego projektu. Używaj tylko tych nazw – inna czcionka nie wyświetli się i nie trafi do PDF. Własną czcionkę (plik TTF/OTF) użytkownik wgrywa sam w aplikacji: Czcionki projektu → Wgraj.": "Lists fonts that can be used in the project (the fontFamily field): built into Makietka, grouped by kind, with information on bold and italic, plus fonts uploaded to this project. Only these names work – another font won’t display or get into the PDF. The user uploads their own font (TTF/OTF file) in the app: Project fonts → Upload.",
  "Opis formatu projektu": "Project format description",
- "Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm).": "Full description of the Makietka project model: sections, pages, elements and their fields, tables, series, fields in text, units (mm)."
+ "Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm).": "Full description of the Makietka project model: sections, pages, elements and their fields, tables, series, fields in text, units (mm).",
+ "Kontrola projektu: szybkie uwagi (nieznane pola {…}, brakujące pliki obrazów z danych, elementy poza stroną) i pełne „Sprawdź przed drukiem” tym samym kodem co aplikacja – teksty po podstawieniu danych na każdej stronie serii, marginesy, spad, rozdzielczość, polskie zasady, wątki tekstu (przepełnienie, podzielone akapity). szybka=true – tylko szybkie uwagi.": "Project check: quick notes (unknown {…} fields, missing image files from data, elements outside the page) and the full “Check before printing” with the same code as the app – texts after data substitution on every series page, margins, bleed, resolution, Polish typesetting rules, text threads (overflow, split paragraphs). quick_only=true – quick notes only.",
+ "true – tylko szybkie uwagi, bez pełnego sprawdzenia": "true – quick notes only, without the full check",
+ "Przelej wątek tekstu": "Reflow text thread",
+ "Przelewa tekst przez połączone ramki (wątek, pole „watek”) tak jak edytor i zapisuje podział; raport: pierwsze i ostatnie słowa każdej ramki, czy tekst się mieści, akapity podzielone między ramki. Zmiany tekstu w ramkach wątku przelewają się same – to narzędzie służy do sprawdzenia albo poprawienia starego podziału. sucho=true – tylko raport, bez zapisu.": "Flows text through linked frames (a thread, field “watek”) exactly like the editor and saves the split; report: first and last words of each frame, whether the text fits, paragraphs split between frames. Text changes in thread frames reflow automatically – this tool is for checking or fixing an old split. dry_run=true – report only, nothing saved.",
+ "id wątku (pole „watek” ramek); bez – wszystkie wątki projektu": "thread id (the frames’ “watek” field); none – all threads of the project",
+ "true – tylko policz i zwróć raport, bez zapisu": "true – only compute and return the report, nothing saved",
+ "Podgląd strony": "Page preview",
+ "Obraz PNG strony (po podstawieniu danych, z wzorcami) wprost w odpowiedzi – do sprawdzenia wyniku zmian bez otwartej aplikacji. Strona serii: egzemplarz (1, 2…) wybiera powielenie.": "A PNG image of the page (with data substituted and masters) right in the response – to check the result of changes without the app open. Series page: copy (1, 2…) picks the repetition.",
+ "Które powielenie strony serii (od 1)": "Which repetition of a series page (from 1)",
+ "Szerokość obrazu w pikselach (200–1600, domyślnie 700)": "Image width in pixels (200–1600, default 700)",
+ "Teksty strony po złożeniu": "Page texts after layout",
+ "Lekki odczyt: ramki tekstu strony (albo jedna) po złożeniu z danymi – tekst, liczba wierszy, czy się mieści w ramce, wysokość treści, wątek. Bez obrazu i bez pełnego projektu.": "Light read: the page’s text frames (or one) after layout with data – text, number of lines, whether it fits the frame, content height, thread. No image and no full project.",
+ "id ramki tekstu (bez – wszystkie na stronie)": "text frame id (none – all on the page)"
 }

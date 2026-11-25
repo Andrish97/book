@@ -123,6 +123,7 @@ który dodajesz w aplikacji AI.
 | czytać komentarze, odpowiadać na nie i dodawać własne (→ 24.7) | |
 | cofnąć swoją ostatnią serię zmian – najpierw mówi, co cofnie, i pyta (→ 25.9) | |
 | zlecić plik PDF albo PNG strony i podać Ci link do pobrania (→ 25.5) | zapraszać osób do projektu (→ 24) |
+| zobaczyć podgląd strony, sprawdzić projekt jak „Sprawdź przed drukiem” i przelać tekst w połączonych ramkach – bez otwartej Makietki; zmieniony tekst w połączonych ramkach przelewa się od razu, a AI dostaje raport, czy wszystko się mieści | |
 | rysować obrazy Twoim kluczem Gemini, rysować kadry komiksu i stawiać dymki – w otwartej Makietce (→ 25.10) | |
 | wstawiać gotowe elementy z Biblioteki: ramki, ikony, kalendarze, wykresy, ozdobniki i inne (→ 25.10) | |
 | utworzyć link do podglądu – tylko po Twojej zgodzie, także z hasłem albo datą ważności (→ 25.10) | |

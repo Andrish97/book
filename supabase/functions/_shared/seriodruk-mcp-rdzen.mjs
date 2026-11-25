@@ -1815,6 +1815,7 @@ export const NAZWY_EN = {
   stan_eksportu: 'get_job_status', udostepnij_link: 'share_preview_link', generuj_obraz: 'generate_image', rysuj_kadry: 'draw_comic_panels',
   ustaw_dymki: 'place_speech_bubbles', biblioteka: 'search_library', wstaw_z_biblioteki: 'insert_library_element',
   cofnij_zmiany_ai: 'undo_ai_changes', czcionki: 'list_fonts', opis_formatu: 'get_format_spec',
+  przelej_watek: 'reflow_thread', podglad_strony: 'preview_page', teksty_strony: 'page_texts',
 };
 const PARAMETRY_EN = {
   nazwa: 'name', szerokosc: 'width', wysokosc: 'height', orientacja: 'orientation', uklad: 'layout', spad: 'bleed', marginesy: 'margins',
@@ -1829,6 +1830,7 @@ const PARAMETRY_EN = {
   format_arkusza: 'sheet_format', skladka: 'signature_pages', czekaj: 'wait', egzemplarz: 'copy', zlecenie: 'job',
   zgoda_uzytkownika: 'user_consent', haslo: 'password', wazny_do: 'expires_on', opis: 'prompt', jakosc: 'quality',
   proporcja: 'aspect_ratio', popraw: 'edit', kadry: 'panels', szukaj: 'search', kategoria: 'category', sprawdz: 'check_only',
+  watek: 'thread', sucho: 'dry_run', szybka: 'quick_only', element: 'element',
 };
 const PARAMETRY_NARZEDZI_EN = { 'eksport_pdf.do': 'to' };
 const WARTOSCI_EN = {
@@ -1962,7 +1964,6 @@ const TEKSTY_EN = {
  "Zmienia nazwę projektu.": "Changes the project name (as shown in the project list).",
  "Nowa nazwa": "New name",
  "Kontrola projektu": "Check project",
- "Szybka kontrola bez rysowania: nieznane pola {…} w tekstach, brakujące pliki obrazów z danych, elementy poza stroną. Pełne „Sprawdź przed drukiem” jest w aplikacji.": "Quick check without rendering: unknown {…} fields in texts, missing image files from data, elements outside the page. The full “Check before printing” is in the app.",
  "Komentarze projektu": "Project comments",
  "Komentarze na stronach (osobno od projektu, nie zmieniają jego wersji): wątki z numerem pinezki, stroną, elementem albo miejscem (mm od lewego górnego rogu strony), autorem, treścią, stanem (otwarty/rozwiązany) i odpowiedziami. Domyślnie tylko nierozwiązane.": "Comments on pages (separate from the project, they don’t change its version): threads with a pin number, page, element or position (mm from the top-left corner of the page), author, text, state (open/resolved) and replies. By default only unresolved ones.",
  "true – także rozwiązane wątki": "true – also resolved threads",
@@ -2043,7 +2044,20 @@ const TEKSTY_EN = {
  "Czcionki": "Fonts",
  "Lista czcionek, których można użyć w projekcie (pole fontFamily): wbudowane w Makietkę, pogrupowane według rodzaju, z informacją o pogrubieniu i kursywie, oraz czcionki wgrane do tego projektu. Używaj tylko tych nazw – inna czcionka nie wyświetli się i nie trafi do PDF. Własną czcionkę (plik TTF/OTF) użytkownik wgrywa sam w aplikacji: Czcionki projektu → Wgraj.": "Lists fonts that can be used in the project (the fontFamily field): built into Makietka, grouped by kind, with information on bold and italic, plus fonts uploaded to this project. Only these names work – another font won’t display or get into the PDF. The user uploads their own font (TTF/OTF file) in the app: Project fonts → Upload.",
  "Opis formatu projektu": "Project format description",
- "Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm).": "Full description of the Makietka project model: sections, pages, elements and their fields, tables, series, fields in text, units (mm)."
+ "Pełny opis modelu projektu Makietki: sekcje, strony, elementy i ich pola, tabele, serie, pola w tekście, jednostki (mm).": "Full description of the Makietka project model: sections, pages, elements and their fields, tables, series, fields in text, units (mm).",
+ "Kontrola projektu: szybkie uwagi (nieznane pola {…}, brakujące pliki obrazów z danych, elementy poza stroną) i pełne „Sprawdź przed drukiem” tym samym kodem co aplikacja – teksty po podstawieniu danych na każdej stronie serii, marginesy, spad, rozdzielczość, polskie zasady, wątki tekstu (przepełnienie, podzielone akapity). szybka=true – tylko szybkie uwagi.": "Project check: quick notes (unknown {…} fields, missing image files from data, elements outside the page) and the full “Check before printing” with the same code as the app – texts after data substitution on every series page, margins, bleed, resolution, Polish typesetting rules, text threads (overflow, split paragraphs). quick_only=true – quick notes only.",
+ "true – tylko szybkie uwagi, bez pełnego sprawdzenia": "true – quick notes only, without the full check",
+ "Przelej wątek tekstu": "Reflow text thread",
+ "Przelewa tekst przez połączone ramki (wątek, pole „watek”) tak jak edytor i zapisuje podział; raport: pierwsze i ostatnie słowa każdej ramki, czy tekst się mieści, akapity podzielone między ramki. Zmiany tekstu w ramkach wątku przelewają się same – to narzędzie służy do sprawdzenia albo poprawienia starego podziału. sucho=true – tylko raport, bez zapisu.": "Flows text through linked frames (a thread, field “watek”) exactly like the editor and saves the split; report: first and last words of each frame, whether the text fits, paragraphs split between frames. Text changes in thread frames reflow automatically – this tool is for checking or fixing an old split. dry_run=true – report only, nothing saved.",
+ "id wątku (pole „watek” ramek); bez – wszystkie wątki projektu": "thread id (the frames’ “watek” field); none – all threads of the project",
+ "true – tylko policz i zwróć raport, bez zapisu": "true – only compute and return the report, nothing saved",
+ "Podgląd strony": "Page preview",
+ "Obraz PNG strony (po podstawieniu danych, z wzorcami) wprost w odpowiedzi – do sprawdzenia wyniku zmian bez otwartej aplikacji. Strona serii: egzemplarz (1, 2…) wybiera powielenie.": "A PNG image of the page (with data substituted and masters) right in the response – to check the result of changes without the app open. Series page: copy (1, 2…) picks the repetition.",
+ "Które powielenie strony serii (od 1)": "Which repetition of a series page (from 1)",
+ "Szerokość obrazu w pikselach (200–1600, domyślnie 700)": "Image width in pixels (200–1600, default 700)",
+ "Teksty strony po złożeniu": "Page texts after layout",
+ "Lekki odczyt: ramki tekstu strony (albo jedna) po złożeniu z danymi – tekst, liczba wierszy, czy się mieści w ramce, wysokość treści, wątek. Bez obrazu i bez pełnego projektu.": "Light read: the page’s text frames (or one) after layout with data – text, number of lines, whether it fits the frame, content height, thread. No image and no full project.",
+ "id ramki tekstu (bez – wszystkie na stronie)": "text frame id (none – all on the page)"
 };
 // </TEKSTY_EN>
 const INSTRUKCJE_EN_PELNE = 'The tools read and change Makietka projects (an editor for calendars and data-driven print publications) in the key owner’s account – alongside them when they have the project open in the editor. Start with list_projects: the projects the key gives access to (and whether you can create and delete projects). Pass the project (id or name from the list) to every project tool; it can be omitted when the key covers one project. Then get_project_overview. Sizes are in millimetres (font size too: pt × 25.4 / 72). Project data (element fields, page and table JSON) uses Polish field names – get_format_spec describes them; read it before larger changes. Change things in small steps (update_elements, update_table, update_part; deleting: delete_table_data, delete_part); a Library element is changed afterwards with update_elements; use update_project only for changes the other tools don’t cover. Repeated pages are made as a series from a table, not as page copies. Comments on pages: list_comments; reply with reply_to_comment (resolve=true when the fix is already in the project), add new ones with add_comment. Comic panels are drawn by draw_comic_panels and pictures from a description by generate_image (done by the open app with the user’s Gemini key; it costs money – tell the user what you are drawing); speech bubbles are placed by place_speech_bubbles. Ready-made elements (frames, icons, calendars, charts, ornaments…): search_library and insert_library_element. Preview link: share_preview_link – only with the user’s explicit consent (suggest a password or expiry date). Delete a project (delete_project) only after asking directly. AI changes are undone by undo_ai_changes: first check_only=true, tell the user what will be undone, and undo only at their explicit request. Final file: export_pdf (whole project, a section or pages, for print or screen) and export_png (one page) return a download link – the file is made by the open Makietka app; when it isn’t open, give the user the app link from the result and check get_job_status. Images: upload_image (https url, SVG code, base64) adds a file to the project (an image from the web – give the source and respect copyright); replace_image swaps a used image for a new file (pages show the new one right away), place_image puts it on a page as a single element, list_images lists them. Files in your own environment (workspace, sandbox attachment) you upload yourself with upload_image_chunks – base64 chunks through the connector, no network access needed (unpack a ZIP locally). That’s a good way for graphics up to a few hundred KB; don’t lower file quality without the user’s consent. get_upload_url gives an address with a key – don’t show it. Large photos or files you can’t reach: call get_upload_link and give the user the link – they upload them themselves; then check list_images and carry on. Never answer that it’s impossible or that you have no access to their files. Don’t connect to the database from your own sandbox – use the Makietka connector tools and don’t ask the user to unblock domains or change network settings.';
@@ -2317,8 +2331,8 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
   // Po zmianie z łącznika, przed zapisem (#436): przelanie zmienionych wątków, treść z tabeli po zmianie danych
   // i wysokości ramek rosnących z tekstem na zmienionych stronach – w tym samym zapisie (tej samej wersji).
   // Zmienione strony dochodzą do zmiany (pełne obiekty stron). Zwraca opis do odpowiedzi narzędzia.
-  async function skladPoZmianie(przed, projekt, zmiany) {
-    const watki = zmienioneWatki(przed, projekt);
+  async function skladPoZmianie(przed, projekt, zmiany, { watki: wymuszone = null } = {}) {
+    const watki = [...new Set([...zmienioneWatki(przed, projekt), ...(wymuszone || [])])];
     const trescZTabel = Boolean(zmiany.tabele) && (projekt.strony || []).some((s) => (s.obiekty || []).some((o) => o?.z_tabeli));
     // Wysokości tylko tam, gdzie zmieniła się ramka rosnąca z tekstem (bez wątku) – inaczej usługa nie jest potrzebna.
     const a = ramkiTekstu(przed);
@@ -2359,10 +2373,11 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
       const { projekt, wersja } = await pobierz();
       // Stan sprzed zmiany: narzędzia zmieniają projekt w miejscu, a pola liczone trzeba wziąć sprzed tej zmiany.
       const przed = JSON.parse(JSON.stringify(projekt));
-      const { zmiany, opis } = zmiana(projekt);
-      if (!zmiany || !Object.keys(zmiany).length) return opis || 'Nic do zmiany.';
+      const { zmiany, opis, przelej = null } = zmiana(projekt);
+      if (!przelej && (!zmiany || !Object.keys(zmiany).length)) return opis || 'Nic do zmiany.';
       zachowajWyliczone(zmiany, przed);
-      const sklad = await skladPoZmianie(przed, projekt, zmiany);
+      const sklad = await skladPoZmianie(przed, projekt, zmiany, { watki: przelej });
+      if (przelej && !Object.keys(zmiany).length) return `${opis || ''}${sklad || ' Podział tekstu już był aktualny – nic do zapisania.'}`.trim();
       const w = await rpc('ai_zapisz', { p_klucz: KLUCZ, p_znana_wersja: wersja, p_zmiany: zmiany });
       if (w?.konflikt && proba === 0) continue;
       if (w?.blad) throw new BladBazy(opisBledu(w));
@@ -3196,10 +3211,76 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
     {
       name: 'kontrola',
       title: 'Kontrola projektu',
-      description: 'Szybka kontrola bez rysowania: nieznane pola {…} w tekstach, brakujące pliki obrazów z danych, elementy poza stroną. Pełne „Sprawdź przed drukiem” jest w aplikacji.',
-      inputSchema: S('', {}),
+      description: 'Kontrola projektu: szybkie uwagi (nieznane pola {…}, brakujące pliki obrazów z danych, elementy poza stroną) i pełne „Sprawdź przed drukiem” tym samym kodem co aplikacja – teksty po podstawieniu danych na każdej stronie serii, marginesy, spad, rozdzielczość, polskie zasady, wątki tekstu (przepełnienie, podzielone akapity). szybka=true – tylko szybkie uwagi.',
+      inputSchema: S('', { szybka: { type: 'boolean', description: 'true – tylko szybkie uwagi, bez pełnego sprawdzenia' } }),
       readOnly: true,
-      dzialaj: async () => { const u = kontrola((await pobierz()).projekt); return u.length ? `Uwagi (${u.length}):\n${u.map((x) => `- ${x}`).join('\n')}` : 'Brak uwag.'; },
+      dzialaj: async ({ szybka = false } = {}) => {
+        const { projekt } = await pobierz();
+        const u = kontrola(projekt);
+        const szybkie = u.length ? `Uwagi (${u.length}):\n${u.map((x) => `- ${x}`).join('\n')}` : 'Brak uwag w szybkiej kontroli.';
+        if (szybka) return szybkie;
+        // Pełne „Sprawdź przed drukiem” i wątki tekstu tym samym kodem co aplikacja (#436): przepełnienia, podzielone
+        // akapity, ramki i tabele po podstawieniu danych na każdej stronie serii, marginesy, spad, dpi, polskie zasady.
+        const w = await uslugaSkladu(projekt, [{ rodzaj: 'przelej', suchy: true }, { rodzaj: 'sprawdz' }]);
+        if (w?.blad) return `${szybkie}\n(Pełne sprawdzenie niedostępne: ${w.blad}.)`;
+        const pelne = (w.sprawdz || []).map((x) => `- ${x.opis}`);
+        const watki = (w.przelej || []).filter((x) => x.raport && (x.raport.przepelnienie || x.raport.podzielone.some((p) => p.wbrew.length) || x.raport.tytulNaKoncu.length || x.zmiany.length));
+        return [
+          szybkie,
+          pelne.length ? `Sprawdź przed drukiem (${pelne.length}):\n${pelne.join('\n')}` : 'Sprawdź przed drukiem: bez uwag.',
+          ...watki.map((x) => `${x.opis}${x.zmiany.length ? `\n  (zapisany podział jest nieaktualny w ${x.zmiany.length} ramkach – przelej_watek go poprawi)` : ''}`),
+        ].join('\n');
+      },
+    },
+    {
+      name: 'przelej_watek',
+      title: 'Przelej wątek tekstu',
+      description: 'Przelewa tekst przez połączone ramki (wątek, pole „watek”) tak jak edytor i zapisuje podział; raport: pierwsze i ostatnie słowa każdej ramki, czy tekst się mieści, akapity podzielone między ramki. Zmiany tekstu w ramkach wątku przelewają się same – to narzędzie służy do sprawdzenia albo poprawienia starego podziału. sucho=true – tylko raport, bez zapisu.',
+      inputSchema: S('', { watek: tekst('id wątku (pole „watek” ramek); bez – wszystkie wątki projektu'), sucho: { type: 'boolean', description: 'true – tylko policz i zwróć raport, bez zapisu' } }),
+      dzialaj: async ({ watek = null, sucho = false } = {}) => {
+        const { projekt } = await pobierz();
+        const wszystkie = [...new Set((projekt.strony || []).flatMap((s) => (s.obiekty || []).filter((o) => o?.type === 'textbox' && o.watek).map((o) => o.watek)))];
+        if (watek && !wszystkie.includes(watek)) throw new BladBazy(`W projekcie nie ma wątku „${watek}”. Wątki: ${wszystkie.join(', ') || 'brak'}.`);
+        const watki = watek ? [watek] : wszystkie;
+        if (!watki.length) return 'W projekcie nie ma połączonych ramek tekstu.';
+        if (sucho) {
+          const w = await uslugaSkladu(projekt, [{ rodzaj: 'przelej', watki, suchy: true }]);
+          if (w?.blad) throw new BladBazy(`Usługa składu niedostępna: ${w.blad}.`);
+          return (w.przelej || []).map((x) => `${x.opis}\n  ${x.zmiany.length ? `Po przelaniu zmieniłoby się ${x.zmiany.length} ramek.` : 'Zapisany podział jest aktualny.'}`).join('\n');
+        }
+        return zmien(() => ({ zmiany: {}, przelej: watki, opis: '' }));
+      },
+    },
+    {
+      name: 'podglad_strony',
+      title: 'Podgląd strony',
+      description: 'Obraz PNG strony (po podstawieniu danych, z wzorcami) wprost w odpowiedzi – do sprawdzenia wyniku zmian bez otwartej aplikacji. Strona serii: egzemplarz (1, 2…) wybiera powielenie.',
+      inputSchema: S('', { strona: tekst('id strony'), egzemplarz: { type: 'integer', description: 'Które powielenie strony serii (od 1)' }, szerokosc: { type: 'integer', description: 'Szerokość obrazu w pikselach (200–1600, domyślnie 700)' } }, ['strona']),
+      readOnly: true,
+      dzialaj: async ({ strona, egzemplarz = 1, szerokosc = 700 }) => {
+        const { projekt } = await pobierz();
+        const s = (projekt.strony || []).find((x) => x.id === strona);
+        if (!s) throw new BladBazy(`Nie ma strony ${strona}.`);
+        const w = await uslugaSkladu(projekt, [{ rodzaj: 'podglad', strona, egzemplarz, szerokosc }]);
+        if (w?.blad || !w.podglad) throw new BladBazy(`Podgląd niedostępny: ${w?.blad || 'brak obrazu'}. Plik strony zrobi eksport_png.`);
+        return { tresc: [{ type: 'image', data: w.podglad.b64, mimeType: w.podglad.typ || 'image/png' }, { type: 'text', text: `Strona ${strona} „${s.nazwa || ''}”${egzemplarz > 1 ? `, powielenie ${egzemplarz}` : ''}: ${w.podglad.szerokosc}×${w.podglad.wysokosc} px.` }] };
+      },
+    },
+    {
+      name: 'teksty_strony',
+      title: 'Teksty strony po złożeniu',
+      description: 'Lekki odczyt: ramki tekstu strony (albo jedna) po złożeniu z danymi – tekst, liczba wierszy, czy się mieści w ramce, wysokość treści, wątek. Bez obrazu i bez pełnego projektu.',
+      inputSchema: S('', { strona: tekst('id strony'), element: tekst('id ramki tekstu (bez – wszystkie na stronie)') }, ['strona']),
+      readOnly: true,
+      dzialaj: async ({ strona, element = null }) => {
+        const { projekt } = await pobierz();
+        if (!(projekt.strony || []).some((x) => x.id === strona)) throw new BladBazy(`Nie ma strony ${strona}.`);
+        const w = await uslugaSkladu(projekt, [{ rodzaj: 'opis', strona, element }]);
+        if (w?.blad) throw new BladBazy(`Usługa składu niedostępna: ${w.blad}.`);
+        const lista = w.opis || [];
+        if (!lista.length) return element ? `Na stronie ${strona} nie ma ramki tekstu ${element}.` : `Na stronie ${strona} nie ma ramek tekstu.`;
+        return lista.map((t) => `${t.id}${t.nazwa ? ` „${t.nazwa}”` : ''}${t.zrodlo === 'wzorzec' ? ' (wzorzec)' : ''}: ${t.wierszy} wierszy, ${t.miesciSie ? 'mieści się' : 'NIE MIEŚCI SIĘ'} (treść ${t.wysokosc} mm${t.ramka_h ? ` / ramka ${t.ramka_h} mm` : ''})${t.watek ? `, wątek ${t.watek}` : ''}\n  „${element ? t.tekst : (t.tekst.length > 200 ? `${t.tekst.slice(0, 200)}…` : t.tekst)}”`).join('\n');
+      },
     },
     {
       name: 'komentarze',
@@ -3552,7 +3633,9 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
             if (pod) wykonawca = pod.narzedzia.find((x) => x.name === n.name);
           }
           const tekstWyniku = await wykonawca.dzialaj(argumenty);
-          return wynik(zakonczony({ content: [{ type: 'text', text: tekstWyniku }], isError: false }));
+          // Narzędzie może oddać kilka części odpowiedzi (np. obraz strony i opis – #436): { tresc: [content…] }.
+          const tresc = tekstWyniku && typeof tekstWyniku === 'object' && Array.isArray(tekstWyniku.tresc) ? tekstWyniku.tresc : [{ type: 'text', text: tekstWyniku }];
+          return wynik(zakonczony({ content: tresc, isError: false }));
         } catch (e) {
           // Błędy wykonania wracają do AI jako wynik z isError – może poprawić wywołanie.
           return wynik(zakonczony({ content: [{ type: 'text', text: e instanceof BladBazy ? e.message : `Błąd: ${e.message}` }], isError: true }));

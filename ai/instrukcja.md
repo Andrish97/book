@@ -2505,6 +2505,7 @@ Asystent AI (Claude, ChatGPT i inne) łączy się z Makietką przez **łącznik*
 | czytać komentarze, odpowiadać na nie i dodawać własne (rozdział „24.7 Komentarze”) |  |
 | cofnąć swoją ostatnią serię zmian – najpierw mówi, co cofnie, i pyta (rozdział „25.9 Cofnięcie zmian AI”) |  |
 | zlecić plik PDF albo PNG strony i podać Ci link do pobrania (rozdział „25.5 Plik PDF przez AI”) | zapraszać osób do projektu (rozdział „24 Współpraca”) |
+| zobaczyć podgląd strony, sprawdzić projekt jak „Sprawdź przed drukiem” i przelać tekst w połączonych ramkach – bez otwartej Makietki; zmieniony tekst w połączonych ramkach przelewa się od razu, a AI dostaje raport, czy wszystko się mieści |  |
 | rysować obrazy Twoim kluczem Gemini, rysować kadry komiksu i stawiać dymki – w otwartej Makietce (rozdział „25.10 Zadania dla otwartej Makietki”) |  |
 | wstawiać gotowe elementy z Biblioteki: ramki, ikony, kalendarze, wykresy, ozdobniki i inne (rozdział „25.10 Zadania dla otwartej Makietki”) |  |
 | utworzyć link do podglądu – tylko po Twojej zgodzie, także z hasłem albo datą ważności (rozdział „25.10 Zadania dla otwartej Makietki”) |  |

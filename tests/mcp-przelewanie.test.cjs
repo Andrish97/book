@@ -40,8 +40,9 @@ async function lacznik(t) {
   const rdzen = await import(pathToFileURL(path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'seriodruk-mcp-rdzen.mjs')).href);
   const klucz = baza('utworz_dostep_ai', { p_opis: 'AI', p_rola: 'edycja', p_dni: 7, p_zakres: 'pelny', p_projekty: [] }, JA).klucz;
   const s = rdzen.utworzSerwer({ adres: `http://127.0.0.1:${srv.address().port}`, kluczPubliczny: 'x', klucz, skladanie });
-  const w = async (name, a) => (await s.obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: a } })).result.content[0].text;
-  return { w, stan, zapisy, uzycia };
+  const pelne = async (name, a) => (await s.obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name, arguments: a } })).result;
+  const w = async (name, a) => (await pelne(name, a)).content.find((c) => c.type === 'text')?.text;
+  return { w, pelne, stan, zapisy, uzycia };
 }
 
 const OPIS = 'Dobra nowina o zbawieniu przez Jezusa Chrystusa; także nazwa czterech ksiąg o Jego życiu i nauczaniu.';
@@ -77,4 +78,38 @@ test('łącznik: zmiana tekstu ramki wątku przelewa wątek przed zapisem i zwra
   await w('dodaj_elementy', { projekt: pid, gdzie: `strona:${s1}`, elementy: [{ type: 'rect', id: 'p1', left: 1, top: 1, width: 5, height: 5, fill: '#000000' }] });
   await w('zmien_elementy', { projekt: pid, gdzie: `strona:${s1}`, zmiany: [{ id: 'p1', pola: { left: 3 } }] });
   assert.equal(uzycia.length, ile, 'prostokąt nie uruchamia przeglądarki');
+});
+
+test('łącznik: przelej_watek (próba bez zapisu i zapis starego podziału), podgląd strony, teksty strony, pełna kontrola', async (t) => {
+  const { w, pelne, stan, zapisy } = await lacznik(t);
+  const np = await w('nowy_projekt', { nazwa: 'Narzędzia składu', format: 'A5' });
+  const pid = /id ([0-9a-f-]{36})/.exec(np)[1];
+  const s1 = /strona (s_\w+)/.exec(np)[1];
+  const s2 = /(s_\w+)/.exec(await w('dodaj_strone', { projekt: pid, strona: { nazwa: 'Strona 2' } }))[1];
+  const tekst = Array.from({ length: 14 }, (_, i) => `Hasło${i} Dz 1:${i}\n${OPIS}`).join('\n');
+  // Stary, zły podział zapisany wprost w bazie: cały tekst w pierwszej ramce (jak sprzed przelania).
+  const ramka = (id, nr, text) => ({ type: 'textbox', id, left: 15, top: 20, width: 100, height: 60, ramka_h: 60, fontSize: 3.5, fontFamily: 'Inter', text, watek: 'w_slow', watek_nr: nr, ...(nr ? { lacznik: '\n' } : {}) });
+  stan.strony.get(`${pid}/${s1}`).obiekty.push(ramka('r1', 0, tekst));
+  stan.strony.get(`${pid}/${s2}`).obiekty.push(ramka('r2', 1, ''));
+  const ile = zapisy.length;
+  const proba = await w('przelej_watek', { projekt: pid, watek: 'w_slow', sucho: true });
+  assert.match(proba, /Wątek w_slow: 2 ramek\.[\s\S]*Po przelaniu zmieniłoby się 2 ramek\./, proba);
+  assert.equal(zapisy.length, ile, 'próba bez zapisu');
+  const zapis = await w('przelej_watek', { projekt: pid, watek: 'w_slow' });
+  assert.match(zapis, /Tekst w połączonych ramkach przelany na nowo/, zapis);
+  assert.equal(zapisy.length, ile + 1);
+  assert.ok(stan.strony.get(`${pid}/${s2}`).obiekty.find((o) => o.id === 'r2').text.length > 0);
+  assert.match(await w('przelej_watek', { projekt: pid, watek: 'w_slow', sucho: true }), /Zapisany podział jest aktualny\./);
+  assert.match(await w('przelej_watek', { projekt: pid, watek: 'nie_ma' }).catch((e) => e.message), /nie ma wątku „nie_ma”/);
+  // Podgląd strony: obraz PNG w odpowiedzi.
+  const pg = await pelne('podglad_strony', { projekt: pid, strona: s1, szerokosc: 300 });
+  const obraz = pg.content.find((c) => c.type === 'image');
+  assert.ok(obraz && obraz.mimeType === 'image/png' && Buffer.from(obraz.data, 'base64').subarray(1, 4).toString() === 'PNG', JSON.stringify(pg).slice(0, 200));
+  // Teksty strony po złożeniu.
+  const ts = await w('teksty_strony', { projekt: pid, strona: s2 });
+  assert.match(ts, /^r2: \d+ wierszy, NIE MIEŚCI SIĘ \(treść [\d.]+ mm \/ ramka 60 mm\), wątek w_slow/, ts); // 14 haseł nie mieści się w dwóch ramkach
+  // Pełna kontrola: sprawdzenie przed drukiem i wątki; szybka – bez usługi.
+  const k = await w('kontrola', { projekt: pid });
+  assert.match(k, /Sprawdź przed drukiem/, k);
+  assert.doesNotMatch(await w('kontrola', { projekt: pid, szybka: true }), /Sprawdź przed drukiem/);
 });
