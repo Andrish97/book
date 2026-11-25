@@ -1,7 +1,11 @@
 // Publikacja linku (#335): co narysować i jak – wspólne dla aplikacji i rysowania na serwerze (rysuj.html).
 // Układ linku, odciski stron (strona bez zmian nie jest rysowana), znak wodny wtopiony w obraz, obraz strony.
 import { renderujCel } from './zlozenie.js';
-import { rozwin } from './serie.js';
+import { rozwin, wartosciPol } from './serie.js';
+import { podstawWObiektach, polaWObiektach } from './pola.js';
+import { obrazyZPol } from './obrazy-z-pol.js';
+import { elementyNaBok } from './boki-stron.js';
+import { przypisyStrony, uzywaKsiazki } from './ksiazka.js';
 import { ukladProjektu, stronyUkladu } from './podglad.js';
 import { opisMakiety } from './makieta-opis.js';
 import { wzorceStrony } from './projekt.js';
@@ -33,8 +37,14 @@ function pamiecDla(projekt, ciag) {
   let pam = pamiecOdciskow.get(ciag);
   if (!pam || pam.projekt !== projekt) {
     pam = { projekt, obiekt: new WeakMap() };
-    pam.wspolny = skrot(JSON.stringify([projekt.nazwa, ciag.liczbaStron, ciag.egzemplarze.length, projekt.czcionki,
-      projekt.sekcje.map((s) => s.nazwa), projekt.strony.map((s) => s.nazwa), projekt.znak_wodny || null]));
+    // Wspólne dla wszystkich stron tylko to, co zmienia wygląd każdej z nich (#438): czcionki, style, kolory druku,
+    // pliki obrazów, znak wodny. Liczba stron, nazwy stron czy sekcji wchodzą do odcisku strony tylko przez pola,
+    // które ta strona naprawdę pokazuje – dodanie strony nie unieważnia podglądów wszystkich pozostałych.
+    const zasoby = Object.entries(projekt.zasoby || {}).map(([id, z]) => [id, z?.skrot || z?.sciezka || z?.rozmiar || (z?.dataUrl ? z.dataUrl.length : 0)]);
+    pam.wspolny = skrot(JSON.stringify(['w2', projekt.czcionki, projekt.style, projekt.kolory_dodatkowe || null, projekt.tryb_kolorow || null,
+      projekt.kolor_trybu || null, zasoby, projekt.znak_wodny || null]));
+    pam.zDanych = new WeakMap(); // tablica obiektów → czy zależy od danych (pola, z_danych, obrazy z kolumn)
+    pam.tabele = skrot(JSON.stringify(projekt.tabele || []));
     pamiecOdciskow.set(ciag, pam);
   }
   return pam;
@@ -42,14 +52,44 @@ function pamiecDla(projekt, ciag) {
 export function pamiecOdciskowDla(projekt, ciag) { return pamiecDla(projekt, ciag); }
 export const skrotCzesci = (pam, o) => skrotObiektu(pam, o);
 
+// Odcisk strony wydruku z tego, co na niej widać (#438): elementy strony i jej wzorców po podstawieniu danych tej
+// strony (wartości pól – także {nr}, {liczba_stron}, {pierwszy:haslo} – obrazy z kolumn, widoczność i wygląd z danych),
+// bok rozkładówki, sąsiad przez grzbiet, format sekcji, tło, przypisy, tekst wątków i części wspólne (czcionki, style,
+// pliki). Bez numeru miejsca w projekcie: strona serii przesunięta o jedno miejsce, która wygląda tak samo, ma ten
+// sam odcisk (jej podgląd nie rysuje się drugi raz).
+const zalezyOdDanych = (pam, obiekty) => {
+  if (!Array.isArray(obiekty) || !obiekty.length) return false;
+  let w = pam.zDanych.get(obiekty);
+  if (w === undefined) {
+    const s = JSON.stringify(obiekty);
+    w = polaWObiektach(obiekty).size > 0 || /"z_danych"|"pole":\{|"kalendarz"|"wykres"|"ksiazka"/.test(s);
+    pam.zDanych.set(obiekty, w);
+  }
+  return w;
+};
+function trescPoDanych(pam, projekt, obiekty, wartosc) {
+  if (!zalezyOdDanych(pam, obiekty)) return skrotObiektu(pam, obiekty);
+  return skrot(JSON.stringify(obrazyZPol(podstawWObiektach(obiekty, wartosc), wartosc, projekt.zasoby || {})));
+}
 export function odciskStrony(projekt, egz, ciag) {
   const pam = pamiecDla(projekt, ciag);
-  const h = (o) => skrotObiektu(pam, o);
-  const wzorce = wzorceStrony(projekt, egz.strona).map((w) => [h(w.obiekty), w.tlo, w.lustro]);
-  return skrot(JSON.stringify([
-    h(egz.strona.obiekty), egz.strona.tlo, h(egz.sasiad?.strona.obiekty), egz.sasiad?.wiersz, wzorce, h(egz.sekcja.wydruk), egz.sekcja.nazwa,
-    egz.wiersz, egz.dodatkowe.map((d) => d.wiersz), egz.nr, egz.indeks, egz.nrWSekcji, egz.nrEgz, egz.ileEgz, egz.bok, pam.wspolny,
-  ]));
+  const wartosc = wartosciPol(projekt, egz, ciag);
+  const szer = egz.sekcja.wydruk.szerokosc_mm;
+  const strona = trescPoDanych(pam, projekt, elementyNaBok(egz.strona, egz.bok, szer), wartosc);
+  const wzorce = wzorceStrony(projekt, egz.strona).map((w) => [trescPoDanych(pam, projekt, w.obiekty, wartosc), w.tlo, w.lustro]);
+  const sasiad = egz.sasiad ? trescPoDanych(pam, projekt, elementyNaBok(egz.sasiad.strona, egz.sasiad.bok, szer), wartosciPol(projekt, egz.sasiad, ciag)) : null;
+  // Kalendarze i wykresy liczą się z tabel; tekst wątku płynie przez ramki z innych stron.
+  const zTabel = (egz.strona.obiekty || []).some((o) => o?.kalendarz || o?.wykres) ? pam.tabele : null;
+  const watki = [...new Set((egz.strona.obiekty || []).map((o) => o?.watek).filter(Boolean))].sort();
+  let watek = null;
+  if (watki.length) {
+    pam.watki ||= new Map();
+    const kl = watki.join('|');
+    if (!pam.watki.has(kl)) pam.watki.set(kl, skrot(JSON.stringify(projekt.strony.flatMap((s) => (s.obiekty || []).filter((o) => watki.includes(o?.watek))))));
+    watek = pam.watki.get(kl);
+  }
+  const przypisy = uzywaKsiazki(projekt) ? przypisyStrony(projekt, egz, ciag) : null;
+  return skrot(JSON.stringify(['o2', strona, egz.strona.tlo, wzorce, sasiad, egz.bok, skrotObiektu(pam, egz.sekcja.wydruk), zTabel, watek, przypisy, pam.wspolny]));
 }
 
 
