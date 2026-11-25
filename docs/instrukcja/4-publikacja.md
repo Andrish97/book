@@ -498,9 +498,9 @@ od nowa. Strony, które wyglądają identycznie (np. puste), mają w linku jeden
 Obrazy stron przygotowuje aplikacja, więc link nadąża za zmianami, gdy projekt jest otwarty —
 w edytorze albo w podglądzie, na dowolnym urządzeniu. W trakcie na ekranie widać pasek
 **Aktualizuję podgląd z linku – nie zamykaj Makietki** z licznikiem stron. Okno Udostępnij możesz
-zamknąć — strony tworzą się dalej, a pasek zostaje na ekranie. Nie zamykaj tylko karty z Makietką:
-przeglądarka zapyta, czy na pewno. Gdy karta jednak się zamknie, link dokończy się sam przy następnym
-otwarciu projektu.
+zamknąć — strony tworzą się dalej, a pasek zostaje na ekranie. Gdy zamkniesz kartę z Makietką w trakcie
+(przeglądarka zapyta, czy na pewno), po około minucie link dokończy serwer Makietki — od strony, na której
+karta skończyła. Gdy w tym czasie znów otworzysz projekt, karta odbierze pracę serwerowi.
 
 **Które urządzenie rysuje.** Jeśli projekt masz otwarty na kilku urządzeniach albo w kilku kartach, link rysuje
 tylko jedno — najmocniejsze: komputer przed tabletem, tablet przed telefonem. Telefon rysuje tylko na Wi-Fi,

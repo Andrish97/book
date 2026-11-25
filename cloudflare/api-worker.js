@@ -24,7 +24,7 @@
 // Limity plików – LIMITY niżej (jedno miejsce). Bez sekretów – klucz publikowalny bazy jest jawny.
 
 import { obsluzEmail, obsluzKontakt, przebiegKolejki, przebiegPowiadomien } from './poczta.js';
-import { obsluzRysowanie, przebiegEksportow } from './rysowanie.js';
+import { obsluzRysowanie, przebiegEksportow, przebiegPrac } from './rysowanie.js';
 
 // Kolejka rysowania linku na serwerze (Durable Object, #335) – klasa musi być wystawiona z głównego modułu.
 export { Rysowanie } from './rysowanie.js';
@@ -506,6 +506,8 @@ export default {
     ctx.waitUntil(przebiegPowiadomien(env).catch(() => {}));
     // Eksport zlecony przez AI, którego nie przyjęła żadna otwarta karta (#337, cloudflare/rysowanie.js).
     ctx.waitUntil(przebiegEksportow(env).catch(() => {}));
+    // Link do podglądu, którego nie rysuje żadna karta (zamknięta, słabe urządzenie) – #438.
+    ctx.waitUntil(przebiegPrac(env).catch(() => {}));
   },
 };
 

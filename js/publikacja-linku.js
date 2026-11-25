@@ -10,6 +10,24 @@ import { ukladProjektu, stronyUkladu } from './podglad.js';
 import { opisMakiety } from './makieta-opis.js';
 import { wzorceStrony } from './projekt.js';
 
+// Widok projektu dla jednego linku (#426): kopia projektu z udostepnienie, znak_wodny i makieta_linku tego linku –
+// rysowanie (w aplikacji i na serwerze, #438), odciski i opis makiety biorą ustawienia z niego.
+export const POLA_LINKU = ['kod', 'konto', 'krotki', 'ochrona', 'odcisk', 'zaktualizowano'];
+export function widokLinku(p, L) {
+  const w = { ...p };
+  delete w.udostepnienia; delete w.udostepnienie; delete w.znak_wodny; delete w.makieta_linku;
+  if (L?.kod) w.udostepnienie = Object.fromEntries(POLA_LINKU.filter((k) => L[k] !== undefined).map((k) => [k, L[k]]));
+  if (L?.znak_wodny) w.znak_wodny = L.znak_wodny;
+  if (L?.makieta_linku) w.makieta_linku = L.makieta_linku;
+  return w;
+}
+// Widok linku o kodzie kod; projekt sprzed #426 (jeden link w udostepnienie) – projekt bez zmian.
+export function widokLinkuKodu(p, kod) {
+  const L = (Array.isArray(p?.udostepnienia) ? p.udostepnienia : []).find((x) => x?.kod === kod);
+  if (L) return widokLinku(p, L);
+  return p;
+}
+
 // Skrót treści projektu – pozwala powiedzieć, czy link pokazuje aktualny stan.
 export function skrot(tekst) {
   let h = 2166136261;

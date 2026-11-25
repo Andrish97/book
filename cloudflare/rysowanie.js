@@ -141,6 +141,12 @@ export class Rysowanie {
       await s.setAlarm(Date.now());
       return Response.json({ stan: 'w_kolejce', id: z.id });
     }
+    if (u.pathname === '/praca' && zapytanie.method === 'POST') {
+      // Praca z kolejki konta (#438) – ten obiekt („praca:<id>”) robi jedną pracę.
+      await s.put('praca', await zapytanie.json());
+      await s.setAlarm(Date.now());
+      return Response.json({ stan: 'w_kolejce' });
+    }
     if (u.pathname === '/eksport' && zapytanie.method === 'POST') {
       // Eksport zlecony przez AI (#337) – ten obiekt („eksport:<id>”) robi jedno zlecenie.
       await s.put('eksport', await zapytanie.json());
@@ -183,6 +189,12 @@ export class Rysowanie {
 
   async alarm() {
     const s = this.state.storage;
+    const praca = await s.get('praca');
+    if (praca) {
+      await s.delete('praca');
+      await wykonajPrace(this.env, praca);
+      return;
+    }
     const eksport = await s.get('eksport');
     if (eksport) {
       await s.delete('eksport');
@@ -232,7 +244,7 @@ async function doBase64(obiekt) {
 }
 
 // Jedno rysowanie: przeglądarka z zamkniętym ruchem, strona rysuj.html, magazyn = R2 (tylko folder tego linku).
-export async function rysujLink(env, klucz, postep = () => {}) {
+export async function rysujLink(env, klucz, postep = () => {}, { przerwij = null } = {}) {
   const obj = await env.PLIKI.get(klucz);
   if (!obj) throw new Error('Zlecenie zniknęło.');
   const z = await obj.json();
@@ -279,9 +291,11 @@ export async function rysujLink(env, klucz, postep = () => {}) {
       return o ? { b64: await doBase64(o), typ: o.httpMetadata?.contentType || 'application/octet-stream' } : null;
     });
     await strona.exposeFunction('__mkPostep', (gotowe, wszystkie) => postep(gotowe, wszystkie));
+    // Praca z kolejki (#438): przed każdą stroną – czy przerwać (karta wróciła, nowsza wersja projektu).
+    if (przerwij) await strona.exposeFunction('__mkPrzerwij', async () => Boolean(await przerwij()));
     await strona.goto(`${env.APLIKACJA || APLIKACJA}/rysuj.html`, { waitUntil: 'load', timeout: 60000 });
     await strona.waitForFunction('window.makietkaRysujGotowe === true', { timeout: 60000 });
-    return await strona.evaluate((a) => window.makietkaRysuj.publikujLink(a), { projekt: z.projekt, folder, pelna: z.pelna, chroniony: z.chroniony });
+    return await strona.evaluate((a) => window.makietkaRysuj.publikujLink(a), { projekt: z.projekt, folder, pelna: z.pelna, chroniony: z.chroniony, kod: z.kod || null });
   } finally {
     await przegladarka.close().catch(() => {});
     await env.PLIKI.delete(klucz).catch(() => {});
@@ -313,6 +327,65 @@ export async function przebiegEksportow(env) {
     await env.RYSOWANIE.get(env.RYSOWANIE.idFromName(`eksport:${z.id}`)).fetch('https://kolejka/eksport', { method: 'POST', body: JSON.stringify(z) });
   }
   return lista.length;
+}
+
+// ---------- Prace w tle konta (#438, etap D) ----------
+// Praca linku, której żadna karta nie wzięła (czeka ponad 30 s) albo której dzierżawa wygasła (karta zamknięta),
+// przechodzi na serwer (cron co minutę): projekt z bazy, ustawienia linku z projektu, rysowanie tylko stron, których
+// odcisku nie ma jeszcze w folderze (js/publikacja-magazyn.js). Dzierżawa serwera odnawia się co 20 s; gdy pracę
+// odebrała karta, która wróciła, albo przyszła nowsza wersja – serwer kończy po bieżącej stronie.
+export async function przebiegPrac(env) {
+  if (!env.RYSOWANIE || !env.PRZEGLADARKA || !env.PLIKI || !env.SUPABASE_SERVICE_ROLE_KEY) return 0;
+  const lista = await rpcSerwisowe(env, 'serwer_przejmij_prace', { p_po_sekundach: 30, p_ile: 3 }) || [];
+  for (const z of lista) {
+    await env.RYSOWANIE.get(env.RYSOWANIE.idFromName(`praca:${z.id}`)).fetch('https://kolejka/praca', { method: 'POST', body: JSON.stringify(z) });
+  }
+  return lista.length;
+}
+
+export const ODNOWIENIE_SERWERA_MS = 20000;
+export async function wykonajPrace(env, z) {
+  const od = Date.now();
+  let wyslane = 0;
+  let utracona = false;
+  let nowsza = false;
+  let ostatnio = Date.now();
+  let postep = { gotowe: null, wszystkie: null };
+  const odnow = async (wymus = false) => {
+    if (!wymus && Date.now() - ostatnio < (env.__odnowienieMs ?? ODNOWIENIE_SERWERA_MS)) return;
+    ostatnio = Date.now();
+    try {
+      const w = await rpcSerwisowe(env, 'serwer_odnow_prace', { p_id: z.id, p_gotowe: postep.gotowe, p_wszystkie: postep.wszystkie });
+      if (!w) utracona = true;
+      else if (Number(w.wersja) > Number(z.wersja)) nowsza = true;
+    } catch { /* chwilowy błąd bazy – dzierżawa trwa 2 minuty */ }
+  };
+  const klucz = `zadania/${z.wlasciciel}/${z.projekt_id}-praca-${z.id}.json`;
+  let blad = null;
+  let wynik = null;
+  try {
+    const projekt = await rpcSerwisowe(env, 'serwer_projekt', { p_projekt: z.projekt_id });
+    if (!projekt) throw new Error('Nie ma tego projektu.');
+    projekt.id ??= z.projekt_id;
+    const konto = env.RYSOWANIE.get(env.RYSOWANIE.idFromName(`konto:${z.wlasciciel}`));
+    const limit = await (await konto.fetch('https://kolejka/licznik', { method: 'POST', body: JSON.stringify({ stron: (projekt.strony || []).length }) })).json();
+    if (!limit.ok) throw new Error('Dzienny limit rysowania na serwerze – link narysuje się na urządzeniu po otwarciu projektu.');
+    // Pliki: tylko te, które projekt wskazuje, i tylko z folderów właściciela linku albo tego projektu.
+    const sciezki = sciezkiZasobow(projekt).filter((s) => s.startsWith(`${z.wlasciciel}/`) || s.split('/')[1] === z.projekt_id);
+    await env.PLIKI.put(klucz, JSON.stringify({ rodzaj: 'link', projekt, folder: z.folder, chroniony: Boolean(z.chroniony), pelna: false, sciezki, uid: z.wlasciciel, kod: z.cel }), { httpMetadata: { contentType: 'application/json' } });
+    wynik = await rysujLink(env, klucz, (gotowe, wszystkie) => { postep = { gotowe, wszystkie }; }, { przerwij: async () => { await odnow(); return utracona || nowsza; } });
+    wyslane = wynik?.wyslane || 0;
+  } catch (e) {
+    blad = String(e?.message || e).slice(0, 300);
+  } finally {
+    await zapiszZuzycie(env, { ms: Date.now() - od, stron: wyslane, rodzaj: 'praca' });
+    if (!utracona) {
+      // Przerwana dla nowszej wersji: wersja niewykonana (praca wraca do „czeka”), opis linku ma gotowe strony.
+      const wersja = wynik?.przerwane ? 0 : z.wersja;
+      await rpcSerwisowe(env, 'serwer_zakoncz_prace', { p_id: z.id, p_wersja: wersja, p_blad: blad }).catch(() => {});
+    }
+  }
+  return { wynik, blad, utracona, nowsza };
 }
 
 export async function wykonajEksport(env, z) {

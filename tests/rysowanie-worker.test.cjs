@@ -316,3 +316,72 @@ test('usługa składu dla MCP: klucz AI, przelanie wątku jak w aplikacji, opis,
   assert.ok(Array.isArray(sprawdz) && Array.isArray(wysokosci));
   assert.ok(wywolania.some(([n, c]) => n === 'serwer_klucz_ai' && c.p_klucz === 'sdk_dobry' && c.p_projekt === PROJ));
 });
+
+// #438, etap D: praca linku z kolejki konta, której żadna karta nie wzięła – serwer (cron) bierze ją z bazy,
+// rysuje z ustawieniami tego linku (znak wodny) i kończy wersją; nowsza wersja w trakcie – przerywa po bieżącej
+// stronie, opis linku ma gotowe strony, praca wraca do kolejki (wersja niewykonana).
+test('praca z kolejki na serwerze: projekt z bazy, ustawienia linku, koniec wersją; nowsza wersja – przerwanie', async (t) => {
+  const R = await import(MODUL);
+  const { strona, przegladarka, adres } = await otworz(t);
+  await nowyProjekt(strona, 'Start');
+  const PROJ = '33333333-3333-4333-8333-333333333333';
+  const projekt = await strona.evaluate(async ({ id, kod }) => {
+    const P = await import('./js/projekt.js');
+    const p = P.normalizuj(window.seriodruk.stan.projekt);
+    for (let i = 2; i <= 5; i += 1) p.strony.push(P.nowaStrona(`S${i}`, p.sekcje[0].id));
+    p.strony.forEach((s, i) => { s.obiekty = [{ type: 'textbox', id: `t${i}`, left: 10, top: 10, width: 80, text: `Strona ${i + 1}`, fontFamily: 'Inter', fontSize: 8 }]; });
+    p.id = id;
+    p.udostepnienia = [{ kod, konto: 'k', znak_wodny: { tekst: 'SERWER', krycie: 30 } }];
+    return JSON.parse(JSON.stringify(p));
+  }, { id: PROJ, kod: KOD });
+  const wywolania = [];
+  let odnowienie = () => ({ wersja: 7 });
+  const prawdziwy = globalThis.fetch;
+  globalThis.fetch = async (adresZ, opcje) => {
+    const u = String(adresZ);
+    if (u.startsWith('https://baza.test/rest/v1/rpc/')) {
+      const nazwa = u.split('/').pop();
+      const cialo = JSON.parse(opcje.body);
+      wywolania.push([nazwa, cialo]);
+      const dane = nazwa === 'serwer_przejmij_prace' ? [{ id: 'w1', projekt_id: PROJ, wlasciciel: UID, cel: KOD, wersja: 7, folder: `${UID}/${PROJ}/${KOD}`, chroniony: false }]
+        : nazwa === 'serwer_projekt' ? projekt : nazwa === 'serwer_odnow_prace' ? odnowienie() : { stan: 'gotowe' };
+      return new Response(JSON.stringify(dane), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    return prawdziwy(adresZ, opcje);
+  };
+  t.after(() => { globalThis.fetch = prawdziwy; });
+  const env = { PLIKI: r2(), PRZEGLADARKA: {}, APLIKACJA: adres.replace(/\/$/, ''), SUPABASE_URL: 'https://baza.test', SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', __puppeteer: puppeteerZPlaywright(przegladarka), __odnowienieMs: 0 };
+  env.RYSOWANIE = kolejki(env, R.Rysowanie);
+  assert.equal(await R.przebiegPrac(env), 1);
+  const obiekt = env.RYSOWANIE.instancje.get('praca:w1');
+  assert.ok(obiekt?.state.alarm, 'praca w osobnym obiekcie z alarmem');
+  await obiekt.obj.alarm();
+  const folder = `podglady/${UID}/${PROJ}/${KOD}`;
+  const opis = await (await env.PLIKI.get(`${folder}/manifest.json`)).json();
+  assert.equal(Object.keys(opis.pliki).length, 5);
+  assert.equal(opis.przygotowanie, undefined);
+  const koniec = wywolania.filter(([n]) => n === 'serwer_zakoncz_prace');
+  assert.deepEqual(koniec.map(([, c]) => [c.p_wersja, c.p_blad]), [[7, null]], 'koniec wersją pracy');
+  assert.ok(wywolania.some(([n]) => n === 'serwer_odnow_prace'), 'dzierżawa odnawiana');
+  assert.ok(![...env.PLIKI.m.keys()].some((k) => k.startsWith('zadania/')), 'zlecenie sprzątnięte');
+  // Pliki stron leżą w folderze linku.
+  const plik = env.PLIKI.m.get(`${folder}/${opis.pliki[Object.keys(opis.pliki)[0]]}.${opis.rozszerzenie}`);
+  assert.ok(plik && plik.dane.length > 0);
+  // 2) Nowsza wersja w trakcie: przerwanie, opis z gotowymi stronami, wersja niewykonana.
+  projekt.strony.forEach((s, i) => { s.obiekty[0].text = `Nowa ${i + 1}`; });
+  odnowienie = () => ({ wersja: 8 });
+  wywolania.length = 0;
+  const w = await R.wykonajPrace(env, { id: 'w1', projekt_id: PROJ, wlasciciel: UID, cel: KOD, wersja: 7, folder: `${UID}/${PROJ}/${KOD}`, chroniony: false });
+  assert.equal(w.nowsza, true);
+  assert.equal(w.wynik.przerwane, true, JSON.stringify(w));
+  const opis2 = await (await env.PLIKI.get(`${folder}/manifest.json`)).json();
+  assert.equal(Object.keys(opis2.pliki).length, 5, 'link dalej pokazuje wszystkie strony (poprzednią wersję tych nienarysowanych)');
+  assert.equal(w.wynik.narysowane, 0, 'przerwane przed pierwszą stroną – nic nie narysowane');
+  assert.deepEqual(wywolania.filter(([n]) => n === 'serwer_zakoncz_prace').map(([, c]) => c.p_wersja), [0], 'wersja niewykonana – praca wraca do kolejki');
+  // 3) Pracę odebrała karta: serwer nie zamyka pracy.
+  odnowienie = () => null;
+  wywolania.length = 0;
+  const w3 = await R.wykonajPrace(env, { id: 'w1', projekt_id: PROJ, wlasciciel: UID, cel: KOD, wersja: 7, folder: `${UID}/${PROJ}/${KOD}`, chroniony: false });
+  assert.equal(w3.utracona, true);
+  assert.equal(wywolania.filter(([n]) => n === 'serwer_zakoncz_prace').length, 0);
+});

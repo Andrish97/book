@@ -498,9 +498,9 @@ Pages that look identical (e.g. blank ones) share one image in the link.
 The page images are prepared by the app, so the link keeps up with changes while the project is open —
 in the editor or the preview, on any device. Meanwhile a bar is shown on screen:
 **Updating the link preview – don't close Makietka**, with a page counter. You can close the Share window
-— the pages keep being created, and the bar stays on screen. Just don't close the Makietka tab:
-the browser will ask if you're sure. If the tab does close, the link will finish by itself the next time
-you open the project.
+— the pages keep being created, and the bar stays on screen. If you close the Makietka tab in the middle
+(the browser will ask if you're sure), after about a minute the Makietka server finishes the link — from the
+page where the tab stopped. If you open the project again in the meantime, the tab takes the work back from the server.
 
 **Which device draws.** If the project is open on several devices or in several tabs, only one draws the link — the
 most capable one: a computer before a tablet, a tablet before a phone. A phone draws only on Wi-Fi, and many pages at

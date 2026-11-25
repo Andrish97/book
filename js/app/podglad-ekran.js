@@ -2,7 +2,7 @@
 
 import { modeleProjektu, domyslnyModel, bazaMakiety } from '../makieta-opis.js';
 import { MODELE } from '../makieta-3d.js';
-import { skrot, odciskTresci, odciskStrony, pamiecOdciskowDla, skrotCzesci, ZNAK_DOMYSLNY, KRYCIE_ZNAKU, kryciaZnaku, rysujZnak, zeZnakiemWodnym, przygotujPublikacje } from '../publikacja-linku.js';
+import { POLA_LINKU, widokLinku, skrot, odciskTresci, odciskStrony, pamiecOdciskowDla, skrotCzesci, ZNAK_DOMYSLNY, KRYCIE_ZNAKU, kryciaZnaku, rysujZnak, zeZnakiemWodnym, przygotujPublikacje } from '../publikacja-linku.js';
 import { postep as pasekPostepu } from '../postep.js';
 import * as chmura from '../chmura.js';
 import { $, kiedy, potwierdz, powiadom } from '../ui.js';
@@ -85,15 +85,6 @@ function odciskPodgladu(egz, ciag) {
 // na „widoku” projektu dla jednego linku: kopii projektu z udostepnienie, znak_wodny i makieta_linku tego linku –
 // rysowanie (także na serwerze), odciski i opis makiety biorą ustawienia z niego, bez zmian w tych modułach.
 export const linkiProjektu = (p) => (Array.isArray(p?.udostepnienia) ? p.udostepnienia : []);
-const POLA_LINKU = ['kod', 'konto', 'krotki', 'ochrona', 'odcisk', 'zaktualizowano'];
-function widokLinku(p, L) {
-  const w = { ...p };
-  delete w.udostepnienia; delete w.udostepnienie; delete w.znak_wodny; delete w.makieta_linku;
-  if (L?.kod) w.udostepnienie = Object.fromEntries(POLA_LINKU.filter((k) => L[k] !== undefined).map((k) => [k, L[k]]));
-  if (L?.znak_wodny) w.znak_wodny = L.znak_wodny;
-  if (L?.makieta_linku) w.makieta_linku = L.makieta_linku;
-  return w;
-}
 function przepiszLink(L, w) {
   for (const k of POLA_LINKU) { const v = w.udostepnienie?.[k]; if (v === undefined) delete L[k]; else L[k] = v; }
 }

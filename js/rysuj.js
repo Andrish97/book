@@ -10,7 +10,7 @@ import { normalizuj } from './projekt.js';
 import { zaladujCzcionki, zarejestrujCzcionkiProjektu } from './czcionki.js';
 import { podlaczZasoby } from './zasoby.js';
 import { przeliczOkladki } from './okladka.js';
-import { przygotujPublikacje } from './publikacja-linku.js';
+import { przygotujPublikacje, widokLinkuKodu } from './publikacja-linku.js';
 import { publikujDoMagazynu } from './publikacja-magazyn.js';
 import { t as tt } from './jezyk.js';
 
@@ -61,10 +61,14 @@ async function przygotuj(projekt) {
 window.makietkaRysuj = {
   // Link do podglądu: rysuje zmienione strony i zapisuje je razem z opisem w folderze linku.
   // Zwraca { zaktualizowano, wyslane, wszystkie, odcisk, brakujace }.
-  async publikujLink({ projekt, folder, pelna = false, chroniony = false }) {
-    const { p, brak } = await przygotuj(projekt);
+  // kod – praca z kolejki (#438): projekt z bazy, ustawienia tego linku (znak wodny, makieta); przed każdą stroną
+  // serwer pyta, czy przerwać (karta wróciła albo przyszła nowsza wersja).
+  async publikujLink({ projekt, folder, pelna = false, chroniony = false, kod = null }) {
+    const { p: caly, brak } = await przygotuj(projekt);
+    const p = kod ? widokLinkuKodu(caly, kod) : caly;
     const { uklad, strony, odciski, rozszerzenie, obraz, odcisk } = przygotujPublikacje(p);
-    const w = await publikujDoMagazynu(magazyn, folder, uklad, strony, obraz, (i, n) => window.__mkPostep?.(i, n), odciski, { rozszerzenie, pelna, chroniony });
+    const przedStrona = window.__mkPrzerwij ? async () => Boolean(await window.__mkPrzerwij()) : null;
+    const w = await publikujDoMagazynu(magazyn, folder, uklad, strony, obraz, (i, n) => window.__mkPostep?.(i, n), odciski, { rozszerzenie, pelna, chroniony, przedStrona });
     return { ...w, odcisk, brakujace: brak };
   },
 };
