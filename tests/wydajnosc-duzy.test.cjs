@@ -125,7 +125,8 @@ async function zmierz(t, wolno, limity) {
   }));
   assert.ok(wyniki.stron >= 400, `stron po rozwinięciu: ${wyniki.stron}`);
 
-  // zwykła zmiana: nowy prostokąt – edytor nie może stanąć na dłużej
+  // zwykła zmiana: nowy prostokąt – edytor nie może stanąć na dłużej (bez zacięć z pomiarów wyżej: odciski, kontrola)
+  await dlugie();
   await strona.evaluate(() => document.querySelector('.pasek-narzedzi [data-akcja="dodaj-prostokat"]').click());
   await strona.waitForTimeout(4000);
   wyniki.zmianaNajdluzsze = Math.max(0, ...(await dlugie()));

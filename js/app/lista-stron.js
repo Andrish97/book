@@ -273,6 +273,7 @@ let generowanie = null;
 let jeszczeRaz = false; // wywołanie w trakcie (np. otwarcie innego projektu) – po bieżącym przebiegu jeszcze raz
 export function generujMiniatury() {
   if (generowanie) { jeszczeRaz = true; return; }
+  if (!stan.projekt) return; // projekt zamknięty albo usunięty w międzyczasie
   generowanie = (async () => {
     const projekt = stan.projekt;
     const ciag = rozwin(projekt);
