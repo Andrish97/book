@@ -184,6 +184,15 @@ async function kluczDostepu(projektId, rola) {
 async function skladanieLokalne({ projekt, dzialania }) {
   const [{ skladaj }, { przygotujDoRysowania }, { normalizuj }] = await Promise.all([import('../sklad-uslugi.js'), import('./zapis.js'), import('../projekt.js')]);
   const p = normalizuj(JSON.parse(JSON.stringify(projekt)));
+  // Widok AI nie ma ścieżek ani treści plików (czcionki projektu, obrazy) – bierzemy je z otwartego projektu,
+  // inaczej podgląd dla AI miałby zastępczą czcionkę, a przelanie liczyłoby się złą czcionką.
+  const otwarty = stan.projekt?.id === p.id ? stan.projekt : null;
+  if (otwarty) {
+    for (const [k, v] of Object.entries(p.zasoby || {})) {
+      const o = otwarty.zasoby?.[k];
+      if (o) p.zasoby[k] = { ...o, ...v, sciezka: o.sciezka, dataUrl: o.dataUrl };
+    }
+  }
   await przygotujDoRysowania(p);
   return skladaj(p, dzialania);
 }

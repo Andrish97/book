@@ -20,6 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # test service workera bierze starą wersję sw.js z historii (git show)
 
       - name: Node
         uses: actions/setup-node@v4

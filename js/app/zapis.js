@@ -736,9 +736,10 @@ async function wyslijNaKonto({ wymus = false, projekt = null } = {}) {
       if (otwarty) { dotkniete.clear(); zapamietajDotkniete(); } else try { localStorage.removeItem(kluczDotknietych(p.id)); } catch { /* nic */ }
     }
     stan.konflikt = null;
+    // Zapis na urządzeniu od razu ze znacznikiem „do wysłania” tylko przy zmianie w trakcie wysyłki – osobne
+    // zdejmowanie znacznika (odczyt i ponowny zapis całego projektu) było zbędne, a na telefonie kosztowne (26.11).
     await zapiszLokalnie(p, wlasciciel(), () => p.zmieniono !== wersja);
     await zachowajHistorie(p); // nowy numer wersji z konta
-    await oznaczZsynchronizowany(p.id, wersja);
     if (stan.projekt === p && !stan.timerZapisu) stanZapisu('ok', 'Zapisano');
     if (stan.projekt === p) zaplanujAktualizacjeLinku(); // udostępniony link idzie za zapisanymi zmianami
     document.dispatchEvent(new CustomEvent('seriodruk:zapisano-na-koncie')); // obecność rusza po pierwszym zapisie

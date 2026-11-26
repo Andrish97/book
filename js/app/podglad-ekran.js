@@ -96,7 +96,21 @@ async function naLinku(p, L, praca) {
 }
 const nowyIdLinku = () => `ln_${[...crypto.getRandomValues(new Uint8Array(6))].map((b) => b.toString(36)).join('')}`;
 const nazwaLinku = (p, L) => L?.nazwa || t('podgladEkran.linkNr', { n: linkiProjektu(p).indexOf(L) + 1 });
-const linkAktualny = (p, L) => L.odcisk === odciskTresci(widokLinku(p, L));
+// Odcisk treści widoku linku – raz na stan projektu (p.zmieniono) i ustawienia linku: wcześniej liczony od nowa
+// przy każdym zapisie dla każdego linku, a na telefonie przy dużym projekcie to ułamki sekundy zacięcia (26.11).
+const pamiecOdciskuLinku = new WeakMap(); // projekt → Map(klucz → odcisk)
+function odciskLinku(p, L) {
+  const klucz = p.zmieniono ? `${p.zmieniono}|${JSON.stringify([L.znak_wodny || null, L.makieta_linku || null])}` : null;
+  let m = pamiecOdciskuLinku.get(p);
+  if (klucz && m?.has(klucz)) return m.get(klucz);
+  const o = odciskTresci(widokLinku(p, L));
+  if (klucz) {
+    if (!m || m.zmieniono !== p.zmieniono) { m = new Map(); m.zmieniono = p.zmieniono; pamiecOdciskuLinku.set(p, m); }
+    m.set(klucz, o);
+  }
+  return o;
+}
+const linkAktualny = (p, L) => L.odcisk === odciskLinku(p, L);
 const zapiszProjektLinku = async (p) => { if (p === stan.projekt) await zapiszTeraz(); else { p.zmieniono = new Date().toISOString(); await zapiszGdziekolwiek(p); } };
 
 function linkUdostepnienia(p, L) {
@@ -595,11 +609,16 @@ export const PROG_SERWERA = 40;
 let serwerWylaczony = false;
 const czekaj = (ms) => new Promise((ok) => { setTimeout(ok, ms); });
 // Projekt do zlecenia: bez treści obrazów, które są już na koncie (serwer bierze je z magazynu).
-const doZlecenia = (p) => {
-  const kopia = JSON.parse(JSON.stringify(p));
-  for (const z of Object.values(kopia.zasoby || {})) if (z?.sciezka && !String(z.sciezka).startsWith('ai:')) delete z.dataUrl;
-  return kopia;
-};
+// Bez kopiowania treści obrazów (na telefonie z wieloma zdjęciami to były megabajty kopiowane i od razu wyrzucane).
+const doZlecenia = (p) => ({
+  ...p,
+  zasoby: Object.fromEntries(Object.entries(p.zasoby || {}).map(([k, z]) => {
+    if (!z?.sciezka || String(z.sciezka).startsWith('ai:')) return [k, z];
+    const { dataUrl, ...bez } = z;
+    void dataUrl;
+    return [k, bez];
+  })),
+});
 
 async function naSerwerze(p, { kod, ochrona, strony, odciski, rozszerzenie, pelna, postep, naLink }) {
   if (serwerWylaczony || !stan.uzytkownik || !navigator.onLine || globalThis.__bezSerwera) return null;
@@ -815,19 +834,21 @@ export const OPOZNIENIE_LINKU_Z_KONTA_MS = 15000;
 let timerLinku = null;
 // Wszystkie linki projektu (#426) – po kolei, każdy z własnymi ustawieniami.
 const nieaktualneLinki = (p) => linkiProjektu(p).filter((L) => L.kod && L.konto && !linkAktualny(p, L));
+let czekaAktualizacja = false; // zmiana w czasie trwającej aktualizacji – sprawdzić linki jeszcze raz po niej
 export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
   clearTimeout(timerLinku);
   const p = stan.projekt;
-  if (!p || !stan.uzytkownik) return;
-  if (!nieaktualneLinki(p).length) {
-    // Linki aktualne – praca z kolejki (np. po zapisie samych danych linku) zamyka się bez rysowania (#438).
-    const kody = linkiProjektu(p).filter((L) => L.kod && L.konto).map((L) => L.kod);
-    if (kody.length) timerLinku = setTimeout(() => { if (stan.projekt === p && !trwaPublikacja && !nieaktualneLinki(p).length) potwierdzAktualne(p, kody); }, 500);
-    return;
-  }
+  if (!p || !stan.uzytkownik || !linkiProjektu(p).some((L) => L.kod && L.konto)) return;
+  // Nic nie liczymy przy samym zapisie (na telefonie każdy zapis to ułamek sekundy mniej) – dopiero po chwili spokoju.
   timerLinku = setTimeout(async () => {
-    if (stan.projekt !== p || trwaPublikacja || !navigator.onLine) return;
-    if (!nieaktualneLinki(p).length) return;
+    if (stan.projekt !== p || !navigator.onLine) return;
+    if (trwaPublikacja) { czekaAktualizacja = true; return; } // dokończy się po bieżącej aktualizacji
+    const nieaktualne = nieaktualneLinki(p);
+    if (!nieaktualne.length) {
+      // Linki aktualne – praca z kolejki (np. po zapisie samych danych linku) zamyka się bez rysowania (#438).
+      potwierdzAktualne(p, linkiProjektu(p).filter((L) => L.kod && L.konto).map((L) => L.kod));
+      return;
+    }
     trwaPublikacja = true;
     if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     let przerwane = false;
@@ -835,7 +856,7 @@ export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
     try {
       // Jedna kolejka prac konta (#438): link rysuje karta z dzierżawą (albo lepsze urządzenie, albo serwer).
       const ogladane = stan.tryb === 'strona' && p.strony[stan.indeks] ? [p.strony[stan.indeks].id] : [];
-      for (const L of nieaktualneLinki(p)) {
+      for (const L of nieaktualne) {
         const w = await zDzierzawa(p, L, ({ przedStrona }) => linkWTle((pasek) => naLinku(p, L, (W) => opublikuj(W, pasek, { przedStrona, ogladane }))));
         if (w.wynik) narysowane = true;
         if (w.wynik?.przerwane) { przerwane = true; break; }
@@ -847,6 +868,7 @@ export function zaplanujAktualizacjeLinku(opoznienie = OPOZNIENIE_LINKU_MS) {
       // Przerwane dla nowszej wersji: nowy plan po chwili spokoju – rysują się tylko strony, których jeszcze nie ma.
       if (przerwane) zaplanujAktualizacjeLinku(SPOKOJ_PO_ZMIANIE_MS);
       trwaPublikacja = false;
+      if (czekaAktualizacja && !przerwane) { czekaAktualizacja = false; zaplanujAktualizacjeLinku(); }
       if ($('#dlg-udostepnij').open) odswiezOknoUdostepniania();
     }
   }, opoznienie);

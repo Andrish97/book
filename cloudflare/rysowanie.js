@@ -454,6 +454,14 @@ async function wPrzegladarce(env, { pobierz, postep = () => {} }, praca) {
 // właściciel i dostęp do projektu. Projekt w ciele to zmiana łącznika jeszcze przed zapisem (przelanie liczy się przed
 // zapisem, w tej samej wersji); bez niego – projekt z bazy. Pliki (czcionki, obrazy) tylko z zapisanego projektu
 // i z folderu tego projektu u właściciela. Wynik: makietkaRysuj.skladaj (rysuj.js).
+// Pliki projektu w widoku AI (ai_projekt: nazwa, typ, wymiary) uzupełnione o dane z zapisanego projektu (ścieżka).
+export function uzupelnijZasoby(p, zapisany) {
+  const z = zapisany?.zasoby || {};
+  p.zasoby = Object.fromEntries(Object.entries(p.zasoby || {}).map(([k, v]) => [k, z[k] ? { ...z[k], ...v, sciezka: z[k].sciezka } : v]));
+  if (!Array.isArray(p.czcionki) && Array.isArray(zapisany?.czcionki)) p.czcionki = zapisany.czcionki;
+  return p;
+}
+
 export async function skladajDlaAi(env, { klucz, projektId, projekt = null, dzialania = [] }) {
   if (!klucz || !ID.test(String(projektId || ''))) return { status: 400, dane: { blad: 'Brak klucza albo projektu.' } };
   if (!Array.isArray(dzialania) || !dzialania.length || dzialania.length > 12) return { status: 400, dane: { blad: 'Nieprawidłowe działania.' } };
@@ -465,6 +473,9 @@ export async function skladajDlaAi(env, { klucz, projektId, projekt = null, dzia
   const folder = `${k.owner_id}/${projektId}/`;
   const p = projekt && typeof projekt === 'object' ? projekt : zapisany;
   p.id ??= projektId;
+  // Projekt od łącznika to widok AI: pliki (czcionki projektu, obrazy) bez ścieżek w magazynie. Ścieżki z zapisanego
+  // projektu – inaczej podgląd miałby zastępczą czcionkę i brakujące obrazy, a przelanie liczyłoby się złą czcionką.
+  if (p !== zapisany) uzupelnijZasoby(p, zapisany);
   const od = Date.now();
   try {
     const wynik = await wPrzegladarce(env, { pobierz: (sc) => dozwolone.has(sc) || String(sc).startsWith(folder) },

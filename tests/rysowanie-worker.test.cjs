@@ -315,6 +315,23 @@ test('usługa składu dla MCP: klucz AI, przelanie wątku jak w aplikacji, opis,
   assert.ok(Buffer.from(podglad.b64, 'base64').subarray(1, 4).toString() === 'PNG' && podglad.szerokosc === 400);
   assert.ok(Array.isArray(sprawdz) && Array.isArray(wysokosci));
   assert.ok(wywolania.some(([n, c]) => n === 'serwer_klucz_ai' && c.p_klucz === 'sdk_dobry' && c.p_projekt === PROJ));
+
+  // Zgłoszenie 26.11 „podgląd AI ma złą czcionkę”: projekt od łącznika (widok AI – pliki bez ścieżek) z własną czcionką
+  // projektu. Ścieżka pliku z zapisanego projektu – serwer pobiera plik czcionki z magazynu i rysuje nią, a nie zastępczą.
+  const plikCzcionki = `${UID}/${PROJ}/czcionka-moja.woff2`;
+  await env.PLIKI.put(`zasoby/${plikCzcionki}`, require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'css', 'czcionki', 'abril-fatface-prosta-400-latin.woff2')), { httpMetadata: { contentType: 'font/woff2' } });
+  projekt.zasoby = { ...(projekt.zasoby || {}), f_moja: { nazwa: 'Moja.woff2', typ: 'font/woff2', sciezka: plikCzcionki } };
+  projekt.czcionki = [{ id: 'f_moja', rodzina: 'Moja Czcionka', waga: 400, kursywa: false }];
+  projekt.strony[0].obiekty.push({ type: 'textbox', id: 'mc', left: 15, top: 60, width: 90, text: 'Moja czcionka ŻÓŁĆ', fontFamily: 'Moja Czcionka', fontSize: 10 });
+  const widokAi = JSON.parse(JSON.stringify(projekt));
+  for (const z of Object.values(widokAi.zasoby)) delete z.sciezka; // jak ai_projekt
+  const odczyty = [];
+  const get = env.PLIKI.get.bind(env.PLIKI);
+  env.PLIKI.get = async (k) => { odczyty.push(k); return get(k); };
+  const zCzcionka = await R.skladajDlaAi(env, { klucz: 'sdk_dobry', projektId: PROJ, projekt: widokAi, dzialania: [{ rodzaj: 'podglad', strona: projekt.strony[0].id, szerokosc: 400 }] });
+  assert.equal(zCzcionka.status, 200);
+  assert.ok(odczyty.includes(`zasoby/${plikCzcionki}`), `plik czcionki projektu pobrany z magazynu: ${odczyty}`);
+  assert.deepEqual(R.uzupelnijZasoby({ zasoby: { a: { nazwa: 'x' } } }, { zasoby: { a: { nazwa: 'x', sciezka: 'k/p/x' } } }).zasoby.a.sciezka, 'k/p/x');
 });
 
 // #438, etap D: praca linku z kolejki konta, której żadna karta nie wzięła – serwer (cron) bierze ją z bazy,
