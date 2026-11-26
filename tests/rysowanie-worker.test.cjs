@@ -402,3 +402,93 @@ test('praca z kolejki na serwerze: projekt z bazy, ustawienia linku, koniec wers
   assert.equal(w3.utracona, true);
   assert.equal(wywolania.filter(([n]) => n === 'serwer_zakoncz_prace').length, 0);
 });
+
+// #439 – test podobny do zgłoszenia 26.11 („Dziennik biblijny 2027 – blok”, wątek w_slowniczek): czcionka wgrana do
+// projektu („Google Sans” – tu pliki Barlow 400 i 700 pod tą nazwą), hasła pogrubione 600 z drobnym odnośnikiem 300,
+// odstępy (linia ze spacją mniejszą czcionką) między hasłami, tekst przez 4 strony. Projekt od łącznika jak z ai_projekt
+// (pliki bez ścieżek i bez treści). Podział z serwera = podział w aplikacji (ten sam kod co edytor), żadna ramka nie
+// zaczyna się odstępem, brak ostrzeżenia o czcionce, a podgląd z serwera jest narysowany wgraną czcionką.
+test('słowniczek z czcionką projektu: serwer = aplikacja, odstępy nie zaczynają ramek, podgląd wgraną czcionką', async (t) => {
+  const R = await import(MODUL);
+  const fs = require('node:fs');
+  const { strona, przegladarka, adres } = await otworz(t);
+  await nowyProjekt(strona, 'Słowniczek');
+  const PROJ = '44444444-4444-4444-8444-444444444444';
+  const pliki = { f400: 'barlow-400-prosta.ttf', f700: 'barlow-700-prosta.ttf' };
+  const b64 = Object.fromEntries(Object.entries(pliki).map(([k, f]) => [k, fs.readFileSync(path.join(__dirname, '..', 'css', 'czcionki', 'pdf', f)).toString('base64')]));
+  const { zapisany, app } = await strona.evaluate(async ({ id, b64: dane, uid }) => {
+    const { nowaStrona, normalizuj } = await import('./js/projekt.js');
+    const { zarejestrujCzcionkiProjektu } = await import('./js/czcionki.js');
+    const { przelejWatek } = await import('./js/przelewanie.js');
+    const { renderujCel } = await import('./js/zlozenie.js');
+    const { rozwin } = await import('./js/serie.js');
+    const p = JSON.parse(JSON.stringify(window.seriodruk.stan.projekt));
+    p.id = id;
+    p.czcionki = [{ id: 'f400', rodzina: 'Google Sans', waga: 400, kursywa: false }, { id: 'f700', rodzina: 'Google Sans', waga: 700, kursywa: false }];
+    p.zasoby = { f400: { nazwa: 'GoogleSans-Regular.ttf', typ: 'font/ttf', sciezka: `${uid}/${id}/f400` }, f700: { nazwa: 'GoogleSans-Bold.ttf', typ: 'font/ttf', sciezka: `${uid}/${id}/f700` } };
+    const hasla = Array.from({ length: 26 }, (_, i) => [`Hasło ${i + 1}`, `Mk ${i + 1}:${i + 3}`, `Opis hasła ${i + 1}: krótkie wyjaśnienie znaczenia słowa w Biblii, z odniesieniem do kontekstu i tradycji.`]);
+    const tekst = hasla.map(([h, o, d]) => `${h} ${o}\n${d}`).join('\n \n');
+    const bez = (do_) => do_ - (tekst.slice(0, do_).match(/\n/g) || []).length;
+    const style = [];
+    let poz = 0;
+    for (const [h, o, d] of hasla) {
+      style.push({ start: bez(poz), end: bez(poz + h.length), style: { fontWeight: 600 } });
+      style.push({ start: bez(poz + h.length + 1), end: bez(poz + h.length + 1 + o.length), style: { fontWeight: 300, fontSize: 2.4 } });
+      poz += h.length + 1 + o.length + 1 + d.length;
+      if (poz < tekst.length) { style.push({ start: bez(poz + 1), end: bez(poz + 2), style: { fontSize: 1.5 } }); poz += 3; }
+    }
+    const ramka = (nr) => ({ type: 'textbox', id: `sl${nr}`, left: 15, top: 20, width: 100, height: 120, ramka_h: 120, fontSize: 3.4, fontFamily: 'Google Sans', text: nr ? '' : tekst, styles: nr ? [] : style, watek: 'w_slowniczek', watek_nr: nr, wdowy: 3, lamanie_akapitu: true, zasady_pl: true, ...(nr ? { lacznik: '\n' } : {}) });
+    p.strony[0].obiekty = [ramka(0)];
+    for (let i = 1; i < 4; i += 1) { const s = nowaStrona(`Słowniczek ${i + 1}`, p.strony[0].sekcja); s.obiekty = [ramka(i)]; p.strony.push(s); }
+    const zapisany = JSON.parse(JSON.stringify(p));
+    // Aplikacja: pliki czcionki w projekcie (jak po wczytaniu z konta), ten sam kod przelewania co edytor.
+    const wAplikacji = normalizuj(JSON.parse(JSON.stringify(p)));
+    for (const k of ['f400', 'f700']) wAplikacji.zasoby[k].dataUrl = `data:font/ttf;base64,${dane[k]}`;
+    const bledy = await zarejestrujCzcionkiProjektu(wAplikacji);
+    const { zmiany } = await przelejWatek(wAplikacji, 'w_slowniczek');
+    const c = rozwin(wAplikacji);
+    const obraz = await renderujCel(wAplikacji, c.egzemplarze[0], { szerokoscPx: 400, spad: false, ciag: c });
+    // Ta sama strona zastępczym krojem – do porównania (czy obraz z serwera nie jest zamiennikiem).
+    const zast = JSON.parse(JSON.stringify(wAplikacji));
+    for (const s of zast.strony) for (const o of s.obiekty) o.fontFamily = 'Nieistniejąca';
+    const c2 = rozwin(zast);
+    const zastepczy = await renderujCel(zast, c2.egzemplarze[0], { szerokoscPx: 400, spad: false, ciag: c2 });
+    return { zapisany, app: { bledy, zmiany: zmiany.map((z) => [z.id, z.pola.text, z.pola.lacznik ?? null]), obraz, zastepczy } };
+  }, { id: PROJ, b64, uid: UID });
+  assert.deepEqual(app.bledy, [], 'czcionka projektu wczytana w aplikacji');
+  assert.ok(app.zmiany.length >= 2, 'tekst płynie przez kilka ramek');
+  const prawdziwy = globalThis.fetch;
+  globalThis.fetch = async (adresZ, opcje) => {
+    const u = String(adresZ);
+    if (u.startsWith('https://baza.test/rest/v1/rpc/')) {
+      const nazwa = u.split('/').pop();
+      const cialo = JSON.parse(opcje.body);
+      const dane = nazwa === 'serwer_klucz_ai' ? { owner_id: UID, projekt_id: PROJ, rola: 'edycja' } : nazwa === 'serwer_projekt' ? zapisany : null;
+      void cialo;
+      return new Response(JSON.stringify(dane), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    return prawdziwy(adresZ, opcje);
+  };
+  t.after(() => { globalThis.fetch = prawdziwy; });
+  const env = { PLIKI: r2(), PRZEGLADARKA: {}, APLIKACJA: adres.replace(/\/$/, ''), SUPABASE_URL: 'https://baza.test', SUPABASE_SERVICE_ROLE_KEY: 'sb_secret_test', __puppeteer: puppeteerZPlaywright(przegladarka) };
+  env.RYSOWANIE = kolejki(env, R.Rysowanie);
+  for (const k of ['f400', 'f700']) await env.PLIKI.put(`zasoby/${UID}/${PROJ}/${k}`, Buffer.from(b64[k], 'base64'), { httpMetadata: { contentType: 'font/ttf' } });
+  // Widok AI: pliki bez ścieżek i treści (jak ai_projekt).
+  const widokAi = JSON.parse(JSON.stringify(zapisany));
+  for (const z of Object.values(widokAi.zasoby)) delete z.sciezka;
+  const w = await R.skladajDlaAi(env, { klucz: 'sdk_dobry', projektId: PROJ, projekt: widokAi, dzialania: [{ rodzaj: 'przelej', watki: ['w_slowniczek'], suchy: true }, { rodzaj: 'podglad', strona: zapisany.strony[0].id, szerokosc: 400 }] });
+  assert.equal(w.status, 200, JSON.stringify(w.dane).slice(0, 300));
+  assert.equal(w.dane.brakCzcionek, undefined, `serwer ma czcionkę projektu: ${w.dane.brakCzcionek}`);
+  const serwer = w.dane.przelej[0].zmiany.map((z) => [z.id, z.pola.text, z.pola.lacznik ?? null]);
+  assert.deepEqual(serwer, app.zmiany, 'podział z serwera identyczny z aplikacją (edytorem)');
+  for (const [id, tekst] of serwer) assert.ok(!/^[ \t]*\n/.test(tekst), `ramka ${id} nie zaczyna się odstępem`);
+  // Podgląd: obraz z serwera = obraz z aplikacji (wgrana czcionka), a nie zastępczy krój.
+  const porownaj = await strona.evaluate(async ([a, b, c]) => {
+    const px = async (s) => { const i = await createImageBitmap(await (await fetch(s)).blob()); const k = new OffscreenCanvas(i.width, i.height); const g = k.getContext('2d'); g.drawImage(i, 0, 0); return g.getImageData(0, 0, i.width, i.height).data; };
+    const [x, y, z] = [await px(a), await px(b), await px(c)];
+    const rozne = (p, q) => { let n = 0; for (let i = 0; i < Math.min(p.length, q.length); i += 4) if (Math.abs(p[i] - q[i]) > 40) n += 1; return n; };
+    return { zAplikacja: rozne(x, y), zZastepczym: rozne(x, z) };
+  }, [`data:image/png;base64,${w.dane.podglad.b64}`, app.obraz, app.zastepczy]);
+  assert.ok(porownaj.zAplikacja < 50, `podgląd z serwera jak w aplikacji: ${JSON.stringify(porownaj)}`);
+  assert.ok(porownaj.zZastepczym > 1000, `podgląd z serwera to nie zastępczy krój: ${JSON.stringify(porownaj)}`);
+});
