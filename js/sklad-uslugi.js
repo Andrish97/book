@@ -16,11 +16,21 @@ const doBase64 = async (blob) => {
 //   { rodzaj: 'sprawdz' }, { rodzaj: 'podglad', strona, egzemplarz?, szerokosc? (px) }, { rodzaj: 'opis', strona, element? }]
 // Zwraca { przelej: [{ watek, zmiany, raport, opis }], wysokosci: [{ strona, id, height }], sprawdz: [uwagi],
 //   podglad: { b64, typ, szerokosc, wysokosc }, opis: [...] }. Kolejne działania widzą wynik poprzednich (np. przelanie).
+// Brak czcionki (#439, zgłoszenie 26.11 „serwer podstawia zamiennik”): wynik.brakCzcionek = [nazwy]. Przelanie,
+// treść z tabel i wysokości wtedy się NIE liczą (pomiar zastępczym krojem dałby podział, który w edytorze się nie
+// mieści) – zwracają pusty wynik; podgląd, opis i sprawdzenie liczą się, ale z tą informacją.
+const ZALEZNE_OD_POMIARU = new Set(['przelej', 'tresc_z_tabel', 'wysokosci']);
 export async function skladaj(p, dzialania = [], { etap = () => {} } = {}) {
   const { rozwin } = await import('./serie.js');
   const wynik = {};
+  const { zapewnijCzcionki, brakujaceCzcionki } = await import('./czcionki.js');
+  const teksty = [...(p.strony || []), ...(p.wzorce || [])].flatMap((s) => s.obiekty || []);
+  await zapewnijCzcionki(teksty);
+  const braki = brakujaceCzcionki(p, teksty);
+  if (braki.length) wynik.brakCzcionek = braki;
   for (const d of dzialania) {
     etap(`skład: ${d.rodzaj}`);
+    if (braki.length && ZALEZNE_OD_POMIARU.has(d.rodzaj)) { wynik[d.rodzaj] = []; continue; }
     if (d.rodzaj === 'przelej') {
       const { przelejWatek, opisRaportu } = await import('./przelewanie.js');
       const { watkiProjektu } = await import('./watki.js');

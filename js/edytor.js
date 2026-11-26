@@ -1439,7 +1439,7 @@ export class Edytor extends EventTarget {
   }
 
   _polaRamkiPoza(o) {
-    const pola = { text: o.text, styles: fabric.util.stylesToArray(o.styles || {}, o.text), watek: o.watek, watek_nr: o.watek_nr, lacznik: o.lacznik, lista_start: o.lista_start, ramka_h: o.ramka_h };
+    const pola = { text: o.text, styles: fabric.util.stylesToArray(o.styles || {}, o.text), watek: o.watek, watek_nr: o.watek_nr, lacznik: o.lacznik, lacznik_style: o.lacznik_style, lista_start: o.lista_start, ramka_h: o.ramka_h };
     for (const k of WSPOLNE_W_WATKU) pola[k] = o[k];
     return pola;
   }
@@ -1731,12 +1731,12 @@ export class Edytor extends EventTarget {
     e.preventDefault(); e.stopPropagation();
     if (wstecz) {
       // Między częściami stoi łącznik (spacja albo nowy akapit) – on znika pierwszy; inaczej ostatni znak poprzedniej części.
-      if (o.text && (o.lacznik ?? '\n')) o.lacznik = '';
+      if (o.text && (o.lacznik ?? '\n')) { o.lacznik = ''; delete o.lacznik_style; }
       else sasiad.removeChars(sasiad._text.length - 1, sasiad._text.length);
       this._przelejZKursorem(ramki, o, this._poczatekWWatku(ramki, o), { gdyPoza: 'poczatek', zawsze: true });
     } else {
       const kursor = this._poczatekWWatku(ramki, o) + o.text.length;
-      if (ramki.slice(0, ramki.indexOf(sasiad)).some((r) => r.text) && (sasiad.lacznik ?? '\n')) sasiad.lacznik = '';
+      if (ramki.slice(0, ramki.indexOf(sasiad)).some((r) => r.text) && (sasiad.lacznik ?? '\n')) { sasiad.lacznik = ''; delete sasiad.lacznik_style; }
       else sasiad.removeChars(0, 1);
       this._przelejZKursorem(ramki, o, kursor, { gdyPoza: 'koniec', zawsze: true });
     }

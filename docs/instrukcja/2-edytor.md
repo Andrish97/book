@@ -538,7 +538,7 @@ Te same ustawienia zapiszesz w stylu (→ 5.4).
 | **Łam cały akapit naraz** | Włączone w nowych tekstach. Wiersze akapitu są dobierane razem, a nie po kolei — jak „kompozytor akapitu” w programach DTP. Program waży wszystkie możliwe miejsca złamania i wybiera układ z najrówniejszymi odstępami między wyrazami i jak najmniejszą liczbą dzielonych wyrazów; zasady polskiego składu dalej obowiązują. Najlepiej widać to przy justowaniu: zamiast jednego wiersza z wielkimi dziurami odstępy rozkładają się po kilku wierszach. Akapit, który opływa inny element, ma inicjał albo tabulatory, łamie się wiersz po wierszu. |
 | **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad — wyjustowany tekst nie ma wtedy dziur. Obok ustawisz najkrótszy dzielony wyraz i ile liter zostaje przed łącznikiem i po nim. |
 | **Spójniki na końcu wiersza** | Pojedyncze **a, i, o, u, w, z** (albo też dwuliterowe: do, na, że…) przechodzą do następnego wiersza razem ze słowem, jak w polskim składzie. |
-| **Wdowy i sieroty** | Tekst płynący przez kilka ramek (→ 5.7) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. |
+| **Wdowy i sieroty** | Tekst płynący przez kilka ramek (→ 5.7) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. Pusta linia-odstęp (np. sama spacja mniejszą czcionką między hasłami) nie zaczyna ramki — na górze kolumny znika, a gdy podział się przesunie, wraca na swoje miejsce. |
 | **Wyrównaj do siatki linii bazowych** | Wiersze stają na liniach siatki sekcji (→ 5.13). |
 | **Nie opływaj innych elementów** | Tekst leży na elementach z oblewaniem, zamiast je opływać (→ 5.12) — np. podpis na zdjęciu. |
 

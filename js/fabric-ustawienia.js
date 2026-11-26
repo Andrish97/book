@@ -22,7 +22,7 @@ export const WLASNE_POLA = [
   'ramka_pola',
   'boki', 'gwiazda', // wielokąt foremny albo gwiazda (punkty liczone z tych dwóch liczb)
   'lista', 'lista_start', // wypunktowanie / numerowanie akapitów (tekst-ramka.js)
-  'watek', 'watek_nr', 'lacznik', // przelewanie tekstu między ramkami (watki.js)
+  'watek', 'watek_nr', 'lacznik', 'lacznik_style', // przelewanie tekstu między ramkami (watki.js)
   'auto_strony', // wątek dokłada strony, aż cały tekst się zmieści (#212)
   'z_tabeli', // treść z tabeli: wzór wpisu powtórzony dla wierszy tabeli (tekst-z-tabeli.js, #432)
   'z_importu', // opis uproszczenia przy odczycie z innego programu (#232) – uwaga w „Sprawdź przed drukiem”

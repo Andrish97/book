@@ -27,7 +27,12 @@ export function polaczCzesci(czesci) {
   let pierwsza = true;
   for (const cz of czesci) {
     if (!cz.text) continue;
-    if (!pierwsza) text += cz.lacznik ?? '\n';
+    if (!pierwsza) {
+      // Łącznik z pustą linią-odstępem (#439) ma styl tej linii – wraca na miejsce razem z nią.
+      const baza = bezLinii(text);
+      for (const s of cz.lacznikStyles || []) styles.push({ start: s.start + baza, end: s.end + baza, style: s.style });
+      text += cz.lacznik ?? '\n';
+    }
     pierwsza = false;
     const przesuniecie = bezLinii(text);
     for (const s of cz.styles || []) styles.push({ start: s.start + przesuniecie, end: s.end + przesuniecie, style: s.style });
@@ -228,9 +233,11 @@ function przelej(ramki, limity) {
     text: r.text,
     styles: fabric.util.stylesToArray(r.styles || {}, r.text),
     lacznik: i ? (r.lacznik ?? '\n') : '',
+    lacznikStyles: i ? r.lacznik_style : null,
   }));
   let { text, styles } = polaczCzesci(czesci);
   let lacznik = '';
+  let lacznikStyles = null;
   let numer = 1;
   ramki.forEach((r, i) => {
     const ostatnia = i === ramki.length - 1;
@@ -244,7 +251,8 @@ function przelej(ramki, limity) {
     const podzialy = podzialyStron(text, styles);
     if (!ostatnia && podzialy.length && podzialy[0] < idx) idx = podzialy[0];
     r._potrzebaDalej = ostatnia && podzialy.length ? podzialy.length : undefined;
-    const [a, b] = podzielTekst(text, styles, idx);
+    const [a, b0] = podzielTekst(text, styles, idx);
+    const b = bezOdstepuNaPoczatku(b0, ostatnia);
     // Słowo podzielone między ramki (dzielenie wyrazów): łącznik na końcu tej ramki.
     const lacznikNaKoncu = b.lacznik === '' && Boolean(b.text);
     const bylLacznik = Boolean(r._lacznikNaKoncu);
@@ -252,14 +260,31 @@ function przelej(ramki, limity) {
     if (a.text !== text) ustawTekst(r, a.text, a.styles);
     else if (bylLacznik !== lacznikNaKoncu) r.initDimensions();
     if (i) r.lacznik = lacznik; else delete r.lacznik;
+    if (i && lacznikStyles?.length) r.lacznik_style = lacznikStyles; else delete r.lacznik_style;
     // Numerowana lista liczy dalej w kolejnej ramce; akapit przeniesiony w połowie nie dostaje nowego numeru.
-    const ciagDalszy = i > 0 && lacznik !== '\n' && a.text !== '';
+    const ciagDalszy = i > 0 && !lacznik.startsWith('\n') && a.text !== '';
     r.lista_start = numer > 1 || ciagDalszy ? numer : undefined;
     numer += akapity(a.text) - (ciagDalszy ? 1 : 0);
     r.setCoords();
     r.dirty = true;
-    text = b.text; styles = b.styles; lacznik = b.lacznik;
+    text = b.text; styles = b.styles; lacznik = b.lacznik; lacznikStyles = b.lacznikStyles;
   });
+}
+
+// Pusta linia-odstęp (sama spacja albo nic) na początku kolejnej ramki (#439, „nie może zaczynać ramki”): idzie do
+// łącznika razem ze swoim stylem – kolumna zaczyna się od treści, a tekst wątku zostaje cały (gdy podział się
+// przesunie, odstęp wraca na swoje miejsce w środku kolumny).
+function bezOdstepuNaPoczatku(b, ostatnia) {
+  if (ostatnia || b.lacznik !== '\n' || !b.text) return b;
+  const m = /^(?:[ \t\u00a0]*\n)+/.exec(b.text);
+  if (!m || m[0].length >= b.text.length) return b;
+  const znakow = bezLinii(m[0]);
+  return {
+    text: b.text.slice(m[0].length),
+    styles: (b.styles || []).filter((s) => s.end > znakow).map((s) => ({ start: Math.max(0, s.start - znakow), end: s.end - znakow, style: s.style })),
+    lacznik: `\n${m[0]}`,
+    lacznikStyles: (b.styles || []).filter((s) => s.start < znakow).map((s) => ({ start: s.start, end: Math.min(s.end, znakow), style: s.style })),
+  };
 }
 
 // Przelewa wszystkie kompletne wątki wśród obiektów (przy składaniu strony).
@@ -270,16 +295,16 @@ export function rozlejWatki(obiekty) {
 // Dopisuje tekst usuwanej ramki do sąsiedniej ramki wątku, żeby nie zginął.
 export function przeniesTekst(z, cel, naKoniec) {
   if (!z.text) return;
-  const czesc = (r, lacznik) => ({ text: r.text, styles: fabric.util.stylesToArray(r.styles || {}, r.text), lacznik });
+  const czesc = (r, lacznik, lacznikStyles = null) => ({ text: r.text, styles: fabric.util.stylesToArray(r.styles || {}, r.text), lacznik, lacznikStyles });
   const wynik = naKoniec
-    ? polaczCzesci([czesc(cel, ''), czesc(z, z.lacznik ?? '\n')])
-    : polaczCzesci([czesc(z, ''), czesc(cel, cel.lacznik ?? '\n')]);
-  if (!naKoniec) cel.lacznik = z.lacznik;
+    ? polaczCzesci([czesc(cel, ''), czesc(z, z.lacznik ?? '\n', z.lacznik_style)])
+    : polaczCzesci([czesc(z, ''), czesc(cel, cel.lacznik ?? '\n', cel.lacznik_style)]);
+  if (!naKoniec) { cel.lacznik = z.lacznik; if (z.lacznik_style) cel.lacznik_style = z.lacznik_style; else delete cel.lacznik_style; }
   ustawTekst(cel, wynik.text, wynik.styles);
 }
 
 export function odlaczRamke(r) {
-  delete r.watek; delete r.watek_nr; delete r.lacznik; delete r.lista_start;
+  delete r.watek; delete r.watek_nr; delete r.lacznik; delete r.lacznik_style; delete r.lista_start;
   r.dirty = true;
 }
 

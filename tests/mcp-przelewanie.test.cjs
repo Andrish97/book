@@ -113,3 +113,40 @@ test('łącznik: przelej_watek (próba bez zapisu i zapis starego podziału), po
   assert.match(k, /Sprawdź przed drukiem/, k);
   assert.doesNotMatch(await w('kontrola', { projekt: pid, szybka: true }), /Sprawdź przed drukiem/);
 });
+
+// #439 (zgłoszenie 26.11: „serwer nie ma fontów projektu i podstawia zamiennik… zapisuje podział, który w edytorze się
+// nie mieści”): czcionka, której usługa składu nie ma (plik czcionki projektu niedostępny) – żadnego cichego zamiennika.
+// Zmiana tekstu zapisuje się bez przelania, z ostrzeżeniem; przelej_watek i teksty/podgląd mówią wprost o braku.
+test('łącznik: brak czcionki projektu – ostrzeżenie, przelanie nie zapisane, przelej_watek z błędem', async (t) => {
+  const { w, pelne, stan, zapisy } = await lacznik(t);
+  const np = await w('nowy_projekt', { nazwa: 'Bez czcionki', format: 'A5' });
+  const pid = /id ([0-9a-f-]{36})/.exec(np)[1];
+  const s1 = /strona (s_\w+)/.exec(np)[1];
+  const s2 = /(s_\w+)/.exec(await w('dodaj_strone', { projekt: pid, strona: { nazwa: 'Strona 2' } }))[1];
+  // Czcionka wgrana do projektu (Google Sans) – plik nieosiągalny dla usługi składu.
+  const p = stan.projekty.find((x) => x.id === pid);
+  const dane = p.dane || p;
+  dane.zasoby = { ...(dane.zasoby || {}), f_gs: { nazwa: 'GoogleSans.ttf', typ: 'font/ttf', sciezka: 'u-1/nie/ma.ttf' } };
+  dane.czcionki = [{ id: 'f_gs', rodzina: 'Google Sans', waga: 400, kursywa: false }];
+  const ramka = (id, nr, text) => ({ type: 'textbox', id, left: 15, top: 20, width: 100, height: 60, ramka_h: 60, fontSize: 3.5, fontFamily: 'Google Sans', text, watek: 'w_gs', watek_nr: nr, ...(nr ? { lacznik: '\n' } : {}), styles: [{ start: 0, end: 5, style: { fontWeight: 600 } }] });
+  stan.strony.get(`${pid}/${s1}`).obiekty.push(ramka('g1', 0, 'Krótki'));
+  stan.strony.get(`${pid}/${s2}`).obiekty.push(ramka('g2', 1, ''));
+  const tekst = Array.from({ length: 14 }, (_, i) => `Hasło${i} Dz 1:${i}\n${OPIS}`).join('\n');
+  const odp = await w('zmien_elementy', { projekt: pid, gdzie: `strona:${s1}`, zmiany: [{ id: 'g1', pola: { text: tekst } }] });
+  assert.match(odp, /BRAK CZCIONKI: Google Sans/, odp);
+  assert.match(odp, /Przelania tekstu NIE zapisano/);
+  assert.equal(stan.strony.get(`${pid}/${s2}`).obiekty.find((o) => o.id === 'g2').text, '', 'druga ramka nietknięta – bez podziału liczonego zamiennikiem');
+  assert.equal(stan.strony.get(`${pid}/${s1}`).obiekty.find((o) => o.id === 'g1').text, tekst, 'sama zmiana tekstu zapisana');
+  const ile = zapisy.length;
+  const blad = await pelne('przelej_watek', { projekt: pid, watek: 'w_gs' });
+  assert.ok(blad.isError, JSON.stringify(blad).slice(0, 300));
+  assert.match(blad.content[0].text, /BRAK CZCIONKI: Google Sans.*Przelania NIE zapisano/s);
+  assert.equal(zapisy.length, ile, 'przelej_watek nic nie zapisał');
+  assert.match(await w('teksty_strony', { projekt: pid, strona: s1 }), /^UWAGA – BRAK CZCIONKI: Google Sans/);
+  const pg = await pelne('podglad_strony', { projekt: pid, strona: s1, szerokosc: 300 });
+  assert.match(pg.content.find((c) => c.type === 'text').text, /UWAGA – BRAK CZCIONKI: Google Sans/);
+  // Czcionka zestawu (Inter) z grubością 600 – nie jest brakiem.
+  stan.strony.get(`${pid}/${s1}`).obiekty.find((o) => o.id === 'g1').fontFamily = 'Inter';
+  stan.strony.get(`${pid}/${s2}`).obiekty.find((o) => o.id === 'g2').fontFamily = 'Inter';
+  assert.doesNotMatch(await w('teksty_strony', { projekt: pid, strona: s1 }), /BRAK CZCIONKI/);
+});

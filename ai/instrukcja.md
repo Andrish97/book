@@ -617,7 +617,7 @@ Zwijana część **Skład akapitu** we właściwościach tekstu decyduje o tym, 
 | **Łam cały akapit naraz** | Włączone w nowych tekstach. Wiersze akapitu są dobierane razem, a nie po kolei — jak „kompozytor akapitu” w programach DTP. Program waży wszystkie możliwe miejsca złamania i wybiera układ z najrówniejszymi odstępami między wyrazami i jak najmniejszą liczbą dzielonych wyrazów; zasady polskiego składu dalej obowiązują. Najlepiej widać to przy justowaniu: zamiast jednego wiersza z wielkimi dziurami odstępy rozkładają się po kilku wierszach. Akapit, który opływa inny element, ma inicjał albo tabulatory, łamie się wiersz po wierszu. |
 | **Dziel wyrazy** | Długie wyrazy dzielą się na końcu wiersza według polskich zasad — wyjustowany tekst nie ma wtedy dziur. Obok ustawisz najkrótszy dzielony wyraz i ile liter zostaje przed łącznikiem i po nim. |
 | **Spójniki na końcu wiersza** | Pojedyncze **a, i, o, u, w, z** (albo też dwuliterowe: do, na, że…) przechodzą do następnego wiersza razem ze słowem, jak w polskim składzie. |
-| **Wdowy i sieroty** | Tekst płynący przez kilka ramek (rozdział „5.7 Kolumny i tekst przez kilka ramek”) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. |
+| **Wdowy i sieroty** | Tekst płynący przez kilka ramek (rozdział „5.7 Kolumny i tekst przez kilka ramek”) nie zostawia samotnego wiersza akapitu na dole ani na górze ramki. Pusta linia-odstęp (np. sama spacja mniejszą czcionką między hasłami) nie zaczyna ramki — na górze kolumny znika, a gdy podział się przesunie, wraca na swoje miejsce. |
 | **Wyrównaj do siatki linii bazowych** | Wiersze stają na liniach siatki sekcji (rozdział „5.13 Siatka linii bazowych”). |
 | **Nie opływaj innych elementów** | Tekst leży na elementach z oblewaniem, zamiast je opływać (rozdział „5.12 Oblewanie tekstem”) — np. podpis na zdjęciu. |
 
@@ -2509,7 +2509,7 @@ Asystent AI (Claude, ChatGPT i inne) łączy się z Makietką przez **łącznik*
 | czytać komentarze, odpowiadać na nie i dodawać własne (rozdział „24.7 Komentarze”) |  |
 | cofnąć swoją ostatnią serię zmian – najpierw mówi, co cofnie, i pyta (rozdział „25.9 Cofnięcie zmian AI”) |  |
 | zlecić plik PDF albo PNG strony i podać Ci link do pobrania (rozdział „25.5 Plik PDF przez AI”) | zapraszać osób do projektu (rozdział „24 Współpraca”) |
-| zobaczyć podgląd strony, sprawdzić projekt jak „Sprawdź przed drukiem” i przelać tekst w połączonych ramkach – bez otwartej Makietki; zmieniony tekst w połączonych ramkach przelewa się od razu, a AI dostaje raport, czy wszystko się mieści |  |
+| zobaczyć podgląd strony, sprawdzić projekt jak „Sprawdź przed drukiem” i przelać tekst w połączonych ramkach – bez otwartej Makietki; zmieniony tekst w połączonych ramkach przelewa się od razu, a AI dostaje raport, czy wszystko się mieści. Gdy usługa składu nie ma czcionki projektu (np. plik wgranej czcionki niedostępny), AI dostaje wyraźną informację „brak czcionki” i podział tekstu nie jest zapisywany — ułoży go edytor |  |
 | rysować obrazy Twoim kluczem Gemini, rysować kadry komiksu i stawiać dymki – w otwartej Makietce (rozdział „25.10 Zadania dla otwartej Makietki”) |  |
 | wstawiać gotowe elementy z Biblioteki: ramki, ikony, kalendarze, wykresy, ozdobniki i inne (rozdział „25.10 Zadania dla otwartej Makietki”) |  |
 | utworzyć link do podglądu – tylko po Twojej zgodzie, także z hasłem albo datą ważności (rozdział „25.10 Zadania dla otwartej Makietki”) |  |

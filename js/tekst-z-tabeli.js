@@ -68,7 +68,7 @@ export async function odswiezTekstyZTabel(projekt) {
       const nowa = trescZTabeli(projekt, o);
       if (!nowa) continue;
       const ramki = o.watek ? (watki.get(o.watek) || [{ strona, o }]) : [{ strona, o }];
-      const obecna = polaczCzesci(ramki.map((r, i) => ({ text: r.o.text || '', styles: Array.isArray(r.o.styles) ? r.o.styles : [], lacznik: i ? (r.o.lacznik ?? '\n') : '' })));
+      const obecna = polaczCzesci(ramki.map((r, i) => ({ text: r.o.text || '', styles: Array.isArray(r.o.styles) ? r.o.styles : [], lacznik: i ? (r.o.lacznik ?? '\n') : '', lacznikStyles: i ? r.o.lacznik_style : null })));
       o.z_tabeli.poczatki = nowa.poczatki;
       if (obecna.text === nowa.text && o.z_tabeli.odcisk === nowa.odcisk) continue;
       o.z_tabeli.odcisk = nowa.odcisk;
@@ -86,7 +86,7 @@ export async function odswiezTekstyZTabel(projekt) {
       ramki.forEach((r, i) => {
         r.o.text = z[i].text;
         r.o.styles = fabric.util.stylesToArray(z[i].styles || {}, z[i].text);
-        for (const k of ['lacznik', 'lista_start']) { if (z[i][k] === undefined) delete r.o[k]; else r.o[k] = z[i][k]; }
+        for (const k of ['lacznik', 'lacznik_style', 'lista_start']) { if (z[i][k] === undefined) delete r.o[k]; else r.o[k] = z[i][k]; }
       });
     }
   }

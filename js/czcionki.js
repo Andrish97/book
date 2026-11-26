@@ -44,7 +44,54 @@ export function rodzinyWObiektach(obiekty, zbior = new Set()) {
   return zbior;
 }
 
-export const zapewnijCzcionki = (obiekty) => zapewnijRodziny(rodzinyWObiektach(obiekty));
+// Odmiany użyte w tekstach: [{ rodzina, waga, kursywa }] – czcionka ramki i fragmentów (styles), także w grupach.
+const GENERYCZNE = new Set(['serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', 'system-ui']);
+export function odmianyWObiektach(obiekty, wynik = new Map()) {
+  const dodaj = (rodzina, waga, kursywa) => {
+    if (!rodzina || GENERYCZNE.has(rodzina)) return;
+    const w = Number(waga === 'bold' ? 700 : waga === 'normal' || waga === undefined || waga === '' ? 400 : waga) || 400;
+    wynik.set(`${rodzina}|${w}|${kursywa ? 1 : 0}`, { rodzina, waga: w, kursywa: Boolean(kursywa) });
+  };
+  for (const o of obiekty || []) {
+    if (!o) continue;
+    if (typeof o.text === 'string') {
+      dodaj(o.fontFamily, o.fontWeight, o.fontStyle === 'italic');
+      const style = Array.isArray(o.styles) ? o.styles.map((s) => s.style) : Object.values(o.styles || {}).flatMap((w) => Object.values(w || {}));
+      for (const s of style) {
+        if (s && (s.fontFamily || s.fontWeight || s.fontStyle)) dodaj(s.fontFamily || o.fontFamily, s.fontWeight ?? o.fontWeight, (s.fontStyle ?? o.fontStyle) === 'italic');
+      }
+    }
+    const dzieci = Array.isArray(o.objects) ? o.objects : o._objects;
+    if (Array.isArray(dzieci)) odmianyWObiektach(dzieci, wynik);
+  }
+  return wynik;
+}
+
+// Czcionki zestawu: wczytane rodziny (400/700, kursywa) i dokładnie te odmiany, których tekst używa (np. 600).
+export async function zapewnijCzcionki(obiekty) {
+  await zapewnijRodziny(rodzinyWObiektach(obiekty));
+  if (typeof document === 'undefined' || !document.fonts) return;
+  const odmiany = [...odmianyWObiektach(obiekty).values()].filter((o) => CZCIONKI.some((c) => c.nazwa === o.rodzina));
+  await Promise.allSettled(odmiany.map((o) => document.fonts.load(`${o.kursywa ? 'italic ' : ''}${o.waga} 16px "${o.rodzina}"`, 'AaĄąŻż')));
+  if (odmiany.length && typeof fabric !== 'undefined') for (const r of new Set(odmiany.map((o) => o.rodzina))) fabric.cache.clearFontCache(r);
+}
+
+// Czcionki, których nie ma – rysowanie i pomiar tekstu użyłyby zastępczego kroju (serwer nie ma czcionek systemu).
+// Zwraca nazwy rodzin (z odmianą, gdy brakuje tylko jej): czcionka spoza zestawu i spoza plików projektu, plik
+// projektu niewczytany, odmiana zestawu niewczytana (błąd sieci). Wywołać po zapewnijCzcionki i rejestracji czcionek projektu.
+export function brakujaceCzcionki(projekt, obiekty) {
+  if (typeof document === 'undefined' || !document.fonts) return [];
+  const wczytaneRodziny = new Set([...document.fonts].filter((f) => f.status === 'loaded').map((f) => String(f.family).replace(/^["']|["']$/g, '')));
+  const braki = new Set();
+  for (const o of odmianyWObiektach(obiekty).values()) {
+    const zestawu = CZCIONKI.some((c) => c.nazwa === o.rodzina);
+    const projektu = (projekt?.czcionki || []).some((c) => c.rodzina === o.rodzina);
+    if (!zestawu && !projektu) { braki.add(o.rodzina); continue; }
+    if (!wczytaneRodziny.has(o.rodzina)) { braki.add(o.rodzina); continue; }
+    if (zestawu && !document.fonts.check(`${o.kursywa ? 'italic ' : ''}${o.waga} 16px "${o.rodzina}"`, 'Aa')) braki.add(`${o.rodzina} ${o.waga}${o.kursywa ? ' kursywa' : ''}`);
+  }
+  return [...braki];
+}
 
 // Przy starcie: czcionka domyślna (nowe teksty, wzorce standardowe).
 export async function zaladujCzcionki() {

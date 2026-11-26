@@ -75,6 +75,12 @@ for (const [nazwa, przypadek] of [
   ['inna czcionka (Lora), NBSP i dłuższe akapity', { tekst: `Rozdział pierwszy\n${'Tekst z twardymi spacjami płynie przez kolejne ramki i strony książki, a wiersze łamią się według polskich zasad. '.repeat(9)}`, czcionka: 'Lora', rozmiar: 3.3, wys: 45, style: [[0, 18, { fontWeight: 'bold', fontSize: 4.5 }]] }],
   ['rozkładówki (wyrównanie łamów) i element oblewany na innej stronie', (() => { const t = tekstHasel(16); return { tekst: t, style: styleHasel(t), wys: 50, ile: 4, rozkladowki: true, przeszkoda: true }; })()],
   ['bez polskich zasad i bez łamania akapitu', { tekst: tekstHasel(10), zasady: false, lamanie: false, wdowy: 0, wys: 48 }],
+  // #439: puste linie-odstępy (sama spacja, mniejsza czcionka) między hasłami – nie mogą zaczynać ramki.
+  ['odstępy między hasłami (linia ze spacją) nie zaczynają ramki', (() => {
+    const t = Array.from({ length: 16 }, (_, i) => `Hasło${i} Dz 1:${i}\n${OPIS}`).join('\n \n');
+    const style = [...styleHasel(t), ...[...t.matchAll(/\n \n/g)].map((m) => [m.index + 1, 1, { fontSize: 1.5 }])];
+    return { tekst: t, style, wys: 40, ile: 4, odstepy: true };
+  })()],
 ]) {
   test(`przelewanie bez edytora = edytor: ${nazwa}`, async (t) => {
     const { strona, bledy } = await otworz(t);
@@ -83,6 +89,10 @@ for (const [nazwa, przypadek] of [
     assert.deepEqual(w.modul, w.edytor, 'podział znak w znak jak w edytorze');
     assert.deepEqual(w.poDrugiej, w.edytor, 'edytor po wczytaniu innej strony niczego nie zmienia');
     assert.ok(w.modul.filter((c) => c.text).length > 1, `tekst płynie przez kilka ramek:\n${w.opis}`);
+    if (przypadek.odstepy) {
+      assert.ok(w.modul.every((c) => !/^[ \t]*\n/.test(c.text) && c.text.trim() === c.text.replace(/^\s+/, '').trim()), 'żadna ramka nie zaczyna się pustą linią');
+      assert.equal(w.modul.map((c, i) => (i ? (c.lacznik ?? '\n') : '') + c.text).join(''), przypadek.tekst, 'cały tekst wątku, odstępy na swoich miejscach');
+    }
     assert.deepEqual(bledy, []);
   });
 }
@@ -108,5 +118,41 @@ test('raport: akapit przecięty granicą ramek, cały tekst się mieści', async
   assert.equal(w2.raport.przepelnienie, null, w2.opis);
   assert.ok(w2.raport.podzielone.length >= 1, w2.opis);
   assert.match(w2.opis, /Cały tekst się mieści\./);
+  assert.deepEqual(bledy, []);
+});
+
+// #439: granica ramek trafia na pustą linię-odstęp – odstęp idzie do łącznika (ze stylem), następna ramka zaczyna się
+// od treści, cały tekst wątku zostaje; ponowne przelanie (np. po zmianie wysokości) przywraca odstęp w środku kolumny.
+test('odstęp na granicy ramek: do łącznika ze stylem, tekst cały, wraca przy ponownym przelaniu', async (t) => {
+  const { strona, bledy } = await otworz(t);
+  await nowyProjekt(strona, 'Odstępy');
+  const w = await strona.evaluate(async () => {
+    const { rozlej } = await import('./js/watki.js');
+    const tekst = Array.from({ length: 12 }, (_, i) => `Hasło ${i} z opisem, który zajmuje jeden albo dwa wiersze w ramce.`).join('\n \n');
+    const style = [...tekst.matchAll(/\n \n/g)].map((m) => ({ start: m.index + 1 - (tekst.slice(0, m.index + 1).match(/\n/g) || []).length, end: m.index + 2 - (tekst.slice(0, m.index + 1).match(/\n/g) || []).length, style: { fontSize: 1.5 } }));
+    const nowa = (nr, wys) => new fabric.Textbox(nr ? '' : tekst, { width: 60, fontSize: 3.5, fontFamily: 'Inter', ramka_h: wys, watek: 'w', watek_nr: nr, styles: nr ? {} : fabric.util.stylesFromArray(style, tekst), ...(nr ? { lacznik: '\n' } : {}) });
+    const caly = (r) => r.map((x, i) => (i ? (x.lacznik ?? '\n') : '') + x.text).join('');
+    for (let wys = 12; wys <= 40; wys += 0.5) {
+      const ramki = [nowa(0, wys), nowa(1, wys), nowa(2, 200)];
+      rozlej(ramki);
+      const z = ramki.findIndex((r, i) => i && r.lacznik && r.lacznik.length > 1);
+      if (z < 0) continue;
+      const odstep = ramki[z].lacznik_style;
+      const zaczynaPusta = ramki.some((r, i) => i && /^[ \t]*\n/.test(r.text));
+      const zgodny = caly(ramki) === tekst;
+      // Zmiana wysokości pierwszej ramki – ponowne przelanie: tekst nadal cały, styl odstępu wrócił do tekstu.
+      ramki[0].set({ ramka_h: wys + 7 }); ramki[1].set({ ramka_h: wys + 7 });
+      rozlej(ramki);
+      const poStyle = ramki.flatMap((r) => fabric.util.stylesToArray(r.styles || {}, r.text)).filter((x) => x.style.fontSize === 1.5).length + ramki.reduce((n, r) => n + (r.lacznik_style?.length || 0), 0);
+      return { wys, lacznik: ramki.length && JSON.stringify(odstep), zaczynaPusta, zgodny, zgodnyPo: caly(ramki) === tekst, poStyle, odstepow: style.length };
+    }
+    return null;
+  });
+  assert.ok(w, 'przy którejś wysokości granica trafia na odstęp');
+  assert.equal(w.zaczynaPusta, false, 'żadna ramka nie zaczyna się pustą linią');
+  assert.equal(w.zgodny, true, 'cały tekst wątku z odstępami');
+  assert.match(w.lacznik, /fontSize/, 'styl odstępu zapamiętany przy łączniku');
+  assert.equal(w.zgodnyPo, true, 'po ponownym przelaniu tekst cały');
+  assert.equal(w.poStyle, w.odstepow, 'żaden odstęp nie zgubił stylu');
   assert.deepEqual(bledy, []);
 });

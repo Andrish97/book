@@ -2433,6 +2433,11 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     }
   }
 
+  // Brak czcionki przy składzie (#439): pomiar zastępczym krojem jest niewiarygodny – jasna informacja zamiast wyniku.
+  const brakCzcionek = (w) => (Array.isArray(w?.brakCzcionek) && w.brakCzcionek.length
+    ? `BRAK CZCIONKI: ${w.brakCzcionek.join(', ')} – usługa składu nie ma tej czcionki, pomiar tekstu byłby niewiarygodny (zastępczy krój).`
+    : '');
+
   // Ramki tekstu (strona → id → obiekt) i wątki, w których zmiana coś ruszyła (tekst, style, wymiary, pola wątku).
   const ramkiTekstu = (p) => {
     const m = new Map();
@@ -2472,6 +2477,8 @@ export function utworzSerwer({ adres, kluczPubliczny, klucz, czytajOpis = null, 
     ];
     const w = await uslugaSkladu(projekt, dzialania);
     if (w?.blad) return watki.length || trescZTabel ? ` Tekstu w połączonych ramkach nie przelano od razu (${w.blad}) – przeleje się po otwarciu strony w edytorze.` : '';
+    // Brak czcionki: przelania i wysokości nie zapisujemy (zmiana zapisuje się bez nich) – przeleje edytor.
+    if (brakCzcionek(w)) return `\n${brakCzcionek(w)} Przelania tekstu NIE zapisano – podział ułoży edytor po otwarciu strony.`;
     const ramki = ramkiTekstu(projekt);
     const doZapisu = new Set();
     const wpisz = (id, pola) => {
@@ -3349,6 +3356,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         // akapity, ramki i tabele po podstawieniu danych na każdej stronie serii, marginesy, spad, dpi, polskie zasady.
         const w = await uslugaSkladu(projekt, [{ rodzaj: 'przelej', suchy: true }, { rodzaj: 'sprawdz' }]);
         if (w?.blad) return `${szybkie}\n(Pełne sprawdzenie niedostępne: ${w.blad}.)`;
+        if (brakCzcionek(w)) return `${szybkie}\n${brakCzcionek(w)} Pełnego sprawdzenia składu (przepełnienia, wątki) nie da się wiarygodnie policzyć.`;
         const pelne = (w.sprawdz || []).map((x) => `- ${x.opis}`);
         const watki = (w.przelej || []).filter((x) => x.raport && (x.raport.przepelnienie || x.raport.podzielone.some((p) => p.wbrew.length) || x.raport.tytulNaKoncu.length || x.zmiany.length));
         return [
@@ -3372,8 +3380,12 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         if (sucho) {
           const w = await uslugaSkladu(projekt, [{ rodzaj: 'przelej', watki, suchy: true }]);
           if (w?.blad) throw new BladBazy(`Usługa składu niedostępna: ${w.blad}.`);
+          if (brakCzcionek(w)) throw new BladBazy(`${brakCzcionek(w)} Raportu przelania nie da się policzyć.`);
           return (w.przelej || []).map((x) => `${x.opis}\n  ${x.zmiany.length ? `Po przelaniu zmieniłoby się ${x.zmiany.length} ramek.` : 'Zapisany podział jest aktualny.'}`).join('\n');
         }
+        // Najpierw sprawdzenie czcionek – przy braku żadnego zapisu (błąd zamiast cichego zamiennika).
+        const proba = await uslugaSkladu(projekt, [{ rodzaj: 'opis', strona: (projekt.strony || [])[0]?.id }]);
+        if (brakCzcionek(proba)) throw new BladBazy(`${brakCzcionek(proba)} Przelania NIE zapisano.`);
         return zmien(() => ({ zmiany: {}, przelej: watki, opis: '' }));
       },
     },
@@ -3389,7 +3401,7 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         if (!s) throw new BladBazy(`Nie ma strony ${strona}.`);
         const w = await uslugaSkladu(projekt, [{ rodzaj: 'podglad', strona, egzemplarz, szerokosc }]);
         if (w?.blad || !w.podglad) throw new BladBazy(`Podgląd niedostępny: ${w?.blad || 'brak obrazu'}. Plik strony zrobi eksport_png.`);
-        return { tresc: [{ type: 'image', data: w.podglad.b64, mimeType: w.podglad.typ || 'image/png' }, { type: 'text', text: `Strona ${strona} „${s.nazwa || ''}”${egzemplarz > 1 ? `, powielenie ${egzemplarz}` : ''}: ${w.podglad.szerokosc}×${w.podglad.wysokosc} px.` }] };
+        return { tresc: [{ type: 'image', data: w.podglad.b64, mimeType: w.podglad.typ || 'image/png' }, { type: 'text', text: `Strona ${strona} „${s.nazwa || ''}”${egzemplarz > 1 ? `, powielenie ${egzemplarz}` : ''}: ${w.podglad.szerokosc}×${w.podglad.wysokosc} px.${brakCzcionek(w) ? `\nUWAGA – ${brakCzcionek(w)} Obraz nie pokazuje prawdziwego wyglądu.` : ''}` }] };
       },
     },
     {
@@ -3404,8 +3416,9 @@ Host: ${new URL(ADRES_LACZNIKA).hostname}`,
         const w = await uslugaSkladu(projekt, [{ rodzaj: 'opis', strona, element }]);
         if (w?.blad) throw new BladBazy(`Usługa składu niedostępna: ${w.blad}.`);
         const lista = w.opis || [];
+        const uwaga = brakCzcionek(w) ? `UWAGA – ${brakCzcionek(w)} Liczby wierszy i wysokości poniżej są niewiarygodne.\n` : '';
         if (!lista.length) return element ? `Na stronie ${strona} nie ma ramki tekstu ${element}.` : `Na stronie ${strona} nie ma ramek tekstu.`;
-        return lista.map((t) => `${t.id}${t.nazwa ? ` „${t.nazwa}”` : ''}${t.zrodlo === 'wzorzec' ? ' (wzorzec)' : ''}: ${t.wierszy} wierszy, ${t.miesciSie ? 'mieści się' : 'NIE MIEŚCI SIĘ'} (treść ${t.wysokosc} mm${t.ramka_h ? ` / ramka ${t.ramka_h} mm` : ''})${t.watek ? `, wątek ${t.watek}` : ''}\n  „${element ? t.tekst : (t.tekst.length > 200 ? `${t.tekst.slice(0, 200)}…` : t.tekst)}”`).join('\n');
+        return uwaga + lista.map((t) => `${t.id}${t.nazwa ? ` „${t.nazwa}”` : ''}${t.zrodlo === 'wzorzec' ? ' (wzorzec)' : ''}: ${t.wierszy} wierszy, ${t.miesciSie ? 'mieści się' : 'NIE MIEŚCI SIĘ'} (treść ${t.wysokosc} mm${t.ramka_h ? ` / ramka ${t.ramka_h} mm` : ''})${t.watek ? `, wątek ${t.watek}` : ''}\n  „${element ? t.tekst : (t.tekst.length > 200 ? `${t.tekst.slice(0, 200)}…` : t.tekst)}”`).join('\n');
       },
     },
     {

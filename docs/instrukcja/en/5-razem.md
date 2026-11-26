@@ -123,7 +123,7 @@ which you add in the AI app.
 | read comments, reply to them and add its own (→ 24.7) | |
 | undo its latest series of changes – it first tells you what will be undone and asks (→ 25.9) | |
 | request a PDF file or a PNG of a page and give you a download link (→ 25.5) | invite people to the project (→ 24) |
-| see a preview of a page, check the project like “Check before printing” and reflow text in linked frames – without Makietka open; changed text in linked frames reflows right away, and the AI gets a report on whether everything fits | |
+| see a preview of a page, check the project like “Check before printing” and reflow text in linked frames – without Makietka open; changed text in linked frames reflows right away, and the AI gets a report on whether everything fits. When the layout service doesn't have a project font (e.g. the uploaded font file is unavailable), the AI gets a clear “missing font” notice and the text split isn't saved — the editor will lay it out | |
 | draw pictures with your Gemini key, draw comic panels and place bubbles – in the open Makietka (→ 25.10) | |
 | insert ready-made elements from the Library: frames, icons, calendars, charts, ornaments and more (→ 25.10) | |
 | create a preview link – only with your consent, also with a password or an expiry date (→ 25.10) | |

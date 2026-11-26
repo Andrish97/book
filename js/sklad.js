@@ -52,7 +52,7 @@ function wiazane(o, a, b, bOstatni = false) {
 }
 const krotkiOstatni = (b) => { const l = String(b).replace(/[^\p{L}\d]/gu, '').length; return l > 0 && l < 6 && !String(b).includes('{'); };
 
-const inicjalAktywny = (o) => o.inicjal >= 2 && !(o.watek && o.watek_nr > 0 && (o.lacznik ?? '\n') !== '\n');
+const inicjalAktywny = (o) => o.inicjal >= 2 && !(o.watek && o.watek_nr > 0 && !String(o.lacznik ?? '\n').startsWith('\n'));
 const maTab = (o) => typeof o.text === 'string' && o.text.includes('\t');
 
 // Czy tekst potrzebuje składu (inaczej – zwykłe łamanie Fabric, bez żadnej zmiany).

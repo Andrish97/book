@@ -539,7 +539,7 @@ You can save the same settings in a style (→ 5.4).
 | **Break the whole paragraph at once** | On in new texts. The lines of a paragraph are chosen together, not one by one — like the “paragraph composer” in DTP programs. The program weighs all possible break points and picks the layout with the most even word spacing and as few hyphenated words as possible; the Polish typesetting rules still apply. You see it best in justified text: instead of one line with big gaps, the spacing is spread over several lines. A paragraph that wraps around another element, has a drop cap or tabs is broken line by line. |
 | **Hyphenate** | Long words are hyphenated at the end of a line according to Polish rules — justified text then has no gaps. Next to it you set the shortest word to hyphenate and how many letters stay before and after the hyphen. |
 | **Conjunctions at line end** | Single-letter **a, i, o, u, w, z** (or also two-letter ones: do, na, że…) move to the next line together with the following word, as in Polish typesetting. |
-| **Widows and orphans** | Text flowing through several frames (→ 5.7) doesn't leave a lone line of a paragraph at the bottom or top of a frame. |
+| **Widows and orphans** | Text flowing through several frames (→ 5.7) doesn't leave a lone line of a paragraph at the bottom or top of a frame. An empty spacer line (e.g. just a space in a smaller font between entries) doesn't start a frame — it disappears at the top of a column and comes back in place when the split moves. |
 | **Align to baseline grid** | Lines sit on the section's grid lines (→ 5.13). |
 | **Don't wrap around other elements** | The text lies over elements with text wrap instead of flowing around them (→ 5.12) — e.g. a caption on a photo. |
 

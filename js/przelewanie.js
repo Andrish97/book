@@ -19,8 +19,8 @@ import { nieMiesciSie } from './tekst-ramka.js';
 const kopia = (o) => JSON.parse(JSON.stringify(o));
 
 // Pola ramki zapisywane po przelaniu (jak edytor przy zapisie ramek z innych stron).
-export const POLA_PRZELANIA = ['text', 'styles', 'lacznik', 'lista_start'];
-const polaRamki = (o) => ({ text: o.text, styles: fabric.util.stylesToArray(o.styles || {}, o.text), lacznik: o.lacznik, lista_start: o.lista_start });
+export const POLA_PRZELANIA = ['text', 'styles', 'lacznik', 'lacznik_style', 'lista_start'];
+const polaRamki = (o) => ({ text: o.text, styles: fabric.util.stylesToArray(o.styles || {}, o.text), lacznik: o.lacznik, lacznik_style: o.lacznik_style, lista_start: o.lista_start });
 
 // Odbicie elementu wzorca na lewej stronie (wzorzec z lustrem) – jak warstwyWzorcow w zlozenie.js.
 function odbij(o, szerokosc) {
@@ -84,7 +84,7 @@ export function raportWatku(ramki) {
     wynik.ramki.push({ nr: i + 1, strona: strona.id, nazwaStrony: strona.nazwa, id: o.id, wierszy: o._textLines?.length || 0, pusta: !o.text, ...slowa(o.text) });
     const nast = ramki[i + 1]?.o;
     // Akapit przecięty granicą ramek: następna ramka zaczyna się w środku akapitu (łącznik inny niż nowy akapit).
-    if (nast && o.text && nast.text && (nast.lacznik ?? '\n') !== '\n') {
+    if (nast && o.text && nast.text && !(nast.lacznik ?? '\n').startsWith('\n')) {
       const ostatni = o._unwrappedTextLines.length - 1;
       const przed = Object.values(o._styleMap || {}).filter((m) => m.line === ostatni).length;
       const po = Object.values(nast._styleMap || {}).filter((m) => m.line === 0).length;
@@ -96,7 +96,7 @@ export function raportWatku(ramki) {
       wynik.podzielone.push({ miedzy: [i + 1, i + 2], wierszyPrzed: przed, wierszyPo: po, wbrew, koniec: slowa(o.text).koniec, poczatek: slowa(nast.text).poczatek });
     }
     // Tytuł (nagłówek hasła) jako ostatni akapit ramki, a treść już w następnej.
-    if (nast && o.text && (nast.lacznik ?? '\n') === '\n' && nast.text) {
+    if (nast && o.text && (nast.lacznik ?? '\n').startsWith('\n') && nast.text) {
       const ostatni = (o._unwrappedTextLines?.length || 1) - 1;
       if (akapitTytulem(o, ostatni)) wynik.tytulNaKoncu.push({ ramka: i + 1, tytul: o._unwrappedTextLines[ostatni].join('').trim() });
     }

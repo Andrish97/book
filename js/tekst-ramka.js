@@ -126,7 +126,7 @@ P._renderText = function _renderText(ctx) {
   let y = this._getTopOffset();
   let numer = this.lista_start || 1;
   // Pierwszy akapit ramki z ciągiem dalszym (środek akapitu) nie dostaje znaku.
-  const ciagDalszy = this.watek && this.watek_nr > 0 && this.lacznik !== undefined && this.lacznik !== '\n';
+  const ciagDalszy = this.watek && this.watek_nr > 0 && this.lacznik !== undefined && !String(this.lacznik).startsWith('\n');
   ctx.save();
   for (let i = 0; i < this._textLines.length; i += 1) {
     const wysokosc = this.getHeightOfLine(i);

@@ -535,7 +535,7 @@ async function dokladajTeraz() {
 // Ramka (albo połączone ramki) z wpisem-wzorem powtórzonym dla każdego wiersza tabeli – tekst płynie przez kolumny
 // i strony jak tekst książki, a „Dokładaj strony” dokłada strony, aż wszystkie wpisy się zmieszczą.
 // akcja: 'wlacz' (tabela – id), 'edytuj' (wzór z powrotem w ramce), 'wypelnij' (tekst ramki staje się wzorem), 'wylacz'.
-const czescRamki = (o, i) => ({ text: o.text || '', styles: Array.isArray(o.styles) ? o.styles : [], lacznik: i ? (o.lacznik ?? '\n') : '' });
+const czescRamki = (o, i) => ({ text: o.text || '', styles: Array.isArray(o.styles) ? o.styles : [], lacznik: i ? (o.lacznik ?? '\n') : '', lacznikStyles: i ? o.lacznik_style : null });
 export async function trescZTabeli(obj, akcja, tabela = null) {
   if (stan.tryb !== 'strona' || !obj) return;
   if (obj.isEditing) obj.exitEditing();

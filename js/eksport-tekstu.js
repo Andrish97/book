@@ -56,7 +56,7 @@ export function akapityProjektu(projekt, ciag = rozwin(projekt)) {
         let idx = 0;
         text.split('\n').forEach((linia, nrLinii) => {
           // Ciąg dalszy akapitu z poprzedniej ramki (łącznik inny niż nowa linia) – dopisany do ostatniego.
-          const ciagDalszy = nrLinii === 0 && r !== ramki[0] && r.lacznik !== undefined && r.lacznik !== '\n';
+          const ciagDalszy = nrLinii === 0 && r !== ramki[0] && r.lacznik !== undefined && !r.lacznik.startsWith('\n');
           const fr = [];
           for (let i = 0; i < linia.length; i += 1) {
             const st = style[idx + i] || {};
