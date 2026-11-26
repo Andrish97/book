@@ -383,8 +383,9 @@ test('serwer u siebie: pliki i foldery z dysku (obrazy i ZIP-y, bez podfolderów
   assert.deepEqual(pliki.map((p) => p.nazwa), ['a.png', 'paczka.zip']);
   await assert.rejects(czytajPliki([path.join(katalog, 'nie-ma.png')]), /Nie ma pliku ani folderu/);
   const lista = await obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, {});
-  const wgraj = lista.result.tools.find((n) => n.name === 'wgraj_obraz');
-  assert.ok(wgraj.inputSchema.properties.plik, 'serwer u siebie ma źródło „plik”');
+  // Serwer u siebie (ai/mcp) – nazwy po angielsku (#410).
+  const wgraj = lista.result.tools.find((n) => n.name === 'upload_image');
+  assert.ok(wgraj.inputSchema.properties.plik || wgraj.inputSchema.properties.file, 'serwer u siebie ma źródło „plik”');
   const s = await srodowisko(t);
   const zdalny = await s.mcp().obsluz({ jsonrpc: '2.0', id: 1, method: 'tools/list' }, {});
   assert.equal(zdalny.result.tools.find((n) => n.name === 'wgraj_obraz').inputSchema.properties.plik, undefined, 'zdalny łącznik nie widzi plików użytkownika');
@@ -392,10 +393,8 @@ test('serwer u siebie: pliki i foldery z dysku (obrazy i ZIP-y, bez podfolderów
     assert.ok(zdalny.result.tools.some((x) => x.name === n), n);
   }
   // Pliki w środowisku AI: wgraj_czesciami (bez sieci); niedostępne – link do wgrania zamiast odmowy (#75, #77).
-  const opisWgraj = zdalny.result.tools.find((n) => n.name === 'wgraj_obraz').description;
-  assert.match(opisWgraj, /wgraj_czesciami/);
-  assert.match(opisWgraj, /NIE odmawiaj – wywołaj link_do_wgrywania/);
-  assert.match(zdalny.result.tools.find((n) => n.name === 'link_do_wgrywania').description, /zamiast mówić, że nie masz dostępu do plików/);
+  // Opisy narzędzi bez odwołań do innych narzędzi (#408) – wskazówki są w instrukcjach łącznika (niżej).
+  assert.match(zdalny.result.tools.find((n) => n.name === 'link_do_wgrywania').description, /zdjęcia, które ma u siebie/);
   const start = await s.mcp().obsluz({ jsonrpc: '2.0', id: 2, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '1' } } }, {});
   assert.match(start.result.instructions, /wgraj_czesciami/);
   assert.match(start.result.instructions, /wywołaj link_do_wgrywania/);
@@ -425,7 +424,8 @@ test('pliki_z_czatu (ChatGPT, openai/fileParams): łącznik sam pobiera załącz
   w = await s.wywolaj('adres_do_wysylki');
   assert.match(w.tekst, /^POST https:\/\/api\.makietka\.app\/mcp\/sdk_[^/\s]+\/obraz\?projekt=p-1&nazwa=/);
   assert.match(w.tekst, /zastap=/);
-  assert.match(lista.result.tools.find((n) => n.name === 'usun_obrazy').description, /podmien_obraz/);
+  // Opisy narzędzi bez odwołań do innych narzędzi (#408) – podmianę obrazu opisuje sama podmien_obraz.
+  assert.match(lista.result.tools.find((n) => n.name === 'podmien_obraz').description, /\S/);
   w = await s.wywolaj('wgraj_obraz', { pliki_z_czatu: [{ file_id: 'file_3' }] });
   assert.equal(w.blad, true);
   assert.match(w.tekst, /link_do_wgrywania/);

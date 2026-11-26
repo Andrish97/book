@@ -264,9 +264,9 @@ test('widoczne miejsca (#140): lupa na górnym pasku, „Znajdź i zamień” pi
   await strona.click('.pasek-edytora > [data-akcja="znajdz"]');
   await strona.waitForSelector('#dlg-znajdz[open]');
   await strona.click('#znajdz-zamknij');
-  // Menu ⋯: pierwsza widoczna pozycja.
+  // Menu ⋯: „Znajdź i zamień” to pierwsza pozycja – widoczna na wąskim telefonie (na komputerze jest lupa na pasku).
   await strona.click('#przycisk-wiecej');
-  const pierwsza = await strona.evaluate(() => [...document.querySelectorAll('#menu-wiecej [role="menuitem"]')].find((b) => b.offsetParent)?.dataset.akcja);
+  const pierwsza = await strona.evaluate(() => document.querySelector('#menu-wiecej [role="menuitem"]')?.dataset.akcja);
   assert.equal(pierwsza, 'znajdz');
   await strona.keyboard.press('Escape');
   // ⋯ na liście warstw: Kopiuj wygląd.

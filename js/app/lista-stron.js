@@ -270,8 +270,9 @@ for (const z of ['keydown', 'input']) document.addEventListener(z, () => { ostat
 const wTrakciePracy = () => Boolean(edytor?.canvas?._currentTransform || (edytor?.aktywny?.isEditing && performance.now() - ostatniZnak < 2000));
 
 let generowanie = null;
+let jeszczeRaz = false; // wywołanie w trakcie (np. otwarcie innego projektu) – po bieżącym przebiegu jeszcze raz
 export function generujMiniatury() {
-  if (generowanie) return;
+  if (generowanie) { jeszczeRaz = true; return; }
   generowanie = (async () => {
     const projekt = stan.projekt;
     const ciag = rozwin(projekt);
@@ -309,7 +310,7 @@ export function generujMiniatury() {
     for (const cel of cele) {
       if (stan.projekt !== projekt) break;
       if (stan.miniatury.has(cel.id)) continue;
-      await new Promise((ok) => (window.requestIdleCallback || setTimeout)(ok));
+      await bezczynnie(); // wolna chwila, ale najwyżej 1,5 s – przy ciągłej pracy w tle miniatury i tak dochodzą
       if (stan.projekt !== projekt || stan.miniatury.has(cel.id)) continue;
       const odcisk = odciskMiniatury(projekt, cel, odciskProjektu(projekt), ciag.liczbaStron);
       const url = await renderujCel(projekt, cel, { szerokoscPx: 200, ciag });
@@ -319,7 +320,12 @@ export function generujMiniatury() {
       gotowe += 1;
       odswiezPostep();
     }
-  })().finally(() => { generowanie = null; const p = $('#postep-miniatur'); if (p) p.hidden = true; });
+  })().finally(() => {
+    generowanie = null;
+    const p = $('#postep-miniatur');
+    if (p) p.hidden = true;
+    if (jeszczeRaz) { jeszczeRaz = false; generujMiniatury(); }
+  });
 }
 
 // Miniatura z edytora pojawia się od razu, ale wycina stronę z płótna – w pasku spadu przy
@@ -344,9 +350,11 @@ export function odrysujMiniaturyWTle(ids) {
       await bezczynnie();
       if (stan.projekt !== projekt || doOdrysowania.has(id)) continue;
       if (wTrakciePracy()) { odrysujMiniaturyWTle([id, ...kolejka.slice(kolejka.indexOf(id) + 1)]); return; }
+      const odcisk = odciskMiniatury(projekt, cel, odciskProjektu(projekt), ciag.liczbaStron);
       const obraz = await renderujCel(projekt, cel, { szerokoscPx: 200, ciag });
       if (stan.projekt !== projekt || doOdrysowania.has(id)) continue;
       stan.miniatury.set(id, obraz);
+      zapiszMiniatureStrony(projekt.id, id, odcisk, obraz); // także na urządzeniu (#193) – inaczej po otwarciu rysowałaby się od nowa
       if (projekt.strony[0]?.id === id) projekt.miniatura = obraz; // miniatura projektu na liście projektów
       odswiezMiniature(id);
     }

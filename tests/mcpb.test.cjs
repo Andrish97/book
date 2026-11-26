@@ -51,9 +51,10 @@ test('rozszerzenie .mcpb: manifest zgodny ze specyfikacją 0.3, serwer startuje 
     wyslij({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
     const lista = await czekaj(2);
     const nazwy = lista.result.tools.map((t) => t.name);
-    for (const n of ['przeglad_projektu', 'zmien_elementy', 'opis_formatu', 'kontrola']) assert.ok(nazwy.includes(n), `brak narzędzia ${n}`);
+    // Nazwy narzędzi po angielsku (#410), jak w każdym łączniku MCP.
+    for (const n of ['get_project_overview', 'update_elements', 'get_format_spec', 'check_project']) assert.ok(nazwy.includes(n), `brak narzędzia ${n}`);
     // Opis formatu jest w paczce – działa bez sieci (adres bazy w teście prowadzi donikąd).
-    wyslij({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'opis_formatu', arguments: {} } });
+    wyslij({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'get_format_spec', arguments: {} } });
     const opis = await czekaj(3);
     assert.match(opis.result.content[0].text, /Format pliku projektu|Makietka/);
   } finally {

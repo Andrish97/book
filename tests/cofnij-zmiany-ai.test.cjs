@@ -3,18 +3,13 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { otworz, nowyProjekt, oknoAi, zamknijAi } = require('./pomoc.cjs');
+const { otworz, nowyProjekt, oknoAi, zamknijAi, zMenu } = require('./pomoc.cjs');
 
 const zapisano = (strona) => strona.waitForFunction(() => document.querySelector('#stan-zapisu').textContent === 'Zapisano', null, { timeout: 15000 });
 const kolorProstokata = (strona) => strona.evaluate(() => window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'rect' && !x.zWzorca)?.fill);
 
-async function zMenuWiecej(strona, akcja) {
-  for (let i = 0; i < 10 && !(await strona.isVisible(`#menu-wiecej [data-akcja="${akcja}"]`)); i += 1) {
-    if (await strona.evaluate(() => document.querySelector('#menu-wiecej').hidden)) await strona.click('#przycisk-wiecej');
-    await strona.waitForTimeout(100);
-  }
-  await strona.click(`#menu-wiecej [data-akcja="${akcja}"]`);
-}
+// „Cofnij zmiany AI…” jest w menu AI na pasku narzędzi (wcześniej w menu ⋯).
+const cofnijAi = (strona) => zMenu(strona, 'ai-menu', 'cofnij');
 
 test('cofnij zmiany AI: bez zmian – informacja; po zmianie AI – pytanie i powrót do stanu sprzed AI', async (t) => {
   const { strona, baza, bledy } = await otworz(t);
@@ -23,7 +18,7 @@ test('cofnij zmiany AI: bez zmian – informacja; po zmianie AI – pytanie i po
   await zapisano(strona);
   const przed = await kolorProstokata(strona);
 
-  await zMenuWiecej(strona, 'cofnij-ai');
+  await cofnijAi(strona);
   await strona.waitForFunction(() => /AI nie zmieniało|AI has not changed|ШІ не змінював/.test(document.querySelector('#powiadomienia, .powiadomienia, body').textContent));
 
   await oknoAi(strona);
@@ -42,14 +37,14 @@ test('cofnij zmiany AI: bez zmian – informacja; po zmianie AI – pytanie i po
   await strona.waitForFunction(() => window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'rect' && !x.zWzorca)?.fill === '#c1121f', null, { timeout: 15000 });
 
   // Rezygnacja niczego nie zmienia.
-  await zMenuWiecej(strona, 'cofnij-ai');
+  await cofnijAi(strona);
   await strona.waitForSelector('#dlg-potwierdz[open]');
   assert.match(await strona.textContent('#potwierdz-tresc'), /AI/);
   await strona.click('#potwierdz-nie');
   assert.equal(await kolorProstokata(strona), '#c1121f');
 
   // Cofnięcie: edytor wraca do koloru sprzed AI, konto też.
-  await zMenuWiecej(strona, 'cofnij-ai');
+  await cofnijAi(strona);
   await strona.waitForSelector('#dlg-potwierdz[open]');
   await strona.click('#potwierdz-tak');
   await strona.waitForFunction((k) => window.seriodruk.edytor.canvas.getObjects().find((x) => x.type === 'rect' && !x.zWzorca)?.fill === k, przed, { timeout: 15000 });
